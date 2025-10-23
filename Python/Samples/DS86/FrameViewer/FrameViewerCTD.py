@@ -18,7 +18,7 @@ minimum_value = 6000
 workspace_not_defined = 0
 not_set = 1
 exposureArray = []
-threshold = 10
+threshold = 15
 objectpixelsmin_x = 0
 objectpixelsmax_x = 0
 objectpixelsmin_y = 0
@@ -434,7 +434,7 @@ if  ret == 0:
 
                         object_region = frametmp[objectpixelsmin_y:objectpixelsmax_y, objectpixelsmin_x:objectpixelsmax_x]
 
-                        valid_values = object_region[(object_region > 0) & (object_region < colorSlope)]
+                        valid_values = object_region[(object_region >= minimum_value) & (object_region <= minimum_value + threshold)]
 
                         if valid_values.size > 0:
                             avg_depth = numpy.mean(valid_values) # média da profundidade
