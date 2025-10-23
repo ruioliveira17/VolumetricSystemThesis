@@ -18,7 +18,7 @@ minimum_value = 6000
 workspace_not_defined = 0
 not_set = 1
 exposureArray = []
-threshold = 25
+threshold = 10
 objectpixelsmin_x = 0
 objectpixelsmax_x = 0
 objectpixelsmin_y = 0
@@ -130,8 +130,9 @@ if  ret == 0:
                     print("get color frame failed:",ret)
 
             if workspace_not_defined == 0:
-                workspace = calibrate(hasColorToDepth, hasDepth, rgbframe, depthframe, colorSlope)
+                workspace, workspace_depth = calibrate(hasColorToDepth, hasDepth, rgbframe, depthframe, colorSlope)
                 print("Pontos da Area de Trabalho:", workspace)
+                print("workspace Depth:", workspace_depth)
 
                 workspace_not_defined = 1
 
@@ -273,7 +274,7 @@ if  ret == 0:
                                 min_value = numpy.min(valid_values) # minimo da profundidade
 
                                 if min_value < minimum_value:
-                                    print("Possível Ponto Menor")
+                                    #print("Possível Ponto Menor")
                                     #index = numpy.where(workspace_region == min_value)
                                     index = numpy.where(frametmp == min_value)
                                     min_idx = (index[0][0], index[1][0])
@@ -309,19 +310,19 @@ if  ret == 0:
                                         workspace_height = int((workspace[3] - workspace[1])/2)
                                         #workspace_height_mm = 185
 
-                                        workspace_depth = 960
+                                        #workspace_depth = 960
                                         object_depth = min_value
 
                                         object_width = abs(320 - x)
                                         #object_width_mm = int((object_width*workspace_width_mm)/workspace_width)
-                                        workspace_width_max = int((workspace_width * workspace_depth) / object_depth)
+                                        workspace_width_max = int((workspace_width * int(workspace_depth)) / object_depth)
                                         #print(x)
                                         #print(object_width)
                                         #print(workspace_width_max)
 
                                         object_height = abs(240 - y)
                                         #object_height_mm = int((object_height*workspace_height_mm)/workspace_height)
-                                        workspace_height_max = int((workspace_height * workspace_depth) / object_depth)
+                                        workspace_height_max = int((workspace_height * int(workspace_depth)) / object_depth)
                                         #print(y)
                                         #print(object_height)
                                         #print(workspace_height_max)
@@ -346,11 +347,11 @@ if  ret == 0:
                                                 break
 
                                             else:
-                                                print("Não serve:", x, y, min_value)
+                                                #print("Não serve:", x, y, min_value)
                                                 frametmp[y, x] = 9999
 
                                         else:
-                                            print(f"Ponto {min_idx} descartado, vizinhos diferentes")
+                                            #print(f"Ponto {min_idx} descartado, vizinhos diferentes")
                                             #workspace_region[y, x] = 9999
                                             frametmp[y, x] = 9999
                                 else:
@@ -437,7 +438,6 @@ if  ret == 0:
 
                         if valid_values.size > 0:
                             avg_depth = numpy.mean(valid_values) # média da profundidade
-                            print("Estou a entrar")
 
                             if not numpy.isnan(avg_depth):
                                 framedataToF.append(avg_depth)

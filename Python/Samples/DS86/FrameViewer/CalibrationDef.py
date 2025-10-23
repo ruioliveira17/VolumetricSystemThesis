@@ -55,7 +55,7 @@ def calibrate(hasColorToDepth, hasDepth, rgbframe, depthframe, colorSlope):
                     x_area_plus_width = x_area + wbound
                     y_area_plus_height = y_area + hbound
                     cv2.rectangle(frame_copy, (x_area, y_area), (x_area_plus_width, y_area_plus_height), (255, 0, 0), 2)
-                    detection_area =  (x_area, y_area, x_area_plus_width, y_area_plus_height)             
+                    detection_area =  (x_area, y_area, x_area_plus_width, y_area_plus_height)        
 
                 cv2.rectangle(frame_copy, (319, 239), (321, 241), (0, 255, 0), 2)
 
@@ -68,6 +68,9 @@ def calibrate(hasColorToDepth, hasDepth, rgbframe, depthframe, colorSlope):
                 frametmp.shape = (depthframe.height, depthframe.width)
                 frametmp = cv2.resize(frametmp, (640, 480))
                 
+                workspace_depth = frametmp[240,320]
+                print(workspace_depth)
+
                 img = numpy.int32(frametmp)
                 img = img*255/colorSlope
                 img = numpy.clip(img, 0, 255)
@@ -90,4 +93,4 @@ def calibrate(hasColorToDepth, hasDepth, rgbframe, depthframe, colorSlope):
     finally :
         print('end')
 
-    return detection_area
+    return detection_area, workspace_depth
