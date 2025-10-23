@@ -18,6 +18,7 @@ minimum_value = 6000
 workspace_not_defined = 0
 not_set = 1
 exposureArray = []
+threshold = 25
 objectpixelsmin_x = 0
 objectpixelsmax_x = 0
 objectpixelsmin_y = 0
@@ -80,6 +81,19 @@ if  ret == 0:
         print("VZ_SetTransformColorImgToDepthSensorEnabled ok")
     else:
         print("VZ_SetTransformColorImgToDepthSensorEnabled failed:",ret)    
+
+    ret,enable = camera.VZ_GetSpatialFilterEnabled()
+    if  ret == 0:
+        print("The default SpatialFilter switch is " + str(enable))
+    else:
+        print("VZ_GetSpatialFilterEnabled failed:"+ str(ret))   
+
+    enable = not enable
+    ret = camera.VZ_SetSpatialFilterEnabled(enable)
+    if  ret == 0:
+        print("Set SpatialFilter switch to "+ str(enable) + " is Ok")   
+    else:
+        print("VZ_SetSpatialFilterEnabled failed:"+ str(ret))
     
     try:
         while 1:
@@ -232,21 +246,118 @@ if  ret == 0:
                             else:
                                 print("get depth frame failed:",ret)
 
-                        workspace_region = frametmp[workspace[1]:workspace[3], workspace[0]:workspace[2]]
-                        #workspace_region = frametmp[workspace[1] - 40:workspace[3] + 40, workspace[0] - 40:workspace[2] + 40]
+                        #a = 30
 
-                        valid_values = workspace_region[(workspace_region > 0) & (workspace_region < colorSlope)]
-                        #valid_values = frametmp[(frametmp > 0) & (frametmp < colorSlope)]
+                        #workspace_region = frametmp[workspace[1]:workspace[3], workspace[0]:workspace[2]]
+                        #workspace_region = frametmp[workspace[1] - a:workspace[3] + a, workspace[0] - a:workspace[2] + a]
+
+                        #valid_values = workspace_region[(workspace_region > 150) & (workspace_region < colorSlope)]
+                        valid_values = frametmp[(frametmp > 150) & (frametmp < colorSlope)]
+
+                        #if valid_values.size > 0:
+                        #    min_value = numpy.min(valid_values) # minimo da profundidade
+                        #    if min_value <= minimum_value:
+                        #        minimum_value = min_value
+                        #        index = numpy.where(workspace_region == minimum_value)
+                        #        min_idx = (index[0][0], index[1][0])
+                        #        #min_idx = numpy.unravel_index(index, workspace_region.shape)
+
+                        #        exposureArray.append(exposureTime)
 
                         if valid_values.size > 0:
-                            min_value = numpy.min(valid_values) # minimo da profundidade
-                            if min_value <= minimum_value:
-                                minimum_value = min_value
-                                index = numpy.where(workspace_region == minimum_value)
-                                min_idx = (index[0][0], index[1][0])
-                                #min_idx = numpy.unravel_index(index, workspace_region.shape)
+                            while True:
+                            #min_value = numpy.min(valid_values) # minimo da profundidade
+                            #if min_value <= minimum_value:
+                                found = False
+                                valid_values = frametmp[(frametmp > 150) & (frametmp < colorSlope)]
+                                min_value = numpy.min(valid_values) # minimo da profundidade
 
-                                exposureArray.append(exposureTime)
+                                if min_value < minimum_value:
+                                    print("Possível Ponto Menor")
+                                    #index = numpy.where(workspace_region == min_value)
+                                    index = numpy.where(frametmp == min_value)
+                                    min_idx = (index[0][0], index[1][0])
+                                    y, x = min_idx
+
+                                    for y, x in zip(index[0], index[1]):
+                                        #minimum_value = min_value
+                                        #index = numpy.where(workspace_region == minimum_value)
+                                        #min_idx = (index[0][0], index[1][0])
+                                        #min_idx = numpy.unravel_index(index, workspace_region.shape)
+                                        #neighbors = workspace_region[max(0, y-1):y+2, max(0, x-1):x+2]
+                                        neighbors = frametmp[max(0, y-8):y+9, max(0, x-8):x+9]
+                                        tolerance = threshold
+                                        #if numpy.all(numpy.abs(neighbors - min_value) <= tolerance):
+                                        #    print(f"Ponto {min_idx} válido, todos vizinhos semelhantes")
+                                        #    minimum_value = min_value
+                                        #    exposureArray.append(exposureTime)
+                                        #    found = True
+
+                                        #    print("width workspace:", int((workspace[2] - workspace[0])/2))
+                                        #    print("height workspace:", int((workspace[3] - workspace[1])/2))
+                                        #    print("depth object:", min_value)
+                                        #    print("width object:", int(x))
+                                        #    print("width_mm object:", int((int(x)*135)/int((workspace[2] - workspace[0])/2)))
+                                        #    print("height object:", int(y))
+                                        #    print("height_mm object:", int((int(y)*185)/int((workspace[3] - workspace[1])/2)))
+
+                                        #    break
+
+                                        workspace_width = int((workspace[2] - workspace[0])/2)
+                                        #workspace_width_mm = 135
+
+                                        workspace_height = int((workspace[3] - workspace[1])/2)
+                                        #workspace_height_mm = 185
+
+                                        workspace_depth = 960
+                                        object_depth = min_value
+
+                                        object_width = abs(320 - x)
+                                        #object_width_mm = int((object_width*workspace_width_mm)/workspace_width)
+                                        workspace_width_max = int((workspace_width * workspace_depth) / object_depth)
+                                        #print(x)
+                                        #print(object_width)
+                                        #print(workspace_width_max)
+
+                                        object_height = abs(240 - y)
+                                        #object_height_mm = int((object_height*workspace_height_mm)/workspace_height)
+                                        workspace_height_max = int((workspace_height * workspace_depth) / object_depth)
+                                        #print(y)
+                                        #print(object_height)
+                                        #print(workspace_height_max)
+                                        if object_width <= workspace_width_max and object_height <= workspace_height_max:
+                                            valid_count = numpy.sum(numpy.abs(neighbors - min_value) <= tolerance)
+                                            total_count = neighbors.size
+
+                                            if valid_count / total_count >= 0.9:
+
+                                                print(f"Ponto {min_idx} válido, todos vizinhos semelhantes")
+                                                #print(x)
+                                                #print(object_width)
+                                                #print(workspace_width_max)
+                                                #print(y)
+                                                #print(object_height)
+                                                #print(workspace_height_max)
+                                                
+                                                minimum_value = min_value
+                                                point_idx = y,x
+                                                exposureArray.append(exposureTime)
+                                                found = True
+                                                break
+
+                                            else:
+                                                print("Não serve:", x, y, min_value)
+                                                frametmp[y, x] = 9999
+
+                                        else:
+                                            print(f"Ponto {min_idx} descartado, vizinhos diferentes")
+                                            #workspace_region[y, x] = 9999
+                                            frametmp[y, x] = 9999
+                                else:
+                                    break
+                                    
+                                if found:
+                                        break
 
                         #convert ushort value to 0xff is just for display
                         img = numpy.int32(frametmp)
@@ -257,21 +368,21 @@ if  ret == 0:
 
                         frame_copy = frametmp
                         cv2.rectangle(frame_copy, (workspace[0], workspace[1]), (workspace[2], workspace[3]), (255, 0, 0), 2)
-                        #cv2.rectangle(frame_copy, (workspace[0] - 40, workspace[1] - 40), (workspace[2] + 40, workspace[3] + 40), (255, 0, 0), 2)
+                        #cv2.rectangle(frame_copy, (workspace[0] - a, workspace[1] - a), (workspace[2] + a, workspace[3] + a), (255, 0, 0), 2)
 
                         cv2.imshow("Depth Image", frametmp)
                         cv2.waitKey(1)
                         
                         #exposureTime = 4000
-                        exposureTime += 100
+                        exposureTime += 300
                     else:
                         print("Profundidade mínima:", minimum_value/10, 'cm')
-                        min_y = workspace[1] + min_idx[0]
-                        min_x = workspace[0] + min_idx[1]
-                        #min_y = workspace[1] - 40 + min_idx[0]
-                        #min_x = workspace[0] - 40 + min_idx[1]
-                        #min_y = min_idx[0]
-                        #min_x = min_idx[1]
+                        #min_y = workspace[1] + min_idx[0]
+                        #min_x = workspace[0] + min_idx[1]
+                        #min_y = workspace[1] - a + min_idx[0]
+                        #min_x = workspace[0] - a + min_idx[1]
+                        min_y = point_idx[0]
+                        min_x = point_idx[1]
                         print("Ponto:", (min_x, min_y))
                         print("Exposure Times", exposureArray)
 
@@ -301,8 +412,6 @@ if  ret == 0:
                         
                         else:
                             print("get depth frame failed:",ret)
-
-                    threshold = 25
 
                     mask = (frametmp >= minimum_value) & (frametmp <= minimum_value + threshold)
 
