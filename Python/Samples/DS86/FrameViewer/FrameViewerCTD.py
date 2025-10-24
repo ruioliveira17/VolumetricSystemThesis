@@ -11,11 +11,11 @@ import time
 from scipy import ndimage
 
 camera = VzenseTofCam()
-exposureTime = 100
+exposureTime = 400
 framedataToF = []
 inc = 0
 minimum_value = 6000
-workspace_not_defined = 0
+workspace_not_defined = 1
 not_set = 1
 exposureArray = []
 threshold = 15
@@ -23,6 +23,7 @@ objectpixelsmin_x = 0
 objectpixelsmax_x = 0
 objectpixelsmin_y = 0
 objectpixelsmax_y = 0
+search = 0
 
 camera_count = camera.VZ_GetDeviceCount()
 retry_count = 100
@@ -69,7 +70,7 @@ if  ret == 0:
     colorSlope = c_uint16(1500) #distância máxima pretendida 5 metros
     
     camera.VZ_SetExposureControlMode(VzSensorType.VzToFSensor, VzExposureControlMode.VzExposureControlMode_Manual)
-    camera.VZ_SetExposureTime(VzSensorType.VzToFSensor, c_int32(100))
+    camera.VZ_SetExposureTime(VzSensorType.VzToFSensor, c_int32(400))
 
     ret_code, exposureStruct = camera.VZ_GetExposureTime(VzSensorType.VzToFSensor)
     print('Exposure Time:', exposureStruct.exposureTime)
@@ -129,12 +130,21 @@ if  ret == 0:
                 else:
                     print("get color frame failed:",ret)
 
-            if workspace_not_defined == 0:
-                workspace, workspace_depth = calibrate(hasColorToDepth, hasDepth, rgbframe, depthframe, colorSlope)
+            if workspace_not_defined == 1:
+                workspace, workspace_depth, fex_flag = calibrate(camera, colorSlope)
+                if fex_flag == 0:
+                    old_workspace = workspace
+                    old_workspace_depth = workspace_depth
+                    not_set = 1
+                elif fex_flag == 1:
+                    workspace = old_workspace
+                    workspace_depth = old_workspace_depth
+                    fex_flag = 0
+
                 print("Pontos da Area de Trabalho:", workspace)
                 print("workspace Depth:", workspace_depth)
-
-                workspace_not_defined = 1
+                
+                workspace_not_defined = 0
 
             #if  hasIR==1:
             #    frametmp = numpy.ctypeslib.as_array(irframe.pFrameData, (1, irframe.dataLen))
@@ -221,7 +231,7 @@ if  ret == 0:
 
                 #inc += 1
 
-                while not_set == 1:
+                while not_set == 1 or search == 1:
                     camera.VZ_SetExposureTime(VzSensorType.VzToFSensor, c_int32(exposureTime))
 
                     ret_code, exposureStruct = camera.VZ_GetExposureTime(VzSensorType.VzToFSensor)
@@ -313,20 +323,21 @@ if  ret == 0:
                                         #workspace_depth = 960
                                         object_depth = min_value
 
-                                        object_width = abs(320 - x)
+                                        #object_width = abs(320 - x)
                                         #object_width_mm = int((object_width*workspace_width_mm)/workspace_width)
                                         workspace_width_max = int((workspace_width * int(workspace_depth)) / object_depth)
                                         #print(x)
                                         #print(object_width)
                                         #print(workspace_width_max)
 
-                                        object_height = abs(240 - y)
+                                        #object_height = abs(240 - y)
                                         #object_height_mm = int((object_height*workspace_height_mm)/workspace_height)
                                         workspace_height_max = int((workspace_height * int(workspace_depth)) / object_depth)
                                         #print(y)
                                         #print(object_height)
                                         #print(workspace_height_max)
-                                        if object_width <= workspace_width_max and object_height <= workspace_height_max:
+                                        #if object_width <= workspace_width_max and object_height <= workspace_height_max:
+                                        if ((x >= (320 - (int(workspace_width_max)/2))) and (x <= (320 + (int(workspace_width_max)/2)))) and ((y >= (240 - (int(workspace_height_max)/2))) and (y <= (240 + (int(workspace_height_max)/2)))):
                                             valid_count = numpy.sum(numpy.abs(neighbors - min_value) <= tolerance)
                                             total_count = neighbors.size
 
@@ -358,7 +369,7 @@ if  ret == 0:
                                     break
                                     
                                 if found:
-                                        break
+                                    break
 
                         #convert ushort value to 0xff is just for display
                         img = numpy.int32(frametmp)
@@ -387,8 +398,9 @@ if  ret == 0:
                         print("Ponto:", (min_x, min_y))
                         print("Exposure Times", exposureArray)
 
-                        exposureTime = 100
+                        exposureTime = 400
                         not_set = 0
+                        search = 0
 
                 if not_set == 0:
                     camera.VZ_SetExposureTime(VzSensorType.VzToFSensor, c_int32(exposureTime))
@@ -463,6 +475,12 @@ if  ret == 0:
                     cv2.imshow("Depth Image", frametmp)
 
             key = cv2.waitKey(1)
+            if key == ord('c'):
+                workspace_not_defined = 1
+                cv2.destroyAllWindows()
+            if key == ord('s'):
+                search = 1
+                cv2.destroyAllWindows()
             if  key == 27:
                 cv2.destroyAllWindows()
                 print("---end---")
