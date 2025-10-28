@@ -92,25 +92,10 @@ def calibrate(camera, colorSlope):
                     x_area_plus_width = x_area + wbound
                     y_area_plus_height = y_area + hbound
                     cv2.rectangle(frame_copy, (x_area, y_area), (x_area_plus_width, y_area_plus_height), (255, 0, 0), 2)
-                    detection_area =  (x_area, y_area, x_area_plus_width, y_area_plus_height)  
-
-                # ------------------ ÁREA INTERIOR -------------------
-
-                #mask_hsv_inside = cv2.bitwise_not(mask_hsv[y_area:y_area_plus_height, x_area:x_area_plus_width])
-
-                #contours_inside, hierarchy = cv2.findContours(mask_hsv_inside, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
-                #if contours_inside:
-                #    largest_contour_inside = max(contours_inside, key=cv2.contourArea)
-                #    x_inside, y_inside, wbound_inside, hbound_inside = cv2.boundingRect(largest_contour_inside)
-                #    x_inside += x_area
-                #    y_inside += y_area
-                #    x_inside_plus_width = x_inside + wbound_inside
-                #    y_inside_plus_height = y_inside + hbound_inside
-                #    cv2.rectangle(frame_copy, (x_inside, y_inside), (x_inside_plus_width, y_inside_plus_height), (255, 0, 0), 2)      
+                    detection_area =  (x_area, y_area, x_area_plus_width, y_area_plus_height)       
 
                 # ---------------- VERIFICAÇÃO COR ------------------
 
-                #if (x_area is not None and x_inside is not None) and (x_area != x_inside) and (y_area != y_inside) and (x_area_plus_width != x_inside_plus_width) and (y_area_plus_height != y_inside_plus_height):
                     # ------------ Lateral Esquerda ---------------
                 LE = hsv_frame[y_area: y_area_plus_height, x_area + 3]
                 mask_le = (((LE[:,0] >= h_min) & (LE[:,0] <= h_max)) & ((LE[:,1] >= s_min) & (LE[:,1] <= s_max)) & ((LE[:,2] >= v_min) & (LE[:,2] <= v_max)))
@@ -182,7 +167,6 @@ def calibrate(camera, colorSlope):
                 
                 # Profundidade "Centro"
 
-                #workspace_depth = frametmp[center_y, center_x]
                 workspace_center_neighbors = frametmp[max(0, center_y-3):center_y+4, max(0, center_x-3):center_x+4]
                 centerDepth_valid_values = workspace_center_neighbors[(workspace_center_neighbors >= 150) & (workspace_center_neighbors <= colorSlope)]
                 if centerDepth_valid_values.size > 0:
@@ -193,12 +177,9 @@ def calibrate(camera, colorSlope):
                 valid_values = workspace_region[(workspace_region >= 150) & (workspace_region <= colorSlope)]
                 
                 if valid_values.size > 0:
-                    #print(valid_values)
                     avg_depth = numpy.mean(valid_values) # média da profundidade
                     print("Avg Depth:", avg_depth)
                     print("Workspace Depth", workspace_depth)
-                    #if avg_depth >= workspace_depth - 10 and avg_depth <= workspace_depth + 10:
-                    #if numpy.any(numpy.abs(valid_values - workspace_depth) > 10):
                     count = numpy.sum(numpy.abs(valid_values - workspace_depth) <= 10)
                     proportion_valid = count / valid_values.size
                     print("Proporção Profundidade:", proportion_valid)
