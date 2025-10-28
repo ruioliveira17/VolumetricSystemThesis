@@ -133,6 +133,9 @@ if  ret == 0:
                 exposureTime += 300
 
             else:
+                # FAZER HDR AQUI E DEPOIS TESTAR A IMAGEM
+                # ERA INCRIVEL TER ISTO POIS PERMITIRIA ANALISAR APENAS UMA VEZ A IMAGEM E OBTER TUDO O QUE É NECESSÁRIO
+
                 expositionBus_done = 1
                 hdr_done = 1
                 exposureTime = 400
