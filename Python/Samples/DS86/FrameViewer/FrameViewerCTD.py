@@ -23,6 +23,8 @@ objectpixelsmin_x = 0
 objectpixelsmax_x = 0
 objectpixelsmin_y = 0
 objectpixelsmax_y = 0
+sizes = 0
+workspace_limits = []
 search = 0
 
 camera_count = camera.VZ_GetDeviceCount()
@@ -186,7 +188,7 @@ if  ret == 0:
                 #    xbound, ybound, wbound, hbound = cv2.boundingRect(largest_contour)
                 #    cv2.rectangle(frame_copy, (xbound, ybound), (xbound + wbound, ybound + hbound), (255, 0, 0), 2)                    
 
-                if objectpixelsmin_x != 0 and objectpixelsmax_x != 0 and objectpixelsmin_y != 0 and objectpixelsmax_y != 0:
+                if objectpixelsmin_x != 0 and objectpixelsmax_x != 0 and objectpixelsmin_y != 0 and objectpixelsmax_y != 0 and len(sizes) != 0:
                     frame_copy = frametmp
                     cv2.rectangle(frame_copy, (objectpixelsmin_x, objectpixelsmin_y), (objectpixelsmax_x, objectpixelsmax_y), (255, 0, 255), 2)
                 cv2.imshow("ColorToDepth RGB Image", frametmp)
@@ -335,9 +337,16 @@ if  ret == 0:
                                         workspace_height_max = int((workspace_height * int(workspace_depth)) / object_depth)
                                         #print(y)
                                         #print(object_height)
+                                        #print(workspace_height)
                                         #print(workspace_height_max)
+                                        #print("-----------------")
                                         #if object_width <= workspace_width_max and object_height <= workspace_height_max:
-                                        if ((x >= (320 - (int(workspace_width_max)/2))) and (x <= (320 + (int(workspace_width_max)/2)))) and ((y >= (240 - (int(workspace_height_max)/2))) and (y <= (240 + (int(workspace_height_max)/2)))):
+                                        workspace_limits = int(320 - (workspace_width_max)), int(240 - (workspace_height_max)), int(320 + (workspace_width_max)), int(240 + (workspace_height_max))
+                                        #print(workspace)
+                                        #print(workspace_limits)
+                                        #print("-----------------")
+
+                                        if ((x >= workspace_limits[0]) and (x <= workspace_limits[2])) and ((y >= workspace_limits[1]) and (y <= workspace_limits[3])):
                                             valid_count = numpy.sum(numpy.abs(neighbors - min_value) <= tolerance)
                                             total_count = neighbors.size
 
@@ -380,6 +389,7 @@ if  ret == 0:
 
                         frame_copy = frametmp
                         cv2.rectangle(frame_copy, (workspace[0], workspace[1]), (workspace[2], workspace[3]), (255, 0, 0), 2)
+                        cv2.rectangle(frame_copy, (workspace_limits[0], workspace_limits[1]), (workspace_limits[2], workspace_limits[3]), (255, 0, 0), 2)
                         #cv2.rectangle(frame_copy, (workspace[0] - a, workspace[1] - a), (workspace[2] + a, workspace[3] + a), (255, 0, 0), 2)
 
                         cv2.imshow("Depth Image", frametmp)
@@ -426,7 +436,10 @@ if  ret == 0:
                         else:
                             print("get depth frame failed:",ret)
 
-                    mask = (frametmp >= minimum_value) & (frametmp <= minimum_value + threshold)
+                    workspace_area = frametmp[workspace_limits[1]:workspace_limits[3], workspace_limits[0]:workspace_limits[2]]
+
+                    mask = (workspace_area >= minimum_value) & (workspace_area <= minimum_value + threshold)
+                    #mask = (frametmp >= minimum_value) & (frametmp <= minimum_value + threshold)
 
                     labeled_array, num_features = ndimage.label(mask)
 
@@ -440,9 +453,9 @@ if  ret == 0:
                         largest_region_mask = (labeled_array == largest_region_index)
 
                         objectpixelsy, objectpixelsx = numpy.where(largest_region_mask)
-                        objectpixelsmin_x, objectpixelsmax_x = objectpixelsx.min(), objectpixelsx.max()
-                        objectpixelsmin_y, objectpixelsmax_y = objectpixelsy.min(), objectpixelsy.max()
-                        #print("Área Coberta:", objectpixelsmin_x, objectpixelsmin_y, objectpixelsmax_x, objectpixelsmax_y)
+                        objectpixelsmin_x, objectpixelsmax_x = workspace_limits[0] + objectpixelsx.min(), workspace_limits[0] + objectpixelsx.max()
+                        objectpixelsmin_y, objectpixelsmax_y = workspace_limits[1] + objectpixelsy.min(), workspace_limits[1] + objectpixelsy.max()
+                        print("Área Coberta:", objectpixelsmin_x, objectpixelsmin_y, objectpixelsmax_x, objectpixelsmax_y)
 
                         object_region = frametmp[objectpixelsmin_y:objectpixelsmax_y, objectpixelsmin_x:objectpixelsmax_x]
 
@@ -471,7 +484,9 @@ if  ret == 0:
                     frametmp = cv2.applyColorMap(img, cv2.COLORMAP_RAINBOW)
 
                     frame_copy = frametmp
-                    cv2.rectangle(frame_copy, (objectpixelsmin_x, objectpixelsmin_y), (objectpixelsmax_x, objectpixelsmax_y), (255, 0, 0), 2)
+                    if len(sizes) != 0:
+                        cv2.rectangle(frame_copy, (objectpixelsmin_x, objectpixelsmin_y), (objectpixelsmax_x, objectpixelsmax_y), (255, 0, 0), 2)
+                        cv2.rectangle(frame_copy, (workspace_limits[0], workspace_limits[1]), (workspace_limits[2], workspace_limits[3]), (255, 0, 0), 2)
                     cv2.imshow("Depth Image", frametmp)
 
             key = cv2.waitKey(1)
@@ -480,6 +495,7 @@ if  ret == 0:
                 cv2.destroyAllWindows()
             if key == ord('s'):
                 search = 1
+                minimum_value = 6000
                 cv2.destroyAllWindows()
             if  key == 27:
                 cv2.destroyAllWindows()
