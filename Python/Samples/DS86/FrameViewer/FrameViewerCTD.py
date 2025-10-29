@@ -113,8 +113,8 @@ if  ret == 0:
 
     #camera.VZ_SetFrameRate(c_uint8(30))
 
-    #ret = camera.VZ_GetFrameRate()
-    #print('Frame Rate:', ret)
+    ret = camera.VZ_GetFrameRate()
+    print('Frame Rate:', ret)
     
     try:
         while 1:
