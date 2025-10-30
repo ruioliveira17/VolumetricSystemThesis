@@ -213,7 +213,7 @@ def calibrate(camera, colorSlope):
                 calibrated = False
 
             key = cv2.waitKey(1)
-            if  key == ord('q'):
+            if  key == ord('c'):
                 print("----------------------------------------------------------------")
                 if calibrated is True:
                     print("System calibrated successfully!")
@@ -222,7 +222,7 @@ def calibrate(camera, colorSlope):
                     forced_exiting = 0
                     cv2.destroyAllWindows()
                     print("---end---")
-                    break;
+                    break
                 else:
                     print("System isnt calibrated!")
                     print("Try Again!")
@@ -241,7 +241,7 @@ def calibrate(camera, colorSlope):
                 forced_exiting = 1
                 cv2.destroyAllWindows()
                 print("---end---")
-                break;
+                break
                 
     except Exception as e :
         print(e)

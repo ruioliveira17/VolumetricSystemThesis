@@ -68,7 +68,6 @@ if  ret == 0:
     else:
         print("VZ_StartStream failed:",ret)
 
-
     colorSlope = c_uint16(1500) #distância máxima pretendida 5 metros
     
     camera.VZ_SetExposureControlMode(VzSensorType.VzToFSensor, VzExposureControlMode.VzExposureControlMode_Manual)

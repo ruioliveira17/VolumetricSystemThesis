@@ -10,20 +10,11 @@ camera = VzenseTofCam()
 
 exposureTime = 400
 hdr_done = 0
-hdrColor_done = 0
-hdrDepth_done = 0
 expositionBus_done = 0
-#hasColorToDepthArray = []
+hasColorToDepthArray = []
 hasDepthArray = []
 exposureTimeArray = []
-DTC_can = False
-D_can = False
-firstFrame = True
-i = 0
-#not_aligned = 1
-
-output_folderCTD = "C:/Tese/Python/FramesCTD"
-os.makedirs(output_folderCTD, exist_ok=True)
+not_aligned = 1
 
 camera_count = camera.VZ_GetDeviceCount()
 retry_count = 100
@@ -79,10 +70,7 @@ if  ret == 0:
 
 
     colorSlope = c_uint16(1500) #distância máxima pretendida 5 metros
-
-    ret_code, exposureStruct = camera.VZ_GetExposureTime(VzSensorType.VzToFSensor)
-    print('Exposure Time:', exposureStruct.exposureTime)
-
+    
     camera.VZ_SetExposureControlMode(VzSensorType.VzToFSensor, VzExposureControlMode.VzExposureControlMode_Manual)
     camera.VZ_SetExposureTime(VzSensorType.VzToFSensor, c_int32(400))
 
@@ -126,17 +114,10 @@ if  ret == 0:
     try:
         while 1:
             while exposureTime <= 4000 and expositionBus_done == 0:
-                if exposureTime != 400:
-                    camera.VZ_SetExposureTime(VzSensorType.VzToFSensor, c_int32(exposureTime))
+                camera.VZ_SetExposureTime(VzSensorType.VzToFSensor, c_int32(exposureTime))
 
-                    ret_code, exposureStruct = camera.VZ_GetExposureTime(VzSensorType.VzToFSensor)
-                #    print('Exposure Time:', exposureStruct.exposureTime)
-                #    print("Exposure Time Pretendido:", exposureTime)
-                #else:
-                #    print("Exposure Time Camera:", exposureStruct.exposureTime)
-                #    print("Exposure Time Pretendido:", exposureTime)
-
-                time.sleep(0.4)
+                ret_code, exposureStruct = camera.VZ_GetExposureTime(VzSensorType.VzToFSensor)
+                print('Exposure Time:', exposureStruct.exposureTime)
 
                 ret, frameready = camera.VZ_GetFrameReady(c_uint16(1200))
                 if  ret !=0:
@@ -160,120 +141,78 @@ if  ret == 0:
                     else:
                         print("get depth frame failed:",ret)
 
-                if  hasColorToDepth==1 and exposureStruct.exposureTime == exposureTime:
-                    frametmp = numpy.empty((0, 0, 3), dtype=numpy.uint8)
+                if  hasColorToDepth==1:
                     frametmp = numpy.ctypeslib.as_array(rgbframe.pFrameData, (1, rgbframe.width * rgbframe.height * 3))
                     frametmp.dtype = numpy.uint8
                     frametmp.shape = (rgbframe.height, rgbframe.width,3)
                     frametmp = cv2.resize(frametmp, (640, 480))
-                    #cv2.putText(frametmp, f"Exposure: {exposureStruct.exposureTime} us",
-                    #            (30, 40),                   # posição (x, y)
-                    #            cv2.FONT_HERSHEY_SIMPLEX,   # tipo de letra
-                    #            1,                           # escala (tamanho)
-                    #            (0, 255, 0),                 # cor (B, G, R)
-                    #            2,                           # espessura
-                    #            cv2.LINE_AA)                 # antialiasing
                     cv2.imshow("RGB Image", frametmp)
                     cv2.waitKey(1)
-                    
-                    if firstFrame:
-                        firstFrame = False
-                    else:
-                        DTC_can = True
-                        filename = f"CTDFrame_{i}.jpg"
-                        filepath = os.path.join(output_folderCTD, filename)
-                        cv2.imwrite(filepath, frametmp)
-                        #cv2.imwrite(filename, frametmp)
-                        #hasColorToDepthArray.append(frametmp)
+                    hasColorToDepthArray.append(frametmp)    
 
-                if  hasDepth==1 and exposureStruct.exposureTime == exposureTime:
-                    frametmp = numpy.empty((0, 0, 3), dtype=numpy.uint8)
+                if  hasDepth==1:
                     frametmp = numpy.ctypeslib.as_array(depthframe.pFrameData, (1, depthframe.width * depthframe.height * 2))
                     frametmp.dtype = numpy.uint16
                     frametmp.shape = (depthframe.height, depthframe.width)
                     frametmp = cv2.resize(frametmp, (640, 480))
                     #cv2.imshow("Depth Image", frametmp)
+                    hasDepthArray.append(frametmp)
                     
-                    if firstFrame:
-                        firstFrame = False
-                    else:
-                        D_can = True
-                        hasDepthArray.append(frametmp)
-
-                if DTC_can and D_can:
+                if hasDepth==1 and hasColorToDepth==1:
                     exposureTimeArray.append(exposureTime / 1e6)
                     exposureTime += 300
-                    i += 1
-                
-                DTC_can = False
-                D_can = False
-
-                if exposureTime == 4300:
-                    cv2.destroyAllWindows()
 
             else:
                 # FAZER HDR AQUI E DEPOIS TESTAR A IMAGEM
-                # ERA INCRIVEL TER ISTO POIS PERMITIRIA ANALISAR APENAS UMA VEZ A IMAGEM E OBTER TUDO O QUE É NECESSÁRIO            
-                if not hdrColor_done:
-                    frame_array = [os.path.join(output_folderCTD, f"CTDFrame_{i}.jpg") for i in range(13)]
-                    
-                    frame_list = [cv2.imread(fn) for fn in frame_array]
+                # ERA INCRIVEL TER ISTO POIS PERMITIRIA ANALISAR APENAS UMA VEZ A IMAGEM E OBTER TUDO O QUE É NECESSÁRIO
+                
+                exposureTimes = numpy.array(exposureTimeArray, dtype = numpy.float32)
 
-                    exposureTimes = numpy.array(exposureTimeArray, dtype = numpy.float32)
-                    print(exposureTimes)
+                #if not_aligned == 1:
+                #    alignMTB = cv2.createAlignMTB()
+                #    alignMTB.process(hasColorToDepthArray, hasColorToDepthArray)
+                #    not_aligned = 0
 
-                    #if not_aligned == 1:
-                    #    alignMTB = cv2.createAlignMTB()
-                    #    alignMTB.process(frame_list, frame_list)
-                    #    not_aligned = 0
+                mergeDebevec = cv2.createMergeDebevec()
+                hdrColor = mergeDebevec.process(hasColorToDepthArray, times = exposureTimes.copy())
 
-                    #calibrateDebevec = cv2.createCalibrateDebevec()
-                    #responseDebevec = calibrateDebevec.process(frame_list, exposureTimes.copy())
+                #tonemap = cv2.createTonemapReinhard(gamma = 1)
+                tonemap = cv2.createTonemapDrago(gamma=1.0, saturation=1.0)
+                ldr = tonemap.process(hdrColor)
+                ldr = numpy.nan_to_num(ldr)
+                ldr = numpy.clip(ldr, 0, 1)
+                ldr = (ldr*255).astype('uint8')
 
-                    mergeDebevec = cv2.createMergeDebevec()
-                    hdrColor = mergeDebevec.process(frame_list, exposureTimes.copy())
+                cv2.imshow("HDR Result", ldr)
+                #cv2.imshow("1", hasColorToDepthArray[0])
+                #cv2.imshow("2", hasColorToDepthArray[1])
+                #cv2.imshow("3", hasColorToDepthArray[2])
+                #cv2.imshow("4", hasColorToDepthArray[3])
+                #cv2.imshow("5", hasColorToDepthArray[4])
+                #cv2.imshow("6", hasColorToDepthArray[5])
+                #cv2.imshow("7", hasColorToDepthArray[6])
+                #cv2.imshow("8", hasColorToDepthArray[7])
+                #cv2.imshow("9", hasColorToDepthArray[8])
+                #cv2.imshow("10", hasColorToDepthArray[9])
+                #cv2.imshow("11", hasColorToDepthArray[10])
+                #cv2.imshow("12", hasColorToDepthArray[11])
+                #cv2.imshow("13", hasColorToDepthArray[12])
 
-                    #tonemap = cv2.createTonemapReinhard(gamma = 1)
-                    tonemap = cv2.createTonemapDrago(gamma=1.0, saturation=0.7)
-                    ldr = tonemap.process(hdrColor)
-                    ldr = numpy.nan_to_num(ldr)
-                    ldr = numpy.clip(ldr, 0, 1)
-                    ldr = (ldr*65535).astype('uint16')
-                    hdrColor_done = 1
-
-                    cv2.imshow("HDR Color", ldr)
-
-                if not hdrDepth_done:
-                    valid_frames = [numpy.where((frame > 0) & (frame <= 5000), frame, numpy.nan) for frame in hasDepthArray]
-
-                    hdrDepth = numpy.nanmean(numpy.stack(valid_frames, axis=-1), axis=-1)
-
-                    img = numpy.int32(hdrDepth)
-                    img = img*255/colorSlope
-                    img = numpy.clip(img, 0, 255)
-                    img = numpy.uint8(img)
-                    hdrDepth = cv2.applyColorMap(img, cv2.COLORMAP_RAINBOW)
-                    hdrDepth_done = 1
-
-                    cv2.imshow("HDR Depth", hdrDepth)
-                    
                 expositionBus_done = 1
-                hdr_done = 1
+                #hdr_done = 1
                 exposureTime = 400
 
             if  hdr_done:
                 expositionBus_done = 0
-                hdr_done = 0
-                i = 0
                 cv2.destroyAllWindows()
                 print("---end---")
-                break
+                break;
 
             key = cv2.waitKey(1)
             if  key == 27:
                 cv2.destroyAllWindows()
                 print("---end---")
-                break
+                break;
 
     except Exception as e :
         print(e)
