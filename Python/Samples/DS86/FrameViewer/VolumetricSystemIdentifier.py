@@ -6,6 +6,7 @@ from CalibrationDef import calibrate
 from HDRDef import hdr
 from MinDepthDef import MinDepth
 from LargestObject import LargestObject
+from Bundle import bundle
 
 from API.VzenseDS_api import *
 import cv2
@@ -154,6 +155,7 @@ if  ret == 0:
 
                 print("Pontos da Area de Trabalho:", workspace)
                 print("Workspace Depth:", workspace_depth)
+                #colorSlope = int(round(workspace_depth)) + 100
                 
                 workspace_not_defined = 0 
 
@@ -187,7 +189,8 @@ if  ret == 0:
                     #print("Thread Largest Object iniciada!")
 
                 if not_set == 0:
-                    not_set, minimum_value = LargestObject(hdrDepth, workspace_limits, threshold, workspace, minimum_value, not_set, hdrDepth_img, hdrColor)                
+                    not_set, minimum_value = LargestObject(hdrDepth, workspace_limits, threshold, workspace, minimum_value, not_set, hdrDepth_img, hdrColor)
+                    bundle(hdrColor, hdrDepth_img, workspace_limits)              
 
                 cv2.imshow("Depth Image", hdrDepth_img)
                 cv2.imshow("ColorToDepth RGB Image", hdrColor)
