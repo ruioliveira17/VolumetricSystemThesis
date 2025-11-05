@@ -4,6 +4,7 @@ sys.path.append('C:/Tese/Python')
 
 from CalibrationDef import calibrate
 from HDRDef import hdr
+from HDRDef2 import hdr2
 
 from API.VzenseDS_api import *
 import cv2
@@ -13,7 +14,7 @@ import threading
 from scipy import ndimage
 
 camera = VzenseTofCam()
-exposureTime = 400
+exposureTime = 700
 framedataToF = []
 inc = 0
 minimum_value = 6000
@@ -76,7 +77,7 @@ if  ret == 0:
     colorSlope = c_uint16(1500) #distância máxima pretendida 5 metros
     
     camera.VZ_SetExposureControlMode(VzSensorType.VzToFSensor, VzExposureControlMode.VzExposureControlMode_Manual)
-    camera.VZ_SetExposureTime(VzSensorType.VzToFSensor, c_int32(400))
+    camera.VZ_SetExposureTime(VzSensorType.VzToFSensor, c_int32(700))
 
     ret_code, exposureStruct = camera.VZ_GetExposureTime(VzSensorType.VzToFSensor)
     print('Exposure Time:', exposureStruct.exposureTime)
@@ -113,7 +114,12 @@ if  ret == 0:
     if  ret == 0:
         print("Set ConfidenceFilter switch to "+ str(params.enable) + " is Ok")   
     else:
-        print("VZ_SetConfidenceFilterParams failed:"+ str(ret))   
+        print("VZ_SetConfidenceFilterParams failed:"+ str(ret))
+
+    ret, intrinsics_depth = camera.VZ_GetSensorIntrinsicParameters(VzSensorType.VzToFSensor)
+    ret, intrinsics_color = camera.VZ_GetSensorIntrinsicParameters(VzSensorType.VzColorSensor)
+
+    ret, extrinsics = camera.VZ_GetSensorExtrinsicParameters()
 
     #camera.VZ_SetFrameRate(c_uint8(30))
 
@@ -140,7 +146,7 @@ if  ret == 0:
                     fex_flag = 0
 
                 print("Pontos da Area de Trabalho:", workspace)
-                print("workspace Depth:", workspace_depth)
+                print("Workspace Depth:", workspace_depth)
                 
                 workspace_not_defined = 0 
 
@@ -150,18 +156,11 @@ if  ret == 0:
                     hdr_thread_started = True
                     print("Thread HDR iniciada!")         
 
-            #key = cv2.waitKey(1)
-            #while key != ord('q'):
-            #    cv2.imshow("Depth", hdrDepth)
-            #    cv2.imshow("Color", hdrColor)
-            #    key = cv2.waitKey(1)
-
             if objectpixelsmin_x != 0 and objectpixelsmax_x != 0 and objectpixelsmin_y != 0 and objectpixelsmax_y != 0 and len(sizes) != 0:
                 frame_copy = hdrColor
                 cv2.rectangle(frame_copy, (objectpixelsmin_x, objectpixelsmin_y), (objectpixelsmax_x, objectpixelsmax_y), (255, 0, 255), 2)
                 cv2.imshow("ColorToDepth RGB Image", hdrColor)
 
-            #hdrColor, hdrDepth = hdr(camera, colorSlope, exposureStruct)
             if hdr_thread_started and 'hdrColor' in results and 'hdrDepth' in results:
                 hdrColor = results['hdrColor']
                 hdrDepth = results['hdrDepth']
@@ -232,7 +231,7 @@ if  ret == 0:
                     min_x = point_idx[1]
                     print("Ponto:", (min_x, min_y))
 
-                    exposureTime = 400
+                    #exposureTime = 700
                     not_set = 0
                     search = 0
 

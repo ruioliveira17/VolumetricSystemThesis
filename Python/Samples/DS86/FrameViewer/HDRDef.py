@@ -8,9 +8,10 @@ import time
 
 def hdr(camera, colorSlope, exposureStruct):
 
-    exposureTime = 400
+    exposureTime = 200
 
-    ldr = None
+    #ldr = None
+    hdrColor = None
     hdrDepth = None
 
     hdr_done = 0
@@ -19,6 +20,7 @@ def hdr(camera, colorSlope, exposureStruct):
     expositionBus_done = 0
 
     hasDepthArray = []
+    hasColorArray = []
     exposureTimeArray = []
     
     i = 0
@@ -80,9 +82,11 @@ def hdr(camera, colorSlope, exposureStruct):
                         firstFrame = False
                     else:
                         DTC_can = True
-                        filename = f"CTDFrame_{i}.jpg"
-                        filepath = os.path.join(output_folderCTD, filename)
-                        cv2.imwrite(filepath, frametmp)
+                        hasColorArray.append(frametmp)
+                        #print(frametmp)
+                        #filename = f"CTDFrame_{i}.jpg"
+                        #filepath = os.path.join(output_folderCTD, filename)
+                        #cv2.imwrite(filepath, frametmp)
 
                 if  hasDepth==1 and exposureStruct.exposureTime == exposureTime:
                     frametmp = numpy.empty((0, 0, 3), dtype=numpy.uint8)
@@ -99,7 +103,7 @@ def hdr(camera, colorSlope, exposureStruct):
 
                 if DTC_can and D_can:
                     exposureTimeArray.append(exposureTime / 1e6)
-                    exposureTime += 900
+                    exposureTime += 950
                     i += 1
                 
                 DTC_can = False
@@ -109,11 +113,28 @@ def hdr(camera, colorSlope, exposureStruct):
                 # FAZER HDR AQUI E DEPOIS TESTAR A IMAGEM
                 # ERA INCRIVEL TER ISTO POIS PERMITIRIA ANALISAR APENAS UMA VEZ A IMAGEM E OBTER TUDO O QUE É NECESSÁRIO            
                 if not hdrColor_done:
-                    frame_array = [os.path.join(output_folderCTD, f"CTDFrame_{i}.jpg") for i in range(len(exposureTimeArray))]
-                    
-                    frame_list = [cv2.imread(fn) for fn in frame_array]
+                    #frame_array = [os.path.join(output_folderCTD, f"CTDFrame_{i}.jpg") for i in range(len(exposureTimeArray))]
 
-                    exposureTimes = numpy.array(exposureTimeArray, dtype = numpy.float32)
+                    #valid_frames = [numpy.where((frame >= 0) & (frame <= 255), frame, numpy.nan) for frame in hasColorArray]
+
+                    #exposure_times = numpy.array(exposureTimeArray, dtype=numpy.float32)
+                    #weights = 1.0 / exposure_times  # Exposições longas pesam menos
+
+                    stacked = numpy.stack(hasColorArray, axis=-1)
+                    #numerator = numpy.nanmean(stacked * weights[None, None, None, :], axis=-1)
+                    #denominator = numpy.nanmean(weights[None, None, None, :], axis=-1)
+                    #hdrColor = numerator / denominator
+
+                    #hdrColor = numpy.nanmean(numpy.stack(hasColorArray, axis=-1), axis=-1)
+                    mask_valid = stacked > 0
+                    stacked_masked = numpy.where(mask_valid, stacked, numpy.nan)
+                    hdrColor = numpy.nanmean(stacked_masked, axis=-1)
+                    hdrColor = numpy.nan_to_num(hdrColor, nan=0)
+                    hdrColor = hdrColor.astype(numpy.uint8)
+
+                    #frame_list = [cv2.imread(fn) for fn in frame_array]
+
+                    #exposureTimes = numpy.array(exposureTimeArray, dtype = numpy.float32)
 
                     #if not_aligned == 1:
                     #    alignMTB = cv2.createAlignMTB()
@@ -123,14 +144,14 @@ def hdr(camera, colorSlope, exposureStruct):
                     #calibrateDebevec = cv2.createCalibrateDebevec()
                     #responseDebevec = calibrateDebevec.process(frame_list, exposureTimes.copy())
 
-                    mergeDebevec = cv2.createMergeDebevec()
-                    hdrColor = mergeDebevec.process(frame_list, exposureTimes.copy())
+                    #mergeDebevec = cv2.createMergeDebevec()
+                    #hdrColor = mergeDebevec.process(frame_list, exposureTimes.copy())
 
-                    tonemap = cv2.createTonemapDrago(gamma=1.0, saturation=0.7)
-                    ldr = tonemap.process(hdrColor)
-                    ldr = numpy.nan_to_num(ldr)
-                    ldr = numpy.clip(ldr, 0, 1)
-                    ldr = (ldr*65535).astype('uint16')
+                    #tonemap = cv2.createTonemapDrago(gamma=1.0, saturation=0.7)
+                    #ldr = tonemap.process(hdrColor)
+                    #ldr = numpy.nan_to_num(ldr)
+                    #ldr = numpy.clip(ldr, 0, 1)
+                    #ldr = (ldr*65535).astype('uint16')
                     hdrColor_done = 1
 
                 if not hdrDepth_done:
@@ -141,7 +162,7 @@ def hdr(camera, colorSlope, exposureStruct):
                     hdrDepth_done = 1
                     
                 expositionBus_done = 1
-                exposureTime = 400
+                exposureTime = 200
 
                 if hdrColor_done and hdrDepth_done:
                     hdr_done = 1
@@ -151,7 +172,8 @@ def hdr(camera, colorSlope, exposureStruct):
                 hdr_done = 0
                 i = 0
                 print("HDR Processed")
-                return ldr, hdrDepth
+                #return ldr, hdrDepth
+                return hdrColor, hdrDepth
                 
     except Exception as e :
         print(e)

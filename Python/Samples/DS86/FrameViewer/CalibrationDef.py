@@ -12,6 +12,7 @@ def calibrate(camera, colorSlope):
     workspace_interrupted = True # Fita não é interrompida
     workspace_free = False # Toda a área tem a mesma profundidade
     workspace_clear = False # Profundidade é igual em toda a workspace e borda amarela totalmente detetada
+    workspace_depth = 0
     calibrated = False
     x_area = None
     x_inside = None
@@ -184,7 +185,7 @@ def calibrate(camera, colorSlope):
                     proportion_valid = count / valid_values.size
                     print("Proporção Profundidade:", proportion_valid)
 
-                    if proportion_valid >= 0.9:
+                    if proportion_valid >= 0.85:
                         workspace_free = True
                         workspace_depth = avg_depth
                     else:
