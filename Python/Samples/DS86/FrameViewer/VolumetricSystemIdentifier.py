@@ -207,7 +207,7 @@ if  ret == 0:
             key = cv2.waitKey(1)
             if key == ord('c'):
                 workspace_not_defined = 1
-                stop_event.set()  # sinaliza a thread HDR para parar
+                stop_event.set()
                 hdr_thread.join()
                 cv2.destroyAllWindows()
             if  key == 27:

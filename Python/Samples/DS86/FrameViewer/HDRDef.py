@@ -4,6 +4,7 @@ sys.path.append('C:/Tese/Python')
 
 from API.VzenseDS_api import *
 import cv2
+import time
 
 def hdr(camera, exposureStruct):
 
@@ -35,7 +36,7 @@ def hdr(camera, exposureStruct):
 
             ret_code, exposureStruct = camera.VZ_GetExposureTime(VzSensorType.VzToFSensor)
 
-            #time.sleep(0.4)
+            time.sleep(0.1)
 
             ret, frameready = camera.VZ_GetFrameReady(c_uint16(1200))
             if  ret !=0:
@@ -94,7 +95,7 @@ def hdr(camera, exposureStruct):
 
             if DTC_can and D_can:
                 exposureTimeArray.append(exposureTime / 1e6)
-                exposureTime += 950
+                exposureTime += 1900
                 i += 1
             
             DTC_can = False

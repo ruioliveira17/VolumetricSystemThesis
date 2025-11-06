@@ -59,17 +59,17 @@ def LargestObject(hdrDepth, workspace_limits, threshold, workspace, minimum_valu
                     print(f"Profundidade média: {avg_depth/10:.1f} cm")
 
         frame_copy = hdrDepth_img
-        if len(sizes) != 0:
-            cv2.rectangle(frame_copy, (objectpixelsmin_x, objectpixelsmin_y), (objectpixelsmax_x, objectpixelsmax_y), (255, 255, 0), 2)
-            cv2.rectangle(frame_copy, (workspace[0], workspace[1]), (workspace[2], workspace[3]), (255, 0, 255), 2)
-            cv2.rectangle(frame_copy, (workspace_limits[0], workspace_limits[1]), (workspace_limits[2], workspace_limits[3]), (255, 0, 0), 2)
+        #if len(sizes) != 0:
+            #cv2.rectangle(frame_copy, (objectpixelsmin_x, objectpixelsmin_y), (objectpixelsmax_x, objectpixelsmax_y), (255, 255, 0), 2)
+            #cv2.rectangle(frame_copy, (workspace[0], workspace[1]), (workspace[2], workspace[3]), (255, 0, 255), 2)
+            #cv2.rectangle(frame_copy, (workspace_limits[0], workspace_limits[1]), (workspace_limits[2], workspace_limits[3]), (255, 0, 0), 2)
 
         not_set = 1
         minimum_value = 6000
         
         if objectpixelsmin_x != 0 and objectpixelsmax_x != 0 and objectpixelsmin_y != 0 and objectpixelsmax_y != 0 and len(sizes) != 0:
             frame_copy = hdrColor
-            cv2.rectangle(frame_copy, (objectpixelsmin_x, objectpixelsmin_y), (objectpixelsmax_x, objectpixelsmax_y), (255, 0, 255), 2)
+            #cv2.rectangle(frame_copy, (objectpixelsmin_x, objectpixelsmin_y), (objectpixelsmax_x, objectpixelsmax_y), (255, 0, 255), 2)
 
         return not_set, minimum_value
 

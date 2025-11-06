@@ -12,11 +12,14 @@ def bundle(hdrColor, hdrDepth_img, workspace_limits):
     grey = cv2.cvtColor(workspace_area, cv2.COLOR_BGR2GRAY)
     
     blur = cv2.GaussianBlur(grey, (5,5), 0)
+    cv2.imshow("Blur", blur)
     
-    _, binary = cv2.threshold(blur, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    _, binary = cv2.threshold(blur, 132, 255, cv2.THRESH_BINARY)
 
-    if numpy.mean(binary) > 127:
-        binary = cv2.bitwise_not(binary)
+    #if numpy.mean(binary) > 127:
+    #    binary = cv2.bitwise_not(binary)
+
+    cv2.imshow("binary", binary)
 
     element = numpy.ones((5, 5), numpy.uint8)
     morf = cv2.morphologyEx(binary, cv2.MORPH_CLOSE, element)
