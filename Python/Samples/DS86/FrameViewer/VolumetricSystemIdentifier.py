@@ -31,6 +31,14 @@ results = {}
 resultsMinDepth = {}
 resultsLargestObject = {}
 
+largura = 0
+altura = 0
+
+avg_depth = 0
+
+width_meters = 0
+height_meters = 0
+
 stop_event = threading.Event()
 
 camera_count = camera.VZ_GetDeviceCount()
@@ -176,6 +184,7 @@ if  ret == 0:
                 hdrDepth_img = cv2.applyColorMap(img, cv2.COLORMAP_RAINBOW)
 
                 not_set, workspace_limits, minimum_value = MinDepth(hdrDepth, colorSlope, threshold, workspace, workspace_depth, minimum_value, not_set)
+                min_depth = minimum_value
                 #if not minDepth_thread_started:
                 #    minDepth_thread = threading.Thread(target=minDepth_thread, args=(hdrDepth, colorSlope, threshold, workspace, workspace_depth, minimum_value, not_set, resultsMinDepth, stop_event))
                 #    minDepth_thread.start()
@@ -189,8 +198,19 @@ if  ret == 0:
                     #print("Thread Largest Object iniciada!")
 
                 if not_set == 0:
-                    not_set, minimum_value = LargestObject(hdrDepth, workspace_limits, threshold, workspace, minimum_value, not_set, hdrDepth_img, hdrColor)
-                    bundle(hdrColor, hdrDepth_img, workspace_limits)              
+                    not_set, minimum_value, avg_depth = LargestObject(hdrDepth, workspace_limits, threshold, workspace, minimum_value, not_set, hdrDepth_img, hdrColor)
+                    largura, altura = bundle(hdrColor, hdrDepth_img, workspace_limits)              
+
+                width_meters = (largura) * 27.5 / (workspace_limits[2] - workspace_limits[0])
+                height_meters = (altura) * 37 / (workspace_limits[3] - workspace_limits[1])
+                
+                #print("width meters", width_meters)
+                #print("height meters", height_meters)
+                #print("Workspace Depth",workspace_depth)
+                #print("Averege Depth", avg_depth)
+
+                volume = width_meters * height_meters * ((workspace_depth - avg_depth) / 10)
+                print("Volume Total:", volume)
 
                 cv2.imshow("Depth Image", hdrDepth_img)
                 cv2.imshow("ColorToDepth RGB Image", hdrColor)

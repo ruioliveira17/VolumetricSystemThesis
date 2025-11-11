@@ -18,6 +18,8 @@ def LargestObject(hdrDepth, workspace_limits, threshold, workspace, minimum_valu
     objectpixelsmax_y = 0
     sizes = 0
 
+    avg_depth = 0
+
     try:    
         workspace_area = hdrDepth[workspace_limits[1]:workspace_limits[3], workspace_limits[0]:workspace_limits[2]]
 
@@ -71,7 +73,7 @@ def LargestObject(hdrDepth, workspace_limits, threshold, workspace, minimum_valu
             frame_copy = hdrColor
             #cv2.rectangle(frame_copy, (objectpixelsmin_x, objectpixelsmin_y), (objectpixelsmax_x, objectpixelsmax_y), (255, 0, 255), 2)
 
-        return not_set, minimum_value
+        return not_set, minimum_value, avg_depth
 
     except Exception as e :
         print(e)
