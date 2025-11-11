@@ -201,15 +201,15 @@ if  ret == 0:
                     not_set, minimum_value, avg_depth = LargestObject(hdrDepth, workspace_limits, threshold, workspace, minimum_value, not_set, hdrDepth_img, hdrColor)
                     largura, altura = bundle(hdrColor, hdrDepth_img, workspace_limits)              
 
-                width_meters = (largura) * 27.5 / (workspace_limits[2] - workspace_limits[0])
-                height_meters = (altura) * 37 / (workspace_limits[3] - workspace_limits[1])
+                width_meters = (largura) * 0.275 / (workspace_limits[2] - workspace_limits[0])
+                height_meters = (altura) * 0.37 / (workspace_limits[3] - workspace_limits[1])
                 
                 print("width meters", width_meters)
                 print("height meters", height_meters)
                 #print("Workspace Depth",workspace_depth)
                 #print("Averege Depth", avg_depth)
 
-                volume = width_meters * height_meters * ((workspace_depth - avg_depth) / 10)
+                volume = width_meters * height_meters * ((workspace_depth - avg_depth) / 1000)
                 print("Volume Total:", volume)
 
                 cv2.imshow("Depth Image", hdrDepth_img)

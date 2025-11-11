@@ -38,12 +38,11 @@ def bundle(hdrColor, hdrDepth_img, workspace_limits):
             box = cv2.boxPoints(rect)
             box = numpy.round(box).astype(numpy.int32)
 
-            w_pixels, h_pixels = rect[1]
+            h_pixels, w_pixels = rect[1]
             cv2.drawContours(hdrColor, [box + [workspace_limits[0], workspace_limits[1]]], 0,  (0, 0, 255), 2)
 
         else:
-            x, y, largura, altura = cv2.boundingRect(all_points)
-            cv2.rectangle(hdrColor, (workspace_limits[0] + x,  workspace_limits[1] + y), (workspace_limits[0] + x + largura, workspace_limits[1] + y + altura), (0, 0, 255), 2)
+            x, y, w_pixels, h_pixels = cv2.boundingRect(all_points)
+            cv2.rectangle(hdrColor, (workspace_limits[0] + x,  workspace_limits[1] + y), (workspace_limits[0] + x + w_pixels, workspace_limits[1] + y + h_pixels), (0, 0, 255), 2)
                   
-
     return w_pixels, h_pixels
