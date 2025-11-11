@@ -204,13 +204,14 @@ if  ret == 0:
                 width_meters = (largura) * 0.275 / (workspace_limits[2] - workspace_limits[0])
                 height_meters = (altura) * 0.37 / (workspace_limits[3] - workspace_limits[1])
                 
-                print("width meters", width_meters)
-                print("height meters", height_meters)
+                print(f"Width:  {(width_meters * 100):.1f} cm")
+                print(f"Height:  {(height_meters * 100):.1f} cm")
                 #print("Workspace Depth",workspace_depth)
                 #print("Averege Depth", avg_depth)
 
                 volume = width_meters * height_meters * ((workspace_depth - avg_depth) / 1000)
-                print("Volume Total:", volume)
+                #print("Volume Total:", volume)
+                print(f"Volume Total:  {volume} m^3")
 
                 cv2.imshow("Depth Image", hdrDepth_img)
                 cv2.imshow("ColorToDepth RGB Image", hdrColor)
