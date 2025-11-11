@@ -7,8 +7,8 @@ import cv2
 
 def bundle(hdrColor, hdrDepth_img, workspace_limits):
 
-    x = 0
-    y = 0
+    w_pixels = 0
+    h_pixels = 0
     largura = 0
     altura = 0
 
@@ -32,11 +32,18 @@ def bundle(hdrColor, hdrDepth_img, workspace_limits):
     contour, _ = cv2.findContours(morf, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
     if len(contour) > 0:
-
         all_points = numpy.vstack(contour)
+        if len(contour) == 1:
+            rect = cv2.minAreaRect(all_points)
+            box = cv2.boxPoints(rect)
+            box = numpy.round(box).astype(numpy.int32)
 
-        x, y, largura, altura = cv2.boundingRect(all_points)
+            w_pixels, h_pixels = rect[1]
+            cv2.drawContours(hdrColor, [box + [workspace_limits[0], workspace_limits[1]]], 0,  (0, 0, 255), 2)
 
-        cv2.rectangle(hdrColor, (workspace_limits[0] + x,  workspace_limits[1] + y), (workspace_limits[0] + x + largura, workspace_limits[1] + y + altura), (0, 0, 255), 2)
+        else:
+            x, y, largura, altura = cv2.boundingRect(all_points)
+            cv2.rectangle(hdrColor, (workspace_limits[0] + x,  workspace_limits[1] + y), (workspace_limits[0] + x + largura, workspace_limits[1] + y + altura), (0, 0, 255), 2)
+                  
 
-    return largura, altura
+    return w_pixels, h_pixels

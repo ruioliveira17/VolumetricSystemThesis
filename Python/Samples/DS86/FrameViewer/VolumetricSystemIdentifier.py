@@ -204,8 +204,8 @@ if  ret == 0:
                 width_meters = (largura) * 27.5 / (workspace_limits[2] - workspace_limits[0])
                 height_meters = (altura) * 37 / (workspace_limits[3] - workspace_limits[1])
                 
-                #print("width meters", width_meters)
-                #print("height meters", height_meters)
+                print("width meters", width_meters)
+                print("height meters", height_meters)
                 #print("Workspace Depth",workspace_depth)
                 #print("Averege Depth", avg_depth)
 
