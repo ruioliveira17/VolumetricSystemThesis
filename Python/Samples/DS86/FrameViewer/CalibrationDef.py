@@ -14,6 +14,7 @@ def calibrate(camera, colorSlope):
     workspace_clear = False # Profundidade é igual em toda a workspace e borda amarela totalmente detetada
 
     workspace_depth = 0
+    center_y = 0
     
     calibrated = False
     x_area = None
