@@ -216,7 +216,7 @@ if  ret == 0:
                     #hdrDepth = results['hdrDepth']
                     #not_set, minimum_value, avg_depth = LargestObject(hdrDepth, objects_info, threshold, workspace, minimum_value, not_set, hdrDepth_img, hdrColor)
                     #largura, altura = bundle(hdrColor, hdrDepth_img, workspace_limits)
-                    width, height, minimum_value, not_set = bundle(hdrColor, hdrDepth_img, objects_info)            
+                    width, height, minimum_value, not_set = bundle(hdrColor, hdrDepth_img, objects_info, threshold, hdrDepth)            
 
                 #width_meters = (largura) * 0.275 / (workspace_limits[2] - workspace_limits[0])
                 #height_meters = (altura) * 0.37 / (workspace_limits[3] - workspace_limits[1])

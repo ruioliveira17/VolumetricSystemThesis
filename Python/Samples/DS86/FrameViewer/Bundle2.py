@@ -5,44 +5,86 @@ sys.path.append('C:/Tese/Python')
 from API.VzenseDS_api import *
 import cv2
 
-def bundle(hdrColor, hdrDepth_img, objects_info):
+def bundle(hdrColor, hdrDepth_img, objects_info, threshold, hdrDepth):
 
     w_pixels = 0
     h_pixels = 0
 
+    contours = []
+
     x1, y1, x2, y2 = objects_info[0]["workspace_limits"]
     workspace_area = hdrDepth_img[y1:y2, x1:x2]
+    workspace_area2 = hdrDepth[y1:y2, x1:x2]
 
-    grey = cv2.cvtColor(workspace_area, cv2.COLOR_BGR2GRAY)
-    
-    blur = cv2.GaussianBlur(grey, (27,27), 0)
-    cv2.imshow("Blur", blur)
-    
-    _, binary = cv2.threshold(blur, 140, 255, cv2.THRESH_BINARY)
+    if len(objects_info) != 0:
+        for obj in objects_info:
 
-    #if numpy.mean(binary) > 127:
-    #    binary = cv2.bitwise_not(binary)
+            mask = (workspace_area2 >= (obj["depth"] - threshold)) & (workspace_area2 <= (obj["depth"] + threshold))
 
-    cv2.imshow("binary", binary)
+            depth_filtered = numpy.where(mask, workspace_area2, 0).astype(numpy.uint16)
 
-    element = numpy.ones((5, 5), numpy.uint8)
-    morf = cv2.morphologyEx(binary, cv2.MORPH_CLOSE, element)
+            img = numpy.int32(depth_filtered)
+            img = img*255/1500
+            img = numpy.clip(img, 0, 255)
+            img = numpy.uint8(img)
+            hdrDepth_img = cv2.applyColorMap(img, cv2.COLORMAP_RAINBOW)
 
-    contour, _ = cv2.findContours(morf, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            #depth_norm = cv2.normalize(depth_filtered, None, 0, 255, cv2.NORM_MINMAX)
+            #depth_norm = numpy.uint8(depth_norm)
 
-    if len(contour) > 0:
-        all_points = numpy.vstack(contour)
-        if len(contour) == 1:
-            rect = cv2.minAreaRect(all_points)
+            cv2.imshow("depth_norm", hdrDepth_img)
+
+            gray = cv2.cvtColor(hdrDepth_img, cv2.COLOR_BGR2GRAY)
+        
+            blur = cv2.GaussianBlur(gray, (15,15), 0)
+            #blur = cv2.GaussianBlur(depth_norm, (15,15), 0)
+            
+            _, binary = cv2.threshold(blur, 140, 255, cv2.THRESH_BINARY)
+
+            #binary = cv2.adaptiveThreshold(blur, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 21, 5)
+
+            cv2.imshow("binary", binary)
+
+            invBinary = cv2.bitwise_not(binary)
+
+            cv2.imshow("invBinary", invBinary)
+
+            element = numpy.ones((3, 3), numpy.uint8)
+            #morf = cv2.morphologyEx(binary, cv2.MORPH_CLOSE, element)
+            morf = cv2.morphologyEx(invBinary, cv2.MORPH_GRADIENT, element)
+
+            contour, _ = cv2.findContours(morf, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+            shifted_contours = [c + numpy.array([[[x1, y1]]], dtype=numpy.int32) for c in contour]
+
+            contours.append(shifted_contours)
+
+    #for contour_list in contours:
+    #shifted_contours = [c + numpy.array([[[x1, y1]]], dtype=numpy.int32) for c in contour]
+
+    hdrColor_copy = hdrColor.copy()
+
+    for contour_list in contours:
+        for c in contour_list:
+            rect = cv2.minAreaRect(c)
             box = cv2.boxPoints(rect)
             box = numpy.round(box).astype(numpy.int32)
+            cv2.drawContours(hdrColor_copy, [box], 0, (0, 0, 255), 2)
+            cv2.imshow("Objects", hdrColor_copy)
 
-            w_pixels, h_pixels = rect[1]
-            cv2.drawContours(hdrColor, [box + [x1, y1]], 0,  (0, 0, 255), 2)
+    #if len(contour) > 0:
+    #    all_points = numpy.vstack(contour)
+    #    if len(contour) == 1:
+    #        rect = cv2.minAreaRect(all_points)
+    #        box = cv2.boxPoints(rect)
+    #        box = numpy.round(box).astype(numpy.int32)
 
-        else:
-            x, y, w_pixels, h_pixels = cv2.boundingRect(all_points)
-            cv2.rectangle(hdrColor, (x1 + x,  y1 + y), (x1 + x + w_pixels, y1 + y + h_pixels), (0, 0, 255), 2)
+    #        w_pixels, h_pixels = rect[1]
+    #        cv2.drawContours(hdrColor, [box + [x1, y1]], 0,  (0, 0, 255), 2)
+
+    #    else:
+    #        x, y, w_pixels, h_pixels = cv2.boundingRect(all_points)
+    #        cv2.rectangle(hdrColor, (x1 + x,  y1 + y), (x1 + x + w_pixels, y1 + y + h_pixels), (0, 0, 255), 2)
 
     not_set = 1
     minimum_value = 6000
