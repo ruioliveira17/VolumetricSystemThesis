@@ -187,7 +187,7 @@ def calibrate(camera, colorSlope):
                     proportion_valid = count / valid_values.size
                     print("Proporção Profundidade:", proportion_valid)
 
-                    if proportion_valid >= 0.85:
+                    if proportion_valid >= 0.9:
                         workspace_free = True
                         workspace_depth = avg_depth
                     else:

@@ -11,13 +11,16 @@ def bundle(hdrColor, hdrDepth_img, objects_info, threshold, hdrDepth):
     h_pixels = 0
 
     contours = []
-
-    x1, y1, x2, y2 = objects_info[0]["workspace_limits"]
-    workspace_area = hdrDepth_img[y1:y2, x1:x2]
-    workspace_area2 = hdrDepth[y1:y2, x1:x2]
+    ws_limits = []
+    all_points_list = []
+    shifted_contours = 0
 
     if len(objects_info) != 0:
         for obj in objects_info:
+
+            x1, y1, x2, y2 = obj["workspace_limits"]
+            #workspace_area = hdrDepth_img[y1:y2, x1:x2]
+            workspace_area2 = hdrDepth[y1:y2, x1:x2]
 
             mask = (workspace_area2 >= (obj["depth"] - threshold)) & (workspace_area2 <= (obj["depth"] + threshold))
 
@@ -32,7 +35,7 @@ def bundle(hdrColor, hdrDepth_img, objects_info, threshold, hdrDepth):
             #depth_norm = cv2.normalize(depth_filtered, None, 0, 255, cv2.NORM_MINMAX)
             #depth_norm = numpy.uint8(depth_norm)
 
-            cv2.imshow("depth_norm", hdrDepth_img)
+            #cv2.imshow("depth_norm", hdrDepth_img)
 
             gray = cv2.cvtColor(hdrDepth_img, cv2.COLOR_BGR2GRAY)
         
@@ -43,11 +46,11 @@ def bundle(hdrColor, hdrDepth_img, objects_info, threshold, hdrDepth):
 
             #binary = cv2.adaptiveThreshold(blur, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 21, 5)
 
-            cv2.imshow("binary", binary)
+            #cv2.imshow("binary", binary)
 
             invBinary = cv2.bitwise_not(binary)
 
-            cv2.imshow("invBinary", invBinary)
+            #cv2.imshow("invBinary", invBinary)
 
             element = numpy.ones((3, 3), numpy.uint8)
             #morf = cv2.morphologyEx(binary, cv2.MORPH_CLOSE, element)
@@ -58,9 +61,7 @@ def bundle(hdrColor, hdrDepth_img, objects_info, threshold, hdrDepth):
             shifted_contours = [c + numpy.array([[[x1, y1]]], dtype=numpy.int32) for c in contour]
 
             contours.append(shifted_contours)
-
-    #for contour_list in contours:
-    #shifted_contours = [c + numpy.array([[[x1, y1]]], dtype=numpy.int32) for c in contour]
+            ws_limits.append(obj["workspace_limits"])
 
     hdrColor_copy = hdrColor.copy()
 
@@ -69,24 +70,28 @@ def bundle(hdrColor, hdrDepth_img, objects_info, threshold, hdrDepth):
             rect = cv2.minAreaRect(c)
             box = cv2.boxPoints(rect)
             box = numpy.round(box).astype(numpy.int32)
-            cv2.drawContours(hdrColor_copy, [box], 0, (0, 0, 255), 2)
+            cv2.drawContours(hdrColor_copy, [box], 0, (0, 255, 0), 2)
             cv2.imshow("Objects", hdrColor_copy)
 
-    #if len(contour) > 0:
-    #    all_points = numpy.vstack(contour)
-    #    if len(contour) == 1:
-    #        rect = cv2.minAreaRect(all_points)
-    #        box = cv2.boxPoints(rect)
-    #        box = numpy.round(box).astype(numpy.int32)
+    all_points_list = [c for contour_list in contours for c in contour_list if c.size > 0]
+    print(len(all_points_list))
 
-    #        w_pixels, h_pixels = rect[1]
-    #        cv2.drawContours(hdrColor, [box + [x1, y1]], 0,  (0, 0, 255), 2)
+    if len(all_points_list) > 0:
+        all_points = numpy.vstack(all_points_list)
+        print(len(all_points))
+        if len(all_points_list) == 1:
+            rect = cv2.minAreaRect(all_points)
+            box = cv2.boxPoints(rect)
+            box = numpy.round(box).astype(numpy.int32)
 
-    #    else:
-    #        x, y, w_pixels, h_pixels = cv2.boundingRect(all_points)
-    #        cv2.rectangle(hdrColor, (x1 + x,  y1 + y), (x1 + x + w_pixels, y1 + y + h_pixels), (0, 0, 255), 2)
+            w_pixels, h_pixels = rect[1]
+            cv2.drawContours(hdrColor, [box], 0,  (0, 255, 0), 2)
+
+        else:
+            x, y, w_pixels, h_pixels = cv2.boundingRect(all_points)
+            cv2.rectangle(hdrColor, (x,  y), (x + w_pixels, y + h_pixels), (0, 255, 0), 2)
 
     not_set = 1
     minimum_value = 6000
                     
-    return w_pixels, h_pixels, minimum_value, not_set
+    return w_pixels, h_pixels, minimum_value, not_set, contours, ws_limits

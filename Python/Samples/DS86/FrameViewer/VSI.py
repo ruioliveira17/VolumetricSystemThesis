@@ -23,6 +23,8 @@ threshold = 15
 
 #workspace_limits = []
 objects_info = []
+box_limits = []
+box_ws = []
 
 hdr_thread_started = False
 minDepth_thread_started = False
@@ -216,7 +218,11 @@ if  ret == 0:
                     #hdrDepth = results['hdrDepth']
                     #not_set, minimum_value, avg_depth = LargestObject(hdrDepth, objects_info, threshold, workspace, minimum_value, not_set, hdrDepth_img, hdrColor)
                     #largura, altura = bundle(hdrColor, hdrDepth_img, workspace_limits)
-                    width, height, minimum_value, not_set = bundle(hdrColor, hdrDepth_img, objects_info, threshold, hdrDepth)            
+                    width, height, minimum_value, not_set, box_limits, box_ws = bundle(hdrColor, hdrDepth_img, objects_info, threshold, hdrDepth)
+                    #for contour_list in box_limits:
+                    #    for c in contour_list:
+                    #        rect = cv2.minAreaRect(c)
+                    #        width, height = rect[1]   
 
                 #width_meters = (largura) * 0.275 / (workspace_limits[2] - workspace_limits[0])
                 #height_meters = (altura) * 0.37 / (workspace_limits[3] - workspace_limits[1])
@@ -259,5 +265,7 @@ if  ret == 0:
         print(e)
     finally :
         print('Main end')
+        stop_event.set()
+        cv2.destroyAllWindows()
 else:
     print('VZ_OpenDeviceByUri failed: ' + str(ret))
