@@ -7,6 +7,7 @@ from HDRDef import hdr
 from MinDepth2 import MinDepth
 from LargestObject import LargestObject
 from Bundle2 import bundle
+from Volume import volume_calc
 
 from API.VzenseDS_api import *
 import cv2
@@ -39,10 +40,6 @@ height = 0
 
 avg_depth = 0
 
-i = 0
-contour = 0
-ws_lim = 0
-
 width_meters = 0
 height_meters = 0
 
@@ -58,6 +55,9 @@ bundle_ymin = 60
 bundle_ymax = 0
 
 minimum_depth = 0
+
+static_mode = 0
+dynamic_mode = 0
 
 stop_event = threading.Event()
 
@@ -191,79 +191,56 @@ if  ret == 0:
 
                 hdrDepth_copy = hdrDepth.copy()
 
-                not_set, objects_info = MinDepth(hdrDepth_copy, colorSlope, threshold, workspace, workspace_depth, not_set)
-                
-                if len(objects_info) != 0:
-                    minimum_depth = objects_info[0]["depth"]
-                    minimum_value = minimum_depth
+                if dynamic_mode or (static_mode and key == ord('l')):
 
-                if not_set == 0:
-                    width, height, minimum_value, not_set, box_limits, box_ws = bundle(hdrColor, hdrDepth_img, objects_info, threshold, hdrDepth)
-                    if len(box_ws) > 0:
-                        while i < len(box_ws):
-                            contour = box_limits[i]
-                            ws_lim = box_ws[i]
+                    not_set, objects_info = MinDepth(hdrDepth_copy, colorSlope, threshold, workspace, workspace_depth, not_set)
+                    
+                    if len(objects_info) != 0:
+                        minimum_depth = objects_info[0]["depth"]
+                        minimum_value = minimum_depth
 
-                            if not contour:
-                                i += 1
-                                continue
+                    if not_set == 0:
+                        width, height, minimum_value, not_set, box_limits, box_ws = bundle(hdrColor, hdrDepth_img, objects_info, threshold, hdrDepth)
+                        bundle_xmin, bundle_xmax, bundle_ymin, bundle_ymax = volume_calc(box_ws, box_limits, bundle_xmin, bundle_xmax, bundle_ymin, bundle_ymax)
 
-                            for arr in contour:
-                                xs = arr[:, 0, 0]
-                                ys = arr[:, 0, 1]
+                    width_meters = bundle_xmax - bundle_xmin
+                    height_meters = bundle_ymax - bundle_ymin
 
-                            xmin = xs.min()
-                            xmax = xs.max()
-                            ymin = ys.min()
-                            ymax = ys.max()
+                    if width_meters < 0:
+                        width_meters = 0
 
-                            xmin_meters = (xmin - ws_lim[0]) * 0.27 / (ws_lim[2] - ws_lim[0])
-                            xmax_meters = (xmax - ws_lim[0]) * 0.27 / (ws_lim[2] - ws_lim[0])
+                    if height_meters < 0:
+                        height_meters = 0
+                    
+                    print(f"Width:  {(width_meters * 100):.1f} cm")
+                    print(f"Height:  {(height_meters * 100):.1f} cm")
+                    print("Workspace Depth",workspace_depth)
+                    print("Minimum Depth:", minimum_depth)
 
-                            ymin_meters = (ymin - ws_lim[1]) * 0.367 / (ws_lim[3] - ws_lim[1])
-                            ymax_meters = (ymax - ws_lim[1]) * 0.367 / (ws_lim[3] - ws_lim[1])
+                    if bundle_xmin == 60 and bundle_ymin == 60 and bundle_xmax == 0 and bundle_ymax == 0:
+                        volume = 0
+                    else:
+                        volume = width_meters * height_meters * ((workspace_depth - minimum_depth) / 1000)
 
-                            if xmin_meters < bundle_xmin:
-                                bundle_xmin = xmin_meters
+                    print(f"Volume Total:  {volume} m^3")
 
-                            if ymin_meters < bundle_ymin:
-                                bundle_ymin = ymin_meters
-
-                            if xmax_meters > bundle_xmax:
-                                bundle_xmax = xmax_meters
-
-                            if ymax_meters > bundle_ymax:
-                                bundle_ymax = ymax_meters
-
-                            i += 1
-                            print("UH")
-                        i = 0
-                        print("AH")
-
-                width_meters = bundle_xmax - bundle_xmin
-                height_meters = bundle_ymax - bundle_ymin
-                
-                print(f"Width:  {(width_meters * 100):.1f} cm")
-                print(f"Height:  {(height_meters * 100):.1f} cm")
-                print("Workspace Depth",workspace_depth)
-                print("Minimum Depth:", minimum_depth)
-
-                if bundle_xmin == 60 and bundle_ymin == 60 and bundle_xmax == 0 and bundle_ymax == 0:
-                    volume = 0
-                else:
-                    volume = width_meters * height_meters * ((workspace_depth - minimum_depth) / 1000)
-
-                print(f"Volume Total:  {volume} m^3")
-
-                bundle_xmin = 60
-                bundle_xmax = 0
-                bundle_ymin = 60
-                bundle_ymax = 0
+                    bundle_xmin = 60
+                    bundle_xmax = 0
+                    bundle_ymin = 60
+                    bundle_ymax = 0
 
                 cv2.imshow("Depth Image", hdrDepth_img)
                 cv2.imshow("ColorToDepth RGB Image", hdrColor)
 
             key = cv2.waitKey(1)
+            if key == ord('s'):
+                print("Static Mode Active!")
+                static_mode = 1
+                dynamic_mode = 0
+            if key == ord('d'):
+                print("Dynamic Mode Active!")
+                static_mode = 0
+                dynamic_mode = 1
             if key == ord('c'):
                 workspace_not_defined = 1
                 stop_event.set()
