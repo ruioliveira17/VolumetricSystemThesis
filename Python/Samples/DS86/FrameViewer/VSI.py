@@ -39,8 +39,25 @@ height = 0
 
 avg_depth = 0
 
+i = 0
+contour = 0
+ws_lim = 0
+
 width_meters = 0
 height_meters = 0
+
+xmin_meters = 0
+xmax_meters = 0
+
+ymin_meters = 0
+ymax_meters = 0
+
+bundle_xmin = 60
+bundle_xmax = 0
+bundle_ymin = 60
+bundle_ymax = 0
+
+minimum_depth = 0
 
 stop_event = threading.Event()
 
@@ -138,19 +155,6 @@ if  ret == 0:
             result_container['hdrColor'] = hdrColor
             result_container['hdrDepth'] = hdrDepth
 
-    #def minDepth_thread(hdrDepth, colorSlope, threshold, workspace, workspace_depth, minimum_value, not_set, result_containerMinDepth, stop_event):
-    #    while not stop_event.is_set():
-    #        not_set, workspace_limits, minimum_value = MinDepth(hdrDepth, colorSlope, threshold, workspace, workspace_depth, minimum_value, not_set)
-    #        result_containerMinDepth['not_set'] = not_set
-    #        result_containerMinDepth['workspace_limits'] = workspace_limits
-    #        result_containerMinDepth['minimum_value'] = minimum_value
-
-    #def largestObject_thread(hdrDepth, workspace_limits, threshold, workspace, minimum_value, not_set, hdrDepth_img, hdrColor, result_containerLargestObject, stop_event):
-    #    while not stop_event.is_set():
-    #        not_set, minimum_value = LargestObject(hdrDepth, workspace_limits, threshold, workspace, minimum_value, not_set, hdrDepth_img, hdrColor)
-    #        result_containerLargestObject['not_set'] = not_set
-    #        result_containerLargestObject['minimum_value'] = minimum_value
-
     try:
         while 1:
             if workspace_not_defined == 1:
@@ -166,7 +170,6 @@ if  ret == 0:
 
                 print("Pontos da Area de Trabalho:", workspace)
                 print("Workspace Depth:", workspace_depth)
-                #colorSlope = int(round(workspace_depth)) + 100
                 
                 workspace_not_defined = 0 
 
@@ -191,62 +194,74 @@ if  ret == 0:
                 not_set, objects_info = MinDepth(hdrDepth_copy, colorSlope, threshold, workspace, workspace_depth, not_set)
                 
                 if len(objects_info) != 0:
-                    minimum_value = objects_info[0]["depth"]
-                    #frame_copy = hdrColor
-
-                    #print(len(objects_info))
-
-                    #for obj in objects_info:
-                    #    depth = obj["depth"]
-                    #    print("Depth:", depth)
-                    #    x1, y1, x2, y2 = obj["workspace_limits"]
-                    #    cv2.rectangle(frame_copy, (x1, y1), (x2, y2), (255, 0, 0), 2)
-                
-                #if not minDepth_thread_started:
-                #    minDepth_thread = threading.Thread(target=minDepth_thread, args=(hdrDepth, colorSlope, threshold, workspace, workspace_depth, minimum_value, not_set, resultsMinDepth, stop_event))
-                #    minDepth_thread.start()
-                #    minDepth_thread_started = True
-                #    print("Thread Minimum Depth iniciada!")
-
-                #if not_set == 0 and not largestObject_thread_started:
-                    #largestObject_thread = threading.Thread(target=largestObject_thread, args=(hdrDepth, workspace_limits, threshold, workspace, minimum_value, not_set, hdrDepth_img, hdrColor, resultsLargestObject, stop_event))
-                    #largestObject_thread.start()
-                    #largestObject_thread_started = True
-                    #print("Thread Largest Object iniciada!")
+                    minimum_depth = objects_info[0]["depth"]
+                    minimum_value = minimum_depth
 
                 if not_set == 0:
-                    #hdrDepth = results['hdrDepth']
-                    #not_set, minimum_value, avg_depth = LargestObject(hdrDepth, objects_info, threshold, workspace, minimum_value, not_set, hdrDepth_img, hdrColor)
-                    #largura, altura = bundle(hdrColor, hdrDepth_img, workspace_limits)
                     width, height, minimum_value, not_set, box_limits, box_ws = bundle(hdrColor, hdrDepth_img, objects_info, threshold, hdrDepth)
-                    #for contour_list in box_limits:
-                    #    for c in contour_list:
-                    #        rect = cv2.minAreaRect(c)
-                    #        width, height = rect[1]   
+                    if len(box_ws) > 0:
+                        while i < len(box_ws):
+                            contour = box_limits[i]
+                            ws_lim = box_ws[i]
 
-                #width_meters = (largura) * 0.275 / (workspace_limits[2] - workspace_limits[0])
-                #height_meters = (altura) * 0.37 / (workspace_limits[3] - workspace_limits[1])
+                            if not contour:
+                                i += 1
+                                continue
+
+                            for arr in contour:
+                                xs = arr[:, 0, 0]
+                                ys = arr[:, 0, 1]
+
+                            xmin = xs.min()
+                            xmax = xs.max()
+                            ymin = ys.min()
+                            ymax = ys.max()
+
+                            xmin_meters = (xmin - ws_lim[0]) * 0.27 / (ws_lim[2] - ws_lim[0])
+                            xmax_meters = (xmax - ws_lim[0]) * 0.27 / (ws_lim[2] - ws_lim[0])
+
+                            ymin_meters = (ymin - ws_lim[1]) * 0.367 / (ws_lim[3] - ws_lim[1])
+                            ymax_meters = (ymax - ws_lim[1]) * 0.367 / (ws_lim[3] - ws_lim[1])
+
+                            if xmin_meters < bundle_xmin:
+                                bundle_xmin = xmin_meters
+
+                            if ymin_meters < bundle_ymin:
+                                bundle_ymin = ymin_meters
+
+                            if xmax_meters > bundle_xmax:
+                                bundle_xmax = xmax_meters
+
+                            if ymax_meters > bundle_ymax:
+                                bundle_ymax = ymax_meters
+
+                            i += 1
+                            print("UH")
+                        i = 0
+                        print("AH")
+
+                width_meters = bundle_xmax - bundle_xmin
+                height_meters = bundle_ymax - bundle_ymin
                 
-                #print(f"Width:  {(width_meters * 100):.1f} cm")
-                #print(f"Height:  {(height_meters * 100):.1f} cm")
-                #print("Workspace Depth",workspace_depth)
-                #print("Averege Depth", avg_depth)
+                print(f"Width:  {(width_meters * 100):.1f} cm")
+                print(f"Height:  {(height_meters * 100):.1f} cm")
+                print("Workspace Depth",workspace_depth)
+                print("Minimum Depth:", minimum_depth)
 
-                #volume = width_meters * height_meters * ((workspace_depth - avg_depth) / 1000)
-                #print("Volume Total:", volume)
-                #print(f"Volume Total:  {volume} m^3")
+                if bundle_xmin == 60 and bundle_ymin == 60 and bundle_xmax == 0 and bundle_ymax == 0:
+                    volume = 0
+                else:
+                    volume = width_meters * height_meters * ((workspace_depth - minimum_depth) / 1000)
+
+                print(f"Volume Total:  {volume} m^3")
+
+                bundle_xmin = 60
+                bundle_xmax = 0
+                bundle_ymin = 60
+                bundle_ymax = 0
 
                 cv2.imshow("Depth Image", hdrDepth_img)
                 cv2.imshow("ColorToDepth RGB Image", hdrColor)
-
-            #if minDepth_thread_started and 'not_set' in resultsMinDepth and 'workspace_limits' in resultsMinDepth and 'minimum_value' in resultsMinDepth:
-            #    not_set = resultsMinDepth['not_set']
-            #    workspace_limits = resultsMinDepth['workspace_limits']
-            #    minimum_value = resultsMinDepth['minimum_value']
-
-            #if largestObject_thread_started and 'not_set' in resultsLargestObject and 'minimum_value' in resultsLargestObject:
-            #    not_set = resultsLargestObject['not_set']
-            #    minimum_value = resultsLargestObject['minimum_value']
 
             key = cv2.waitKey(1)
             if key == ord('c'):

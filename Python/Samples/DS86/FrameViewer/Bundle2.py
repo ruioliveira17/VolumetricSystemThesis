@@ -74,11 +74,11 @@ def bundle(hdrColor, hdrDepth_img, objects_info, threshold, hdrDepth):
             cv2.imshow("Objects", hdrColor_copy)
 
     all_points_list = [c for contour_list in contours for c in contour_list if c.size > 0]
-    print(len(all_points_list))
+    #print(len(all_points_list))
 
     if len(all_points_list) > 0:
         all_points = numpy.vstack(all_points_list)
-        print(len(all_points))
+        #print(len(all_points))
         if len(all_points_list) == 1:
             rect = cv2.minAreaRect(all_points)
             box = cv2.boxPoints(rect)
