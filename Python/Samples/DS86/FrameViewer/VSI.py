@@ -5,7 +5,7 @@ sys.path.append('C:/Tese/Python')
 from CalibrationDef import calibrate
 from HDRDef import hdr
 from MinDepth2 import MinDepth
-from LargestObject import LargestObject
+#from LargestObject import LargestObject
 from Bundle2 import bundle
 from Volume import volume_calc
 
@@ -60,6 +60,8 @@ static_mode = 0
 dynamic_mode = 0
 
 stop_event = threading.Event()
+pause_event = threading.Event()
+pause_event.set()
 
 camera_count = camera.VZ_GetDeviceCount()
 retry_count = 100
@@ -149,15 +151,21 @@ if  ret == 0:
     #ret = camera.VZ_GetFrameRate()
     #print('Frame Rate:', ret)
 
-    def hdr_thread(camera, exposureStruct, result_container, stop_event):
+    def hdr_thread(camera, exposureStruct, result_container, stop_event, pause_event):
         while not stop_event.is_set():
-            hdrColor, hdrDepth = hdr(camera, exposureStruct)  # chama a tua função
-            result_container['hdrColor'] = hdrColor
-            result_container['hdrDepth'] = hdrDepth
-
+            pause_event.wait()
+            try:
+                hdrColor, hdrDepth = hdr(camera, exposureStruct)  # chama a tua função
+                result_container['hdrColor'] = hdrColor
+                result_container['hdrDepth'] = hdrDepth
+            except Exception as e:
+                print("Erro na thread:", repr(e))
+            finally :
+                print('Funcionou')
     try:
         while 1:
             if workspace_not_defined == 1:
+                camera.VZ_SetExposureTime(VzSensorType.VzToFSensor, c_int32(700))
                 workspace, workspace_depth, fex_flag = calibrate(camera, colorSlope)
                 if fex_flag == 0:
                     old_workspace = workspace
@@ -171,10 +179,13 @@ if  ret == 0:
                 print("Pontos da Area de Trabalho:", workspace)
                 print("Workspace Depth:", workspace_depth)
                 
-                workspace_not_defined = 0 
+                workspace_not_defined = 0
 
-                if not hdr_thread_started:
-                    hdr_thread = threading.Thread(target=hdr_thread, args=(camera, exposureStruct, results, stop_event))
+                if hdr_thread_started:
+                    pause_event.set()
+                    print("Thread HDR saiu de pausa!")
+                else:
+                    hdr_thread = threading.Thread(target=hdr_thread, args=(camera, exposureStruct, results, stop_event, pause_event))
                     hdr_thread.start()
                     hdr_thread_started = True
                     print("Thread HDR iniciada!")                     
@@ -243,8 +254,7 @@ if  ret == 0:
                 dynamic_mode = 1
             if key == ord('c'):
                 workspace_not_defined = 1
-                stop_event.set()
-                hdr_thread.join()
+                pause_event.clear()
                 cv2.destroyAllWindows()
             if  key == 27:
                 stop_event.set()  # sinaliza a thread HDR para parar

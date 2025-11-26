@@ -6,6 +6,8 @@ from API.VzenseDS_api import *
 import cv2
 import time
 
+from GetFrame import getFrame
+
 def hdr(camera, exposureStruct):
 
     exposureTime = 200
@@ -18,6 +20,10 @@ def hdr(camera, exposureStruct):
     hdrColor_done = 0
     hdrDepth_done = 0
     expositionBus_done = 0
+
+    colorToDepthFrame = None
+    depthFrame = None 
+    colorFrame = None
 
     hasDepthArray = []
     hasColorArray = []
@@ -38,34 +44,11 @@ def hdr(camera, exposureStruct):
 
             time.sleep(0.1)
 
-            ret, frameready = camera.VZ_GetFrameReady(c_uint16(1200))
-            if  ret !=0:
-                print("VZ_GetFrameReady failed:",ret)
-                continue
-            hasColorToDepth =0
-            hasDepth = 0
+            colorToDepthFrame, depthFrame, colorFrame = getFrame(camera)
 
-            if  frameready.color:      
-                ret,rgbframe = camera.VZ_GetFrame(VzFrameType.VzTransformColorImgToDepthSensorFrame)
-                if  ret == 0:
-                    hasColorToDepth =1   
-                else:
-                    print("get color frame failed:",ret)
-
-            if  frameready.depth:      
-                ret,depthframe = camera.VZ_GetFrame(VzFrameType.VzDepthFrame)
-                if  ret == 0:
-                    hasDepth=1
-                
-                else:
-                    print("get depth frame failed:",ret)
-
-            if  hasColorToDepth==1 and exposureStruct.exposureTime == exposureTime:
-                frametmp = numpy.empty((0, 0, 3), dtype=numpy.uint8)
-                frametmp = numpy.ctypeslib.as_array(rgbframe.pFrameData, (1, rgbframe.width * rgbframe.height * 3))
-                frametmp.dtype = numpy.uint8
-                frametmp.shape = (rgbframe.height, rgbframe.width,3)
-                frametmp = cv2.resize(frametmp, (640, 480))
+            if  exposureStruct.exposureTime == exposureTime:
+                colorToDepthFrame = cv2.resize(colorToDepthFrame, (640, 480))
+                depthFrame = cv2.resize(depthFrame, (640, 480))
                 #cv2.putText(frametmp, f"Exposure: {exposureStruct.exposureTime} us",
                 #            (30, 40),                   # posição (x, y)
                 #            cv2.FONT_HERSHEY_SIMPLEX,   # tipo de letra
@@ -78,20 +61,9 @@ def hdr(camera, exposureStruct):
                     firstFrame = False
                 else:
                     DTC_can = True
-                    hasColorArray.append(frametmp)
-
-            if  hasDepth==1 and exposureStruct.exposureTime == exposureTime:
-                frametmp = numpy.empty((0, 0, 3), dtype=numpy.uint8)
-                frametmp = numpy.ctypeslib.as_array(depthframe.pFrameData, (1, depthframe.width * depthframe.height * 2))
-                frametmp.dtype = numpy.uint16
-                frametmp.shape = (depthframe.height, depthframe.width)
-                frametmp = cv2.resize(frametmp, (640, 480))
-                
-                if firstFrame:
-                    firstFrame = False
-                else:
+                    hasColorArray.append(colorToDepthFrame)
                     D_can = True
-                    hasDepthArray.append(frametmp)
+                    hasDepthArray.append(depthFrame)
 
             if DTC_can and D_can:
                 exposureTimeArray.append(exposureTime / 1e6)
@@ -132,7 +104,7 @@ def hdr(camera, exposureStruct):
             hdr_done = 0
             i = 0
             print("HDR Processed")
-            #return ldr, hdrDepth
+            camera.VZ_SetExposureTime(VzSensorType.VzToFSensor, c_int32(700))
             return hdrColor, hdrDepth
                 
     except Exception as e :
