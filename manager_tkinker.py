@@ -15,16 +15,30 @@ import threading
 sys.path.append('C:/Tese/Python/Samples/DS86/FrameViewer')
 
 from GetFrame import getFrame
+
 from CalibrationDefTkinter import calibrate
 
 camera = VzenseTofCam()
+
 overlay = None
+
 hmin_label = None
 hmax_label = None
 smin_label = None
 smax_label = None
 vmin_label = None
 vmax_label = None
+
+colorToDepthFrame = None
+depthFrame = None 
+colorFrame = None
+
+hmin_slider = None
+hmax_slider = None
+smin_slider = None
+smax_slider = None
+vmin_slider = None
+vmax_slider = None
 
 camera_count = camera.VZ_GetDeviceCount()
 retry_count = 100
@@ -353,7 +367,7 @@ canvas_calibration.create_image(10, 10, anchor='nw', image=BM_logo_tk_calibratio
 #---------------------------- Events -----------------------------
 
 def change_canvas(event):
-    global current_canvas, last_canvas, colorToDepthFrame, depthFrame, colorFrame
+    global current_canvas, last_canvas, colorToDepthFrame, depthFrame, colorFrame, colorSlope
     x, y = event.x, event.y
     if current_canvas is canvas_main and cam_rect[0] <= x <= cam_rect[2] and cam_rect[1] <= y <= cam_rect[3]:
         # Clicou no quadrado da camera
@@ -420,7 +434,9 @@ def change_canvas(event):
         
         current_canvas.update()
         update_camera_feed()
-        lower, upper = update_sliders()
+        update_sliders()
+        if colorToDepthFrame is not None and depthFrame is not None and colorFrame is not None and current_canvas is not None:
+            calibrate(camera, lambda: get_lower(), lambda: get_upper(), colorSlope, current_canvas)
 
 def update_camera_feed():
     global colorFrame, current_canvas, colorToDepthFrame, depthFrame, colorFrame
@@ -487,7 +503,7 @@ def update_camera_feed():
         #workspace, workspace_depth, fex_flag = calibrate(camera, colorSlope)
 
 def update_sliders():
-    global current_canvas, hmin_label, hmax_label, smin_label, smax_label, vmin_label, vmax_label
+    global current_canvas, hmin_label, hmax_label, smin_label, smax_label, vmin_label, vmax_label, hmin_slider, smin_slider, vmin_slider, hmax_slider, smax_slider, vmax_slider
     if current_canvas is canvas_calibration:
         #MIN HUE SLIDER
 
@@ -548,18 +564,22 @@ def update_sliders():
         vmax_label.place(x=1650, y=760)
         vmax_label = customtkinter.CTkLabel(current_canvas, text=vmax_slider.get(), text_color="black", font=("Arial", 18))
         vmax_label.place(x=1820, y=760)
+    
+def get_lower():
+    global hmin_slider, smin_slider, vmin_slider
+    hmin = hmin_slider.get()
+    smin = smin_slider.get()
+    vmin = vmin_slider.get()
 
-        hmin = hmin_slider.get()
-        hmax = hmax_slider.get()
-        smin = smin_slider.get()
-        smax = smax_slider.get()
-        vmin = vmin_slider.get()
-        vmax = vmax_slider.get()
+    return (hmin, smin, vmin)
 
-        lower = numpy.array([hmin, smin, vmin])
-        upper = numpy.array([hmax, smax, vmax])
+def get_upper():
+    global hmax_slider, smax_slider, vmax_slider
+    hmax = hmax_slider.get()
+    smax = smax_slider.get()
+    vmax = vmax_slider.get()
 
-        return lower, upper
+    return (hmax, smax, vmax)
 
 def confirm_exit_overlay(event = None):
     global overlay
