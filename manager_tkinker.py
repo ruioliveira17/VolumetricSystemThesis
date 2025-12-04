@@ -1,5 +1,6 @@
 import tkinter as tk
 import customtkinter
+import cv2
 
 from PIL import Image, ImageTk
 import ctypes
@@ -16,7 +17,7 @@ sys.path.append('C:/Tese/Python/Samples/DS86/FrameViewer')
 
 from GetFrame import getFrame
 
-from CalibrationDefTkinter import calibrate
+from CalibrationDefTkinter import calibrate, mask
 
 camera = VzenseTofCam()
 
@@ -39,6 +40,10 @@ smin_slider = None
 smax_slider = None
 vmin_slider = None
 vmax_slider = None
+
+res = None
+colorToDepthFrame_copy = None
+depthFrame_copy = None
 
 camera_count = camera.VZ_GetDeviceCount()
 retry_count = 100
@@ -122,6 +127,9 @@ if  ret == 0:
         print("Set ConfidenceFilter switch to "+ str(params.enable) + " is Ok")   
     else:
         print("VZ_SetConfidenceFilterParams failed:"+ str(ret))
+
+def button_click():
+    detection_area, workspace_depth, forced_exiting = calibrate(camera, get_lower, get_upper, colorSlope)
 
 # Deactivate windows automatic dpi scale
 ctypes.windll.shcore.SetProcessDpiAwareness(1)
@@ -362,12 +370,16 @@ BM_logo = Image.open("BM_Logo.png").resize((360, 152))
 BM_logo_tk_calibration = ImageTk.PhotoImage(BM_logo)
 canvas_calibration.create_image(10, 10, anchor='nw', image=BM_logo_tk_calibration)
 
+#----------------------------- Botão -----------------------------
+button = tk.Button(canvas_calibration, text="Calibrate", font=("Arial", 20), width=30, height=1, command=button_click)
+canvas_calibration.create_window(1100, 850, anchor="nw", window=button)
+
 #-----------------------------------------------------------------
 
 #---------------------------- Events -----------------------------
 
 def change_canvas(event):
-    global current_canvas, last_canvas, colorToDepthFrame, depthFrame, colorFrame, colorSlope
+    global current_canvas, last_canvas, colorToDepthFrame, depthFrame, colorFrame, colorSlope, res
     x, y = event.x, event.y
     if current_canvas is canvas_main and cam_rect[0] <= x <= cam_rect[2] and cam_rect[1] <= y <= cam_rect[3]:
         # Clicou no quadrado da camera
@@ -433,13 +445,11 @@ def change_canvas(event):
         last_canvas = canvas_config
         
         current_canvas.update()
-        update_camera_feed()
         update_sliders()
-        if colorToDepthFrame is not None and depthFrame is not None and colorFrame is not None and current_canvas is not None:
-            calibrate(camera, lambda: get_lower(), lambda: get_upper(), colorSlope, current_canvas)
+        update_camera_feed()
 
 def update_camera_feed():
-    global colorFrame, current_canvas, colorToDepthFrame, depthFrame, colorFrame
+    global colorFrame, current_canvas, colorToDepthFrame, depthFrame, colorFrame, res
 
     if current_canvas is canvas_camara:
         colorToDepthFrame, depthFrame, colorFrame = getFrame(camera)
@@ -471,22 +481,45 @@ def update_camera_feed():
 
     if current_canvas is canvas_calibration:
 
-        #IMAGEM
-
         colorToDepthFrame, depthFrame, colorFrame = getFrame(camera)
+        res, colorToDepthFrame_copy, depthFrame_copy = mask(camera, lambda: get_lower(), lambda: get_upper(), colorSlope)
 
-        if colorToDepthFrame.dtype != numpy.uint8:
-            # Normaliza para 0-255 e converte para uint8
-            frame_uint8 = (numpy.clip(colorToDepthFrame, 0, 1) * 255).astype(numpy.uint8)
-        else:
-            frame_uint8 = colorToDepthFrame
+        if colorToDepthFrame_copy is None:
+            if colorToDepthFrame.dtype != numpy.uint8:
+                # Normaliza para 0-255 e converte para uint8
+                frame_uint8 = (numpy.clip(colorToDepthFrame, 0, 1) * 255).astype(numpy.uint8)
+            else:
+                frame_uint8 = colorToDepthFrame
+
+        else: 
+            if colorToDepthFrame_copy.dtype != numpy.uint8:
+                # Normaliza para 0-255 e converte para uint8
+                frame_uint8 = (numpy.clip(colorToDepthFrame_copy, 0, 1) * 255).astype(numpy.uint8)
+            else:
+                frame_uint8 = colorToDepthFrame_copy
 
         frame_rgb = frame_uint8[:, :, ::-1]  # se BGR
 
         pil_img = Image.fromarray(frame_rgb)
         pil_img = pil_img.resize((560, 420), Image.LANCZOS)
         tk_img = ImageTk.PhotoImage(pil_img)
-        current_canvas.image = tk_img
+        current_canvas.tk_image = tk_img
+
+        if res is None:
+            res = numpy.zeros((480, 640, 3), dtype=numpy.uint8)
+
+        if res.dtype != numpy.uint8:
+            # Normaliza para 0-255 e converte para uint8
+            frame_uint8 = (numpy.clip(res, 0, 1) * 255).astype(numpy.uint8)
+        else:
+            frame_uint8 = res
+
+        frame_mask = frame_uint8[:, :, ::-1]  # se BGR
+
+        pil_mask = Image.fromarray(frame_mask)
+        pil_mask = pil_mask.resize((560, 420), Image.LANCZOS)
+        tk_mask = ImageTk.PhotoImage(pil_mask)
+        current_canvas.tk_mask = tk_mask
 
         cw = current_canvas.winfo_width()
         ch = current_canvas.winfo_height()
@@ -496,9 +529,11 @@ def update_camera_feed():
         y_img = ch // 2
 
         # Desenhar imagem centrada
-        current_canvas.create_image(480, 410, image=tk_img, anchor="center")
+        current_canvas.create_image(480, 400, image=tk_img, anchor="center")
+        current_canvas.create_image(480, 830, image=tk_mask, anchor="center")
 
         current_canvas.after(70, update_camera_feed)
+        current_canvas.after(50, mask, camera, get_lower, get_upper, colorSlope)
 
         #workspace, workspace_depth, fex_flag = calibrate(camera, colorSlope)
 
@@ -610,34 +645,58 @@ def close_overlay():
         overlay = None
     
 def sliding_hmin(value):
-    global hmin_label
+    global hmin_label, hmax_slider, hmin_slider
+    h_min = int(value)
+    if hmax_slider.get() < h_min:
+        hmin_slider.set(hmax_slider.get())
+        h_min = hmax_slider.get()
     if hmin_label is not None:
-        hmin_label.configure(text=int(value))
+        hmin_label.configure(text=int(h_min))
 
 def sliding_hmax(value):
-    global hmax_label
+    global hmax_label, hmax_slider, hmin_slider
+    h_max = int(value)
+    if hmin_slider.get() > h_max:
+        hmax_slider.set(hmin_slider.get())
+        h_max = hmin_slider.get()
     if hmax_label is not None:
-        hmax_label.configure(text=int(value))
+        hmax_label.configure(text=int(h_max))
 
 def sliding_smin(value):
-    global smin_label
+    global smin_label, smax_slider, smin_slider
+    s_min = int(value)
+    if smax_slider.get() < s_min:
+        smin_slider.set(smax_slider.get())
+        s_min = smax_slider.get()
     if smin_label is not None:
-        smin_label.configure(text=int(value))
+        smin_label.configure(text=int(s_min))
 
 def sliding_smax(value):
-    global smax_label
+    global smax_label, smax_slider, smin_slider
+    s_max = int(value)
+    if smin_slider.get() > s_max:
+        smax_slider.set(smin_slider.get())
+        s_max = smin_slider.get()
     if smax_label is not None:
-        smax_label.configure(text=int(value))
+        smax_label.configure(text=int(s_max))
 
 def sliding_vmin(value):
-    global vmin_label
+    global vmin_label, vmax_slider, vmin_slider
+    v_min = int(value)
+    if vmax_slider.get() < v_min:
+        vmin_slider.set(vmax_slider.get())
+        v_min = vmax_slider.get()
     if vmin_label is not None:
-        vmin_label.configure(text=int(value))
+        vmin_label.configure(text=int(v_min))
 
 def sliding_vmax(value):
-    global vmax_label
+    global vmax_label, vmax_slider, vmin_slider
+    v_max = int(value)
+    if vmin_slider.get() > v_max:
+        vmax_slider.set(vmin_slider.get())
+        v_max = vmin_slider.get()
     if vmax_label is not None:
-        vmax_label.configure(text=int(value))
+        vmax_label.configure(text=int(v_max))
 #-----------------------------------------------------------------
 
 canvas_main.bind("<Button-1>", change_canvas)
