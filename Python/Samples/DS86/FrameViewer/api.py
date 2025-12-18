@@ -1,6 +1,10 @@
 from fastapi import FastAPI, Path, Query, HTTPException, status
 from typing import Optional
 from pydantic import BaseModel
+from CameraOptions import openCamera, closeCamera, statusCamera
+from GetFrame import getFrameClass
+from MaskState import maskState
+import sys
 
 app = FastAPI()
 
@@ -90,3 +94,28 @@ def delete(item_id : int = Query(..., description="The ID of the item to delete"
     
     del inventory[item_id]
     return {"Success": "Item Deleted!"}
+
+#Camera
+@app.post("/openCamera")
+def open():
+    return openCamera()
+
+@app.post("/closeCamera")
+def close():
+    return closeCamera()
+
+@app.get("/status")
+def status():
+    return statusCamera()
+
+#Frame
+
+@app.post("/getFrame")
+def frame():
+    return getFrameClass()
+
+#Mask
+
+@app.get("/mask/hmin")
+def gethmin():
+    return{"hmin": maskState.hmin}

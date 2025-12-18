@@ -86,10 +86,14 @@ def bundle(hdrColor, hdrDepth_img, objects_info, threshold, hdrDepth):
 
             w_pixels, h_pixels = rect[1]
             cv2.drawContours(hdrColor, [box], 0,  (0, 255, 0), 2)
+            print("Width:", w_pixels)
+            print("Heigth:", h_pixels)
 
         else:
             x, y, w_pixels, h_pixels = cv2.boundingRect(all_points)
             cv2.rectangle(hdrColor, (x,  y), (x + w_pixels, y + h_pixels), (0, 255, 0), 2)
+            print("Width:", w_pixels)
+            print("Heigth:", h_pixels)
 
     not_set = 1
     minimum_value = 6000

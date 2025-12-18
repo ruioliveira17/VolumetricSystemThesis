@@ -59,6 +59,8 @@ minimum_depth = 0
 static_mode = 0
 dynamic_mode = 0
 
+i = 0
+
 stop_event = threading.Event()
 pause_event = threading.Event()
 pause_event.set()
@@ -212,33 +214,40 @@ if  ret == 0:
 
                     if not_set == 0:
                         width, height, minimum_value, not_set, box_limits, box_ws = bundle(hdrColor, hdrDepth_img, objects_info, threshold, hdrDepth)
-                        bundle_xmin, bundle_xmax, bundle_ymin, bundle_ymax = volume_calc(box_ws, box_limits, bundle_xmin, bundle_xmax, bundle_ymin, bundle_ymax)
+                        #bundle_xmin, bundle_xmax, bundle_ymin, bundle_ymax = volume_calc(box_ws, box_limits, bundle_xmin, bundle_xmax, bundle_ymin, bundle_ymax)
 
-                    width_meters = bundle_xmax - bundle_xmin
-                    height_meters = bundle_ymax - bundle_ymin
+                    #width_meters = bundle_xmax - bundle_xmin
+                    #height_meters = bundle_ymax - bundle_ymin
+                    if len(box_ws) > 0:
+                        while i < len(box_ws):
+                            ws_lim = box_ws[i]
+                            width_meters = width * 0.27 / (ws_lim[2] - ws_lim[0])
+                            height_meters = height * 0.367 / (ws_lim[3] - ws_lim[1])
+                            i += 1
+                        i = 0
 
-                    if width_meters < 0:
-                        width_meters = 0
+                        if width_meters < 0:
+                            width_meters = 0
 
-                    if height_meters < 0:
-                        height_meters = 0
-                    
-                    print(f"Width:  {(width_meters * 100):.1f} cm")
-                    print(f"Height:  {(height_meters * 100):.1f} cm")
-                    print("Workspace Depth",workspace_depth)
-                    print("Minimum Depth:", minimum_depth)
+                        if height_meters < 0:
+                            height_meters = 0
+                        
+                        print(f"Width:  {(width_meters * 100):.1f} cm")
+                        print(f"Height:  {(height_meters * 100):.1f} cm")
+                        print("Workspace Depth",workspace_depth)
+                        print("Minimum Depth:", minimum_depth)
 
-                    if bundle_xmin == 60 and bundle_ymin == 60 and bundle_xmax == 0 and bundle_ymax == 0:
-                        volume = 0
-                    else:
+                        #if bundle_xmin == 60 and bundle_ymin == 60 and bundle_xmax == 0 and bundle_ymax == 0:
+                        #    volume = 0
+                        #else:
                         volume = width_meters * height_meters * ((workspace_depth - minimum_depth) / 1000)
 
-                    print(f"Volume Total:  {volume} m^3")
+                        print(f"Volume Total:  {volume} m^3")
 
-                    bundle_xmin = 60
-                    bundle_xmax = 0
-                    bundle_ymin = 60
-                    bundle_ymax = 0
+                    #bundle_xmin = 60
+                    #bundle_xmax = 0
+                    #bundle_ymin = 60
+                    #bundle_ymax = 0
 
                 cv2.imshow("Depth Image", hdrDepth_img)
                 cv2.imshow("ColorToDepth RGB Image", hdrColor)

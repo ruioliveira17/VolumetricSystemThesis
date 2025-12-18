@@ -32,7 +32,6 @@ def mask(camera, get_lower, get_upper, colorSlope):
 
     try:
         colorToDepthFrame, depthFrame, colorFrame = getFrame(camera)
-        
         colorToDepthFrame = cv2.resize(colorToDepthFrame, (640, 480))
 
         center_x = int((colorToDepthFrame.shape[1]) / 2)
@@ -61,11 +60,11 @@ def mask(camera, get_lower, get_upper, colorSlope):
                 detection_area =  (x_area, y_area, x_area_plus_width, y_area_plus_height)       
 
         # PONTO CENTRAL
-
-        cv2.circle(colorToDepthFrame_copy, (center_x, center_y), radius=3, color=(255, 0, 0), thickness=1)
         
+        cv2.circle(colorToDepthFrame_copy, (center_x, center_y), radius=3, color=(255, 0, 0), thickness=1)
+
         depthFrame = cv2.resize(depthFrame, (640, 480))
-                
+       
         img = numpy.int32(depthFrame)
         img = img*255/colorSlope
         img = numpy.clip(img, 0, 255)
@@ -78,6 +77,7 @@ def mask(camera, get_lower, get_upper, colorSlope):
             cv2.rectangle(depthFrame_copy, (x_area + 3, y_area + 3), (x_area_plus_width - 3, y_area_plus_height - 3), (0, 0, 255), 2)
 
         key = cv2.waitKey(1)
+        
         return res, colorToDepthFrame_copy, depthFrame_copy  
                 
     except Exception as e :
