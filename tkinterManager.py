@@ -23,6 +23,7 @@ from CalibrationDefTkinter import calibrate, mask
 
 import threading
 import uvicorn
+import requests
 
 def run_api():
     uvicorn.run("api:app", host="127.0.0.1", port=8000, log_level="info")
@@ -53,12 +54,6 @@ vmax_slider = None
 res = None
 colorToDepthFrame_copy = None
 depthFrame_copy = None
-
-s_min = 0
-v_min = 0
-h_max = 179
-s_max = 255
-v_max = 255
 
 openCamera()
 
@@ -380,6 +375,7 @@ def change_canvas(event):
         
         current_canvas.update()
         update_sliders()
+        refresh_sliders()
         update_camera_feed()
 
 def update_camera_feed():
@@ -411,7 +407,7 @@ def update_camera_feed():
         # Desenhar imagem centrada
         current_canvas.create_image(x_img, y_img + 50, image=tk_img, anchor="center")
 
-        current_canvas.after(30, update_camera_feed)
+        current_canvas.after(10, update_camera_feed)
 
     if current_canvas is canvas_calibration:
 
@@ -466,8 +462,9 @@ def update_camera_feed():
         current_canvas.create_image(480, 400, image=tk_img, anchor="center")
         current_canvas.create_image(480, 830, image=tk_mask, anchor="center")
 
-        current_canvas.after(70, update_camera_feed)
+        current_canvas.after(10, refresh_sliders)
         current_canvas.after(50, mask, camState.camera, get_lower, get_upper, camState.colorSlope)
+        current_canvas.after(70, update_camera_feed)
 
         #workspace, workspace_depth, fex_flag = calibrate(camera, colorSlope)
 
@@ -535,19 +532,10 @@ def update_sliders():
         vmax_label.place(x=1820, y=760)
     
 def get_lower():
-    global s_min, v_min
-    #maskState.hmin = int(hmin_slider.get())
-    #smin = smin_slider.get()
-    #vmin = vmin_slider.get()
-    return (maskState.hmin, s_min, v_min)
+    return (maskState.hmin, maskState.smin, maskState.vmin)
 
 def get_upper():
-    global h_max, s_max, v_max
-    #hmax = hmax_slider.get()
-    #smax = smax_slider.get()
-    #vmax = vmax_slider.get()
-
-    return (h_max, s_max, v_max)
+    return (maskState.hmax, maskState.smax, maskState.vmax)
 
 def confirm_exit_overlay(event = None):
     global overlay
@@ -576,61 +564,69 @@ def close_overlay():
     if overlay is not None:
         overlay.destroy()
         overlay = None
-    
+
 def sliding_hmin(value):
-    global hmin_label, hmax_slider, hmin_slider
-    maskState.hmin = int(value)
-    #h_min = int(value)
-    if hmax_slider.get() < maskState.hmin:
-        hmin_slider.set(hmax_slider.get())
-        maskState.hmin = int(hmax_slider.get())
-    if hmin_label is not None:
-        hmin_label.configure(text=int(maskState.hmin))
+    hmin = int(value)
+    try:
+        requests.post("http://127.0.0.1:8000/mask/hmin",json={"hmin":hmin}, timeout=0.1)
+    except requests.exceptions.RequestException:
+        pass
 
 def sliding_hmax(value):
-    global hmax_label, hmax_slider, hmin_slider, h_max
-    h_max = int(value)
-    if hmin_slider.get() > h_max:
-        hmax_slider.set(hmin_slider.get())
-        h_max = hmin_slider.get()
-    if hmax_label is not None:
-        hmax_label.configure(text=int(h_max))
+    hmax = int(value)
+    try:
+        requests.post("http://127.0.0.1:8000/mask/hmax",json={"hmax":hmax}, timeout=0.1)
+    except requests.exceptions.RequestException:
+        pass
 
 def sliding_smin(value):
-    global smin_label, smax_slider, smin_slider, s_min
-    s_min = int(value)
-    if smax_slider.get() < s_min:
-        smin_slider.set(smax_slider.get())
-        s_min = smax_slider.get()
-    if smin_label is not None:
-        smin_label.configure(text=int(s_min))
+    smin = int(value)
+    try:
+        requests.post("http://127.0.0.1:8000/mask/smin",json={"smin":smin}, timeout=0.1)
+    except requests.exceptions.RequestException:
+        pass
 
 def sliding_smax(value):
-    global smax_label, smax_slider, smin_slider, s_max
-    s_max = int(value)
-    if smin_slider.get() > s_max:
-        smax_slider.set(smin_slider.get())
-        s_max = smin_slider.get()
-    if smax_label is not None:
-        smax_label.configure(text=int(s_max))
+    smax = int(value)
+    try:
+        requests.post("http://127.0.0.1:8000/mask/smax",json={"smax":smax}, timeout=0.1)
+    except requests.exceptions.RequestException:
+        pass
 
 def sliding_vmin(value):
-    global vmin_label, vmax_slider, vmin_slider, v_min
-    v_min = int(value)
-    if vmax_slider.get() < v_min:
-        vmin_slider.set(vmax_slider.get())
-        v_min = vmax_slider.get()
-    if vmin_label is not None:
-        vmin_label.configure(text=int(v_min))
+    vmin = int(value)
+    try:
+        requests.post("http://127.0.0.1:8000/mask/vmin",json={"vmin":vmin}, timeout=0.1)
+    except requests.exceptions.RequestException:
+        pass
 
 def sliding_vmax(value):
-    global vmax_label, vmax_slider, vmin_slider, v_max
-    v_max = int(value)
-    if vmin_slider.get() > v_max:
-        vmax_slider.set(vmin_slider.get())
-        v_max = vmin_slider.get()
-    if vmax_label is not None:
-        vmax_label.configure(text=int(v_max))
+    vmax = int(value)
+    try:
+        requests.post("http://127.0.0.1:8000/mask/vmax",json={"vmax":vmax}, timeout=0.1)
+    except requests.exceptions.RequestException:
+        pass
+
+def refresh_sliders():
+    try:
+        r = requests.get("http://127.0.0.1:8000/mask", timeout = 0.2)
+        data = r.json()
+
+        hmin_slider.set(int(data["hmin"]))
+        hmin_label.configure(text=str(int(data["hmin"])))
+        hmax_slider.set(int(data["hmax"]))
+        hmax_label.configure(text=str(int(data["hmax"])))
+        smin_slider.set(int(data["smin"]))
+        smin_label.configure(text=str(int(data["smin"])))
+        smax_slider.set(int(data["smax"]))
+        smax_label.configure(text=str(int(data["smax"])))
+        vmin_slider.set(int(data["vmin"]))
+        vmin_label.configure(text=str(int(data["vmin"])))
+        vmax_slider.set(int(data["vmax"]))
+        vmax_label.configure(text=str(int(data["vmax"])))
+
+    except requests.exceptions.RequestException:
+        pass
 #-----------------------------------------------------------------
 
 canvas_main.bind("<Button-1>", change_canvas)

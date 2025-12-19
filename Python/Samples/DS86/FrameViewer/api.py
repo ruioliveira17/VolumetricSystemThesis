@@ -116,6 +116,83 @@ def frame():
 
 #Mask
 
-@app.get("/mask/hmin")
-def gethmin():
+class Value(BaseModel):
+    hmin: Optional[int] = None
+    hmax: Optional[int] = None
+    smin: Optional[int] = None
+    smax: Optional[int] = None
+    vmin: Optional[int] = None
+    vmax: Optional[int] = None
+
+#hmin
+
+@app.post("/mask/hmin")
+def sethmin(data: Value):
+    if data.hmin > maskState.hmax:
+        maskState.hmin = maskState.hmax
+    else:
+        maskState.hmin = data.hmin
     return{"hmin": maskState.hmin}
+
+#smin
+
+@app.post("/mask/smin")
+def setsmin(data: Value):
+    if data.smin > maskState.smax:
+        maskState.smin = maskState.smax
+    else:
+        maskState.smin = data.smin
+    return{"smin": maskState.smin}
+
+#vmin
+
+@app.post("/mask/vmin")
+def setvmin(data: Value):
+    if data.vmin > maskState.vmax:
+        maskState.vmin = maskState.vmax
+    else:
+        maskState.vmin = data.vmin
+    return{"vmin": maskState.vmin}
+
+#hmax
+
+@app.post("/mask/hmax")
+def sethmax(data: Value):
+    if data.hmax < maskState.hmin:
+        maskState.hmax = maskState.hmin
+    else:
+        maskState.hmax = data.hmax
+    return{"hmax": maskState.hmax}
+
+#smax
+
+@app.post("/mask/smax")
+def setsmax(data: Value):
+    if data.smax < maskState.smin:
+        maskState.smax = maskState.smin
+    else:
+        maskState.smax = data.smax
+    return{"smax": maskState.smax}
+
+#vmax
+
+@app.post("/mask/vmax")
+def setvmax(data: Value):
+    if data.vmax < maskState.vmin:
+        maskState.vmax = maskState.vmin
+    else:
+        maskState.vmax = data.vmax
+    return{"vmax": maskState.vmax}
+
+#get
+
+@app.get("/mask")
+def get_mask():
+    return {
+        "hmin": maskState.hmin,
+        "hmax": maskState.hmax,
+        "smin": maskState.smin,
+        "smax": maskState.smax,
+        "vmin": maskState.vmin,
+        "vmax": maskState.vmax,
+    }
