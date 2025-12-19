@@ -19,9 +19,8 @@ from GetFrame import getFrame
 from CameraOptions import openCamera, closeCamera, statusCamera
 from CameraState import camState
 from MaskState import maskState
-from CalibrationDefTkinter import calibrate, mask
+from CalibrationDefTkinter import calibrate, maskAPI
 
-import threading
 import uvicorn
 import requests
 
@@ -58,7 +57,16 @@ depthFrame_copy = None
 openCamera()
 
 def button_click():
-    detection_area, workspace_depth, forced_exiting = calibrate(camState.camera, get_lower, get_upper, camState.colorSlope)
+    try:
+        r = requests.get("http://127.0.0.1:8000/mask", timeout=0.2)
+        maskValues = r.json()
+
+        requests.post("http://127.0.0.1:8000/calibrate", json=maskValues, timeout=0.5)
+
+    except requests.exceptions.RequestException:
+        pass
+    
+    #detection_area, workspace_depth, forced_exiting = calibrate(camState.camera, get_lower, get_upper, camState.colorSlope)
 
 # Deactivate windows automatic dpi scale
 ctypes.windll.shcore.SetProcessDpiAwareness(1)
@@ -412,7 +420,7 @@ def update_camera_feed():
     if current_canvas is canvas_calibration:
 
         colorToDepthFrame, depthFrame, colorFrame = getFrame(camState.camera)
-        res, colorToDepthFrame_copy, depthFrame_copy = mask(camState.camera, lambda: get_lower(), lambda: get_upper(), camState.colorSlope)
+        res, colorToDepthFrame_copy, depthFrame_copy = maskAPI(camState.camera, lambda: get_lower(), lambda: get_upper(), camState.colorSlope)
 
         if colorToDepthFrame_copy is None:
             if colorToDepthFrame.dtype != numpy.uint8:
@@ -463,7 +471,7 @@ def update_camera_feed():
         current_canvas.create_image(480, 830, image=tk_mask, anchor="center")
 
         current_canvas.after(10, refresh_sliders)
-        current_canvas.after(50, mask, camState.camera, get_lower, get_upper, camState.colorSlope)
+        current_canvas.after(50, maskAPI, camState.camera, get_lower, get_upper, camState.colorSlope)
         current_canvas.after(70, update_camera_feed)
 
         #workspace, workspace_depth, fex_flag = calibrate(camera, colorSlope)

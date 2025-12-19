@@ -2,11 +2,17 @@ from fastapi import FastAPI, Path, Query, HTTPException, status
 from typing import Optional
 from pydantic import BaseModel
 from CameraOptions import openCamera, closeCamera, statusCamera
-from GetFrame import getFrameClass
+from GetFrame import getFrame
+from CalibrationDefTkinter import calibrateAPI
+from CameraState import camState
+from FrameState import frameState
 from MaskState import maskState
+from WorkspaceState import workspaceState
 import sys
 
 app = FastAPI()
+
+#---------------------------------------------------- Tutorial ---------------------------------------------------- 
 
 class Item(BaseModel):
     name: str
@@ -95,7 +101,18 @@ def delete(item_id : int = Query(..., description="The ID of the item to delete"
     del inventory[item_id]
     return {"Success": "Item Deleted!"}
 
-#Camera
+#-------------------------------------------------------   Tese    -------------------------------------------------------
+
+class HSVValue(BaseModel):
+    hmin: Optional[int] = None
+    hmax: Optional[int] = None
+    smin: Optional[int] = None
+    smax: Optional[int] = None
+    vmin: Optional[int] = None
+    vmax: Optional[int] = None
+
+#-------------------------------------------------------  Camera   -------------------------------------------------------
+
 @app.post("/openCamera")
 def open():
     return openCamera()
@@ -108,83 +125,77 @@ def close():
 def status():
     return statusCamera()
 
-#Frame
+#-------------------------------------------------------   Frame   -------------------------------------------------------
+
+#@app.post("/getFrame")
+#def frame():
+#    return getFrameAPI()
 
 @app.post("/getFrame")
-def frame():
-    return getFrameClass()
+def postframe():
+    colorToDepthFrame, depthFrame, colorFrame = getFrame(camState.camera)
+    frameState.colorToDepthFrame = colorToDepthFrame
+    frameState.depthFrame = depthFrame
+    frameState.colorFrame = colorFrame
+    return {"message:": "Frame successfully achieved"}
 
-#Mask
+#@app.get("/getFrame")
+#def getframe():
+#    return {
+#        "colorToDepthFrame": frameState.colorToDepthFrame,
+#        "depthFrame": frameState.depthFrame,
+#        "colorFrame": frameState.colorFrame,
+#    }
 
-class Value(BaseModel):
-    hmin: Optional[int] = None
-    hmax: Optional[int] = None
-    smin: Optional[int] = None
-    smax: Optional[int] = None
-    vmin: Optional[int] = None
-    vmax: Optional[int] = None
-
-#hmin
+#-------------------------------------------------------    HSV    -------------------------------------------------------
 
 @app.post("/mask/hmin")
-def sethmin(data: Value):
+def sethmin(data: HSVValue):
     if data.hmin > maskState.hmax:
         maskState.hmin = maskState.hmax
     else:
         maskState.hmin = data.hmin
     return{"hmin": maskState.hmin}
 
-#smin
-
 @app.post("/mask/smin")
-def setsmin(data: Value):
+def setsmin(data: HSVValue):
     if data.smin > maskState.smax:
         maskState.smin = maskState.smax
     else:
         maskState.smin = data.smin
     return{"smin": maskState.smin}
 
-#vmin
-
 @app.post("/mask/vmin")
-def setvmin(data: Value):
+def setvmin(data: HSVValue):
     if data.vmin > maskState.vmax:
         maskState.vmin = maskState.vmax
     else:
         maskState.vmin = data.vmin
     return{"vmin": maskState.vmin}
 
-#hmax
-
 @app.post("/mask/hmax")
-def sethmax(data: Value):
+def sethmax(data: HSVValue):
     if data.hmax < maskState.hmin:
         maskState.hmax = maskState.hmin
     else:
         maskState.hmax = data.hmax
     return{"hmax": maskState.hmax}
 
-#smax
-
 @app.post("/mask/smax")
-def setsmax(data: Value):
+def setsmax(data: HSVValue):
     if data.smax < maskState.smin:
         maskState.smax = maskState.smin
     else:
         maskState.smax = data.smax
     return{"smax": maskState.smax}
 
-#vmax
-
 @app.post("/mask/vmax")
-def setvmax(data: Value):
+def setvmax(data: HSVValue):
     if data.vmax < maskState.vmin:
         maskState.vmax = maskState.vmin
     else:
         maskState.vmax = data.vmax
     return{"vmax": maskState.vmax}
-
-#get
 
 @app.get("/mask")
 def get_mask():
@@ -195,4 +206,42 @@ def get_mask():
         "smax": maskState.smax,
         "vmin": maskState.vmin,
         "vmax": maskState.vmax,
+    }
+
+#-------------------------------------------------------   Mask    -------------------------------------------------------
+
+#@app.post("/mask")
+#def mask(data: MaskValue):
+    
+#    return calibrateAPI()
+
+#@app.get("/mask")
+#def get_mask():
+#    return {
+#        "Result": workspaceState.detection_area,
+#        "": workspaceState.workspace_depth,
+#        "Forced Exit Flag": workspaceState.forced_exiting,
+#    }
+
+#------------------------------------------------------- Calibrate -------------------------------------------------------
+
+@app.post("/calibrate")
+def calibrate(data: HSVValue):
+    lower = (data.hmin, data.smin, data.vmin)
+    upper = (data.hmax, data.smax, data.vmax)
+
+    detection_area, workspace_depth, forced_exiting = calibrateAPI(camState.camera, lower, upper, camState.colorSlope)
+
+    workspaceState.detection_area = detection_area
+    workspaceState.workspace_depth = workspace_depth
+    workspaceState.forced_exiting = forced_exiting
+
+    return {"message:": "Calibration sucessfully done"}
+
+@app.get("/calibrate")
+def get_mask():
+    return {
+        "Detection Area": workspaceState.detection_area,
+        "Workspace Depth": workspaceState.workspace_depth,
+        "Forced Exit Flag": workspaceState.forced_exiting,
     }
