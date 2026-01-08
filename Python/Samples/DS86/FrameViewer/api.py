@@ -1,13 +1,16 @@
-from fastapi import FastAPI, Path, Query, HTTPException, status
+from fastapi import FastAPI, Path, Query, HTTPException, status, Response
 from typing import Optional
 from pydantic import BaseModel
 from CameraOptions import openCamera, closeCamera, statusCamera
 from GetFrame import getFrame
-from CalibrationDefTkinter import calibrateAPI
+from CalibrationDefTkinter import calibrateAPI, maskAPI
 from CameraState import camState
 from FrameState import frameState
 from MaskState import maskState
+from ModeState import modeState
 from WorkspaceState import workspaceState
+#import base64
+import numpy
 import sys
 
 app = FastAPI()
@@ -103,6 +106,9 @@ def delete(item_id : int = Query(..., description="The ID of the item to delete"
 
 #-------------------------------------------------------   Tese    -------------------------------------------------------
 
+#Start API
+#python -m uvicorn api:app --reload
+
 class HSVValue(BaseModel):
     hmin: Optional[int] = None
     hmax: Optional[int] = None
@@ -131,8 +137,12 @@ def status():
 #def frame():
 #    return getFrameAPI()
 
-@app.post("/getFrame")
-def postframe():
+#def encode_numpy_raw(array: numpy.ndarray):
+#    """Serializa NumPy array inteiro em base64"""
+#    return base64.b64encode(array.tobytes()).decode("utf-8")
+
+@app.post("/captureFrame")
+def capture_frame():
     colorToDepthFrame, depthFrame, colorFrame = getFrame(camState.camera)
     frameState.colorToDepthFrame = colorToDepthFrame
     frameState.depthFrame = depthFrame
@@ -147,10 +157,61 @@ def postframe():
 #        "colorFrame": frameState.colorFrame,
 #    }
 
-#-------------------------------------------------------    HSV    -------------------------------------------------------
+@app.get("/getFrame/color")
+def get_Color_Frame():
+    return Response(content=frameState.colorFrame.tobytes(), media_type="application/octet-stream")
+
+@app.get("/getFrame/colorToDepth")
+def get_ColorToDepth_Frame():
+    return Response(content=frameState.colorToDepthFrame.tobytes(), media_type="application/octet-stream")
+
+@app.get("/getFrame/depth")
+def get_Depth_Frame():
+    return Response(content=frameState.depthFrame.tobytes(), media_type="application/octet-stream")
+
+@app.get("/getFrame/colorToDepthCopy")
+def get_ColorToDepth_Frame_Copy():
+    return Response(content=frameState.colorToDepthFrameCopy.tobytes(), media_type="application/octet-stream")
+
+@app.get("/getFrame/depthCopy")
+def get_Depth_Frame_Copy():
+    return Response(content=frameState.depthFrameCopy.tobytes(), media_type="application/octet-stream")
+
+@app.get("/getFrame/res")
+def get_Res():
+    return Response(content=frameState.res.tobytes(), media_type="application/octet-stream")
+
+@app.get("/getFrame")
+def get_frame():
+    frames = []
+
+    frames.append(frameState.colorFrame.tobytes())
+    frames.append(frameState.colorToDepthFrame.tobytes())
+    frames.append(frameState.depthFrame.tobytes())
+
+    separator = b"__FRAME__"
+    payload = separator.join(frames)
+
+    return Response(content=payload, media_type="application/octet-stream")
+    
+    #return {
+        #"colorToDepthFrame": encode_numpy_raw(frameState.colorToDepthFrame),
+        #"colorToDepthShape": frameState.colorToDepthFrame.shape,
+        #"colorToDepthDtype": str(frameState.colorToDepthFrame.dtype),
+
+        #"depthFrame": encode_numpy_raw(frameState.depthFrame),
+        #"depthShape": frameState.depthFrame.shape,
+        #"depthDtype": str(frameState.depthFrame.dtype),
+
+        #"colorFrame": encode_numpy_raw(frameState.colorFrame),
+        #"colorShape": frameState.colorFrame.shape,
+        #"colorDtype": str(frameState.colorFrame.dtype),
+    #}
+
+#-------------------------------------------------------   Mask    -------------------------------------------------------
 
 @app.post("/mask/hmin")
-def sethmin(data: HSVValue):
+def set_h_min(data: HSVValue):
     if data.hmin > maskState.hmax:
         maskState.hmin = maskState.hmax
     else:
@@ -158,7 +219,7 @@ def sethmin(data: HSVValue):
     return{"hmin": maskState.hmin}
 
 @app.post("/mask/smin")
-def setsmin(data: HSVValue):
+def set_s_min(data: HSVValue):
     if data.smin > maskState.smax:
         maskState.smin = maskState.smax
     else:
@@ -166,7 +227,7 @@ def setsmin(data: HSVValue):
     return{"smin": maskState.smin}
 
 @app.post("/mask/vmin")
-def setvmin(data: HSVValue):
+def set_v_min(data: HSVValue):
     if data.vmin > maskState.vmax:
         maskState.vmin = maskState.vmax
     else:
@@ -174,7 +235,7 @@ def setvmin(data: HSVValue):
     return{"vmin": maskState.vmin}
 
 @app.post("/mask/hmax")
-def sethmax(data: HSVValue):
+def set_h_max(data: HSVValue):
     if data.hmax < maskState.hmin:
         maskState.hmax = maskState.hmin
     else:
@@ -182,7 +243,7 @@ def sethmax(data: HSVValue):
     return{"hmax": maskState.hmax}
 
 @app.post("/mask/smax")
-def setsmax(data: HSVValue):
+def set_s_max(data: HSVValue):
     if data.smax < maskState.smin:
         maskState.smax = maskState.smin
     else:
@@ -190,7 +251,7 @@ def setsmax(data: HSVValue):
     return{"smax": maskState.smax}
 
 @app.post("/mask/vmax")
-def setvmax(data: HSVValue):
+def set_v_max(data: HSVValue):
     if data.vmax < maskState.vmin:
         maskState.vmax = maskState.vmin
     else:
@@ -208,12 +269,21 @@ def get_mask():
         "vmax": maskState.vmax,
     }
 
-#-------------------------------------------------------   Mask    -------------------------------------------------------
+@app.post("/applyMask")
+def apply_mask(data: HSVValue):
+    lower = (data.hmin, data.smin, data.vmin)
+    upper = (data.hmax, data.smax, data.vmax)
 
-#@app.post("/mask")
-#def mask(data: MaskValue):
+    res, colorToDepthFrame_copy, depthFrame_copy = maskAPI(camState.camera, lower, upper, camState.colorSlope)
+
+    if res is None or colorToDepthFrame_copy is None or depthFrame_copy is None:
+        return{"message:": "Mask application failed!"}
+
+    frameState.res = res
+    frameState.colorToDepthFrameCopy = colorToDepthFrame_copy
+    frameState.depthFrameCopy = depthFrame_copy
     
-#    return calibrateAPI()
+    return{"message:": "Mask applied with success"}
 
 #@app.get("/mask")
 #def get_mask():
@@ -230,18 +300,37 @@ def calibrate(data: HSVValue):
     lower = (data.hmin, data.smin, data.vmin)
     upper = (data.hmax, data.smax, data.vmax)
 
-    detection_area, workspace_depth, forced_exiting = calibrateAPI(camState.camera, lower, upper, camState.colorSlope)
+    detection_area, workspace_depth = calibrateAPI(camState.camera, lower, upper, camState.colorSlope)
+
+    if detection_area is None or workspace_depth is None:
+        return{"message:": "Calibration failed!"}
 
     workspaceState.detection_area = detection_area
     workspaceState.workspace_depth = workspace_depth
-    workspaceState.forced_exiting = forced_exiting
 
     return {"message:": "Calibration sucessfully done"}
 
-@app.get("/calibrate")
-def get_mask():
+@app.get("/calibrate/params")
+def get_calibration_parameters():
     return {
         "Detection Area": workspaceState.detection_area,
         "Workspace Depth": workspaceState.workspace_depth,
-        "Forced Exit Flag": workspaceState.forced_exiting,
     }
+
+#--------------------------------------------------------- Mode ---------------------------------------------------------
+
+@app.get("/mode")
+def get_mode():
+    return{
+        "Mode": modeState.mode,
+    }
+
+@app.post("/mode/static")
+def static():
+    modeState.mode = "Static"
+    return {"mode:": modeState.mode}
+
+@app.post("/mode/dynamic")
+def dynamic():
+    modeState.mode = "Dynamic"
+    return {"mode:": modeState.mode}

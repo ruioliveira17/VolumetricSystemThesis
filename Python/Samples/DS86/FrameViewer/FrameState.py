@@ -3,5 +3,7 @@ class FrameState:
         self.colorToDepthFrame = None
         self.depthFrame = None 
         self.colorFrame = None
-
+        self.colorToDepthFrameCopy = None
+        self.depthFrameCopy = None
+        self.res = None
 frameState = FrameState()

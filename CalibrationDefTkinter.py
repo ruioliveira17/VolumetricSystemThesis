@@ -1,8 +1,8 @@
 from pickle import FALSE, TRUE
 import sys
 sys.path.append('C:/Tese/Python/Samples/DS86/FrameViewer')
-from GetFrame import getFrame
-from FrameState import frameState
+#from GetFrame import getFrame
+#from FrameState import frameState
 
 import cv2
 import numpy
@@ -13,7 +13,12 @@ y_area = 0
 x_area_plus_width = 0
 y_area_plus_height = 0
 
-detection_area = 0
+detection_area = None
+workspace_depth = None
+
+color_shape = (1200, 1600, 3)
+colorToDepth_shape   = (480, 640, 3)
+depth_shape = (480, 640)
 
 def mask(camera, get_lower, get_upper, colorSlope):
     global x_area, y_area, x_area_plus_width, y_area_plus_height, detection_area
@@ -89,8 +94,6 @@ def mask(camera, get_lower, get_upper, colorSlope):
 
 def maskAPI(camera, get_lower, get_upper, colorSlope):
     global x_area, y_area, x_area_plus_width, y_area_plus_height, detection_area
-    lower = get_lower()
-    upper = get_upper()
 
     center_x = 0
     center_y = 0
@@ -106,13 +109,18 @@ def maskAPI(camera, get_lower, get_upper, colorSlope):
 
     try:
         try: 
-            requests.post("http://127.0.0.1:8000/getFrame", timeout=1)
+            requests.post("http://127.0.0.1:8000/captureFrame", timeout=1)
         except requests.exceptions.RequestException: 
             pass
 
-        colorToDepthFrame = frameState.colorToDepthFrame
-        depthFrame = frameState.depthFrame
-        colorFrame = frameState.colorFrame
+        data = requests.get("http://127.0.0.1:8000/getFrame/color")
+        colorFrame = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(color_shape)
+
+        data = requests.get("http://127.0.0.1:8000/getFrame/colorToDepth")
+        colorToDepthFrame   = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(colorToDepth_shape)
+        
+        data = requests.get("http://127.0.0.1:8000/getFrame/depth")
+        depthFrame = numpy.frombuffer(data.content, dtype=numpy.uint16).reshape(depth_shape)
 
         colorToDepthFrame = cv2.resize(colorToDepthFrame, (640, 480))
 
@@ -123,7 +131,7 @@ def maskAPI(camera, get_lower, get_upper, colorSlope):
 
         # ------------------ ÁREA EXTERIOR -------------------
 
-        mask_hsv = cv2.inRange(hsv_frame, lower, upper)
+        mask_hsv = cv2.inRange(hsv_frame, get_lower, get_upper)
 
         res = cv2.bitwise_and(colorToDepthFrame, colorToDepthFrame, mask=mask_hsv)
 
@@ -366,10 +374,7 @@ def calibrateAPI(camera, get_lower, get_upper, colorSlope):
     workspace_free = False # Toda a área tem a mesma profundidade
     workspace_clear = False # Profundidade é igual em toda a workspace e borda amarela totalmente detetada
 
-    workspace_depth = 0
     center_y = 0
-
-    forced_exiting = None
     
     calibrated = False
 
@@ -379,13 +384,18 @@ def calibrateAPI(camera, get_lower, get_upper, colorSlope):
 
     try:
         try: 
-            requests.post("http://127.0.0.1:8000/getFrame", timeout=1)
+            requests.post("http://127.0.0.1:8000/captureFrame", timeout=1)
         except requests.exceptions.RequestException: 
             pass
 
-        colorToDepthFrame = frameState.colorToDepthFrame
-        depthFrame = frameState.depthFrame
-        colorFrame = frameState.colorFrame
+        data = requests.get("http://127.0.0.1:8000/getFrame/color")
+        colorFrame = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(color_shape)
+
+        data = requests.get("http://127.0.0.1:8000/getFrame/colorToDepth")
+        colorToDepthFrame   = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(colorToDepth_shape)
+        
+        data = requests.get("http://127.0.0.1:8000/getFrame/depth")
+        depthFrame = numpy.frombuffer(data.content, dtype=numpy.uint16).reshape(depth_shape)
         
         colorToDepthFrame = cv2.resize(colorToDepthFrame, (640, 480))
 
@@ -509,6 +519,8 @@ def calibrateAPI(camera, get_lower, get_upper, colorSlope):
             calibrated = True
         else:
             calibrated = False
+            detection_area = None
+            workspace_depth = None
 
         key = cv2.waitKey(1)
         #return detection_area, workspace_depth, forced_exiting
@@ -518,11 +530,10 @@ def calibrateAPI(camera, get_lower, get_upper, colorSlope):
             print("System calibrated successfully!")
             print("Center is aligned")
             print("Workspace is aligned! Depth:", workspace_depth, "Workspace:", detection_area)
-            forced_exiting = 0
             cv2.destroyAllWindows()
             print("---end---")
             
-            return detection_area, workspace_depth, forced_exiting
+            return detection_area, workspace_depth
         else:
             print("System isnt calibrated!")
             print("Try Again!")
@@ -551,4 +562,4 @@ def calibrateAPI(camera, get_lower, get_upper, colorSlope):
     finally :
         print('end')
 
-    #return detection_area, workspace_depth, forced_exiting
+    return detection_area, workspace_depth

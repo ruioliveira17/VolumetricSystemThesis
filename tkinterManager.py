@@ -5,7 +5,7 @@ import cv2
 from PIL import Image, ImageTk
 import ctypes
 import numpy
-
+import base64
 import sys
 sys.path.append('C:/Tese/Python')
 
@@ -15,7 +15,7 @@ import threading
 
 sys.path.append('C:/Tese/Python/Samples/DS86/FrameViewer')
 
-from GetFrame import getFrame
+#from GetFrame import getFrame
 from CameraOptions import openCamera, closeCamera, statusCamera
 from CameraState import camState
 from MaskState import maskState
@@ -54,9 +54,15 @@ res = None
 colorToDepthFrame_copy = None
 depthFrame_copy = None
 
+color_shape = (1200, 1600, 3)
+colorToDepth_shape = (480, 640, 3)
+depth_shape = (480, 640)
+colorToDepthCopy_shape = (480, 640, 3)
+depthCopy_shape = (480, 640, 3)
+
 openCamera()
 
-def button_click():
+def calibrate_click():
     try:
         r = requests.get("http://127.0.0.1:8000/mask", timeout=0.2)
         maskValues = r.json()
@@ -67,6 +73,21 @@ def button_click():
         pass
     
     #detection_area, workspace_depth, forced_exiting = calibrate(camState.camera, get_lower, get_upper, camState.colorSlope)
+
+def StaticDynamic_toggle():
+    if StaticDynamic_var.get():
+        requests.post("http://127.0.0.1:8000/mode/dynamic")
+    else:
+        requests.post("http://127.0.0.1:8000/mode/static")
+
+def apply_mask():
+    try:
+        r = requests.get("http://127.0.0.1:8000/mask", timeout=0.2)
+        maskValues = r.json()
+        
+        requests.post("http://127.0.0.1:8000/applyMask", json=maskValues ,timeout=0.5)
+    except requests.exceptions.RequestException:
+        pass
 
 # Deactivate windows automatic dpi scale
 ctypes.windll.shcore.SetProcessDpiAwareness(1)
@@ -276,11 +297,22 @@ label = tk.Label(canvas_config, bg='white', text="Configurações", font=('Arial
 label.pack(pady = 20)
 
 #--------------------- Logo Balanças Marques ---------------------
+
 BM_logo = Image.open("BM_Logo.png").resize((360, 152))
 BM_logo_tk_config = ImageTk.PhotoImage(BM_logo)
 canvas_config.create_image(10, 10, anchor='nw', image=BM_logo_tk_config)
 
-#-----------------------------------------------------------------
+#------------------ Static / Dynamic Interface -------------------
+
+StaticDynamic_var = customtkinter.BooleanVar(value=False)
+
+StaticDynamic_switch = customtkinter.CTkSwitch(canvas_config, text="", variable=StaticDynamic_var, onvalue=True, offvalue=False, command=StaticDynamic_toggle, switch_width=100, switch_height=50, fg_color="turquoise1", progress_color="dark turquoise", button_color="gray65", button_hover_color="gray45")
+canvas_config.create_window(290, 495, anchor="nw", window=StaticDynamic_switch)
+
+label_static = tk.Label(canvas_config, text="Static", bg="white", font=("Arial", 20))
+label_dynamic = tk.Label(canvas_config, text="Dynamic", bg="white", font=("Arial", 20))
+canvas_config.create_window(200, 500, anchor="nw", window=label_static)
+canvas_config.create_window(400, 500, anchor="nw", window=label_dynamic)
 
 #-------------------- Calibration Interface ----------------------
 
@@ -308,7 +340,7 @@ BM_logo_tk_calibration = ImageTk.PhotoImage(BM_logo)
 canvas_calibration.create_image(10, 10, anchor='nw', image=BM_logo_tk_calibration)
 
 #----------------------------- Botão -----------------------------
-button = tk.Button(canvas_calibration, text="Calibrate", font=("Arial", 20), width=30, height=1, command=button_click)
+button = tk.Button(canvas_calibration, text="Calibrate", font=("Arial", 20), width=30, height=1, command=calibrate_click)
 canvas_calibration.create_window(1100, 850, anchor="nw", window=button)
 
 #-----------------------------------------------------------------
@@ -362,6 +394,8 @@ def change_canvas(event):
         canvas_config.pack(fill="both", expand=True)
         current_canvas = canvas_config
         last_canvas = canvas_main
+
+        refresh_toggle()
         
     elif current_canvas is not canvas_main and main_rect[0] <= x <= main_rect[2] and main_rect[1] <= y <= main_rect[3]:
         # Clicou para regressar
@@ -369,6 +403,8 @@ def change_canvas(event):
             current_canvas.pack_forget()
             last_canvas.pack(fill="both", expand=True)
             current_canvas = last_canvas
+            if current_canvas is canvas_config:
+                refresh_toggle()
             if last_canvas != canvas_main:
                 last_canvas = canvas_main
             else:
@@ -387,10 +423,31 @@ def change_canvas(event):
         update_camera_feed()
 
 def update_camera_feed():
-    global colorFrame, current_canvas, colorToDepthFrame, depthFrame, colorFrame, res
+    global colorFrame, current_canvas, colorToDepthFrame, depthFrame, colorFrame, res, color_shape, colorToDepth_shape, depth_shape
 
     if current_canvas is canvas_camara:
-        colorToDepthFrame, depthFrame, colorFrame = getFrame(camState.camera)
+        try:
+            requests.post("http://127.0.0.1:8000/captureFrame", timeout=0.2)
+        except requests.exceptions.RequestException:
+            pass
+
+        data = requests.get("http://127.0.0.1:8000/getFrame/color")
+        colorFrame = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(color_shape)
+
+        data = requests.get("http://127.0.0.1:8000/getFrame/colorToDepth")
+        colorToDepthFrame   = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(colorToDepth_shape)
+        
+        data = requests.get("http://127.0.0.1:8000/getFrame/depth")
+        depthFrame = numpy.frombuffer(data.content, dtype=numpy.uint16).reshape(depth_shape)
+
+        #data = requests.get("http://localhost:8000/getFrame")
+        #frames_bytes = data.content.split(b"__FRAME__")
+
+        #colorFrame = numpy.frombuffer(frames_bytes[0], dtype=numpy.uint8).reshape(color_shape)
+        #colorToDepthFrame   = numpy.frombuffer(frames_bytes[1], dtype=numpy.uint8).reshape(colorToDepth_shape)
+        #depthFrame = numpy.frombuffer(frames_bytes[2], dtype=numpy.uint8).reshape(depth_shape)
+
+        #colorToDepthFrame, depthFrame, colorFrame = getFrame(camState.camera)
 
         if colorFrame.dtype != numpy.uint8:
             # Normaliza para 0-255 e converte para uint8
@@ -418,9 +475,32 @@ def update_camera_feed():
         current_canvas.after(10, update_camera_feed)
 
     if current_canvas is canvas_calibration:
+        try:
+            requests.post("http://127.0.0.1:8000/captureFrame", timeout=0.2)
+        except requests.exceptions.RequestException:
+            pass
 
-        colorToDepthFrame, depthFrame, colorFrame = getFrame(camState.camera)
-        res, colorToDepthFrame_copy, depthFrame_copy = maskAPI(camState.camera, lambda: get_lower(), lambda: get_upper(), camState.colorSlope)
+        data = requests.get("http://127.0.0.1:8000/getFrame/color")
+        colorFrame = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(color_shape)
+
+        data = requests.get("http://127.0.0.1:8000/getFrame/colorToDepth")
+        colorToDepthFrame   = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(colorToDepth_shape)
+        
+        data = requests.get("http://127.0.0.1:8000/getFrame/depth")
+        depthFrame = numpy.frombuffer(data.content, dtype=numpy.uint16).reshape(depth_shape)
+
+        #APLICAR MASCARA
+        apply_mask()
+
+        data = requests.get("http://127.0.0.1:8000/getFrame/colorToDepthCopy")
+        colorToDepthFrame_copy = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(colorToDepthCopy_shape)
+
+        data = requests.get("http://127.0.0.1:8000/getFrame/depthCopy")
+        depthFrame_copy = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(depthCopy_shape)
+
+        data = requests.get("http://127.0.0.1:8000/getFrame/res")
+        res = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(depthCopy_shape)
+        #res, colorToDepthFrame_copy, depthFrame_copy = maskAPI(camState.camera, lambda: get_lower(), lambda: get_upper(), camState.colorSlope)
 
         if colorToDepthFrame_copy is None:
             if colorToDepthFrame.dtype != numpy.uint8:
@@ -471,7 +551,8 @@ def update_camera_feed():
         current_canvas.create_image(480, 830, image=tk_mask, anchor="center")
 
         current_canvas.after(10, refresh_sliders)
-        current_canvas.after(50, maskAPI, camState.camera, get_lower, get_upper, camState.colorSlope)
+        current_canvas.after(50, apply_mask)
+        #current_canvas.after(50, maskAPI, camState.camera, get_lower, get_upper, camState.colorSlope)
         current_canvas.after(70, update_camera_feed)
 
         #workspace, workspace_depth, fex_flag = calibrate(camera, colorSlope)
@@ -539,11 +620,11 @@ def update_sliders():
         vmax_label = customtkinter.CTkLabel(current_canvas, text=vmax_slider.get(), text_color="black", font=("Arial", 18))
         vmax_label.place(x=1820, y=760)
     
-def get_lower():
-    return (maskState.hmin, maskState.smin, maskState.vmin)
+#def get_lower():
+#    return (maskState.hmin, maskState.smin, maskState.vmin)
 
-def get_upper():
-    return (maskState.hmax, maskState.smax, maskState.vmax)
+#def get_upper():
+#    return (maskState.hmax, maskState.smax, maskState.vmax)
 
 def confirm_exit_overlay(event = None):
     global overlay
@@ -635,6 +716,22 @@ def refresh_sliders():
 
     except requests.exceptions.RequestException:
         pass
+
+def refresh_toggle():
+    try:
+        r = requests.get("http://127.0.0.1:8000/mode", timeout=0.2)
+        mode = r.json()["Mode"]
+
+        if mode == "Dynamic":
+            StaticDynamic_var.set(True)
+        else:
+            StaticDynamic_var.set(False)
+
+    except requests.exceptions.RequestException:
+        pass
+
+    if current_canvas is canvas_config:
+        current_canvas.after(50, refresh_toggle)
 #-----------------------------------------------------------------
 
 canvas_main.bind("<Button-1>", change_canvas)

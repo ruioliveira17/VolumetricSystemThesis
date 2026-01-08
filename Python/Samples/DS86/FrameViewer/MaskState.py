@@ -1,5 +1,3 @@
-import threading
-
 class MaskState:
     def __init__(self):
         self.hmin = 0
