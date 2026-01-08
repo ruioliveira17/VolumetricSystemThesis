@@ -15,11 +15,7 @@ import threading
 
 sys.path.append('C:/Tese/Python/Samples/DS86/FrameViewer')
 
-#from GetFrame import getFrame
 from CameraOptions import openCamera, closeCamera, statusCamera
-from CameraState import camState
-from MaskState import maskState
-from CalibrationDefTkinter import calibrate, maskAPI
 
 import uvicorn
 import requests
