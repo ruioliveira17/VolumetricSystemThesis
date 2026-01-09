@@ -85,6 +85,12 @@ def apply_mask():
     except requests.exceptions.RequestException:
         pass
 
+def getMinDepth():
+    try:
+        requests.post("http://127.0.0.1:8000/depth", timeout=5)
+    except requests.exceptions.RequestException:
+        pass
+
 # Deactivate windows automatic dpi scale
 ctypes.windll.shcore.SetProcessDpiAwareness(1)
 
@@ -370,6 +376,9 @@ def change_canvas(event):
         current_canvas = canvas_volume
         last_canvas = canvas_main
 
+        current_canvas.update()
+        update_camera_feed()
+
     elif current_canvas is canvas_main and sto_rect[0] <= x <= sto_rect[2] and sto_rect[1] <= y <= sto_rect[3]:
         # Clicou no quadrado de storaging
         canvas_main.pack_forget()
@@ -421,6 +430,8 @@ def change_canvas(event):
 def update_camera_feed():
     global colorFrame, current_canvas, colorToDepthFrame, depthFrame, colorFrame, res, color_shape, colorToDepth_shape, depth_shape
 
+    #-------------------------------------------------------------  Camara  ------------------------------------------------------------------------
+
     if current_canvas is canvas_camara:
         try:
             requests.post("http://127.0.0.1:8000/captureFrame", timeout=0.2)
@@ -469,6 +480,95 @@ def update_camera_feed():
         current_canvas.create_image(x_img, y_img + 50, image=tk_img, anchor="center")
 
         current_canvas.after(10, update_camera_feed)
+
+    #-------------------------------------------------------------  Volume  ------------------------------------------------------------------------
+
+    if current_canvas is canvas_volume:
+        try:
+            requests.post("http://127.0.0.1:8000/captureFrame", timeout=0.2)
+        except requests.exceptions.RequestException:
+            pass
+
+        data = requests.get("http://127.0.0.1:8000/getFrame/color")
+        colorFrame = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(color_shape)
+
+        data = requests.get("http://127.0.0.1:8000/getFrame/colorToDepth")
+        colorToDepthFrame   = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(colorToDepth_shape)
+        
+        data = requests.get("http://127.0.0.1:8000/getFrame/depth")
+        depthFrame = numpy.frombuffer(data.content, dtype=numpy.uint16).reshape(depth_shape)
+
+        data = requests.get("http://127.0.0.1:8000/camera/colorSlope", timeout=1)
+        colorSlope = data.json()["colorSlope"]
+
+        if colorToDepthFrame.dtype != numpy.uint8:
+            # Normaliza para 0-255 e converte para uint8
+            frame_uint8 = (numpy.clip(colorToDepthFrame, 0, 1) * 255).astype(numpy.uint8)
+        else:
+            frame_uint8 = colorToDepthFrame
+
+        frame_rgb = frame_uint8[:, :, ::-1]  # se BGR
+
+        pil_img = Image.fromarray(frame_rgb)
+        pil_img = pil_img.resize((560, 420), Image.LANCZOS)
+        tk_img = ImageTk.PhotoImage(pil_img)
+        current_canvas.tk_image = tk_img
+
+        img = numpy.int32(depthFrame)
+        img = img*255/colorSlope
+        img = numpy.clip(img, 0, 255)
+        img = numpy.uint8(img)
+        depth_img = cv2.applyColorMap(img, cv2.COLORMAP_RAINBOW)
+
+        if depth_img.dtype != numpy.uint8:
+            # Normaliza para 0-255 e converte para uint8
+            frame_uint8 = (numpy.clip(depth_img, 0, 1) * 255).astype(numpy.uint8)
+        else:
+            frame_uint8 = depth_img
+
+        frame_depth = frame_uint8[:, :, ::-1]  # se BGR
+
+        pil_depth = Image.fromarray(frame_depth)
+        pil_depth = pil_depth.resize((560, 420), Image.LANCZOS)
+        tk_depth = ImageTk.PhotoImage(pil_depth)
+        current_canvas.tk_depth = tk_depth
+
+        cw = current_canvas.winfo_width()
+        ch = current_canvas.winfo_height()
+
+        # Calcular coordenadas para centrar a imagem
+        x_img = cw // 2
+        y_img = ch // 2
+                                                    
+        # Desenhar imagem centrada
+        #current_canvas.create_image(x_img, y_img + 50, image=tk_img, anchor="center")
+        current_canvas.create_image(480, 400, image=tk_depth, anchor="center")
+        current_canvas.create_image(480, 830, image=tk_img, anchor="center")
+
+        #getMinDepth()
+
+        #try:
+        #    requests.post("http://127.0.0.1:8000/depth/min", timeout=0.2)
+        #except requests.exceptions.RequestException:
+        #    pass
+
+        #r = requests.get("http://127.0.0.1:8000/depth/notSet")
+        #not_set = r.json()["not_set"]
+
+        #try:
+        #    requests.post("http://127.0.0.1:8000/volume", timeout=2)
+        #except requests.exceptions.RequestException:
+        #    pass
+
+        #try:
+        #    requests.post("http://127.0.0.1:8000/volumeObj", timeout=5)
+        #except requests.exceptions.RequestException:
+        #    pass
+
+        #current_canvas.after(50, getMinDepth)
+        current_canvas.after(70, update_camera_feed)
+
+    #-----------------------------------------------------------  Calibração  ----------------------------------------------------------------------
 
     if current_canvas is canvas_calibration:
         try:

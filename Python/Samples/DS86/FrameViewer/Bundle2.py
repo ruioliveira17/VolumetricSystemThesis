@@ -5,6 +5,15 @@ sys.path.append('C:/Tese/Python')
 from API.VzenseDS_api import *
 import cv2
 
+def depthImg(hdrDepth, colorSlope):
+    img = numpy.int32(hdrDepth)
+    img = img*255/colorSlope
+    img = numpy.clip(img, 0, 255)
+    img = numpy.uint8(img)
+    depth_img = cv2.applyColorMap(img, cv2.COLORMAP_RAINBOW)
+
+    return depth_img
+
 def bundle(hdrColor, hdrDepth_img, objects_info, threshold, hdrDepth):
 
     w_pixels = 0
@@ -71,7 +80,7 @@ def bundle(hdrColor, hdrDepth_img, objects_info, threshold, hdrDepth):
             box = cv2.boxPoints(rect)
             box = numpy.round(box).astype(numpy.int32)
             cv2.drawContours(hdrColor_copy, [box], 0, (0, 255, 0), 2)
-            cv2.imshow("Objects", hdrColor_copy)
+            #cv2.imshow("Objects", hdrColor_copy)
 
     all_points_list = [c for contour_list in contours for c in contour_list if c.size > 0]
     #print(len(all_points_list))

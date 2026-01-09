@@ -92,7 +92,7 @@ def mask(camera, get_lower, get_upper, colorSlope):
     finally :
         print('end')
 
-def maskAPI(camera, get_lower, get_upper, colorSlope):
+def maskAPI(colorFrame, colorToDepthFrame, depthFrame, get_lower, get_upper, colorSlope):
     global x_area, y_area, x_area_plus_width, y_area_plus_height, detection_area
 
     center_x = 0
@@ -103,24 +103,24 @@ def maskAPI(camera, get_lower, get_upper, colorSlope):
     x_area_plus_width = None
     y_area_plus_height = None
 
-    colorToDepthFrame = None
-    depthFrame = None 
-    colorFrame = None
+    #colorToDepthFrame = None
+    #depthFrame = None 
+    #colorFrame = None
 
     try:
-        try: 
-            requests.post("http://127.0.0.1:8000/captureFrame", timeout=1)
-        except requests.exceptions.RequestException: 
-            pass
+        #try: 
+        #    requests.post("http://127.0.0.1:8000/captureFrame", timeout=1)
+        #except requests.exceptions.RequestException: 
+        #    pass
 
-        data = requests.get("http://127.0.0.1:8000/getFrame/color")
-        colorFrame = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(color_shape)
+        #data = requests.get("http://127.0.0.1:8000/getFrame/color")
+        #colorFrame = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(color_shape)
 
-        data = requests.get("http://127.0.0.1:8000/getFrame/colorToDepth")
-        colorToDepthFrame   = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(colorToDepth_shape)
+        #data = requests.get("http://127.0.0.1:8000/getFrame/colorToDepth")
+        #colorToDepthFrame   = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(colorToDepth_shape)
         
-        data = requests.get("http://127.0.0.1:8000/getFrame/depth")
-        depthFrame = numpy.frombuffer(data.content, dtype=numpy.uint16).reshape(depth_shape)
+        #data = requests.get("http://127.0.0.1:8000/getFrame/depth")
+        #depthFrame = numpy.frombuffer(data.content, dtype=numpy.uint16).reshape(depth_shape)
 
         colorToDepthFrame = cv2.resize(colorToDepthFrame, (640, 480))
 
@@ -365,7 +365,7 @@ def calibrate(camera, get_lower, get_upper, colorSlope):
 
     #return detection_area, workspace_depth, forced_exiting
 
-def calibrateAPI(camera, get_lower, get_upper, colorSlope):
+def calibrateAPI(colorFrame, colorToDepthFrame, depthFrame, get_lower, get_upper, colorSlope):
     global x_area, y_area, x_area_plus_width, y_area_plus_height, detection_area
 
     center_aligned = False # Ponto central tem a cor da calibração
@@ -378,24 +378,24 @@ def calibrateAPI(camera, get_lower, get_upper, colorSlope):
     
     calibrated = False
 
-    colorToDepthFrame = None
-    depthFrame = None 
-    colorFrame = None
+    #colorToDepthFrame = None
+    #depthFrame = None 
+    #colorFrame = None
 
     try:
-        try: 
-            requests.post("http://127.0.0.1:8000/captureFrame", timeout=1)
-        except requests.exceptions.RequestException: 
-            pass
+        #try: 
+        #    requests.post("http://127.0.0.1:8000/captureFrame", timeout=1)
+        #except requests.exceptions.RequestException: 
+        #    pass
 
-        data = requests.get("http://127.0.0.1:8000/getFrame/color")
-        colorFrame = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(color_shape)
+        #data = requests.get("http://127.0.0.1:8000/getFrame/color")
+        #colorFrame = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(color_shape)
 
-        data = requests.get("http://127.0.0.1:8000/getFrame/colorToDepth")
-        colorToDepthFrame   = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(colorToDepth_shape)
+        #data = requests.get("http://127.0.0.1:8000/getFrame/colorToDepth")
+        #colorToDepthFrame   = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(colorToDepth_shape)
         
-        data = requests.get("http://127.0.0.1:8000/getFrame/depth")
-        depthFrame = numpy.frombuffer(data.content, dtype=numpy.uint16).reshape(depth_shape)
+        #data = requests.get("http://127.0.0.1:8000/getFrame/depth")
+        #depthFrame = numpy.frombuffer(data.content, dtype=numpy.uint16).reshape(depth_shape)
         
         colorToDepthFrame = cv2.resize(colorToDepthFrame, (640, 480))
 
