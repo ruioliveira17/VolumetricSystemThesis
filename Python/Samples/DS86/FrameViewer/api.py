@@ -196,13 +196,17 @@ def calibrate(data: HSVValue):
     colorToDepthFrame = frameState.colorToDepthFrame
     depthFrame = frameState.depthFrame
 
-    detection_area, workspace_depth = calibrateAPI(colorFrame, colorToDepthFrame, depthFrame, lower, upper, camState.colorSlope)
+    detection_area, workspace_depth, center_aligned, workspace_clear = calibrateAPI(colorFrame, colorToDepthFrame, depthFrame, lower, upper, camState.colorSlope)
 
     if detection_area is None or workspace_depth is None:
+        workspaceState.center_aligned = center_aligned
+        workspaceState.workspace_clear = workspace_clear
         return{"message:": "Calibration failed!"}
 
     workspaceState.detection_area = detection_area
     workspaceState.workspace_depth = workspace_depth
+    workspaceState.center_aligned = center_aligned
+    workspaceState.workspace_clear = workspace_clear
 
     return {"message:": "Calibration sucessfully done"}
 
@@ -211,6 +215,13 @@ def get_calibration_parameters():
     return {
         "Detection Area": workspaceState.detection_area,
         "Workspace Depth": workspaceState.workspace_depth,
+    }
+
+@app.get("/calibrate/flags")
+def get_calibration_flags():
+    return {
+        "Center Aligned": workspaceState.center_aligned,
+        "Workspace Clear": workspaceState.workspace_clear,
     }
 
 #--------------------------------------------------------- Mode ---------------------------------------------------------
@@ -297,4 +308,11 @@ def volume_Obj():
         volumeState.width, volumeState.height, depthState.minimum_value, depthState.not_set, volumeState.box_limits, volumeState.box_ws = bundle(frameState.colorFrame, depth_img, depthState.objects_info, depthState.threshold, frameState.depthFrame)
     volumeState.volume, volumeState.width_meters, volumeState.height_meters, depthState.minimum_depth = volumeAPI(volumeState.box_ws, volumeState.width, volumeState.height, workspaceState.workspace_depth, depthState.minimum_depth)
 
-    return{"message:": "Volume was successfully achieved!"}
+    #return{"message:": "Volume was successfully achieved!"}
+    return{
+        "volume": volumeState.volume,
+        "width": volumeState.width_meters * 100,
+        "height": volumeState.height_meters * 100,
+        "min_depth": depthState.minimum_depth / 10,
+        "ws_depth": workspaceState.workspace_depth / 10
+    }
