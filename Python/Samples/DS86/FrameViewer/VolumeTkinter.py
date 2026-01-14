@@ -15,7 +15,9 @@ def volumeAPI(box_ws, width, height, workspace_depth, minimum_depth):
         while i < len(box_ws):
             ws_lim = box_ws[i]
             width_meters = width * 0.27 / (ws_lim[2] - ws_lim[0])
-            height_meters = height * 0.367 / (ws_lim[3] - ws_lim[1])
+            print("Width:", width_meters, "Width Pixels:", width, "WS Limits:", ws_lim[0], ws_lim[2])
+            height_meters = height * 0.37 / (ws_lim[3] - ws_lim[1])
+            print("Width:", height_meters, "Width Pixels:", height, "WS Limits:", ws_lim[1], ws_lim[3])
             i += 1
         i = 0
 

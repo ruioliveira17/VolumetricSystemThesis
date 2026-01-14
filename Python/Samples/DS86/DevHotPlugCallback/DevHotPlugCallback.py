@@ -1,7 +1,7 @@
 from pickle import FALSE, TRUE
 import sys
 sys.path.append('../../../')
-
+sys.path.append('C:/Tese/Python')
 from API.VzenseDS_api import *
 import time
 

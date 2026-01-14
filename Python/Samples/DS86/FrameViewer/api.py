@@ -91,6 +91,14 @@ def get_Depth_Frame_Copy():
 def get_Res():
     return Response(content=frameState.res.tobytes(), media_type="application/octet-stream")
 
+@app.get("/getFrame/colorToDepthObject")
+def get_ColorToDepth_Frame_Object():
+    return Response(content=frameState.colorToDepthFrameObject.tobytes(), media_type="application/octet-stream")
+
+@app.get("/getFrame/colorToDepthObjects")
+def get_ColorToDepth_Frame_Objects():
+    return Response(content=frameState.colorToDepthFrameObjects.tobytes(), media_type="application/octet-stream")
+
 @app.get("/getFrame")
 def get_frame():
     frames = []
@@ -305,8 +313,8 @@ def volume_Obj():
 
     depth_img = depthImg(frameState.depthFrame, camState.colorSlope)
     if depthState.not_set == 0:
-        volumeState.width, volumeState.height, depthState.minimum_value, depthState.not_set, volumeState.box_limits, volumeState.box_ws = bundle(frameState.colorFrame, depth_img, depthState.objects_info, depthState.threshold, frameState.depthFrame)
-    volumeState.volume, volumeState.width_meters, volumeState.height_meters, depthState.minimum_depth = volumeAPI(volumeState.box_ws, volumeState.width, volumeState.height, workspaceState.workspace_depth, depthState.minimum_depth)
+        volumeState.width, volumeState.height, depthState.minimum_value, depthState.not_set, volumeState.box_limits, volumeState.box_ws = bundle(frameState.colorToDepthFrame, depth_img, depthState.objects_info, depthState.threshold, frameState.depthFrame)
+        volumeState.volume, volumeState.width_meters, volumeState.height_meters, depthState.minimum_depth = volumeAPI(volumeState.box_ws, volumeState.width, volumeState.height, workspaceState.workspace_depth, depthState.minimum_depth)
 
     #return{"message:": "Volume was successfully achieved!"}
     return{

@@ -121,6 +121,12 @@ def closeCamera():
         #print("Camera is already closed!")
         return{"message": "Nothing to Close"}
     else:
+        ret = camState.camera.VZ_StopStream()       
+        if  ret == 0:
+            print("stop stream successful")
+        else:
+            print('VZ_StopStream failed: ' + str(ret))  
+
         ret = camState.camera.VZ_CloseDevice()  
         if  ret == 0:
             #print("close device successful")

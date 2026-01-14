@@ -51,6 +51,7 @@ def getFrame(camera):
                 frametmp.dtype = numpy.uint8
                 frametmp.shape = (rgbframe.height, rgbframe.width,3)
                 colorToDepthFrame = frametmp.copy()
+                #cv2.imwrite("CTDFrame.jpg", colorToDepthFrame)
 
             if hasDepth == 1:
                 frametmp = numpy.empty((0, 0, 3), dtype=numpy.uint8)
@@ -58,12 +59,14 @@ def getFrame(camera):
                 frametmp.dtype = numpy.uint16
                 frametmp.shape = (depthframe.height, depthframe.width)
                 depthFrame = frametmp.copy()
+                #cv2.imwrite("Depth.jpg", depthFrame)
 
             if hasColor == 1:
                 frametmp = numpy.ctypeslib.as_array(colorframe.pFrameData, (1, colorframe.width * colorframe.height * 3))
                 frametmp.dtype = numpy.uint8
                 frametmp.shape = (colorframe.height, colorframe.width,3)
                 colorFrame = frametmp.copy()
+                #cv2.imwrite("ColorFrame.jpg", colorFrame)
 
             if hasColorToDepth == 1 and hasDepth == 1 and hasColor == 1:
                 return colorToDepthFrame, depthFrame, colorFrame

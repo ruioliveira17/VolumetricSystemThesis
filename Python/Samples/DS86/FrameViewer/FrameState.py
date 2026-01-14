@@ -6,4 +6,7 @@ class FrameState:
         self.colorToDepthFrameCopy = None
         self.depthFrameCopy = None
         self.res = None
+        self.colorToDepthFrameObject = None
+        self.colorToDepthFrameObjects = None
+        #self.depthFrameObject = None
 frameState = FrameState()

@@ -16,6 +16,7 @@ import threading
 sys.path.append('C:/Tese/Python/Samples/DS86/FrameViewer')
 
 from CameraOptions import openCamera, closeCamera, statusCamera
+from HDRDef import hdrAPI
 
 import uvicorn
 import requests
@@ -25,6 +26,16 @@ def run_api():
 
 api_thread = threading.Thread(target=run_api, daemon=True)
 api_thread.start()
+
+#def hdr_thread(stop_event, pause_event):
+#    while not stop_event.is_set():
+#        pause_event.wait()
+#        try:
+#            hdrAPI()
+#        except Exception as e:
+#            print("Erro na thread:", repr(e))
+#        finally :
+#            print('Funcionou')
 
 overlay = None
 
@@ -55,8 +66,24 @@ colorToDepth_shape = (480, 640, 3)
 depth_shape = (480, 640)
 colorToDepthCopy_shape = (480, 640, 3)
 depthCopy_shape = (480, 640, 3)
+colorToDepthObject_shape = (480, 640, 3)
+
+#hdr_thread_started = False
+
+#stop_event = threading.Event()
+#pause_event = threading.Event()
+#pause_event.set()
 
 openCamera()
+
+#if hdr_thread_started:
+#    pause_event.set()
+#    print("Thread HDR saiu de pausa!")
+#else:
+#    hdr_thread = threading.Thread(target=hdr_thread, args=(stop_event, pause_event))
+#    hdr_thread.start()
+#    hdr_thread_started = True
+#    print("Thread HDR iniciada!") 
 
 def calibrate_click():
     global calibrate_label, caliError_label
@@ -101,7 +128,7 @@ def calibrate_click():
     #detection_area, workspace_depth, forced_exiting = calibrate(camState.camera, get_lower, get_upper, camState.colorSlope)
 
 def volume_click():
-    global volume_value_label, baseArea_value_label, height_value_label
+    global volume_value_label, x_length_value_label, y_length_value_label, height_value_label
     try:
         r = requests.post("http://127.0.0.1:8000/volumeObj", timeout=5)
         data = r.json()
@@ -112,19 +139,71 @@ def volume_click():
         min_depth = data["min_depth"]
         ws_depth = data["ws_depth"]
 
-        base_area = width * height
         height_obj = ws_depth - min_depth
 
         volume_value_label.configure(text=f"{volume:.8f} m³")
-        baseArea_value_label.configure(text=f"{base_area:.1f} cm²")
+        x_length_value_label.configure(text=f"{width:.1f} cm")
+        y_length_value_label.configure(text=f"{height:.1f} cm")
         height_value_label.configure(text=f"{height_obj:.1f} cm")
+
+        data = requests.get("http://127.0.0.1:8000/getFrame/colorToDepthObject")
+        colorToDepthObjectFrame = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(colorToDepth_shape)
+
+        if colorToDepthObjectFrame.dtype != numpy.uint8:
+            # Normaliza para 0-255 e converte para uint8
+            frame_uint8 = (numpy.clip(colorToDepthObjectFrame, 0, 1) * 255).astype(numpy.uint8)
+        else:
+            frame_uint8 = colorToDepthObjectFrame
+
+        frame_object = frame_uint8[:, :, ::-1]  # se BGR
+
+        pil_obj = Image.fromarray(frame_object)
+        pil_obj = pil_obj.resize((560, 420), Image.LANCZOS)
+        objecttk_img = ImageTk.PhotoImage(pil_obj)
+        canvas_volume.tk_object = objecttk_img
+
+        current_canvas.create_image(1500, 400, image=objecttk_img, anchor="center")
+
+        data = requests.get("http://127.0.0.1:8000/getFrame/colorToDepthObjects")
+        colorToDepthObjectsFrame = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(colorToDepth_shape)
+
+        if colorToDepthObjectsFrame.dtype != numpy.uint8:
+            # Normaliza para 0-255 e converte para uint8
+            frame_uint8 = (numpy.clip(colorToDepthObjectsFrame, 0, 1) * 255).astype(numpy.uint8)
+        else:
+            frame_uint8 = colorToDepthObjectsFrame
+
+        frame_objects = frame_uint8[:, :, ::-1]  # se BGR
+
+        pil_objs = Image.fromarray(frame_objects)
+        pil_objs = pil_objs.resize((560, 420), Image.LANCZOS)
+        objectstk_img = ImageTk.PhotoImage(pil_objs)
+        canvas_volume.tk_objects = objectstk_img
+
+        current_canvas.create_image(1500, 830, image=objectstk_img, anchor="center")
 
     except requests.exceptions.RequestException:
         volume_value_label.configure(text="Erro")
-        baseArea_value_label.configure(text="Erro")
+        x_length_value_label.configure(text="Erro")
+        y_length_value_label.configure(text="Erro")
         height_value_label.configure(text="Erro")
         print("Erro ao atualizar volume:")
         pass
+
+def capFrame():
+    try:
+        requests.post("http://127.0.0.1:8000/captureFrame", timeout=0.2)
+    except requests.exceptions.RequestException:
+        pass
+
+    data = requests.get("http://127.0.0.1:8000/getFrame/color")
+    colorFrame = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(color_shape)
+
+    data = requests.get("http://127.0.0.1:8000/getFrame/colorToDepth")
+    colorToDepthFrame   = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(colorToDepth_shape)
+    
+    data = requests.get("http://127.0.0.1:8000/getFrame/depth")
+    depthFrame = numpy.frombuffer(data.content, dtype=numpy.uint16).reshape(depth_shape)
 
 def StaticDynamic_toggle():
     if StaticDynamic_var.get():
@@ -319,22 +398,26 @@ canvas_volume.create_image(10, 10, anchor='nw', image=BM_logo_tk_volume)
 
 #-----------------------------------------------------------------
 
-volume_button = tk.Button(canvas_volume, text="Volume Info", font=("Arial", 20), width=30, height=1, command=volume_click)
-canvas_volume.create_window(1100, 850, anchor="nw", window=volume_button)
+volume_button = tk.Button(canvas_volume, text="Volume Info", font=("Arial", 20), width=25, height=1, command=volume_click)
+canvas_volume.create_window(780, 850, anchor="nw", window=volume_button)
 
 volume_label = customtkinter.CTkLabel(canvas_volume, text="Volume:", text_color="black", font=("Arial", 36))
-volume_label.place(x=960, y=400)
-baseArea_label = customtkinter.CTkLabel(canvas_volume, text="Base Area:", text_color="black", font=("Arial", 36))
-baseArea_label.place(x=960, y=550)
+volume_label.place(x=800, y=280)
+x_length_label = customtkinter.CTkLabel(canvas_volume, text="X:", text_color="black", font=("Arial", 36))
+x_length_label.place(x=800, y=430)
+y_length_label = customtkinter.CTkLabel(canvas_volume, text="Y:", text_color="black", font=("Arial", 36))
+y_length_label.place(x=800, y=580)
 height_label = customtkinter.CTkLabel(canvas_volume, text="Height:", text_color="black", font=("Arial", 36))
-height_label.place(x=960, y=700)
+height_label.place(x=800, y=730)
 
 volume_value_label = customtkinter.CTkLabel(canvas_volume, text="", text_color="black", font=("Arial", 36))
-volume_value_label.place(x=1200, y=400)
-baseArea_value_label = customtkinter.CTkLabel(canvas_volume, text="", text_color="black", font=("Arial", 36))
-baseArea_value_label.place(x=1200, y=550)
+volume_value_label.place(x=950, y=280)
+x_length_value_label = customtkinter.CTkLabel(canvas_volume, text="", text_color="black", font=("Arial", 36))
+x_length_value_label.place(x=950, y=430)
+y_length_value_label = customtkinter.CTkLabel(canvas_volume, text="", text_color="black", font=("Arial", 36))
+y_length_value_label.place(x=950, y=580)
 height_value_label = customtkinter.CTkLabel(canvas_volume, text="", text_color="black", font=("Arial", 36))
-height_value_label.place(x=1200, y=700)
+height_value_label.place(x=950, y=730)
 
 #------------------------- Storage Canvas ------------------------
 
@@ -512,18 +595,18 @@ def update_camera_feed():
 
     if current_canvas is canvas_camara:
         try:
-            requests.post("http://127.0.0.1:8000/captureFrame", timeout=0.2)
+            requests.post("http://127.0.0.1:8000/captureFrame", timeout=0.5)
         except requests.exceptions.RequestException:
             pass
 
         data = requests.get("http://127.0.0.1:8000/getFrame/color")
         colorFrame = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(color_shape)
 
-        data = requests.get("http://127.0.0.1:8000/getFrame/colorToDepth")
-        colorToDepthFrame   = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(colorToDepth_shape)
+        #data = requests.get("http://127.0.0.1:8000/getFrame/colorToDepth")
+        #colorToDepthFrame   = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(colorToDepth_shape)
         
-        data = requests.get("http://127.0.0.1:8000/getFrame/depth")
-        depthFrame = numpy.frombuffer(data.content, dtype=numpy.uint16).reshape(depth_shape)
+        #data = requests.get("http://127.0.0.1:8000/getFrame/depth")
+        #depthFrame = numpy.frombuffer(data.content, dtype=numpy.uint16).reshape(depth_shape)
 
         #data = requests.get("http://localhost:8000/getFrame")
         #frames_bytes = data.content.split(b"__FRAME__")
@@ -562,9 +645,8 @@ def update_camera_feed():
     #-------------------------------------------------------------  Volume  ------------------------------------------------------------------------
 
     if current_canvas is canvas_volume:
-        global volume_value_label, baseArea_value_label, height_value_label
         try:
-            requests.post("http://127.0.0.1:8000/captureFrame", timeout=0.2)
+            requests.post("http://127.0.0.1:8000/captureFrame", timeout=0.5)
         except requests.exceptions.RequestException:
             pass
 
@@ -572,7 +654,7 @@ def update_camera_feed():
         colorFrame = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(color_shape)
 
         data = requests.get("http://127.0.0.1:8000/getFrame/colorToDepth")
-        colorToDepthFrame   = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(colorToDepth_shape)
+        colorToDepthFrame = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(colorToDepth_shape)
         
         data = requests.get("http://127.0.0.1:8000/getFrame/depth")
         depthFrame = numpy.frombuffer(data.content, dtype=numpy.uint16).reshape(depth_shape)
@@ -618,7 +700,7 @@ def update_camera_feed():
         # Calcular coordenadas para centrar a imagem
         x_img = cw // 2
         y_img = ch // 2
-                                                    
+
         # Desenhar imagem centrada
         #current_canvas.create_image(x_img, y_img + 50, image=tk_img, anchor="center")
         current_canvas.create_image(480, 400, image=tk_depth, anchor="center")
@@ -651,7 +733,7 @@ def update_camera_feed():
 
     if current_canvas is canvas_calibration:
         try:
-            requests.post("http://127.0.0.1:8000/captureFrame", timeout=0.2)
+            requests.post("http://127.0.0.1:8000/captureFrame", timeout=0.5)
         except requests.exceptions.RequestException:
             pass
 
@@ -811,7 +893,7 @@ def confirm_exit_overlay(event = None):
                      fg="black", bg="lightgrey", font=("Arial", 14))
     label.pack(pady=(0, 20))
 
-    btn_yes = tk.Button(box, text="Sim!", width=10, command=root.destroy)
+    btn_yes = tk.Button(box, text="Sim!", width=10, command=exit_app)
     btn_yes.pack(side="left", padx=10)
 
     btn_no = tk.Button(box, text="Não!", width=10, command=close_overlay)
@@ -822,6 +904,12 @@ def close_overlay():
     if overlay is not None:
         overlay.destroy()
         overlay = None
+
+def exit_app():
+    #stop_event.set()
+    #pause_event.set()
+    root.destroy()
+    closeCamera()
 
 def sliding_hmin(value):
     hmin = int(value)
@@ -896,18 +984,13 @@ def refresh_toggle():
             volume_button.place_forget()
         else:
             StaticDynamic_var.set(False)
-            volume_button.place(x=1100, y=850)
+            volume_button.place(x=780, y=850)
 
     except requests.exceptions.RequestException:
         pass
 
     if current_canvas is canvas_config:
         current_canvas.after(100, refresh_toggle)
-
-#def update_volumeValues():
-    
-    #vmin_label = customtkinter.CTkLabel(current_canvas, text=, text_color="black", font=("Arial", 18))
-    #vmin_label.place(x=1820, y=660)
 
 #-----------------------------------------------------------------
 

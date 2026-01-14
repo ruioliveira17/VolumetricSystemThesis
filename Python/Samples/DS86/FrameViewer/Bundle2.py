@@ -4,6 +4,7 @@ sys.path.append('C:/Tese/Python')
 
 from API.VzenseDS_api import *
 import cv2
+from FrameState import frameState
 
 def depthImg(hdrDepth, colorSlope):
     img = numpy.int32(hdrDepth)
@@ -73,6 +74,7 @@ def bundle(hdrColor, hdrDepth_img, objects_info, threshold, hdrDepth):
             ws_limits.append(obj["workspace_limits"])
 
     hdrColor_copy = hdrColor.copy()
+    hdrColor_copy = cv2.resize(hdrColor_copy, (640, 480))
 
     for contour_list in contours:
         for c in contour_list:
@@ -81,9 +83,13 @@ def bundle(hdrColor, hdrDepth_img, objects_info, threshold, hdrDepth):
             box = numpy.round(box).astype(numpy.int32)
             cv2.drawContours(hdrColor_copy, [box], 0, (0, 255, 0), 2)
             #cv2.imshow("Objects", hdrColor_copy)
+            frameState.colorToDepthFrameObject = hdrColor_copy
 
     all_points_list = [c for contour_list in contours for c in contour_list if c.size > 0]
     #print(len(all_points_list))
+
+    hdrColor_copy = hdrColor.copy()
+    hdrColor_copy = cv2.resize(hdrColor_copy, (640, 480))
 
     if len(all_points_list) > 0:
         all_points = numpy.vstack(all_points_list)
@@ -93,14 +99,28 @@ def bundle(hdrColor, hdrDepth_img, objects_info, threshold, hdrDepth):
             box = cv2.boxPoints(rect)
             box = numpy.round(box).astype(numpy.int32)
 
+            #(w, h) = rect[1]
             w_pixels, h_pixels = rect[1]
-            cv2.drawContours(hdrColor, [box], 0,  (0, 255, 0), 2)
+
+            #angle = rect[2]
+
+            #if angle > 45:
+            #    w_pixels = max(w,h)
+            #    h_pixels = min(w,h)
+            #else:
+            #    w_pixels = min(w,h)
+            #    h_pixels = max(w,h)
+
+            cv2.drawContours(hdrColor_copy, [box], 0,  (0, 255, 0), 2)
+            frameState.colorToDepthFrameObjects = hdrColor_copy
             print("Width:", w_pixels)
             print("Heigth:", h_pixels)
+            #print("Angle", angle)
 
         else:
             x, y, w_pixels, h_pixels = cv2.boundingRect(all_points)
-            cv2.rectangle(hdrColor, (x,  y), (x + w_pixels, y + h_pixels), (0, 255, 0), 2)
+            cv2.rectangle(hdrColor_copy, (x,  y), (x + w_pixels, y + h_pixels), (0, 255, 0), 2)
+            frameState.colorToDepthFrameObjects = hdrColor_copy
             print("Width:", w_pixels)
             print("Heigth:", h_pixels)
 
