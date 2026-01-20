@@ -27,6 +27,16 @@ def run_api():
 api_thread = threading.Thread(target=run_api, daemon=True)
 api_thread.start()
 
+#def hdr_thread(stop_event, pause_event):
+#    while not stop_event.is_set():
+#        pause_event.wait()
+#        try:
+#            hdrAPI()
+#        except Exception as e:
+#            print("Erro na thread:", repr(e))
+#        finally :
+#            print('Funcionou')
+
 overlay = None
 
 hmin_label = None
@@ -58,39 +68,30 @@ colorToDepthCopy_shape = (480, 640, 3)
 depthCopy_shape = (480, 640, 3)
 colorToDepthObject_shape = (480, 640, 3)
 
-def hdr_thread(stop_event, pause_event):
-    while not stop_event.is_set():
-        if not pause_event.wait(timeout  = 0.1):
-            continue
+#hdr_thread_started = False
 
-        if stop_event.is_set():
-            break
-
-        try:
-            hdrAPI()
-        except Exception as e:
-            if stop_event.is_set():
-                break
-            print("Erro na thread:", repr(e))
-        
-hdr_thread_started = False
-hdr_active = False
-
-stop_event = threading.Event()
-pause_event = threading.Event()
-pause_event.set()
-
-hdr_threadObj = threading.Thread(target=hdr_thread, args=(stop_event, pause_event))
+#stop_event = threading.Event()
+#pause_event = threading.Event()
+#pause_event.set()
 
 openCamera()
 
+#if hdr_thread_started:
+#    pause_event.set()
+#    print("Thread HDR saiu de pausa!")
+#else:
+#    hdr_thread = threading.Thread(target=hdr_thread, args=(stop_event, pause_event))
+#    hdr_thread.start()
+#    hdr_thread_started = True
+#    print("Thread HDR iniciada!") 
+
 def calibrate_click():
-    global calibrate_label, caliError_label, hdr_active
+    global calibrate_label, caliError_label
     try:
         r = requests.get("http://127.0.0.1:8000/mask", timeout=0.2)
         maskValues = r.json()
 
-        requests.post("http://127.0.0.1:8000/calibrate", json=maskValues, params={"hdr_active": hdr_active}, timeout=0.5)
+        requests.post("http://127.0.0.1:8000/calibrate", json=maskValues, timeout=0.5)
 
         r = requests.get("http://127.0.0.1:8000/calibrate/flags", timeout=0.2)
         data = r.json()
@@ -190,35 +191,19 @@ def volume_click():
         pass
 
 def capFrame():
-    global hdr_active
+    try:
+        requests.post("http://127.0.0.1:8000/captureFrame", timeout=0.2)
+    except requests.exceptions.RequestException:
+        pass
 
-    if hdr_active:
-        data = requests.get("http://127.0.0.1:8000/getFrame/HDRcolor")
-        if data.status_code == 204:
-            data = requests.get("http://127.0.0.1:8000/getFrame/color")
-        colorFrame = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(color_shape)
+    data = requests.get("http://127.0.0.1:8000/getFrame/color")
+    colorFrame = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(color_shape)
 
-        data = requests.get("http://127.0.0.1:8000/getFrame/HDRcolorToDepth")
-        if data.status_code == 204:
-            data = requests.get("http://127.0.0.1:8000/getFrame/colorToDepth")
-        colorToDepthFrame   = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(colorToDepth_shape)
-        
-        data = requests.get("http://127.0.0.1:8000/getFrame/HDRdepth")
-        if data.status_code == 204:
-            data = requests.get("http://127.0.0.1:8000/getFrame/depth")
-        depthFrame = numpy.frombuffer(data.content, dtype=numpy.uint16).reshape(depth_shape)
-        
-    else:
-        data = requests.get("http://127.0.0.1:8000/getFrame/color")
-        colorFrame = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(color_shape)
-        
-        data = requests.get("http://127.0.0.1:8000/getFrame/colorToDepth")
-        colorToDepthFrame   = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(colorToDepth_shape)
-
-        data = requests.get("http://127.0.0.1:8000/getFrame/depth")
-        depthFrame = numpy.frombuffer(data.content, dtype=numpy.uint16).reshape(depth_shape)
-
-    return colorFrame, colorToDepthFrame, depthFrame
+    data = requests.get("http://127.0.0.1:8000/getFrame/colorToDepth")
+    colorToDepthFrame   = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(colorToDepth_shape)
+    
+    data = requests.get("http://127.0.0.1:8000/getFrame/depth")
+    depthFrame = numpy.frombuffer(data.content, dtype=numpy.uint16).reshape(depth_shape)
 
 def StaticDynamic_toggle():
     if StaticDynamic_var.get():
@@ -226,30 +211,12 @@ def StaticDynamic_toggle():
     else:
         requests.post("http://127.0.0.1:8000/mode/static")
 
-def ExpHDR_toggle():
-    global hdr_thread_started, hdr_threadObj, hdr_active
-    if ExpHDR_var.get():
-        requests.post("http://127.0.0.1:8000/expositionMode/hdr")
-        if hdr_thread_started:
-            pause_event.set()
-            print("Thread HDR saiu de pausa!")
-        else:
-            hdr_threadObj.start()
-            hdr_thread_started = True
-            print("Thread HDR iniciada!") 
-        hdr_active = True
-    else:
-        requests.post("http://127.0.0.1:8000/expositionMode/fixed")
-        pause_event.clear()
-        print("Thread HDR em pausa!")
-        hdr_active = False
-
 def apply_mask():
     try:
         r = requests.get("http://127.0.0.1:8000/mask", timeout=0.2)
         maskValues = r.json()
         
-        requests.post("http://127.0.0.1:8000/applyMask", json=maskValues, params={"hdr_active": hdr_active} ,timeout=0.5)
+        requests.post("http://127.0.0.1:8000/applyMask", json=maskValues ,timeout=0.5)
     except requests.exceptions.RequestException:
         pass
 
@@ -505,18 +472,6 @@ label_dynamic = tk.Label(canvas_config, text="Dynamic", bg="white", font=("Arial
 canvas_config.create_window(200, 500, anchor="nw", window=label_static)
 canvas_config.create_window(400, 500, anchor="nw", window=label_dynamic)
 
-#------------------ Exposition / HDR Interface -------------------
-
-ExpHDR_var = customtkinter.BooleanVar(value=False)
-
-ExpHDR_switch = customtkinter.CTkSwitch(canvas_config, text="", variable=ExpHDR_var, onvalue=True, offvalue=False, command=ExpHDR_toggle, switch_width=140, switch_height=50, fg_color="turquoise1", progress_color="dark turquoise", button_color="gray65", button_hover_color="gray45")
-canvas_config.create_window(350, 395, anchor="nw", window=ExpHDR_switch)
-
-label_exposition = tk.Label(canvas_config, text="Exposition", bg="white", font=("Arial", 20))
-label_hdr = tk.Label(canvas_config, text="HDR", bg="white", font=("Arial", 20))
-canvas_config.create_window(200, 400, anchor="nw", window=label_exposition)
-canvas_config.create_window(500, 400, anchor="nw", window=label_hdr)
-
 #-------------------- Calibration Interface ----------------------
 
 # Blue Rectangle
@@ -634,21 +589,33 @@ def change_canvas(event):
         update_camera_feed()
 
 def update_camera_feed():
-    global colorFrame, current_canvas, colorToDepthFrame, depthFrame, colorFrame, res, color_shape, colorToDepth_shape, depth_shape, hdr_active
+    global colorFrame, current_canvas, colorToDepthFrame, depthFrame, colorFrame, res, color_shape, colorToDepth_shape, depth_shape
 
     #-------------------------------------------------------------  Camara  ------------------------------------------------------------------------
 
     if current_canvas is canvas_camara:
-        if not hdr_active:
-            try:
-                requests.post("http://127.0.0.1:8000/captureFrame", timeout=0.5)
-            except requests.exceptions.RequestException:
-                pass
+        try:
+            requests.post("http://127.0.0.1:8000/captureFrame", timeout=0.5)
+        except requests.exceptions.RequestException:
+            pass
 
-        #data = requests.get("http://127.0.0.1:8000/getFrame/color")
-        #colorFrame = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(color_shape)
+        data = requests.get("http://127.0.0.1:8000/getFrame/color")
+        colorFrame = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(color_shape)
 
-        colorFrame, colorToDepthFrame, depthFrame = capFrame()
+        #data = requests.get("http://127.0.0.1:8000/getFrame/colorToDepth")
+        #colorToDepthFrame   = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(colorToDepth_shape)
+        
+        #data = requests.get("http://127.0.0.1:8000/getFrame/depth")
+        #depthFrame = numpy.frombuffer(data.content, dtype=numpy.uint16).reshape(depth_shape)
+
+        #data = requests.get("http://localhost:8000/getFrame")
+        #frames_bytes = data.content.split(b"__FRAME__")
+
+        #colorFrame = numpy.frombuffer(frames_bytes[0], dtype=numpy.uint8).reshape(color_shape)
+        #colorToDepthFrame   = numpy.frombuffer(frames_bytes[1], dtype=numpy.uint8).reshape(colorToDepth_shape)
+        #depthFrame = numpy.frombuffer(frames_bytes[2], dtype=numpy.uint8).reshape(depth_shape)
+
+        #colorToDepthFrame, depthFrame, colorFrame = getFrame(camState.camera)
 
         if colorFrame.dtype != numpy.uint8:
             # Normaliza para 0-255 e converte para uint8
@@ -678,83 +645,22 @@ def update_camera_feed():
     #-------------------------------------------------------------  Volume  ------------------------------------------------------------------------
 
     if current_canvas is canvas_volume:
-        global volume_value_label, x_length_value_label, y_length_value_label, height_value_label
+        try:
+            requests.post("http://127.0.0.1:8000/captureFrame", timeout=0.5)
+        except requests.exceptions.RequestException:
+            pass
 
-        if not hdr_active:
-            try:
-                requests.post("http://127.0.0.1:8000/captureFrame", timeout=0.5)
-            except requests.exceptions.RequestException:
-                pass
+        data = requests.get("http://127.0.0.1:8000/getFrame/color")
+        colorFrame = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(color_shape)
 
-        colorFrame, colorToDepthFrame, depthFrame = capFrame()
+        data = requests.get("http://127.0.0.1:8000/getFrame/colorToDepth")
+        colorToDepthFrame = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(colorToDepth_shape)
+        
+        data = requests.get("http://127.0.0.1:8000/getFrame/depth")
+        depthFrame = numpy.frombuffer(data.content, dtype=numpy.uint16).reshape(depth_shape)
 
         data = requests.get("http://127.0.0.1:8000/camera/colorSlope", timeout=1)
         colorSlope = data.json()["colorSlope"]
-
-        r = requests.get("http://127.0.0.1:8000/mode", timeout=0.2)
-        mode = r.json()["Mode"]
-
-        if mode == "Dynamic":
-            try:
-                r = requests.post("http://127.0.0.1:8000/volumeObj", params={"hdr_active": hdr_active}, timeout=5)
-                data = r.json()
-
-                volume = data["volume"]
-                width = data["width"]
-                height = data["height"]
-                min_depth = data["min_depth"]
-                ws_depth = data["ws_depth"]
-
-                height_obj = ws_depth - min_depth
-
-                volume_value_label.configure(text=f"{volume:.8f} m³")
-                x_length_value_label.configure(text=f"{width:.1f} cm")
-                y_length_value_label.configure(text=f"{height:.1f} cm")
-                height_value_label.configure(text=f"{height_obj:.1f} cm")
-
-                data = requests.get("http://127.0.0.1:8000/getFrame/colorToDepthObject")
-                colorToDepthObjectFrame = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(colorToDepth_shape)
-
-                if colorToDepthObjectFrame.dtype != numpy.uint8:
-                    # Normaliza para 0-255 e converte para uint8
-                    frame_uint8 = (numpy.clip(colorToDepthObjectFrame, 0, 1) * 255).astype(numpy.uint8)
-                else:
-                    frame_uint8 = colorToDepthObjectFrame
-
-                frame_object = frame_uint8[:, :, ::-1]  # se BGR
-
-                pil_obj = Image.fromarray(frame_object)
-                pil_obj = pil_obj.resize((560, 420), Image.LANCZOS)
-                objecttk_img = ImageTk.PhotoImage(pil_obj)
-                canvas_volume.tk_object = objecttk_img
-
-                current_canvas.create_image(1500, 400, image=objecttk_img, anchor="center")
-
-                data = requests.get("http://127.0.0.1:8000/getFrame/colorToDepthObjects")
-                colorToDepthObjectsFrame = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(colorToDepth_shape)
-
-                if colorToDepthObjectsFrame.dtype != numpy.uint8:
-                    # Normaliza para 0-255 e converte para uint8
-                    frame_uint8 = (numpy.clip(colorToDepthObjectsFrame, 0, 1) * 255).astype(numpy.uint8)
-                else:
-                    frame_uint8 = colorToDepthObjectsFrame
-
-                frame_objects = frame_uint8[:, :, ::-1]  # se BGR
-
-                pil_objs = Image.fromarray(frame_objects)
-                pil_objs = pil_objs.resize((560, 420), Image.LANCZOS)
-                objectstk_img = ImageTk.PhotoImage(pil_objs)
-                canvas_volume.tk_objects = objectstk_img
-
-                current_canvas.create_image(1500, 830, image=objectstk_img, anchor="center")
-
-            except requests.exceptions.RequestException:
-                volume_value_label.configure(text="Erro")
-                x_length_value_label.configure(text="Erro")
-                y_length_value_label.configure(text="Erro")
-                height_value_label.configure(text="Erro")
-                print("Erro ao atualizar volume:")
-                pass
 
         if colorToDepthFrame.dtype != numpy.uint8:
             # Normaliza para 0-255 e converte para uint8
@@ -796,30 +702,49 @@ def update_camera_feed():
         y_img = ch // 2
 
         # Desenhar imagem centrada
+        #current_canvas.create_image(x_img, y_img + 50, image=tk_img, anchor="center")
         current_canvas.create_image(480, 400, image=tk_depth, anchor="center")
         current_canvas.create_image(480, 830, image=tk_img, anchor="center")
 
+        #getMinDepth()
+
+        #try:
+        #    requests.post("http://127.0.0.1:8000/depth/min", timeout=0.2)
+        #except requests.exceptions.RequestException:
+        #    pass
+
+        #r = requests.get("http://127.0.0.1:8000/depth/notSet")
+        #not_set = r.json()["not_set"]
+
+        #try:
+        #    requests.post("http://127.0.0.1:8000/volume", timeout=2)
+        #except requests.exceptions.RequestException:
+        #    pass
+
+        #try:
+        #    requests.post("http://127.0.0.1:8000/volumeObj", timeout=5)
+        #except requests.exceptions.RequestException:
+        #    pass
+
+        #current_canvas.after(50, getMinDepth)
         current_canvas.after(70, update_camera_feed)
 
     #-----------------------------------------------------------  Calibração  ----------------------------------------------------------------------
 
     if current_canvas is canvas_calibration:
-        #data = requests.get("http://127.0.0.1:8000/getFrame/color")
-        #colorFrame = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(color_shape)
+        try:
+            requests.post("http://127.0.0.1:8000/captureFrame", timeout=0.5)
+        except requests.exceptions.RequestException:
+            pass
 
-        #data = requests.get("http://127.0.0.1:8000/getFrame/colorToDepth")
-        #colorToDepthFrame   = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(colorToDepth_shape)
+        data = requests.get("http://127.0.0.1:8000/getFrame/color")
+        colorFrame = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(color_shape)
+
+        data = requests.get("http://127.0.0.1:8000/getFrame/colorToDepth")
+        colorToDepthFrame   = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(colorToDepth_shape)
         
-        #data = requests.get("http://127.0.0.1:8000/getFrame/depth")
-        #depthFrame = numpy.frombuffer(data.content, dtype=numpy.uint16).reshape(depth_shape)
-
-        if not hdr_active:
-            try:
-                requests.post("http://127.0.0.1:8000/captureFrame", timeout=0.5)
-            except requests.exceptions.RequestException:
-                pass
-
-        colorFrame, colorToDepthFrame, depthFrame = capFrame()
+        data = requests.get("http://127.0.0.1:8000/getFrame/depth")
+        depthFrame = numpy.frombuffer(data.content, dtype=numpy.uint16).reshape(depth_shape)
 
         #APLICAR MASCARA
         apply_mask()
@@ -832,6 +757,7 @@ def update_camera_feed():
 
         data = requests.get("http://127.0.0.1:8000/getFrame/res")
         res = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(depthCopy_shape)
+        #res, colorToDepthFrame_copy, depthFrame_copy = maskAPI(camState.camera, lambda: get_lower(), lambda: get_upper(), camState.colorSlope)
 
         if colorToDepthFrame_copy is None:
             if colorToDepthFrame.dtype != numpy.uint8:
@@ -883,7 +809,10 @@ def update_camera_feed():
 
         current_canvas.after(10, refresh_sliders)
         current_canvas.after(50, apply_mask)
+        #current_canvas.after(50, maskAPI, camState.camera, get_lower, get_upper, camState.colorSlope)
         current_canvas.after(70, update_camera_feed)
+
+        #workspace, workspace_depth, fex_flag = calibrate(camera, colorSlope)
 
 def update_sliders():
     global current_canvas, hmin_label, hmax_label, smin_label, smax_label, vmin_label, vmax_label, hmin_slider, smin_slider, vmin_slider, hmax_slider, smax_slider, vmax_slider
@@ -977,9 +906,8 @@ def close_overlay():
         overlay = None
 
 def exit_app():
-    stop_event.set()
-    pause_event.set()
-    hdr_threadObj.join()
+    #stop_event.set()
+    #pause_event.set()
     root.destroy()
     closeCamera()
 

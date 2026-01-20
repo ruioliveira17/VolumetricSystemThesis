@@ -114,11 +114,10 @@ def hdr(camera, exposureStruct):
     finally :
         print('HDR end')
 
-def hdrAPI():
-
+def hdrAPI2():
+    print("HDR API Called!")
     exposureTime = 200
 
-    #ldr = None
     hdrColor = None
     hdrDepth = None
 
@@ -136,7 +135,6 @@ def hdrAPI():
     exposureTimeArray = []
     
     i = 0
-    #not_aligned = 1
 
     DTC_can = False
     D_can = False
@@ -152,18 +150,125 @@ def hdrAPI():
 
             colorToDepthFrame, depthFrame, colorFrame = getFrame(camState.camera)
 
-            #colorFrame = cv2.resize(colorFrame, (640, 480))
+            if colorToDepthFrame is not None or depthFrame is not None or colorFrame is not None:
+                if  exposureStruct.exposureTime == exposureTime:
+                    colorToDepthFrame = cv2.resize(colorToDepthFrame, (320, 240))
+                    depthFrame = cv2.resize(depthFrame, (320, 240))
+                    
+                    if firstFrame:
+                        firstFrame = False
+                    else:
+                        DTC_can = True
+                        hasColorArray.append(colorToDepthFrame)
+                        D_can = True
+                        hasDepthArray.append(depthFrame)
+
+                if DTC_can and D_can:
+                    exposureTimeArray.append(exposureTime / 1e6)
+                    exposureTime += 1900
+                    i += 1
+                
+                DTC_can = False
+                D_can = False
+
+        else:           
+            if not hdrColor_done:
+                stacked = numpy.stack(hasColorArray, axis=-1)
+                mask_valid = stacked > 0
+
+                #stacked_masked = numpy.where(mask_valid, stacked, numpy.nan)
+
+                #hdrColor = numpy.nanmean(stacked_masked, axis=-1)
+                #hdrColor = numpy.nan_to_num(hdrColor, nan=0)
+                hdrColor = numpy.sum(stacked * mask_valid, axis=-1) / numpy.sum(mask_valid, axis=-1)
+                hdrColor = hdrColor.astype(numpy.uint8)
+
+                hdrColor_done = 1
+
+            if not hdrDepth_done:
+                #valid_frames = [numpy.where((frame > 0) & (frame <= 5000), frame, numpy.nan) for frame in hasDepthArray]
+                mask_valid = [(frame > 0) & (frame <= 5000) for frame in hasDepthArray]
+
+                stacked = numpy.stack(hasDepthArray, axis=-1)
+                stacked_mask = numpy.stack(mask_valid, axis=-1).astype(numpy.uint16)
+
+                sum_valid = numpy.sum(stacked * stacked_mask, axis=-1)
+
+                count_valid =  numpy.sum(stacked_mask, axis=-1)
+                count_valid[count_valid == 0] = 1
+
+                hdrDepth = sum_valid / count_valid
+                hdrDepth = hdrDepth.astype(numpy.uint16)
+
+                #hdrDepth = numpy.nanmean(numpy.stack(valid_frames, axis=-1), axis=-1)
+
+                hdrDepth_done = 1
+                
+            expositionBus_done = 1
+            exposureTime = 200
+
+            if hdrColor_done and hdrDepth_done:
+                hdr_done = 1
+
+        if  hdr_done:
+            expositionBus_done = 0
+            hdr_done = 0
+            i = 0
+            print("HDR Processed")
+            camState.camera.VZ_SetExposureTime(VzSensorType.VzToFSensor, c_int32(700))
+            colorToDepthFrame = cv2.resize(colorToDepthFrame, (640, 480))
+            depthFrame = cv2.resize(depthFrame, (640, 480))
+            frameState.colorFrameHDR = colorFrame
+            frameState.colorToDepthFrameHDR = hdrColor
+            frameState.depthFrameHDR = hdrDepth
+            
+    except Exception as e :
+        print(e)
+    finally :
+        print('HDR end')
+
+def hdrAPI():
+    print("HDR API Called!")
+    exposureTime = 200
+
+    hdrColor = None
+    hdrDepth = None
+
+    hdr_done = 0
+    hdrColor_done = 0
+    hdrDepth_done = 0
+    expositionBus_done = 0
+
+    colorToDepthFrame = None
+    depthFrame = None 
+    colorFrame = None
+
+    hasDepthArray = []
+    hasColorArray = []
+    exposureTimeArray = []
+    
+    i = 0
+
+    DTC_can = False
+    D_can = False
+    firstFrame = True
+
+    try:
+        while exposureTime <= 4000 and expositionBus_done == 0:
+            camState.camera.VZ_SetExposureTime(VzSensorType.VzToFSensor, c_int32(exposureTime))
+
+            ret_code, exposureStruct = camState.camera.VZ_GetExposureTime(VzSensorType.VzToFSensor)
+
+            time.sleep(0.1)
+
+            getFrame(camState.camera)
+            colorToDepthFrame = frameState.colorToDepthFrame
+            depthFrame = frameState.depthFrame
+            colorFrame = frameState.colorFrame
 
             if  exposureStruct.exposureTime == exposureTime:
                 colorToDepthFrame = cv2.resize(colorToDepthFrame, (640, 480))
                 depthFrame = cv2.resize(depthFrame, (640, 480))
-                #cv2.putText(frametmp, f"Exposure: {exposureStruct.exposureTime} us",
-                #            (30, 40),                   # posição (x, y)
-                #            cv2.FONT_HERSHEY_SIMPLEX,   # tipo de letra
-                #            1,                           # escala (tamanho)
-                #            (0, 255, 0),                 # cor (B, G, R)
-                #            2,                           # espessura
-                #            cv2.LINE_AA)                 # antialiasing
                 
                 if firstFrame:
                     firstFrame = False
@@ -213,14 +318,13 @@ def hdrAPI():
             i = 0
             print("HDR Processed")
             camState.camera.VZ_SetExposureTime(VzSensorType.VzToFSensor, c_int32(700))
-            frameState.colorFrame = colorFrame
-            frameState.colorToDepthFrame = hdrColor
-            frameState.depthFrame = hdrDepth
-            cv2.imwrite("ColorFrame.jpg", frameState.colorFrame)
-            cv2.imwrite("CTDFrame.jpg", frameState.colorToDepthFrame)
-            cv2.imwrite("Depth.jpg", frameState.depthFrame)
-            #return {"message": "HDR Succeed"}
-            
+
+            hdrDepth = hdrDepth.astype(numpy.uint16)
+
+            frameState.colorFrameHDR = colorFrame
+            frameState.colorToDepthFrameHDR = hdrColor
+            frameState.depthFrameHDR = hdrDepth
+
     except Exception as e :
         print(e)
     finally :

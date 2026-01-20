@@ -61,10 +61,11 @@ def get_color_Slope():
 
 @app.post("/captureFrame")
 def capture_frame():
-    colorToDepthFrame, depthFrame, colorFrame = getFrame(camState.camera)
-    frameState.colorToDepthFrame = colorToDepthFrame
-    frameState.depthFrame = depthFrame
-    frameState.colorFrame = colorFrame
+    getFrame(camState.camera)
+    #colorToDepthFrame, depthFrame, colorFrame = getFrame(camState.camera)
+    #frameState.colorToDepthFrame = colorToDepthFrame
+    #frameState.depthFrame = depthFrame
+    #frameState.colorFrame = colorFrame
     return {"message:": "Frame successfully achieved"}
 
 @app.get("/getFrame/color")
@@ -98,6 +99,24 @@ def get_ColorToDepth_Frame_Object():
 @app.get("/getFrame/colorToDepthObjects")
 def get_ColorToDepth_Frame_Objects():
     return Response(content=frameState.colorToDepthFrameObjects.tobytes(), media_type="application/octet-stream")
+
+@app.get("/getFrame/HDRcolor")
+def get_Color_HDRFrame():
+    if frameState.colorFrameHDR is None:
+        return Response(status_code=204)
+    return Response(content=frameState.colorFrameHDR.tobytes(), media_type="application/octet-stream")
+
+@app.get("/getFrame/HDRcolorToDepth")
+def get_ColorToDepth_HDRFrame():
+    if frameState.colorToDepthFrameHDR is None:
+        return Response(status_code=204)
+    return Response(content=frameState.colorToDepthFrameHDR.tobytes(), media_type="application/octet-stream")
+
+@app.get("/getFrame/HDRdepth")
+def get_Depth_HDRFrame():
+    if frameState.depthFrameHDR is None:
+        return Response(status_code=204)
+    return Response(content=frameState.depthFrameHDR.tobytes(), media_type="application/octet-stream")
 
 @app.get("/getFrame")
 def get_frame():
@@ -174,13 +193,24 @@ def get_mask():
     }
 
 @app.post("/applyMask")
-def apply_mask(data: HSVValue):
+def apply_mask(data: HSVValue, hdr_active: bool = Query(False)):
     lower = (data.hmin, data.smin, data.vmin)
     upper = (data.hmax, data.smax, data.vmax)
 
-    colorFrame = frameState.colorFrame
-    colorToDepthFrame = frameState.colorToDepthFrame
-    depthFrame = frameState.depthFrame
+    if frameState.colorFrameHDR is None or not hdr_active:
+        colorFrame = frameState.colorFrame
+    else:
+        colorFrame = frameState.colorFrameHDR
+
+    if frameState.colorToDepthFrameHDR is None or not hdr_active:
+        colorToDepthFrame = frameState.colorToDepthFrame
+    else:
+        colorToDepthFrame = frameState.colorToDepthFrameHDR
+
+    if frameState.depthFrameHDR is None or not hdr_active:
+        depthFrame = frameState.depthFrame
+    else:
+        depthFrame = frameState.depthFrameHDR
 
     res, colorToDepthFrame_copy, depthFrame_copy = maskAPI(colorFrame, colorToDepthFrame, depthFrame, lower, upper, camState.colorSlope)
 
@@ -196,13 +226,24 @@ def apply_mask(data: HSVValue):
 #------------------------------------------------------- Calibrate -------------------------------------------------------
 
 @app.post("/calibrate")
-def calibrate(data: HSVValue):
+def calibrate(data: HSVValue, hdr_active: bool = Query(False)):
     lower = (data.hmin, data.smin, data.vmin)
     upper = (data.hmax, data.smax, data.vmax)
 
-    colorFrame = frameState.colorFrame
-    colorToDepthFrame = frameState.colorToDepthFrame
-    depthFrame = frameState.depthFrame
+    if frameState.colorFrameHDR is None or not hdr_active:
+        colorFrame = frameState.colorFrame
+    else:
+        colorFrame = frameState.colorFrameHDR
+
+    if frameState.colorToDepthFrameHDR is None or not hdr_active:
+        colorToDepthFrame = frameState.colorToDepthFrame
+    else:
+        colorToDepthFrame = frameState.colorToDepthFrameHDR
+
+    if frameState.depthFrameHDR is None or not hdr_active:
+        depthFrame = frameState.depthFrame
+    else:
+        depthFrame = frameState.depthFrameHDR
 
     detection_area, workspace_depth, center_aligned, workspace_clear = calibrateAPI(colorFrame, colorToDepthFrame, depthFrame, lower, upper, camState.colorSlope)
 
@@ -232,7 +273,7 @@ def get_calibration_flags():
         "Workspace Clear": workspaceState.workspace_clear,
     }
 
-#--------------------------------------------------------- Mode ---------------------------------------------------------
+#---------------------------------------------------- Working Mode -----------------------------------------------------
 
 @app.get("/mode")
 def get_mode():
@@ -249,6 +290,24 @@ def static():
 def dynamic():
     modeState.mode = "Dynamic"
     return {"mode:": modeState.mode}
+
+#--------------------------------------------------- Exposition Mode --------------------------------------------------
+
+@app.get("/expositionMode")
+def get_mode():
+    return{
+        "Exposition Mode": modeState.expositionMode,
+    }
+
+@app.post("/expositionMode/fixed")
+def fixedExp():
+    modeState.mode = "Fixed Exposition"
+    return {"Exposition Mode:": modeState.expositionMode}
+
+@app.post("/expositionMode/hdr")
+def hdrExp():
+    modeState.mode = "HDR"
+    return {"Exposition Mode:": modeState.expositionMode}
 
 #------------------------------------------------------- Depth --------------------------------------------------------
 
@@ -302,8 +361,24 @@ def volume():
     return{"message:": "Volume was successfully achieved!"}
 
 @app.post("/volumeObj")
-def volume_Obj():
-    depthState.not_set, depthState.objects_info = MinDepthAPI(frameState.depthFrame, camState.colorSlope.value, depthState.threshold, workspaceState.detection_area, workspaceState.workspace_depth, depthState.not_set)
+def volume_Obj(hdr_active: bool = Query(False)):
+
+    if frameState.colorFrameHDR is None or not hdr_active:
+        colorFrame = frameState.colorFrame
+    else:
+        colorFrame = frameState.colorFrameHDR
+
+    if frameState.colorToDepthFrameHDR is None or not hdr_active:
+        colorToDepthFrame = frameState.colorToDepthFrame
+    else:
+        colorToDepthFrame = frameState.colorToDepthFrameHDR
+
+    if frameState.depthFrameHDR is None or not hdr_active:
+        depthFrame = frameState.depthFrame
+    else:
+        depthFrame = frameState.depthFrameHDR
+
+    depthState.not_set, depthState.objects_info = MinDepthAPI(depthFrame, camState.colorSlope.value, depthState.threshold, workspaceState.detection_area, workspaceState.workspace_depth, depthState.not_set)
 
     if depthState.objects_info is not None and len(depthState.objects_info) != 0:
         depthState.minimum_depth = depthState.objects_info[0]["depth"]
@@ -311,9 +386,9 @@ def volume_Obj():
 
         print("New Min Value", depthState.minimum_value)
 
-    depth_img = depthImg(frameState.depthFrame, camState.colorSlope)
+    depth_img = depthImg(depthFrame, camState.colorSlope)
     if depthState.not_set == 0:
-        volumeState.width, volumeState.height, depthState.minimum_value, depthState.not_set, volumeState.box_limits, volumeState.box_ws = bundle(frameState.colorToDepthFrame, depth_img, depthState.objects_info, depthState.threshold, frameState.depthFrame)
+        volumeState.width, volumeState.height, depthState.minimum_value, depthState.not_set, volumeState.box_limits, volumeState.box_ws = bundle(colorToDepthFrame, depth_img, depthState.objects_info, depthState.threshold, depthFrame)
         volumeState.volume, volumeState.width_meters, volumeState.height_meters, depthState.minimum_depth = volumeAPI(volumeState.box_ws, volumeState.width, volumeState.height, workspaceState.workspace_depth, depthState.minimum_depth)
 
     #return{"message:": "Volume was successfully achieved!"}

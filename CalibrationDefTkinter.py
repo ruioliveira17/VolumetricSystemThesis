@@ -464,7 +464,7 @@ def calibrateAPI(colorFrame, colorToDepthFrame, depthFrame, get_lower, get_upper
             proportion_valid = count / valid_values.size
             print("Proporção Profundidade:", proportion_valid)
 
-            if proportion_valid >= 0.9:
+            if proportion_valid >= 0.85:
                 workspace_free = True
                 workspace_depth = avg_depth
             else:
