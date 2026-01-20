@@ -207,7 +207,7 @@ def capFrame():
         if data.status_code == 204:
             data = requests.get("http://127.0.0.1:8000/getFrame/depth")
         depthFrame = numpy.frombuffer(data.content, dtype=numpy.uint16).reshape(depth_shape)
-        
+
     else:
         data = requests.get("http://127.0.0.1:8000/getFrame/color")
         colorFrame = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(color_shape)
@@ -977,9 +977,11 @@ def close_overlay():
         overlay = None
 
 def exit_app():
-    stop_event.set()
-    pause_event.set()
-    hdr_threadObj.join()
+    global hdr_thread_started
+    if hdr_thread_started:
+        stop_event.set()
+        pause_event.set()
+        hdr_threadObj.join()
     root.destroy()
     closeCamera()
 
