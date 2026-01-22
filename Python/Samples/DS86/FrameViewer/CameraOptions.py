@@ -75,6 +75,18 @@ def openCamera():
             ret_code, exposureStruct = camState.camera.VZ_GetExposureTime(VzSensorType.VzToFSensor)
             print('Exposure Time:', exposureStruct.exposureTime)
 
+            ret = camState.camera.VZ_SetFrameRate(5)
+            if  ret == 0:
+                print("Set frame rate 5 is ok")   
+            else:
+                print("VZ_SetFrameRate failed:"+ str(ret)) 
+
+            ret,frameRate = camState.camera.VZ_GetFrameRate()
+            if  ret == 0:
+                print("Get default frame rate:"+ str(frameRate))   
+            else:
+                print("VZ_GetFrameRate failed:"+ str(ret))  
+
             # set Mapper
             ret = camState.camera.VZ_SetTransformColorImgToDepthSensorEnabled(c_bool(True))
 
@@ -108,8 +120,23 @@ def openCamera():
                 print("Set ConfidenceFilter switch to "+ str(params.enable) + " is Ok")   
             else:
                 print("VZ_SetConfidenceFilterParams failed:"+ str(ret))
+        
+            ret, intrParam = camState.camera.VZ_GetSensorIntrinsicParameters()
+            if ret != 0:
+                raise RuntimeError("Error obtaining intrinsic parameters!")
+            
+            camState.fx = intrParam.fx
+            camState.fy = intrParam.fy
+            camState.cx = intrParam.cx
+            camState.cy = intrParam.cy
+
+            print("Cx:", camState.cx)
+            print("Cy:", camState.cy)
+            print("fx:", camState.fx)
+            print("fy:", camState.fy)
 
             return{"message": "Success"}
+
         else:
             #print('VZ_OpenDeviceByIP failed: ' + str(ret))
             return{"message": "Failed"}

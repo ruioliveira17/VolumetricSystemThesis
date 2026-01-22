@@ -92,11 +92,8 @@ def mask(camera, get_lower, get_upper, colorSlope):
     finally :
         print('end')
 
-def maskAPI(colorFrame, colorToDepthFrame, depthFrame, get_lower, get_upper, colorSlope):
+def maskAPI(colorFrame, colorToDepthFrame, depthFrame, get_lower, get_upper, colorSlope, cx, cy):
     global x_area, y_area, x_area_plus_width, y_area_plus_height, detection_area
-
-    center_x = 0
-    center_y = 0
 
     x_area = None
     y_area = None
@@ -110,8 +107,6 @@ def maskAPI(colorFrame, colorToDepthFrame, depthFrame, get_lower, get_upper, col
     try:
         colorToDepthFrame = cv2.resize(colorToDepthFrame, (640, 480))
 
-        center_x = int((colorToDepthFrame.shape[1]) / 2)
-        center_y = int((colorToDepthFrame.shape[0]) / 2)
 
         hsv_frame = cv2.cvtColor(colorToDepthFrame, cv2.COLOR_BGR2HSV)
 
@@ -137,7 +132,7 @@ def maskAPI(colorFrame, colorToDepthFrame, depthFrame, get_lower, get_upper, col
 
         # PONTO CENTRAL
         
-        cv2.circle(colorToDepthFrame_copy, (center_x, center_y), radius=3, color=(255, 0, 0), thickness=1)
+        cv2.circle(colorToDepthFrame_copy, (cx, cy), radius=3, color=(255, 0, 0), thickness=1)
 
         depthFrame = cv2.resize(depthFrame, (640, 480))
        
@@ -351,7 +346,7 @@ def calibrate(camera, get_lower, get_upper, colorSlope):
 
     #return detection_area, workspace_depth, forced_exiting
 
-def calibrateAPI(colorFrame, colorToDepthFrame, depthFrame, get_lower, get_upper, colorSlope):
+def calibrateAPI(colorFrame, colorToDepthFrame, depthFrame, get_lower, get_upper, colorSlope, cx, cy):
     global x_area, y_area, x_area_plus_width, y_area_plus_height, detection_area
 
     center_aligned = False # Ponto central tem a cor da calibração
@@ -359,8 +354,6 @@ def calibrateAPI(colorFrame, colorToDepthFrame, depthFrame, get_lower, get_upper
     workspace_interrupted = True # Fita não é interrompida
     workspace_free = False # Toda a área tem a mesma profundidade
     workspace_clear = False # Profundidade é igual em toda a workspace e borda amarela totalmente detetada
-
-    center_y = 0
     
     calibrated = False
 
@@ -370,9 +363,6 @@ def calibrateAPI(colorFrame, colorToDepthFrame, depthFrame, get_lower, get_upper
 
     try:
         colorToDepthFrame = cv2.resize(colorToDepthFrame, (640, 480))
-
-        center_x = int((colorToDepthFrame.shape[1]) / 2)
-        center_y = int((colorToDepthFrame.shape[0]) / 2)
 
         hsv_frame = cv2.cvtColor(colorToDepthFrame, cv2.COLOR_BGR2HSV)
 
@@ -428,7 +418,7 @@ def calibrateAPI(colorFrame, colorToDepthFrame, depthFrame, get_lower, get_upper
 
         # VERIFICAÇÃO PONTO CENTRAL
 
-        neighbors = hsv_frame[max(0, center_y-3):center_y+4, max(0, center_x-3):center_x+4]
+        neighbors = hsv_frame[max(0, cy-3):cy+4, max(0, cx-3):cx+4]
         mask_center = (((neighbors[:,:,0] >= h_min) & (neighbors[:,:,0] <= h_max)) & ((neighbors[:,:,1] >= s_min) & (neighbors[:,:,1] <= s_max)) & ((neighbors[:,:,2] >= v_min) & (neighbors[:,:,2] <= v_max)))
 
         center_x_max = x_area + ((x_area_plus_width - x_area)/2) + 5
@@ -436,7 +426,7 @@ def calibrateAPI(colorFrame, colorToDepthFrame, depthFrame, get_lower, get_upper
         center_y_max = y_area + ((y_area_plus_height - y_area)/2) + 5
         center_y_min = y_area + ((y_area_plus_height - y_area)/2) - 5
 
-        if numpy.any(mask_center) and (center_x <= center_x_max) and (center_x >= center_x_min) and (center_y <= center_y_max) and (center_y >= center_y_min):
+        if numpy.any(mask_center) and (cx <= center_x_max) and (cx >= center_x_min) and (cy <= center_y_max) and (cy >= center_y_min):
             center_aligned = True
         else:
             center_aligned = False
@@ -447,7 +437,7 @@ def calibrateAPI(colorFrame, colorToDepthFrame, depthFrame, get_lower, get_upper
         
         # Profundidade "Centro"
 
-        workspace_center_neighbors = depthFrame[max(0, center_y-3):center_y+4, max(0, center_x-3):center_x+4]
+        workspace_center_neighbors = depthFrame[max(0, cy-3):cy+4, max(0, cx-3):cx+4]
         centerDepth_valid_values = workspace_center_neighbors[(workspace_center_neighbors >= 150) & (workspace_center_neighbors <= colorSlope)]
         if centerDepth_valid_values.size > 0:
             workspace_depth = numpy.mean(centerDepth_valid_values)

@@ -91,11 +91,14 @@ def MinDepth(hdrDepth, colorSlope, threshold, workspace, workspace_depth, not_se
 
     return not_set, objects_info
 
-def MinDepthAPI(depth, colorSlope, threshold, workspace, workspace_depth, not_set):
+def MinDepthAPI(depth, colorSlope, threshold, workspace, workspace_depth, not_set, cx, cy, fx, fy):
     depth_copy = depth.copy()
 
     valid_values = depth_copy[(depth_copy > 150) & (depth_copy < (workspace_depth - threshold))]
     objects_info = []
+
+    workspace_width_m = 0.27
+    workspace_height_m = 0.37
 
     try:
         while True:
@@ -112,50 +115,52 @@ def MinDepthAPI(depth, colorSlope, threshold, workspace, workspace_depth, not_se
                 y, x = min_idx
 
                 for y, x in zip(index[0], index[1]):
-                    neighbors = depth_copy[max(0, y-8):y+9, max(0, x-8):x+9]
-                    tolerance = threshold
+                    neighbors = depth_copy[max(0, y-7):y+8, max(0, x-7):x+8]
 
-                    workspace_width = int((workspace[2] - workspace[0])/2)
+                    #workspace_width = int((workspace[2] - workspace[0])/2)
 
-                    workspace_height = int((workspace[3] - workspace[1])/2)
+                    #workspace_height = int((workspace[3] - workspace[1])/2)
 
                     object_depth = min_value
 
-                    workspace_width_max = int((workspace_width * int(workspace_depth)) / object_depth)
+                    #workspace_width_max = int((workspace_width * int(workspace_depth)) / object_depth)
 
-                    workspace_height_max = int((workspace_height * int(workspace_depth)) / object_depth)
+                    #workspace_height_max = int((workspace_height * int(workspace_depth)) / object_depth)
 
-                    workspace_limits = int(320 - (workspace_width_max)), int(240 - (workspace_height_max)), int(320 + (workspace_width_max)), int(240 + (workspace_height_max))
+                    #workspace_limits = int(cx - (workspace_width_max)), int(cy - (workspace_height_max)), int(cx + (workspace_width_max)), int(cy + (workspace_height_max))
+                    #print("Workspace Limits XD:", workspace_limits)
 
-                    if ((x >= workspace_limits[0]) and (x <= workspace_limits[2])) and ((y >= workspace_limits[1]) and (y <= workspace_limits[3])):
-                        valid_count = numpy.sum(numpy.abs(neighbors - min_value) <= tolerance)
+                    if ((x >= workspace[0]) and (x <= workspace[2])) and ((y >= workspace[1]) and (y <= workspace[3])):
+                        valid_count = numpy.sum(numpy.abs(neighbors - min_value) <= threshold)
                         total_count = neighbors.size
 
-                        if valid_count / total_count >= 0.9:
-                            neighbors = neighbors[(neighbors > (min_value - tolerance)) & (neighbors < (min_value + tolerance))]
+                        if valid_count / total_count >= 0.95:
+                            neighbors = neighbors[(neighbors > (min_value - threshold)) & (neighbors < (min_value + threshold))]
                             min_value = numpy.mean(neighbors)
                             min_value = round(numpy.mean(neighbors), 1)
+
                             if len(objects_info) == 0 or abs(min_value - objects_info[-1]["depth"]) > threshold:
                                 print(f"Ponto {min_idx} válido, todos vizinhos semelhantes")
+                                print("Profundidade:", min_value)
+                                half_width_px = int((workspace_width_m / 2) * fx / (object_depth / 1000.0))
+                                half_height_px = int((workspace_height_m / 2) * fy / (object_depth / 1000.0))
+
+                                workspace_limits = int(cx - half_width_px), int(cy - half_height_px), int(cx + half_width_px), int(cy + half_height_px)
+
                                 objects_info.append({
                                             "depth": min_value,
                                             "workspace_limits": workspace_limits
                                         })
 
-                                #minimum_value = min_value
                                 point_idx = y,x
 
                             depth_copy[max(0, y-8):y+9, max(0, x-8):x+9] = 9999
-                            #break
 
                         else:
                             depth_copy[y, x] = 9999
 
                     else:
                         depth_copy[y, x] = 9999
-                            
-                #else:
-                #    break
 
         if len(objects_info) > 0:
             objects_info = sorted(objects_info, key=lambda obj: obj["depth"])

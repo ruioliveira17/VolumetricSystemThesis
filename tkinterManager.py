@@ -74,7 +74,6 @@ def hdr_thread(stop_event, pause_event):
             print("Erro na thread:", repr(e))
         
 hdr_thread_started = False
-hdr_active = False
 
 stop_event = threading.Event()
 pause_event = threading.Event()
@@ -85,12 +84,12 @@ hdr_threadObj = threading.Thread(target=hdr_thread, args=(stop_event, pause_even
 openCamera()
 
 def calibrate_click():
-    global calibrate_label, caliError_label, hdr_active
+    global calibrate_label, caliError_label
     try:
         r = requests.get("http://127.0.0.1:8000/mask", timeout=0.2)
         maskValues = r.json()
 
-        requests.post("http://127.0.0.1:8000/calibrate", json=maskValues, params={"hdr_active": hdr_active}, timeout=0.5)
+        requests.post("http://127.0.0.1:8000/calibrate", json=maskValues, timeout=0.5)
 
         r = requests.get("http://127.0.0.1:8000/calibrate/flags", timeout=0.2)
         data = r.json()
@@ -140,7 +139,7 @@ def volume_click():
 
         height_obj = ws_depth - min_depth
 
-        volume_value_label.configure(text=f"{volume:.8f} m³")
+        volume_value_label.configure(text=f"{volume:.6f} m³")
         x_length_value_label.configure(text=f"{width:.1f} cm")
         y_length_value_label.configure(text=f"{height:.1f} cm")
         height_value_label.configure(text=f"{height_obj:.1f} cm")
@@ -190,9 +189,11 @@ def volume_click():
         pass
 
 def capFrame():
-    global hdr_active
 
-    if hdr_active:
+    r = requests.get("http://127.0.0.1:8000/expositionMode", timeout=0.2)
+    expositionMode = r.json()["Exposition Mode"]
+
+    if expositionMode == "HDR":
         data = requests.get("http://127.0.0.1:8000/getFrame/HDRcolor")
         if data.status_code == 204:
             data = requests.get("http://127.0.0.1:8000/getFrame/color")
@@ -227,7 +228,7 @@ def StaticDynamic_toggle():
         requests.post("http://127.0.0.1:8000/mode/static")
 
 def ExpHDR_toggle():
-    global hdr_thread_started, hdr_threadObj, hdr_active
+    global hdr_thread_started, hdr_threadObj
     if ExpHDR_var.get():
         requests.post("http://127.0.0.1:8000/expositionMode/hdr")
         if hdr_thread_started:
@@ -237,19 +238,17 @@ def ExpHDR_toggle():
             hdr_threadObj.start()
             hdr_thread_started = True
             print("Thread HDR iniciada!") 
-        hdr_active = True
     else:
         requests.post("http://127.0.0.1:8000/expositionMode/fixed")
         pause_event.clear()
         print("Thread HDR em pausa!")
-        hdr_active = False
 
 def apply_mask():
     try:
         r = requests.get("http://127.0.0.1:8000/mask", timeout=0.2)
         maskValues = r.json()
         
-        requests.post("http://127.0.0.1:8000/applyMask", json=maskValues, params={"hdr_active": hdr_active} ,timeout=0.5)
+        requests.post("http://127.0.0.1:8000/applyMask", json=maskValues, timeout=0.5)
     except requests.exceptions.RequestException:
         pass
 
@@ -634,19 +633,20 @@ def change_canvas(event):
         update_camera_feed()
 
 def update_camera_feed():
-    global colorFrame, current_canvas, colorToDepthFrame, depthFrame, colorFrame, res, color_shape, colorToDepth_shape, depth_shape, hdr_active
+    global colorFrame, current_canvas, colorToDepthFrame, depthFrame, colorFrame, res, color_shape, colorToDepth_shape, depth_shape
 
     #-------------------------------------------------------------  Camara  ------------------------------------------------------------------------
 
     if current_canvas is canvas_camara:
-        if not hdr_active:
+
+        r = requests.get("http://127.0.0.1:8000/expositionMode", timeout=0.2)
+        expositionMode = r.json()["Exposition Mode"]
+
+        if expositionMode == "Fixed Exposition":
             try:
                 requests.post("http://127.0.0.1:8000/captureFrame", timeout=0.5)
             except requests.exceptions.RequestException:
                 pass
-
-        #data = requests.get("http://127.0.0.1:8000/getFrame/color")
-        #colorFrame = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(color_shape)
 
         colorFrame, colorToDepthFrame, depthFrame = capFrame()
 
@@ -680,7 +680,10 @@ def update_camera_feed():
     if current_canvas is canvas_volume:
         global volume_value_label, x_length_value_label, y_length_value_label, height_value_label
 
-        if not hdr_active:
+        r = requests.get("http://127.0.0.1:8000/expositionMode", timeout=0.2)
+        expositionMode = r.json()["Exposition Mode"]
+
+        if expositionMode == "Fixed Exposition":
             try:
                 requests.post("http://127.0.0.1:8000/captureFrame", timeout=0.5)
             except requests.exceptions.RequestException:
@@ -696,7 +699,7 @@ def update_camera_feed():
 
         if mode == "Dynamic":
             try:
-                r = requests.post("http://127.0.0.1:8000/volumeObj", params={"hdr_active": hdr_active}, timeout=5)
+                r = requests.post("http://127.0.0.1:8000/volumeObj", timeout=5)
                 data = r.json()
 
                 volume = data["volume"]
@@ -707,7 +710,7 @@ def update_camera_feed():
 
                 height_obj = ws_depth - min_depth
 
-                volume_value_label.configure(text=f"{volume:.8f} m³")
+                volume_value_label.configure(text=f"{volume:.6f} m³")
                 x_length_value_label.configure(text=f"{width:.1f} cm")
                 y_length_value_label.configure(text=f"{height:.1f} cm")
                 height_value_label.configure(text=f"{height_obj:.1f} cm")
@@ -753,7 +756,7 @@ def update_camera_feed():
                 x_length_value_label.configure(text="Erro")
                 y_length_value_label.configure(text="Erro")
                 height_value_label.configure(text="Erro")
-                print("Erro ao atualizar volume:")
+                print("Erro ao atualizar volume!")
                 pass
 
         if colorToDepthFrame.dtype != numpy.uint8:
@@ -813,7 +816,10 @@ def update_camera_feed():
         #data = requests.get("http://127.0.0.1:8000/getFrame/depth")
         #depthFrame = numpy.frombuffer(data.content, dtype=numpy.uint16).reshape(depth_shape)
 
-        if not hdr_active:
+        r = requests.get("http://127.0.0.1:8000/expositionMode", timeout=0.2)
+        expositionMode = r.json()["Exposition Mode"]
+
+        if expositionMode == "Fixed Exposition":
             try:
                 requests.post("http://127.0.0.1:8000/captureFrame", timeout=0.5)
             except requests.exceptions.RequestException:
@@ -1056,7 +1062,7 @@ def refresh_toggle():
         if mode == "Dynamic":
             StaticDynamic_var.set(True)
             volume_button.place_forget()
-        else:
+        if mode == "Static":
             StaticDynamic_var.set(False)
             volume_button.place(x=780, y=850)
 
