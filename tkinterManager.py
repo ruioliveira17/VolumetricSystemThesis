@@ -185,7 +185,7 @@ def volume_click():
         x_length_value_label.configure(text="Erro")
         y_length_value_label.configure(text="Erro")
         height_value_label.configure(text="Erro")
-        print("Erro ao atualizar volume:")
+        print("Erro ao atualizar volume!")
         pass
 
 def capFrame():

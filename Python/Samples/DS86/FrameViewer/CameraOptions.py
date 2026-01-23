@@ -11,7 +11,6 @@ def openCamera():
     print("Opening Camera!")
 
     if camState.camera is not None:
-        #print("Camera already opened!")
         return{"message": "Nothing to Open"}
     else:    
         camState.camera = VzenseTofCam()
@@ -145,7 +144,6 @@ def closeCamera():
     print("Closing Camera!")
 
     if camState.camera is None:
-        #print("Camera is already closed!")
         return{"message": "Nothing to Close"}
     else:
         ret = camState.camera.VZ_StopStream()       
@@ -156,11 +154,9 @@ def closeCamera():
 
         ret = camState.camera.VZ_CloseDevice()  
         if  ret == 0:
-            #print("close device successful")
             camState.camera = None
             return{"message": "Success"}
         else:
-            #print('VZ_CloseDevice failed: ' + str(ret))
             return{"message": "Failed"}
     
 def statusCamera():
