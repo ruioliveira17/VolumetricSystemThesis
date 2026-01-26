@@ -5,7 +5,7 @@ sys.path.append('C:/Tese/Python')
 from API.VzenseDS_api import *
 import cv2
 
-def volumeAPI(workspace_depth, minimum_depth, box_limits, objects_info, fx, fy):
+def volumeAPI(workspace_depth, minimum_depth, box_limits, depths, fx, fy):
     w_pixels = 0
     h_pixels = 0
     
@@ -14,7 +14,11 @@ def volumeAPI(workspace_depth, minimum_depth, box_limits, objects_info, fx, fy):
     height_meters = 0
     i = 0
 
-    for i in range((len(objects_info))):
+    vol = 0
+    height = 0
+    width = 0
+
+    for i in range((len(depths))):
         all_points = numpy.vstack(box_limits[i])
 
         rect = cv2.minAreaRect(all_points)
@@ -35,33 +39,19 @@ def volumeAPI(workspace_depth, minimum_depth, box_limits, objects_info, fx, fy):
         ymin = pts_flat[:,1].min()
         ymax = pts_flat[:,1].max()
 
-    #xs = box_limits[:, 0, 0]
-    #ys = box_limits[:, 0, 1]
-
-    #xmin = xs.min()
-    #xmax = xs.max()
-    #ymin = ys.min()
-    #ymax = ys.max()
-
         wid = xmax - xmin
         hei = ymax - ymin
 
-    #if box_ws is not None and len(box_ws) > 0:
-        #print(len(box_ws))
-        #while i < len(box_ws):
-            #ws_lim = box_ws[i]
         if wid > hei:
-            width_meters = w_pixels * (objects_info[i]["depth"] / 1000.0) / fx
+            width_meters = w_pixels * (depths[i] / 1000.0) / fx
             print("Width:", width_meters, "Width Pixels:", w_pixels)
-            height_meters = h_pixels * (objects_info[i]["depth"]  / 1000.0) / fy
+            height_meters = h_pixels * (depths[i]  / 1000.0) / fy
             print("Height:", height_meters, "Height Pixels:", h_pixels)
         if hei > wid:
-            width_meters = h_pixels * (objects_info[i]["depth"]  / 1000.0) / fx
+            width_meters = h_pixels * (depths[i]  / 1000.0) / fx
             print("Width:", width_meters, "Width Pixels:", h_pixels)
-            height_meters = w_pixels * (objects_info[i]["depth"]  / 1000.0) / fy
+            height_meters = w_pixels * (depths[i]  / 1000.0) / fy
             print("Height:", height_meters, "Height Pixels:", w_pixels)
-            #i += 1
-        #i = 0
 
         if width_meters < 0:
             width_meters = 0
@@ -70,5 +60,8 @@ def volumeAPI(workspace_depth, minimum_depth, box_limits, objects_info, fx, fy):
             height_meters = 0
 
         volume = width_meters * height_meters * ((workspace_depth - minimum_depth) / 1000)
+        vol += volume
+        width += width_meters
+        height += height_meters
 
-    return volume, width_meters, height_meters, minimum_depth
+    return vol, width, height

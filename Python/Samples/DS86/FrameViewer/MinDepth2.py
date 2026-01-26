@@ -134,7 +134,7 @@ def MinDepthAPI(depth, colorSlope, threshold, workspace, workspace_depth, not_se
                         valid_count = numpy.sum(numpy.abs(neighbors - min_value) <= threshold)
                         total_count = neighbors.size
 
-                        if valid_count / total_count >= 0.95:
+                        if valid_count / total_count >= 0.9:
                             neighbors = neighbors[(neighbors > (min_value - threshold)) & (neighbors < (min_value + threshold))]
                             min_value = numpy.mean(neighbors)
                             min_value = round(numpy.mean(neighbors), 1)

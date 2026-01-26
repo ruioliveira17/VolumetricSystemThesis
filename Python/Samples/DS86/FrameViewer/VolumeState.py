@@ -5,6 +5,7 @@ class VolumeState:
         self.box_limits = None
         self.box_ws = None
         self.ws_limits = None
+        self.depths = None
         self.width_meters = 0
         self.height_meters = 0
         self.volume = 0

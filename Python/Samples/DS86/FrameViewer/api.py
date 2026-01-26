@@ -389,8 +389,8 @@ def volume_Obj():
 
     depth_img = depthImg(depthFrame, camState.colorSlope)
     if depthState.not_set == 0:
-        depthState.minimum_value, depthState.not_set, volumeState.box_limits, volumeState.box_ws = bundle(colorToDepthFrame, depth_img, depthState.objects_info, depthState.threshold, depthFrame)
-        #volumeState.volume, volumeState.width_meters, volumeState.height_meters, depthState.minimum_depth = volumeAPI(workspaceState.workspace_depth, depthState.minimum_depth, volumeState.box_limits, depthState.objects_info, camState.fx, camState.fy)
+        depthState.minimum_value, depthState.not_set, volumeState.box_limits, volumeState.box_ws, volumeState.depths = bundle(colorToDepthFrame, depth_img, depthState.objects_info, depthState.threshold, depthFrame)
+        volumeState.volume, volumeState.width_meters, volumeState.height_meters = volumeAPI(workspaceState.workspace_depth, depthState.minimum_depth, volumeState.box_limits, volumeState.depths, camState.fx, camState.fy)
 
     #return{"message:": "Volume was successfully achieved!"}
     return{
