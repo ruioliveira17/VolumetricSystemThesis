@@ -51,6 +51,8 @@ res = None
 colorToDepthFrame_copy = None
 depthFrame_copy = None
 
+pil_hsv = None
+
 color_shape = (1200, 1600, 3)
 colorToDepth_shape = (480, 640, 3)
 depth_shape = (480, 640)
@@ -258,6 +260,15 @@ def getMinDepth():
     except requests.exceptions.RequestException:
         pass
 
+def color_click(event):
+    global pil_hsv
+    if event.x >= (480 - 560/2) and event.y >= (400 - 420/2) and event.x <= (480 + 560/2) and event.y <= (400 + 420/2):
+        x = int((event.x - (480 - 560/2)) * (560/640))
+        y = int((event.y - (400 - 420/2)) * (420/480))
+        h,s,v = pil_hsv.getpixel(((event.x - (480 - 560/2)),(event.y - (400 - 420/2))))
+        print("Clicou no ponto:", x, y)
+        print("H:", h, "S:", s, "V:", v)
+
 # Deactivate windows automatic dpi scale
 ctypes.windll.shcore.SetProcessDpiAwareness(1)
 
@@ -430,7 +441,7 @@ canvas_volume.create_image(10, 10, anchor='nw', image=BM_logo_tk_volume)
 
 #-----------------------------------------------------------------
 
-volume_button = tk.Button(canvas_volume, text="Volume Info", font=("Arial", 20), width=25, height=1, command=volume_click)
+volume_button = tk.Button(canvas_volume, text="Get Volume", font=("Arial", 20), width=25, height=1, command=volume_click)
 canvas_volume.create_window(780, 850, anchor="nw", window=volume_button)
 
 volume_label = customtkinter.CTkLabel(canvas_volume, text="Volume:", text_color="black", font=("Arial", 36))
@@ -633,7 +644,7 @@ def change_canvas(event):
         update_camera_feed()
 
 def update_camera_feed():
-    global colorFrame, current_canvas, colorToDepthFrame, depthFrame, colorFrame, res, color_shape, colorToDepth_shape, depth_shape
+    global colorFrame, current_canvas, colorToDepthFrame, depthFrame, colorFrame, res, color_shape, colorToDepth_shape, depth_shape, pil_hsv
 
     #-------------------------------------------------------------  Camara  ------------------------------------------------------------------------
 
@@ -807,15 +818,6 @@ def update_camera_feed():
     #-----------------------------------------------------------  Calibração  ----------------------------------------------------------------------
 
     if current_canvas is canvas_calibration:
-        #data = requests.get("http://127.0.0.1:8000/getFrame/color")
-        #colorFrame = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(color_shape)
-
-        #data = requests.get("http://127.0.0.1:8000/getFrame/colorToDepth")
-        #colorToDepthFrame   = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(colorToDepth_shape)
-        
-        #data = requests.get("http://127.0.0.1:8000/getFrame/depth")
-        #depthFrame = numpy.frombuffer(data.content, dtype=numpy.uint16).reshape(depth_shape)
-
         r = requests.get("http://127.0.0.1:8000/expositionMode", timeout=0.2)
         expositionMode = r.json()["Exposition Mode"]
 
@@ -854,6 +856,9 @@ def update_camera_feed():
                 frame_uint8 = colorToDepthFrame_copy
 
         frame_rgb = frame_uint8[:, :, ::-1]  # se BGR
+        frame_hsv = cv2.cvtColor(frame_uint8, cv2.COLOR_BGR2HSV)
+        pil_hsv = Image.fromarray(frame_hsv)
+        pil_hsv = pil_hsv.resize((560, 420), Image.LANCZOS)
 
         pil_img = Image.fromarray(frame_rgb)
         pil_img = pil_img.resize((560, 420), Image.LANCZOS)
@@ -1082,6 +1087,7 @@ canvas_storage.bind("<Button-1>", change_canvas)
 canvas_stacking.bind("<Button-1>", change_canvas)
 canvas_config.bind("<Button-1>", change_canvas)
 canvas_calibration.bind("<Button-1>", change_canvas)
+canvas_calibration.bind("<Button-1>", color_click, add="+")
 
 # ESC to Close
 root.bind("<Escape>", confirm_exit_overlay)

@@ -17,10 +17,15 @@ from MaskState import maskState
 from ModeState import modeState
 from VolumeState import volumeState
 from WorkspaceState import workspaceState
+import numpy
+import sys
 
 app = FastAPI()
 
 #-------------------------------------------------------   Tese    -------------------------------------------------------
+
+#Start API
+#python -m uvicorn api:app --reload
 
 class HSVValue(BaseModel):
     hmin: Optional[int] = None
@@ -30,11 +35,15 @@ class HSVValue(BaseModel):
     vmin: Optional[int] = None
     vmax: Optional[int] = None
 
-class CamValues(BaseModel):
-    colorSlope: Optional[int] = 1500
-    exposureTime: Optional[int] = 700
+#-------------------------------------------------------  Camera   -------------------------------------------------------
 
-#-------------------------------------------------------   Camera   -------------------------------------------------------
+@app.post("/openCamera")
+def open():
+    return openCamera()
+
+@app.post("/closeCamera")
+def close():
+    return closeCamera()
 
 @app.get("/camera/status")
 def status():
@@ -42,33 +51,22 @@ def status():
 
 @app.get("/camera/exposureTime")
 def get_exposure_Time():
-    return {"Exposure Time": camState.exposureTime,}
+    return {"colorSlope": camState.exposureTime,}
 
 @app.get("/camera/colorSlope")
 def get_color_Slope():
     return {
             "colorSlope": camState.colorSlope.value,
         }
-
-@app.post("/camera/setExposureTime")
-def set_exposureTime(data: CamValues):
-    camState.exposureTime = data.exposureTime
-    return{
-        "Exposure Time": camState.exposureTime
-    }
-
-@app.post("/camera/setColorSlope")
-def set_color_slope(data: CamValues):
-    camState.colorSlope.value = data.colorSlope
-    return{
-        "colorSlope": camState.colorSlope.value
-    }
-
 #-------------------------------------------------------   Frame   -------------------------------------------------------
 
 @app.post("/captureFrame")
 def capture_frame():
     getFrame(camState.camera)
+    #colorToDepthFrame, depthFrame, colorFrame = getFrame(camState.camera)
+    #frameState.colorToDepthFrame = colorToDepthFrame
+    #frameState.depthFrame = depthFrame
+    #frameState.colorFrame = colorFrame
     return {"message:": "Frame successfully achieved"}
 
 @app.get("/getFrame/color")
@@ -120,6 +118,19 @@ def get_Depth_HDRFrame():
     if frameState.depthFrameHDR is None:
         return Response(status_code=204)
     return Response(content=frameState.depthFrameHDR.tobytes(), media_type="application/octet-stream")
+
+@app.get("/getFrame")
+def get_frame():
+    frames = []
+
+    frames.append(frameState.colorFrame.tobytes())
+    frames.append(frameState.colorToDepthFrame.tobytes())
+    frames.append(frameState.depthFrame.tobytes())
+
+    separator = b"__FRAME__"
+    payload = separator.join(frames)
+
+    return Response(content=payload, media_type="application/octet-stream")
 
 #-------------------------------------------------------   Mask    -------------------------------------------------------
 
@@ -299,7 +310,56 @@ def hdrExp():
     modeState.expositionMode = "HDR"
     return {"Exposition Mode:": modeState.expositionMode}
 
+#------------------------------------------------------- Depth --------------------------------------------------------
+
+@app.post("/depth")
+def objects_depth():
+    not_set, objects_info = MinDepthAPI(frameState.depthFrame, camState.colorSlope.value, depthState.threshold, workspaceState.detection_area, workspaceState.workspace_depth, depthState.not_set)
+    
+    if not_set  is None or objects_info is None:
+        return{"message:": "Could not obtain objects depth successfully!"}
+    
+    depthState.not_set = not_set
+    depthState.objects_info = objects_info
+
+    return{"message:": "Objects depth obtained successfully!"}
+
+@app.get("/depth/objectsInfo")
+def get_objects_info():
+    if depthState.objects_info is None:
+        return{"message": "No info available"}
+    
+    return JSONResponse(content=jsonable_encoder(depthState.objects_info))
+
+@app.get("/depth/notSet")
+def get_min_Object_Set_Flag():
+    if depthState.not_set is None:
+        return{"message": "No info available"}
+    
+    return {
+            "not_set": depthState.not_set,
+        }
+
+@app.post("/depth/min")
+def min_value():
+    if depthState.objects_info is not None and len(depthState.objects_info) != 0:
+        depthState.minimum_depth = depthState.objects_info[0]["depth"]
+        depthState.minimum_value = depthState.minimum_depth
+
+        print("New Min Value", depthState.minimum_value)
+    
+    return{"message:": "Minimum Value changed successfully!"}
+
 #------------------------------------------------------- Volume -------------------------------------------------------
+
+@app.post("/volume")
+def volume():
+    depth_img = depthImg(frameState.depthFrame, camState.colorSlope)
+    if depthState.not_set == 0:
+        volumeState.width, volumeState.height, depthState.minimum_value, depthState.not_set, volumeState.box_limits, volumeState.box_ws = bundle(frameState.colorFrame, depth_img, depthState.objects_info, depthState.threshold, frameState.depthFrame)
+    volumeState.volume, volumeState.width_meters, volumeState.height_meters, depthState.minimum_depth = volumeAPI(volumeState.box_ws, volumeState.width, volumeState.height, workspaceState.workspace_depth, depthState.minimum_depth)
+
+    return{"message:": "Volume was successfully achieved!"}
 
 @app.post("/volumeObj")
 def volume_Obj():
@@ -330,8 +390,9 @@ def volume_Obj():
     depth_img = depthImg(depthFrame, camState.colorSlope)
     if depthState.not_set == 0:
         depthState.minimum_value, depthState.not_set, volumeState.box_limits, volumeState.box_ws, volumeState.depths = bundle(colorToDepthFrame, depth_img, depthState.objects_info, depthState.threshold, depthFrame)
-        volumeState.volume, volumeState.width_meters, volumeState.height_meters = volumeAPI(workspaceState.workspace_depth, depthState.minimum_depth, volumeState.box_limits, volumeState.depths, camState.fx, camState.fy, camState.cx, camState.cy)
+        volumeState.volume, volumeState.width_meters, volumeState.height_meters = volumeAPI(workspaceState.workspace_depth, depthState.minimum_depth, volumeState.box_limits, volumeState.depths, camState.fx, camState.fy)
 
+    #return{"message:": "Volume was successfully achieved!"}
     return{
         "volume": volumeState.volume,
         "width": volumeState.width_meters * 100,

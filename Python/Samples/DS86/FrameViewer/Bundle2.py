@@ -34,38 +34,44 @@ def boxes_overlap(box1, box2):
         return True
     return False
 
-def contours_overlap_by_points(c, prev_c, min_ratio = 0.4):
+def contours_overlap_by_points(c, prev_c, hdrColor_copy, min_ratio = 0.4):
     inside = 0
     total = len(c)
     print("Total", total)
 
+    hull = cv2.convexHull(prev_c)
+
+    cv2.drawContours(hdrColor_copy, [hull], 0, (255, 0, 0), 2)
+
     for p in c:
-        x = float(p[0][0])
-        y = float(p[0][1])
+        x = int(p[0][0])
+        y = int(p[0][1])
 
-        if cv2.pointPolygonTest(prev_c, (x, y), False) >= 0:
+        #print("Dist:", cv2.pointPolygonTest(hull, (x,y), True))
+
+        if cv2.pointPolygonTest(hull, (x, y), False) >= 0:
             inside += 1
-
+            
     print("Inside", inside)
     print("Quanto?", inside / total)
-    return (inside / total) >= min_ratio
+    
+    return (inside / total) >= min_ratio, hdrColor_copy
 
-def is_valid_area(c, min_area = 100, min_points = 20):
-    n = len(c)
-    print("Pontos", n)
+def is_valid_area(c, min_area = 150, min_points = 15):
+    #n = len(c)
+    #print("Pontos", n)
 
     a = cv2.contourArea(c)
     print("Area", a)
 
-    if n < min_points:
-        return False
+    #if n < min_points:
+    #    return False
     if a < min_area:
         return False
 
     return True
 
 def bundle(hdrColor, hdrDepth_img, objects_info, threshold, hdrDepth):
-
     contours = []
     ws_limits = []
     all_points_list = []
@@ -73,6 +79,8 @@ def bundle(hdrColor, hdrDepth_img, objects_info, threshold, hdrDepth):
     correct_shifted_contours = []
     belongs_to_previous = False
     depths = []
+
+    hdrColor_copy = hdrColor.copy()
 
     if len(objects_info) != 0:
         for obj in objects_info:
@@ -107,6 +115,9 @@ def bundle(hdrColor, hdrDepth_img, objects_info, threshold, hdrDepth):
             
             shifted_contours_sorted = sorted(shifted_contours, key=lambda x: len(x), reverse=True)
 
+            print("Depth:", obj["depth"])
+            print("-------------------------------------------------------------------")
+
             for c in shifted_contours_sorted:
                 if not is_valid_area(c):
                     print("Contornos Inválidos")
@@ -120,7 +131,8 @@ def bundle(hdrColor, hdrDepth_img, objects_info, threshold, hdrDepth):
 
                         if boxes_overlap(bbox_c, bbox_prev):
                             print("Wotefoque")
-                            if contours_overlap_by_points(c, prev_c):
+                            a, hdrColor_copy = contours_overlap_by_points(c, prev_c, hdrColor_copy)
+                            if a:
                                 belongs_to_previous = True
                                 print("Pertence ao anterior o macaco")
                                 break
@@ -139,7 +151,9 @@ def bundle(hdrColor, hdrDepth_img, objects_info, threshold, hdrDepth):
                     depths.append(obj["depth"])
                     print("Número de Objetos no contours", len(contours))
 
-    hdrColor_copy = hdrColor.copy()
+            print("-------------------------------------------------------------------")
+
+    #hdrColor_copy = hdrColor.copy()
     hdrColor_copy = cv2.resize(hdrColor_copy, (640, 480))
 
     for contour_list in contours:
