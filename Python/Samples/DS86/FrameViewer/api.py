@@ -6,11 +6,12 @@ from pydantic import BaseModel
 from API.VzenseDS_api import *
 from Bundle2 import bundle, depthImg
 from CalibrationDefTkinter import calibrateAPI, maskAPI
-from CameraOptions import openCamera, closeCamera, statusCamera
+from CameraOptions import statusCamera
 from GetFrame import getFrame
 from MinDepth2 import MinDepthAPI
 from VolumeTkinter import volumeAPI
 from CameraState import camState
+from color_presets import COLOR_PRESETS
 from DepthState import depthState
 from FrameState import frameState
 from MaskState import maskState
@@ -18,9 +19,64 @@ from ModeState import modeState
 from VolumeState import volumeState
 from WorkspaceState import workspaceState
 
-app = FastAPI()
+from contextlib import asynccontextmanager
+import json
+import os
 
-#-------------------------------------------------------   Tese    -------------------------------------------------------
+def save_WS_calibration():
+    data = {
+        "detection_area": workspaceState.detection_area,
+        "workspace_depth": workspaceState.workspace_depth,
+        "hmin": maskState.hmin,
+        "hmax": maskState.hmax,
+        "smin": maskState.smin,
+        "smax": maskState.smax,
+        "vmin": maskState.vmin,
+        "vmax": maskState.vmax,
+        "color": maskState.color
+    }
+
+    os.makedirs("config", exist_ok=True)
+
+    with open("config/workspace_calibration.json", "w") as f:
+        json.dump(data, f, indent=4)
+
+#-----------------------------------------------------   Lifespan   -------------------------------------------------------
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # STARTUP
+    path = "config/workspace_calibration.json"
+
+    if os.path.exists(path):
+        with open(path, "r") as f:
+            calib = json.load(f)
+
+        workspaceState.detection_area = calib["detection_area"]
+        workspaceState.workspace_depth = calib["workspace_depth"]
+        maskState.hmin = calib["hmin"]
+        maskState.hmax = calib["hmax"]
+        maskState.smin = calib["smin"]
+        maskState.smax = calib["smax"]
+        maskState.vmin = calib["vmin"]
+        maskState.vmax = calib["vmax"]
+        maskState.color = calib["color"]
+
+        print("Calibração carregada!")
+
+    else:
+        print("É necessário realizar calibração!")
+
+    yield
+
+    #SHUTDOWN
+    print("API a desligar")
+
+#----------------------------------------------------   Criar App   -------------------------------------------------------
+
+app = FastAPI(lifespan=lifespan)
+
+#----------------------------------------------------   Base Models    ----------------------------------------------------
 
 class HSVValue(BaseModel):
     hmin: Optional[int] = None
@@ -29,6 +85,7 @@ class HSVValue(BaseModel):
     smax: Optional[int] = None
     vmin: Optional[int] = None
     vmax: Optional[int] = None
+    color: Optional[str] = None
 
 class CamValues(BaseModel):
     colorSlope: Optional[int] = 1500
@@ -171,8 +228,21 @@ def set_v_max(data: HSVValue):
         maskState.vmax = data.vmax
     return{"vmax": maskState.vmax}
 
+@app.post("/mask/color")
+def set_maskColor(data: HSVValue):
+    maskState.color = data.color
+    return{"color": maskState.color}
+
 @app.get("/mask")
 def get_mask():
+    if maskState.color != "Manual":
+        preset = COLOR_PRESETS[maskState.color]
+        lower = numpy.array(preset["lower"])
+        upper = numpy.array(preset["upper"])
+
+        maskState.hmin, maskState.smin, maskState.vmin = map(int, lower)
+        maskState.hmax, maskState.smax, maskState.vmax = map(int, upper)
+
     return {
         "hmin": maskState.hmin,
         "hmax": maskState.hmax,
@@ -180,6 +250,7 @@ def get_mask():
         "smax": maskState.smax,
         "vmin": maskState.vmin,
         "vmax": maskState.vmax,
+        "color": maskState.color
     }
 
 @app.post("/applyMask")
@@ -202,7 +273,7 @@ def apply_mask(data: HSVValue):
     else:
         depthFrame = frameState.depthFrameHDR
 
-    res, colorToDepthFrame_copy, depthFrame_copy = maskAPI(colorFrame, colorToDepthFrame, depthFrame, lower, upper, camState.colorSlope, int(camState.cx), int(camState.cy))
+    res, colorToDepthFrame_copy, depthFrame_copy = maskAPI(colorFrame, colorToDepthFrame, depthFrame, lower, upper, maskState.color, camState.colorSlope, int(camState.cx), int(camState.cy))
 
     if res is None or colorToDepthFrame_copy is None or depthFrame_copy is None:
         return{"message:": "Mask application failed!"}
@@ -246,6 +317,8 @@ def calibrate(data: HSVValue):
     workspaceState.workspace_depth = workspace_depth
     workspaceState.center_aligned = center_aligned
     workspaceState.workspace_clear = workspace_clear
+
+    save_WS_calibration()
 
     return {"message:": "Calibration sucessfully done"}
 
@@ -330,7 +403,8 @@ def volume_Obj():
     depth_img = depthImg(depthFrame, camState.colorSlope)
     if depthState.not_set == 0:
         depthState.minimum_value, depthState.not_set, volumeState.box_limits, volumeState.box_ws, volumeState.depths = bundle(colorToDepthFrame, depth_img, depthState.objects_info, depthState.threshold, depthFrame)
-        volumeState.volume, volumeState.width_meters, volumeState.height_meters = volumeAPI(workspaceState.workspace_depth, depthState.minimum_depth, volumeState.box_limits, volumeState.depths, camState.fx, camState.fy, camState.cx, camState.cy)
+        if volumeState.box_limits is not None and len(volumeState.box_limits) > 0:
+            volumeState.volume, volumeState.width_meters, volumeState.height_meters = volumeAPI(workspaceState.workspace_depth, depthState.minimum_depth, volumeState.box_limits, volumeState.depths, camState.fx, camState.fy, camState.cx, camState.cy)
 
     return{
         "volume": volumeState.volume,

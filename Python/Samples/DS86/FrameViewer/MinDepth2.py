@@ -3,6 +3,8 @@ import sys
 sys.path.append('C:/Tese/Python')
 
 from API.VzenseDS_api import *
+import cv2
+from FrameState import frameState
 
 def MinDepth(hdrDepth, colorSlope, threshold, workspace, workspace_depth, not_set):
 
@@ -146,6 +148,7 @@ def MinDepthAPI(depth, colorSlope, threshold, workspace, workspace_depth, not_se
                                 half_height_px = int((workspace_height_m / 2) * fy / (object_depth / 1000.0))
 
                                 workspace_limits = int(cx - half_width_px), int(cy - half_height_px), int(cx + half_width_px), int(cy + half_height_px)
+                                cv2.rectangle(frameState.colorToDepthFrame, (workspace_limits[0], workspace_limits[1]), (workspace_limits[2], workspace_limits[3]), (0, 0, 255), 2)
 
                                 objects_info.append({
                                             "depth": min_value,

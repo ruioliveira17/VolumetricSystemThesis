@@ -1,0 +1,16 @@
+{
+    "detection_area": [
+        229,
+        147,
+        381,
+        355
+    ],
+    "workspace_depth": 958.9434723236686,
+    "hmin": 23,
+    "hmax": 32,
+    "smin": 100,
+    "smax": 255,
+    "vmin": 100,
+    "vmax": 255,
+    "color": "Yellow"
+}

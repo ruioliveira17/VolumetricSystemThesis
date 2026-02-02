@@ -15,8 +15,10 @@ import threading
 
 sys.path.append('C:/Tese/Python/Samples/DS86/FrameViewer')
 
-from CameraOptions import openCamera, closeCamera, statusCamera
+from CameraOptions import openCamera, closeCamera
 from HDRDef import hdrAPI
+
+from color_presets import COLOR_PRESETS
 
 import uvicorn
 import requests
@@ -59,6 +61,8 @@ depth_shape = (480, 640)
 colorToDepthCopy_shape = (480, 640, 3)
 depthCopy_shape = (480, 640, 3)
 colorToDepthObject_shape = (480, 640, 3)
+
+colors = ["Manual", "Black", "White", "Grey", "Red", "Pink", "Orange", "Brown", "Yellow", "Green", "Blue-Green", "Blue", "Purple", "Light Purple"]
 
 def hdr_thread(stop_event, pause_event):
     while not stop_event.is_set():
@@ -268,6 +272,41 @@ def color_click(event):
         h,s,v = pil_hsv.getpixel(((event.x - (480 - 560/2)),(event.y - (400 - 420/2))))
         print("Clicou no ponto:", x, y)
         print("H:", h, "S:", s, "V:", v)
+        preset = COLOR_PRESETS
+        for color_name, vals in preset.items():
+            lower = vals["lower"]
+            upper = vals["upper"]
+
+            if lower[0] <= h <= upper[0] and lower[1] <= s <= upper[1] and lower[2] <= v <= upper[2]:
+                print("Color:", color_name)
+                if color_name == "Red2":
+                    color_name = "Red"
+                print("Color:", color_name)
+                try:
+                    requests.post("http://127.0.0.1:8000/mask/color", json={"color":color_name}, timeout=0.5)
+                except requests.exceptions.RequestException:
+                    pass
+            
+        #min_dist = float("inf")
+        #closest_color = None
+        #for color_name, vals in preset.items():
+        #    lower = numpy.array(vals["lower"])
+        #    upper = numpy.array(vals["upper"])
+        #    mid = (lower + upper) / 2
+        #    dist = ((mid[0] - h)**2 + (mid[1] - s)**2 + (mid[2] - v)**2)**0.5
+        #    if dist < min_dist:
+        #        min_dist = dist
+        #        closest_color = color_name
+
+        #print("Closest Color:", closest_color)
+        #if closest_color == "Red2":
+        #    closest_color = "Red"
+        #print("Closest Color:", closest_color)
+        #try:
+        #    requests.post("http://127.0.0.1:8000/mask/color", json={"color":closest_color}, timeout=0.5)
+        #except requests.exceptions.RequestException:
+        #    pass
+
 
 # Deactivate windows automatic dpi scale
 ctypes.windll.shcore.SetProcessDpiAwareness(1)
@@ -562,6 +601,25 @@ calibrate_label = customtkinter.CTkLabel(canvas_calibration, text="", text_color
 calibrate_label.place(x=950, y=130, anchor="center")
 caliError_label = customtkinter.CTkLabel(canvas_calibration, text="", text_color="black", font=("Arial", 20))
 caliError_label.place(x=950, y=160, anchor="center")
+
+#----------------------------- Cores -----------------------------
+
+selected_color = tk.StringVar()
+selected_color.set(colors[0])
+
+def color_changed(*args):
+    print("Color:", selected_color.get())
+    color = selected_color.get()
+    try:
+        requests.post("http://127.0.0.1:8000/mask/color", json={"color":color}, timeout=0.5)
+    except requests.exceptions.RequestException:
+        pass
+
+selected_color.trace_add("write", color_changed)
+
+option_menu = tk.OptionMenu(canvas_calibration, selected_color, *colors)
+option_menu.config(width=20, font=("Arial", 15))
+canvas_calibration.create_window(800, 250, anchor="nw", window=option_menu)
 
 #---------------------------- Events -----------------------------
 

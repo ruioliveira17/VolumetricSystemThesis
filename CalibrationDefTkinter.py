@@ -8,6 +8,8 @@ import cv2
 import numpy
 import requests
 
+from color_presets import COLOR_PRESETS
+
 x_area = 0
 y_area = 0
 x_area_plus_width = 0
@@ -92,17 +94,13 @@ def mask(camera, get_lower, get_upper, colorSlope):
     finally :
         print('end')
 
-def maskAPI(colorFrame, colorToDepthFrame, depthFrame, get_lower, get_upper, colorSlope, cx, cy):
+def maskAPI(colorFrame, colorToDepthFrame, depthFrame, get_lower, get_upper, color, colorSlope, cx, cy):
     global x_area, y_area, x_area_plus_width, y_area_plus_height, detection_area
 
     x_area = None
     y_area = None
     x_area_plus_width = None
     y_area_plus_height = None
-
-    #colorToDepthFrame = None
-    #depthFrame = None 
-    #colorFrame = None
 
     try:
         colorToDepthFrame = cv2.resize(colorToDepthFrame, (640, 480))
@@ -113,6 +111,14 @@ def maskAPI(colorFrame, colorToDepthFrame, depthFrame, get_lower, get_upper, col
         # ------------------ ÁREA EXTERIOR -------------------
 
         mask_hsv = cv2.inRange(hsv_frame, get_lower, get_upper)
+        if color == "Red":
+            preset = COLOR_PRESETS["Red2"]
+            lower = numpy.array(preset["lower"])
+            upper = numpy.array(preset["upper"])
+
+            mask_hsv2 = cv2.inRange(hsv_frame, lower, upper)
+
+            mask_hsv = mask_hsv | mask_hsv2
 
         res = cv2.bitwise_and(colorToDepthFrame, colorToDepthFrame, mask=mask_hsv)
 
@@ -418,15 +424,15 @@ def calibrateAPI(colorFrame, colorToDepthFrame, depthFrame, get_lower, get_upper
 
         # VERIFICAÇÃO PONTO CENTRAL
 
-        neighbors = hsv_frame[max(0, cy-3):cy+4, max(0, cx-3):cx+4]
-        mask_center = (((neighbors[:,:,0] >= h_min) & (neighbors[:,:,0] <= h_max)) & ((neighbors[:,:,1] >= s_min) & (neighbors[:,:,1] <= s_max)) & ((neighbors[:,:,2] >= v_min) & (neighbors[:,:,2] <= v_max)))
+        #neighbors = hsv_frame[max(0, cy-3):cy+4, max(0, cx-3):cx+4]
+        #mask_center = (((neighbors[:,:,0] >= h_min) & (neighbors[:,:,0] <= h_max)) & ((neighbors[:,:,1] >= s_min) & (neighbors[:,:,1] <= s_max)) & ((neighbors[:,:,2] >= v_min) & (neighbors[:,:,2] <= v_max)))
 
         center_x_max = x_area + ((x_area_plus_width - x_area)/2) + 5
         center_x_min = x_area + ((x_area_plus_width - x_area)/2) - 5
         center_y_max = y_area + ((y_area_plus_height - y_area)/2) + 5
         center_y_min = y_area + ((y_area_plus_height - y_area)/2) - 5
 
-        if numpy.any(mask_center) and (cx <= center_x_max) and (cx >= center_x_min) and (cy <= center_y_max) and (cy >= center_y_min):
+        if (cx <= center_x_max) and (cx >= center_x_min) and (cy <= center_y_max) and (cy >= center_y_min):
             center_aligned = True
         else:
             center_aligned = False
@@ -454,7 +460,7 @@ def calibrateAPI(colorFrame, colorToDepthFrame, depthFrame, get_lower, get_upper
             proportion_valid = count / valid_values.size
             print("Proporção Profundidade:", proportion_valid)
 
-            if proportion_valid >= 0.85:
+            if proportion_valid >= 0.9:
                 workspace_free = True
                 workspace_depth = avg_depth
             else:
