@@ -55,6 +55,13 @@ depthFrame_copy = None
 
 pil_hsv = None
 
+step = 2
+
+left_bar = False
+right_bar = False
+up_bar = False
+down_bar = False
+
 color_shape = (1200, 1600, 3)
 colorToDepth_shape = (480, 640, 3)
 depth_shape = (480, 640)
@@ -62,7 +69,7 @@ colorToDepthCopy_shape = (480, 640, 3)
 depthCopy_shape = (480, 640, 3)
 colorToDepthObject_shape = (480, 640, 3)
 
-colors = ["Manual", "Black", "White", "Grey", "Red", "Pink", "Orange", "Brown", "Yellow", "Green", "Blue-Green", "Blue", "Purple", "Light Purple"]
+colors = ["Select a Point", "Black", "White", "Grey", "Red", "Pink", "Orange", "Brown", "Yellow", "Green", "Blue-Green", "Blue", "Purple", "Light Purple"]
 
 def hdr_thread(stop_event, pause_event):
     while not stop_event.is_set():
@@ -151,40 +158,47 @@ def volume_click():
         height_value_label.configure(text=f"{height_obj:.1f} cm")
 
         data = requests.get("http://127.0.0.1:8000/getFrame/colorToDepthObject")
-        colorToDepthObjectFrame = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(colorToDepth_shape)
 
-        if colorToDepthObjectFrame.dtype != numpy.uint8:
-            # Normaliza para 0-255 e converte para uint8
-            frame_uint8 = (numpy.clip(colorToDepthObjectFrame, 0, 1) * 255).astype(numpy.uint8)
+        if data.status_code == 404:
+            raise ValueError("Frame not Available")
         else:
-            frame_uint8 = colorToDepthObjectFrame
+            colorToDepthObjectFrame = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(colorToDepth_shape)
 
-        frame_object = frame_uint8[:, :, ::-1]  # se BGR
+            if colorToDepthObjectFrame.dtype != numpy.uint8:
+                # Normaliza para 0-255 e converte para uint8
+                frame_uint8 = (numpy.clip(colorToDepthObjectFrame, 0, 1) * 255).astype(numpy.uint8)
+            else:
+                frame_uint8 = colorToDepthObjectFrame
 
-        pil_obj = Image.fromarray(frame_object)
-        pil_obj = pil_obj.resize((560, 420), Image.LANCZOS)
-        objecttk_img = ImageTk.PhotoImage(pil_obj)
-        canvas_volume.tk_object = objecttk_img
+            frame_object = frame_uint8[:, :, ::-1]  # se BGR
 
-        current_canvas.create_image(1500, 400, image=objecttk_img, anchor="center")
+            pil_obj = Image.fromarray(frame_object)
+            pil_obj = pil_obj.resize((560, 420), Image.LANCZOS)
+            objecttk_img = ImageTk.PhotoImage(pil_obj)
+            canvas_volume.tk_object = objecttk_img
+
+            current_canvas.create_image(1500, 400, image=objecttk_img, anchor="center")
 
         data = requests.get("http://127.0.0.1:8000/getFrame/colorToDepthObjects")
-        colorToDepthObjectsFrame = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(colorToDepth_shape)
-
-        if colorToDepthObjectsFrame.dtype != numpy.uint8:
-            # Normaliza para 0-255 e converte para uint8
-            frame_uint8 = (numpy.clip(colorToDepthObjectsFrame, 0, 1) * 255).astype(numpy.uint8)
+        if data.status_code == 404:
+            raise ValueError("Frame not Available")
         else:
-            frame_uint8 = colorToDepthObjectsFrame
+            colorToDepthObjectsFrame = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(colorToDepth_shape)
 
-        frame_objects = frame_uint8[:, :, ::-1]  # se BGR
+            if colorToDepthObjectsFrame.dtype != numpy.uint8:
+                # Normaliza para 0-255 e converte para uint8
+                frame_uint8 = (numpy.clip(colorToDepthObjectsFrame, 0, 1) * 255).astype(numpy.uint8)
+            else:
+                frame_uint8 = colorToDepthObjectsFrame
 
-        pil_objs = Image.fromarray(frame_objects)
-        pil_objs = pil_objs.resize((560, 420), Image.LANCZOS)
-        objectstk_img = ImageTk.PhotoImage(pil_objs)
-        canvas_volume.tk_objects = objectstk_img
+            frame_objects = frame_uint8[:, :, ::-1]  # se BGR
 
-        current_canvas.create_image(1500, 830, image=objectstk_img, anchor="center")
+            pil_objs = Image.fromarray(frame_objects)
+            pil_objs = pil_objs.resize((560, 420), Image.LANCZOS)
+            objectstk_img = ImageTk.PhotoImage(pil_objs)
+            canvas_volume.tk_objects = objectstk_img
+
+            current_canvas.create_image(1500, 830, image=objectstk_img, anchor="center")
 
     except requests.exceptions.RequestException:
         volume_value_label.configure(text="Erro")
@@ -192,6 +206,9 @@ def volume_click():
         y_length_value_label.configure(text="Erro")
         height_value_label.configure(text="Erro")
         print("Erro ao atualizar volume!")
+        pass
+    except ValueError as e:
+        print("Erro:", e)
         pass
 
 def capFrame():
@@ -265,48 +282,159 @@ def getMinDepth():
         pass
 
 def color_click(event):
-    global pil_hsv
-    if event.x >= (480 - 560/2) and event.y >= (400 - 420/2) and event.x <= (480 + 560/2) and event.y <= (400 + 420/2):
-        x = int((event.x - (480 - 560/2)) * (560/640))
-        y = int((event.y - (400 - 420/2)) * (420/480))
-        h,s,v = pil_hsv.getpixel(((event.x - (480 - 560/2)),(event.y - (400 - 420/2))))
-        print("Clicou no ponto:", x, y)
-        print("H:", h, "S:", s, "V:", v)
-        preset = COLOR_PRESETS
-        for color_name, vals in preset.items():
-            lower = vals["lower"]
-            upper = vals["upper"]
+    global pil_hsv, left_bar, right_bar, up_bar, down_bar
+    color_ack = False
+    thresh = 10
 
-            if lower[0] <= h <= upper[0] and lower[1] <= s <= upper[1] and lower[2] <= v <= upper[2]:
-                print("Color:", color_name)
-                if color_name == "Red2":
-                    color_name = "Red"
-                print("Color:", color_name)
+    r = requests.get("http://127.0.0.1:8000/calibrate/mode", timeout=0.2)
+    calibrateMode = r.json()["Calibrate Mode"]
+    
+    if calibrateMode == "Automatic":
+        r = requests.get("http://127.0.0.1:8000/mask", timeout=0.2)
+        maskValues = r.json()
+
+        color = maskValues.get("optionSelected")
+
+        if event.x >= (480 - 560/2) and event.y >= (400 - 420/2) and event.x <= (480 + 560/2) and event.y <= (400 + 420/2) and color == "Select a Point":
+            x = int((event.x - (480 - 560/2)) * (640/560))
+            y = int((event.y - (400 - 420/2)) * (480/420))
+            h,s,v = pil_hsv.getpixel(((event.x - (480 - 560/2)),(event.y - (400 - 420/2))))
+            print("Clicou no ponto:", x, y)
+            print("H:", h, "S:", s, "V:", v)
+            preset = COLOR_PRESETS
+            for color_name, vals in preset.items():
+                lower = vals["lower"]
+                upper = vals["upper"]
+
+                if lower[0] <= h <= upper[0] and lower[1] <= s <= upper[1] and lower[2] <= v <= upper[2]:
+                    color_ack = True
+                    print("Color:", color_name)
+                    if color_name == "Red2":
+                        color_name = "Red"
+                    print("Color:", color_name)
+                    try:
+                        requests.post("http://127.0.0.1:8000/mask/color", json={"color":color_name}, timeout=0.5)
+                    except requests.exceptions.RequestException:
+                        pass
+            if color_ack is False:
+                min_dist = float("inf")
+                closest_color = None
+                for color_name, vals in preset.items():
+                    lower = numpy.array(vals["lower"])
+                    upper = numpy.array(vals["upper"])
+                    mid = (lower + upper) / 2
+                    dist = ((mid[0] - h)**2 + (mid[1] - s)**2 + (mid[2] - v)**2)**0.5
+                    if dist < min_dist:
+                        min_dist = dist
+                        closest_color = color_name
+                        
+                if closest_color == "Red2":
+                    closest_color = "Red"
+                print("Closest Color:", closest_color)
                 try:
-                    requests.post("http://127.0.0.1:8000/mask/color", json={"color":color_name}, timeout=0.5)
+                    requests.post("http://127.0.0.1:8000/mask/color", json={"color":closest_color}, timeout=0.5)
                 except requests.exceptions.RequestException:
                     pass
-            
-        #min_dist = float("inf")
-        #closest_color = None
-        #for color_name, vals in preset.items():
-        #    lower = numpy.array(vals["lower"])
-        #    upper = numpy.array(vals["upper"])
-        #    mid = (lower + upper) / 2
-        #    dist = ((mid[0] - h)**2 + (mid[1] - s)**2 + (mid[2] - v)**2)**0.5
-        #    if dist < min_dist:
-        #        min_dist = dist
-        #        closest_color = color_name
+    else:
+        try:
+            r = requests.get("http://127.0.0.1:8000/calibrate/params", timeout=0.2)
+            detection_area = r.json()["Detection Area"]
+            print("Detection Area:", detection_area)
 
-        #print("Closest Color:", closest_color)
-        #if closest_color == "Red2":
-        #    closest_color = "Red"
-        #print("Closest Color:", closest_color)
-        #try:
-        #    requests.post("http://127.0.0.1:8000/mask/color", json={"color":closest_color}, timeout=0.5)
-        #except requests.exceptions.RequestException:
-        #    pass
+            if event.x >= (480 - 560/2) and event.y >= (400 - 420/2) and event.x <= (480 + 560/2) and event.y <= (400 + 420/2):
+                x = int((event.x - (480 - 560/2)) * (640/560))
+                y = int((event.y - (400 - 420/2)) * (480/420))
+                print("Clicou no ponto:", x, y)
+                if (detection_area[0] - thresh <= x <= detection_area[0] + thresh) and (detection_area[1] - thresh <= y <= detection_area[3] + thresh):
+                    print("Left Bar Chosen")
+                    left_bar = True
+                    right_bar = False
+                    up_bar = False
+                    down_bar = False
+                if (detection_area[2] - thresh <= x <= detection_area[2] + thresh) and (detection_area[1] - thresh <= y <= detection_area[3] + thresh):
+                    print("Right Bar Chosen")
+                    left_bar = False
+                    right_bar = True
+                    up_bar = False
+                    down_bar = False
+                if (detection_area[1] - thresh <= y <= detection_area[1] + thresh) and (detection_area[0] - thresh <= x <= detection_area[2] + thresh):
+                    print("Up Bar Chosen")
+                    left_bar = False
+                    right_bar = False
+                    up_bar = True
+                    down_bar = False
+                if (detection_area[3] - thresh <= y <= detection_area[3] + thresh) and (detection_area[0] - thresh <= x <= detection_area[2] + thresh):
+                    print("Down Bar Chosen")
+                    left_bar = False
+                    right_bar = False
+                    up_bar = False
+                    down_bar = True
 
+        except requests.exceptions.RequestException:
+            pass
+
+def color_changed(*args):
+    print("Color:", selected_color.get())
+    color = selected_color.get()
+    try:
+        requests.post("http://127.0.0.1:8000/mask/color", json={"color":color}, timeout=0.5)
+    except requests.exceptions.RequestException:
+        pass
+
+    try:
+        requests.post("http://127.0.0.1:8000/mask/optionSelected", json={"optionSelected":color}, timeout=0.5)
+    except requests.exceptions.RequestException:
+        pass
+
+def AutoManual_toggle():
+    if AutoManual_var.get():
+        requests.post("http://127.0.0.1:8000/calibrate/mode/manual")
+        option_menu.configure(state='disabled')
+    else:
+        requests.post("http://127.0.0.1:8000/calibrate/mode/automatic")
+        option_menu.configure(state='active')
+
+def apply_manualWSDraw():
+    try:
+        r = requests.get("http://127.0.0.1:8000/calibrate/params", timeout=0.2)
+        detection_area = r.json()["Detection Area"]
+
+        requests.post("http://127.0.0.1:8000/applyManualWorkspace", json={"detection_area": detection_area}, timeout=0.5)
+    except requests.exceptions.RequestException:
+        pass
+
+def key_pressed(event):
+    global left_bar, right_bar, up_bar, down_bar
+    try:
+        r = requests.get("http://127.0.0.1:8000/calibrate/params", timeout=0.2)
+        detection_area = r.json()["Detection Area"]
+
+        if event.keysym == "Left": #Tecla A
+            if left_bar:
+                detection_area[0] -= step
+            if right_bar:
+                detection_area[2] -= step
+        elif event.keysym == "Right":
+            if right_bar:
+                detection_area[2] += step
+            if left_bar:
+                detection_area[0] += step
+        elif event.keysym == "Up":
+            if up_bar:
+                detection_area[1] -= step
+            if down_bar:
+                detection_area[3] -= step
+        elif event.keysym == "Down":
+            if down_bar:
+                detection_area[3] += step
+            if up_bar:
+                detection_area[1] += step
+        
+        requests.post("http://127.0.0.1:8000/applyManualWorkspace", json={"detection_area": detection_area}, timeout=0.5)
+    except requests.exceptions.RequestException:
+        pass
+
+    
 
 # Deactivate windows automatic dpi scale
 ctypes.windll.shcore.SetProcessDpiAwareness(1)
@@ -597,29 +725,69 @@ canvas_calibration.create_window(1100, 850, anchor="nw", window=calibration_butt
 
 #-----------------------------------------------------------------
 
+#LABELS ERRO
+
 calibrate_label = customtkinter.CTkLabel(canvas_calibration, text="", text_color="black", font=("Arial", 20))
 calibrate_label.place(x=950, y=130, anchor="center")
 caliError_label = customtkinter.CTkLabel(canvas_calibration, text="", text_color="black", font=("Arial", 20))
 caliError_label.place(x=950, y=160, anchor="center")
+
+#LABEL HMIN
+hmin_label = customtkinter.CTkLabel(canvas_calibration, text="Minimum Hue:", text_color="black", font=("Arial", 18))
+hmin_label.place(x=1650, y=260)
+hmin_label = customtkinter.CTkLabel(canvas_calibration, text="", text_color="black", font=("Arial", 18))
+hmin_label.place(x=1820, y=260)
+
+#LABEL HMAX
+hmax_label = customtkinter.CTkLabel(canvas_calibration, text="Maximum Hue:", text_color="black", font=("Arial", 18))
+hmax_label.place(x=1650, y=360)
+hmax_label = customtkinter.CTkLabel(canvas_calibration, text="", text_color="black", font=("Arial", 18))
+hmax_label.place(x=1820, y=360)
+
+#LABEL SMIN
+smin_label = customtkinter.CTkLabel(canvas_calibration, text="Minimum Saturation:", text_color="black", font=("Arial", 18))
+smin_label.place(x=1650, y=460)
+smin_label = customtkinter.CTkLabel(canvas_calibration, text="", text_color="black", font=("Arial", 18))
+smin_label.place(x=1820, y=460)
+
+#LABEL SMAX
+smax_label = customtkinter.CTkLabel(canvas_calibration, text="Maximum Saturation:", text_color="black", font=("Arial", 18))
+smax_label.place(x=1650, y=560)
+smax_label = customtkinter.CTkLabel(canvas_calibration, text="", text_color="black", font=("Arial", 18))
+smax_label.place(x=1820, y=560)
+
+#LABEL VMIN
+vmin_label = customtkinter.CTkLabel(canvas_calibration, text="Minimum Value:", text_color="black", font=("Arial", 18))
+vmin_label.place(x=1650, y=660)
+vmin_label = customtkinter.CTkLabel(canvas_calibration, text="", text_color="black", font=("Arial", 18))
+vmin_label.place(x=1820, y=660)
+
+#LABEL VMAX
+vmax_label = customtkinter.CTkLabel(canvas_calibration, text="Maximum Value:", text_color="black", font=("Arial", 18))
+vmax_label.place(x=1650, y=760)
+vmax_label = customtkinter.CTkLabel(canvas_calibration, text="", text_color="black", font=("Arial", 18))
+vmax_label.place(x=1820, y=760)
 
 #----------------------------- Cores -----------------------------
 
 selected_color = tk.StringVar()
 selected_color.set(colors[0])
 
-def color_changed(*args):
-    print("Color:", selected_color.get())
-    color = selected_color.get()
-    try:
-        requests.post("http://127.0.0.1:8000/mask/color", json={"color":color}, timeout=0.5)
-    except requests.exceptions.RequestException:
-        pass
-
 selected_color.trace_add("write", color_changed)
 
 option_menu = tk.OptionMenu(canvas_calibration, selected_color, *colors)
 option_menu.config(width=20, font=("Arial", 15))
-canvas_calibration.create_window(800, 250, anchor="nw", window=option_menu)
+canvas_calibration.create_window(800, 330, anchor="nw", window=option_menu)
+
+label_auto = tk.Label(canvas_calibration, text="Automatic", bg="white", font=("Arial", 20))
+label_manual = tk.Label(canvas_calibration, text="Manual", bg="white", font=("Arial", 20))
+canvas_calibration.create_window(770, 255, anchor="nw", window=label_auto)
+canvas_calibration.create_window(1005, 255, anchor="nw", window=label_manual)
+
+AutoManual_var = customtkinter.BooleanVar(value=False)
+
+AutoManual_switch = customtkinter.CTkSwitch(canvas_calibration, text="", variable=AutoManual_var, onvalue=True, offvalue=False, command=AutoManual_toggle, switch_width=100, switch_height=50, fg_color="turquoise1", progress_color="dark turquoise", button_color="gray65", button_hover_color="gray45")
+canvas_calibration.create_window(900, 250, anchor="nw", window=AutoManual_switch)
 
 #---------------------------- Events -----------------------------
 
@@ -700,6 +868,9 @@ def change_canvas(event):
         update_sliders()
         refresh_sliders()
         update_camera_feed()
+
+        canvas_calibration.focus_set()
+        canvas_calibration.bind("<Key>", key_pressed)
 
 def update_camera_feed():
     global colorFrame, current_canvas, colorToDepthFrame, depthFrame, colorFrame, res, color_shape, colorToDepth_shape, depth_shape, pil_hsv
@@ -785,40 +956,48 @@ def update_camera_feed():
                 height_value_label.configure(text=f"{height_obj:.1f} cm")
 
                 data = requests.get("http://127.0.0.1:8000/getFrame/colorToDepthObject")
-                colorToDepthObjectFrame = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(colorToDepth_shape)
 
-                if colorToDepthObjectFrame.dtype != numpy.uint8:
-                    # Normaliza para 0-255 e converte para uint8
-                    frame_uint8 = (numpy.clip(colorToDepthObjectFrame, 0, 1) * 255).astype(numpy.uint8)
+                if data.status_code == 404:
+                    raise ValueError("Frame not Available")
                 else:
-                    frame_uint8 = colorToDepthObjectFrame
+                    colorToDepthObjectFrame = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(colorToDepth_shape)
 
-                frame_object = frame_uint8[:, :, ::-1]  # se BGR
+                    if colorToDepthObjectFrame.dtype != numpy.uint8:
+                        # Normaliza para 0-255 e converte para uint8
+                        frame_uint8 = (numpy.clip(colorToDepthObjectFrame, 0, 1) * 255).astype(numpy.uint8)
+                    else:
+                        frame_uint8 = colorToDepthObjectFrame
 
-                pil_obj = Image.fromarray(frame_object)
-                pil_obj = pil_obj.resize((560, 420), Image.LANCZOS)
-                objecttk_img = ImageTk.PhotoImage(pil_obj)
-                canvas_volume.tk_object = objecttk_img
+                    frame_object = frame_uint8[:, :, ::-1]  # se BGR
 
-                current_canvas.create_image(1500, 400, image=objecttk_img, anchor="center")
+                    pil_obj = Image.fromarray(frame_object)
+                    pil_obj = pil_obj.resize((560, 420), Image.LANCZOS)
+                    objecttk_img = ImageTk.PhotoImage(pil_obj)
+                    canvas_volume.tk_object = objecttk_img
+
+                    current_canvas.create_image(1500, 400, image=objecttk_img, anchor="center")
 
                 data = requests.get("http://127.0.0.1:8000/getFrame/colorToDepthObjects")
-                colorToDepthObjectsFrame = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(colorToDepth_shape)
 
-                if colorToDepthObjectsFrame.dtype != numpy.uint8:
-                    # Normaliza para 0-255 e converte para uint8
-                    frame_uint8 = (numpy.clip(colorToDepthObjectsFrame, 0, 1) * 255).astype(numpy.uint8)
+                if data.status_code == 404:
+                    raise ValueError("Frame not Available")
                 else:
-                    frame_uint8 = colorToDepthObjectsFrame
+                    colorToDepthObjectsFrame = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(colorToDepth_shape)
 
-                frame_objects = frame_uint8[:, :, ::-1]  # se BGR
+                    if colorToDepthObjectsFrame.dtype != numpy.uint8:
+                        # Normaliza para 0-255 e converte para uint8
+                        frame_uint8 = (numpy.clip(colorToDepthObjectsFrame, 0, 1) * 255).astype(numpy.uint8)
+                    else:
+                        frame_uint8 = colorToDepthObjectsFrame
 
-                pil_objs = Image.fromarray(frame_objects)
-                pil_objs = pil_objs.resize((560, 420), Image.LANCZOS)
-                objectstk_img = ImageTk.PhotoImage(pil_objs)
-                canvas_volume.tk_objects = objectstk_img
+                    frame_objects = frame_uint8[:, :, ::-1]  # se BGR
 
-                current_canvas.create_image(1500, 830, image=objectstk_img, anchor="center")
+                    pil_objs = Image.fromarray(frame_objects)
+                    pil_objs = pil_objs.resize((560, 420), Image.LANCZOS)
+                    objectstk_img = ImageTk.PhotoImage(pil_objs)
+                    canvas_volume.tk_objects = objectstk_img
+
+                    current_canvas.create_image(1500, 830, image=objectstk_img, anchor="center")
 
             except requests.exceptions.RequestException:
                 volume_value_label.configure(text="Erro")
@@ -826,6 +1005,9 @@ def update_camera_feed():
                 y_length_value_label.configure(text="Erro")
                 height_value_label.configure(text="Erro")
                 print("Erro ao atualizar volume!")
+                pass
+            except ValueError as e:
+                print("Erro:", e)
                 pass
 
         if colorToDepthFrame.dtype != numpy.uint8:
@@ -886,9 +1068,14 @@ def update_camera_feed():
                 pass
 
         colorFrame, colorToDepthFrame, depthFrame = capFrame()
+        
+        r = requests.get("http://127.0.0.1:8000/calibrate/mode", timeout=0.2)
+        calibrateMode = r.json()["Calibrate Mode"]
 
-        #APLICAR MASCARA
-        apply_mask()
+        if calibrateMode == "Automatic":
+            apply_mask()
+        else:
+            apply_manualWSDraw()
 
         data = requests.get("http://127.0.0.1:8000/getFrame/colorToDepthCopy")
         colorToDepthFrame_copy = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(colorToDepthCopy_shape)
@@ -951,71 +1138,54 @@ def update_camera_feed():
         current_canvas.create_image(480, 830, image=tk_mask, anchor="center")
 
         current_canvas.after(10, refresh_sliders)
-        current_canvas.after(50, apply_mask)
+        #current_canvas.after(50, apply_mask)
         current_canvas.after(70, update_camera_feed)
 
 def update_sliders():
     global current_canvas, hmin_label, hmax_label, smin_label, smax_label, vmin_label, vmax_label, hmin_slider, smin_slider, vmin_slider, hmax_slider, smax_slider, vmax_slider
     if current_canvas is canvas_calibration:
+        
         #MIN HUE SLIDER
-
-        hmin_slider = customtkinter.CTkSlider(current_canvas, from_= 0, to = 179, command = sliding_hmin, width = 500, height = 50)
+        hmin_slider = customtkinter.CTkSlider(current_canvas, from_= 0, to = 179, command = sliding_hmin, width = 500, height = 50, state='disabled')
         hmin_slider.place(x=1100, y=250)
         hmin_slider.set(0)
-        hmin_label = customtkinter.CTkLabel(current_canvas, text="Minimum Hue:", text_color="black", font=("Arial", 18))
-        hmin_label.place(x=1650, y=260)
-        hmin_label = customtkinter.CTkLabel(current_canvas, text=hmin_slider.get(), text_color="black", font=("Arial", 18))
-        hmin_label.place(x=1820, y=260)
+        hmin_label_text = str(hmin_slider.get())
+        hmin_label.configure(text=f"{hmin_label_text}")
 
         #MAX HUE SLIDER
-
-        hmax_slider = customtkinter.CTkSlider(current_canvas, from_= 0, to = 179, command = sliding_hmax, width = 500, height = 50)
+        hmax_slider = customtkinter.CTkSlider(current_canvas, from_= 0, to = 179, command = sliding_hmax, width = 500, height = 50, state='disabled')
         hmax_slider.place(x=1100, y=350)
         hmax_slider.set(179)
-        hmax_label = customtkinter.CTkLabel(current_canvas, text="Maximum Hue:", text_color="black", font=("Arial", 18))
-        hmax_label.place(x=1650, y=360)
-        hmax_label = customtkinter.CTkLabel(current_canvas, text=hmax_slider.get(), text_color="black", font=("Arial", 18))
-        hmax_label.place(x=1820, y=360)
+        hmax_label_text = str(hmax_slider.get())
+        hmax_label.configure(text=f"{hmax_label_text}")
 
         #MIN SATURATION SLIDER
-
-        smin_slider = customtkinter.CTkSlider(current_canvas, from_= 0, to = 255, command = sliding_smin, width = 500, height = 50)
+        smin_slider = customtkinter.CTkSlider(current_canvas, from_= 0, to = 255, command = sliding_smin, width = 500, height = 50, state='disabled')
         smin_slider.place(x=1100, y=450)
         smin_slider.set(0)
-        smin_label = customtkinter.CTkLabel(current_canvas, text="Minimum Saturation:", text_color="black", font=("Arial", 18))
-        smin_label.place(x=1650, y=460)
-        smin_label = customtkinter.CTkLabel(current_canvas, text=smin_slider.get(), text_color="black", font=("Arial", 18))
-        smin_label.place(x=1820, y=460)
+        smin_label_text = str(smin_slider.get())
+        smin_label.configure(text=f"{smin_label_text}")
 
         #MAX SATURATION SLIDER
-
-        smax_slider = customtkinter.CTkSlider(current_canvas, from_= 0, to = 255, command = sliding_smax, width = 500, height = 50)
+        smax_slider = customtkinter.CTkSlider(current_canvas, from_= 0, to = 255, command = sliding_smax, width = 500, height = 50, state='disabled')
         smax_slider.place(x=1100, y=550)
         smax_slider.set(255)
-        smax_label = customtkinter.CTkLabel(current_canvas, text="Maximum Saturation:", text_color="black", font=("Arial", 18))
-        smax_label.place(x=1650, y=560)
-        smax_label = customtkinter.CTkLabel(current_canvas, text=smax_slider.get(), text_color="black", font=("Arial", 18))
-        smax_label.place(x=1820, y=560)
+        smax_label_text = str(smax_slider.get())
+        smax_label.configure(text=f"{smax_label_text}")
 
         #MIN VALUE SLIDER
-
-        vmin_slider = customtkinter.CTkSlider(current_canvas, from_= 0, to = 255, command = sliding_vmin, width = 500, height = 50)
+        vmin_slider = customtkinter.CTkSlider(current_canvas, from_= 0, to = 255, command = sliding_vmin, width = 500, height = 50, state='disabled')
         vmin_slider.place(x=1100, y=650)
         vmin_slider.set(0)
-        vmin_label = customtkinter.CTkLabel(current_canvas, text="Minimum Value:", text_color="black", font=("Arial", 18))
-        vmin_label.place(x=1650, y=660)
-        vmin_label = customtkinter.CTkLabel(current_canvas, text=vmin_slider.get(), text_color="black", font=("Arial", 18))
-        vmin_label.place(x=1820, y=660)
+        vmin_label_text = str(vmin_slider.get())
+        vmin_label.configure(text=f"{vmin_label_text}")
 
         #MAX VALUE SLIDER
-
-        vmax_slider = customtkinter.CTkSlider(current_canvas, from_= 0, to = 255, command = sliding_vmax, width = 500, height = 50)
+        vmax_slider = customtkinter.CTkSlider(current_canvas, from_= 0, to = 255, command = sliding_vmax, width = 500, height = 50, state='disabled')
         vmax_slider.place(x=1100, y=750)
         vmax_slider.set(255)
-        vmax_label = customtkinter.CTkLabel(current_canvas, text="Maximum Value:", text_color="black", font=("Arial", 18))
-        vmax_label.place(x=1650, y=760)
-        vmax_label = customtkinter.CTkLabel(current_canvas, text=vmax_slider.get(), text_color="black", font=("Arial", 18))
-        vmax_label.place(x=1820, y=760)
+        vmax_label_text = str(vmax_slider.get())
+        vmax_label.configure(text=f"{vmax_label_text}")
 
 def confirm_exit_overlay(event = None):
     global overlay

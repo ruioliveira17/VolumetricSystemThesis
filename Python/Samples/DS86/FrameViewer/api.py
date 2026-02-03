@@ -1,11 +1,11 @@
 from fastapi import FastAPI, Path, Query, HTTPException, status, Response
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
-from typing import Optional
+from typing import Optional, List
 from pydantic import BaseModel
 from API.VzenseDS_api import *
 from Bundle2 import bundle, depthImg
-from CalibrationDefTkinter import calibrateAPI, maskAPI
+from CalibrationDefTkinter import calibrateAPI, maskAPI, manualWorkspaceDraw
 from CameraOptions import statusCamera
 from GetFrame import getFrame
 from MinDepth2 import MinDepthAPI
@@ -86,10 +86,14 @@ class HSVValue(BaseModel):
     vmin: Optional[int] = None
     vmax: Optional[int] = None
     color: Optional[str] = None
+    optionSelected: Optional[str] = None
 
 class CamValues(BaseModel):
     colorSlope: Optional[int] = 1500
     exposureTime: Optional[int] = 700
+
+class ManualWorkspace(BaseModel):
+    detection_area: List[int] = None
 
 #-------------------------------------------------------   Camera   -------------------------------------------------------
 
@@ -154,10 +158,16 @@ def get_Res():
 
 @app.get("/getFrame/colorToDepthObject")
 def get_ColorToDepth_Frame_Object():
+    if frameState.colorToDepthFrameObject is None:
+        raise HTTPException(status_code=404, detail="Frame not available")
+
     return Response(content=frameState.colorToDepthFrameObject.tobytes(), media_type="application/octet-stream")
 
 @app.get("/getFrame/colorToDepthObjects")
 def get_ColorToDepth_Frame_Objects():
+    if frameState.colorToDepthFrameObject is None:
+        raise HTTPException(status_code=404, detail="Frame not available")
+
     return Response(content=frameState.colorToDepthFrameObjects.tobytes(), media_type="application/octet-stream")
 
 @app.get("/getFrame/HDRcolor")
@@ -233,9 +243,14 @@ def set_maskColor(data: HSVValue):
     maskState.color = data.color
     return{"color": maskState.color}
 
+@app.post("/mask/optionSelected")
+def set_maskColor(data: HSVValue):
+    maskState.optionSelected = data.optionSelected
+    return{"color": maskState.optionSelected}
+
 @app.get("/mask")
 def get_mask():
-    if maskState.color != "Manual":
+    if maskState.color != "Select a Point":
         preset = COLOR_PRESETS[maskState.color]
         lower = numpy.array(preset["lower"])
         upper = numpy.array(preset["upper"])
@@ -250,7 +265,8 @@ def get_mask():
         "smax": maskState.smax,
         "vmin": maskState.vmin,
         "vmax": maskState.vmax,
-        "color": maskState.color
+        "color": maskState.color,
+        "optionSelected": maskState.optionSelected
     }
 
 @app.post("/applyMask")
@@ -273,7 +289,7 @@ def apply_mask(data: HSVValue):
     else:
         depthFrame = frameState.depthFrameHDR
 
-    res, colorToDepthFrame_copy, depthFrame_copy = maskAPI(colorFrame, colorToDepthFrame, depthFrame, lower, upper, maskState.color, camState.colorSlope, int(camState.cx), int(camState.cy))
+    res, colorToDepthFrame_copy, depthFrame_copy, detection_area = maskAPI(colorFrame, colorToDepthFrame, depthFrame, lower, upper, maskState.color, camState.colorSlope, int(camState.cx), int(camState.cy))
 
     if res is None or colorToDepthFrame_copy is None or depthFrame_copy is None:
         return{"message:": "Mask application failed!"}
@@ -281,8 +297,35 @@ def apply_mask(data: HSVValue):
     frameState.res = res
     frameState.colorToDepthFrameCopy = colorToDepthFrame_copy
     frameState.depthFrameCopy = depthFrame_copy
+    workspaceState.detection_area = detection_area
     
     return{"message:": "Mask applied with success"}
+
+#------------------------------------------------------- Manual WS -------------------------------------------------------
+@app.post("/applyManualWorkspace")
+def apply_manualWS(data: ManualWorkspace):
+    if frameState.colorFrameHDR is None or modeState.expositionMode == "Fixed Exposition":
+        colorFrame = frameState.colorFrame
+    else:
+        colorFrame = frameState.colorFrameHDR
+
+    if frameState.colorToDepthFrameHDR is None or modeState.expositionMode == "Fixed Exposition":
+        colorToDepthFrame = frameState.colorToDepthFrame
+    else:
+        colorToDepthFrame = frameState.colorToDepthFrameHDR
+
+    if frameState.depthFrameHDR is None or modeState.expositionMode == "Fixed Exposition":
+        depthFrame = frameState.depthFrame
+    else:
+        depthFrame = frameState.depthFrameHDR
+
+    detection_area = data.detection_area
+
+    colorToDepthFrame_copy, depthFrame_copy, detection_area = manualWorkspaceDraw(colorFrame, colorToDepthFrame, depthFrame, detection_area, camState.colorSlope, int(camState.cx), int(camState.cy))
+
+    frameState.colorToDepthFrameCopy = colorToDepthFrame_copy
+    frameState.depthFrameCopy = depthFrame_copy
+    workspaceState.detection_area = detection_area
 
 #------------------------------------------------------- Calibrate -------------------------------------------------------
 
@@ -306,7 +349,7 @@ def calibrate(data: HSVValue):
     else:
         depthFrame = frameState.depthFrameHDR
 
-    detection_area, workspace_depth, center_aligned, workspace_clear = calibrateAPI(colorFrame, colorToDepthFrame, depthFrame, lower, upper, camState.colorSlope, int(camState.cx), int(camState.cy))
+    detection_area, workspace_depth, center_aligned, workspace_clear = calibrateAPI(colorFrame, colorToDepthFrame, depthFrame, workspaceState.detection_area, lower, upper, camState.colorSlope, int(camState.cx), int(camState.cy), modeState.calibrationMode)
 
     if detection_area is None or workspace_depth is None:
         workspaceState.center_aligned = center_aligned
@@ -336,6 +379,23 @@ def get_calibration_flags():
         "Workspace Clear": workspaceState.workspace_clear,
     }
 
+@app.get("/calibrate/mode")
+def get_calMode():
+    return{
+        "Calibrate Mode": modeState.calibrationMode,
+    }
+
+@app.post("/calibrate/mode/automatic")
+def static():
+    modeState.calibrationMode = "Automatic"
+    return {"mode:": modeState.calibrationMode}
+
+@app.post("/calibrate/mode/manual")
+def dynamic():
+    modeState.calibrationMode = "Manual"
+    return {"mode:": modeState.calibrationMode}
+
+
 #---------------------------------------------------- Working Mode -----------------------------------------------------
 
 @app.get("/mode")
@@ -357,7 +417,7 @@ def dynamic():
 #--------------------------------------------------- Exposition Mode --------------------------------------------------
 
 @app.get("/expositionMode")
-def get_mode():
+def get_expMode():
     return{
         "Exposition Mode": modeState.expositionMode,
     }
@@ -405,6 +465,16 @@ def volume_Obj():
         depthState.minimum_value, depthState.not_set, volumeState.box_limits, volumeState.box_ws, volumeState.depths = bundle(colorToDepthFrame, depth_img, depthState.objects_info, depthState.threshold, depthFrame)
         if volumeState.box_limits is not None and len(volumeState.box_limits) > 0:
             volumeState.volume, volumeState.width_meters, volumeState.height_meters = volumeAPI(workspaceState.workspace_depth, depthState.minimum_depth, volumeState.box_limits, volumeState.depths, camState.fx, camState.fy, camState.cx, camState.cy)
+        else:
+            volumeState.volume = 0
+            volumeState.width_meters = 0
+            volumeState.height_meters = 0
+            depthState.minimum_depth = workspaceState.workspace_depth
+    else:
+        volumeState.volume = 0
+        volumeState.width_meters = 0
+        volumeState.height_meters = 0
+        depthState.minimum_depth = workspaceState.workspace_depth
 
     return{
         "volume": volumeState.volume,

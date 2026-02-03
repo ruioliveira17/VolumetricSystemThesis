@@ -95,8 +95,7 @@ def mask(camera, get_lower, get_upper, colorSlope):
         print('end')
 
 def maskAPI(colorFrame, colorToDepthFrame, depthFrame, get_lower, get_upper, color, colorSlope, cx, cy):
-    global x_area, y_area, x_area_plus_width, y_area_plus_height, detection_area
-
+    detection_area = None
     x_area = None
     y_area = None
     x_area_plus_width = None
@@ -155,12 +154,50 @@ def maskAPI(colorFrame, colorToDepthFrame, depthFrame, get_lower, get_upper, col
 
         key = cv2.waitKey(1)
         
-        return res, colorToDepthFrame_copy, depthFrame_copy  
+        return res, colorToDepthFrame_copy, depthFrame_copy, detection_area  
                 
     except Exception as e :
         print(e)
     finally :
         print('end')
+
+def manualWorkspaceDraw(colorFrame, colorToDepthFrame, depthFrame, detection_area, colorSlope, cx, cy):
+    x_area, y_area, x_area_plus_width, y_area_plus_height = detection_area
+
+    try:
+        colorToDepthFrame = cv2.resize(colorToDepthFrame, (640, 480))
+
+        colorToDepthFrame_copy = colorToDepthFrame.copy()
+        
+        cv2.rectangle(colorToDepthFrame_copy, (x_area, y_area), (x_area_plus_width, y_area_plus_height), (255, 0, 0), 2)
+        detection_area =  (x_area, y_area, x_area_plus_width, y_area_plus_height)       
+
+        # PONTO CENTRAL
+        
+        cv2.circle(colorToDepthFrame_copy, (cx, cy), radius=3, color=(255, 0, 0), thickness=1)
+
+        depthFrame = cv2.resize(depthFrame, (640, 480))
+       
+        img = numpy.int32(depthFrame)
+        img = img*255/colorSlope
+        img = numpy.clip(img, 0, 255)
+        img = numpy.uint8(img)
+        depthFrame = cv2.applyColorMap(img, cv2.COLORMAP_RAINBOW)
+
+        depthFrame_copy = depthFrame.copy()
+        if x_area is not None and y_area is not None and x_area_plus_width is not None and y_area_plus_height is not None:
+            cv2.rectangle(depthFrame_copy, (x_area, y_area), (x_area_plus_width, y_area_plus_height), (255, 0, 0), 2)
+            cv2.rectangle(depthFrame_copy, (x_area + 3, y_area + 3), (x_area_plus_width - 3, y_area_plus_height - 3), (0, 0, 255), 2)
+
+        key = cv2.waitKey(1)
+        
+        return colorToDepthFrame_copy, depthFrame_copy, detection_area  
+                
+    except Exception as e :
+        print(e)
+    finally :
+        print('end')
+
 
 def calibrate(camera, get_lower, get_upper, colorSlope):
     global x_area, y_area, x_area_plus_width, y_area_plus_height, detection_area
@@ -352,8 +389,7 @@ def calibrate(camera, get_lower, get_upper, colorSlope):
 
     #return detection_area, workspace_depth, forced_exiting
 
-def calibrateAPI(colorFrame, colorToDepthFrame, depthFrame, get_lower, get_upper, colorSlope, cx, cy):
-    global x_area, y_area, x_area_plus_width, y_area_plus_height, detection_area
+def calibrateAPI(colorFrame, colorToDepthFrame, depthFrame, detection_area, get_lower, get_upper, colorSlope, cx, cy, caliMode):
 
     center_aligned = False # Ponto central tem a cor da calibração
 
@@ -362,6 +398,8 @@ def calibrateAPI(colorFrame, colorToDepthFrame, depthFrame, get_lower, get_upper
     workspace_clear = False # Profundidade é igual em toda a workspace e borda amarela totalmente detetada
     
     calibrated = False
+
+    x_area, y_area, x_area_plus_width, y_area_plus_height = detection_area
 
     #colorToDepthFrame = None
     #depthFrame = None 
@@ -377,50 +415,55 @@ def calibrateAPI(colorFrame, colorToDepthFrame, depthFrame, get_lower, get_upper
 
         # VERIFICAÇÃO ÁREA WORKSPACE DETETÁVEL NÃO INTERROMPIDA   
 
-        # ---------------- VERIFICAÇÃO COR ------------------
+        if caliMode == "Automatic":
 
-            # ------------ Lateral Esquerda ---------------
-        LE = hsv_frame[y_area: y_area_plus_height, x_area + 3]
-        mask_le = (((LE[:,0] >= h_min) & (LE[:,0] <= h_max)) & ((LE[:,1] >= s_min) & (LE[:,1] <= s_max)) & ((LE[:,2] >= v_min) & (LE[:,2] <= v_max)))
+            # ---------------- VERIFICAÇÃO COR ------------------
 
-        valid_pixels_le = numpy.count_nonzero(mask_le)
-        total_pixels_le = LE.shape[0]
-        if total_pixels_le > 0:
-            proportion_le = valid_pixels_le / total_pixels_le
+                # ------------ Lateral Esquerda ---------------
+            LE = hsv_frame[y_area: y_area_plus_height, x_area + 3]
+            mask_le = (((LE[:,0] >= h_min) & (LE[:,0] <= h_max)) & ((LE[:,1] >= s_min) & (LE[:,1] <= s_max)) & ((LE[:,2] >= v_min) & (LE[:,2] <= v_max)))
 
-            # ------------------ Cima ---------------------
-        C = hsv_frame[y_area + 3, x_area: x_area_plus_width]
-        mask_c = (((C[:,0] >= h_min) & (C[:,0] <= h_max)) & ((C[:,1] >= s_min) & (C[:,1] <= s_max)) & ((C[:,2] >= v_min) & (C[:,2] <= v_max)))
+            valid_pixels_le = numpy.count_nonzero(mask_le)
+            total_pixels_le = LE.shape[0]
+            if total_pixels_le > 0:
+                proportion_le = valid_pixels_le / total_pixels_le
 
-        valid_pixels_c = numpy.count_nonzero(mask_c)
-        total_pixels_c = C.shape[0]
-        if total_pixels_c > 0:
-            proportion_c = valid_pixels_c / total_pixels_c
+                # ------------------ Cima ---------------------
+            C = hsv_frame[y_area + 3, x_area: x_area_plus_width]
+            mask_c = (((C[:,0] >= h_min) & (C[:,0] <= h_max)) & ((C[:,1] >= s_min) & (C[:,1] <= s_max)) & ((C[:,2] >= v_min) & (C[:,2] <= v_max)))
 
-            # ------------ Lateral Direita ---------------
-        LD = hsv_frame[y_area: y_area_plus_height, x_area_plus_width - 3]
-        mask_ld = (((LD[:,0] >= h_min) & (LD[:,0] <= h_max)) & ((LD[:,1] >= s_min) & (LD[:,1] <= s_max)) & ((LD[:,2] >= v_min) & (LD[:,2] <= v_max)))
+            valid_pixels_c = numpy.count_nonzero(mask_c)
+            total_pixels_c = C.shape[0]
+            if total_pixels_c > 0:
+                proportion_c = valid_pixels_c / total_pixels_c
 
-        valid_pixels_ld = numpy.count_nonzero(mask_ld)
-        total_pixels_ld = LD.shape[0]
-        if total_pixels_ld > 0:
-            proportion_ld = valid_pixels_ld / total_pixels_ld
+                # ------------ Lateral Direita ---------------
+            LD = hsv_frame[y_area: y_area_plus_height, x_area_plus_width - 3]
+            mask_ld = (((LD[:,0] >= h_min) & (LD[:,0] <= h_max)) & ((LD[:,1] >= s_min) & (LD[:,1] <= s_max)) & ((LD[:,2] >= v_min) & (LD[:,2] <= v_max)))
 
-            # ----------------- Baixo -------------------
-        B = hsv_frame[y_area_plus_height - 3, x_area: x_area_plus_width]
-        mask_b = (((B[:,0] >= h_min) & (B[:,0] <= h_max)) & ((B[:,1] >= s_min) & (B[:,1] <= s_max)) & ((B[:,2] >= v_min) & (B[:,2] <= v_max)))
+            valid_pixels_ld = numpy.count_nonzero(mask_ld)
+            total_pixels_ld = LD.shape[0]
+            if total_pixels_ld > 0:
+                proportion_ld = valid_pixels_ld / total_pixels_ld
 
-        valid_pixels_b = numpy.count_nonzero(mask_b)
-        total_pixels_b = B.shape[0]
-        if total_pixels_b > 0:
-            proportion_b = valid_pixels_b / total_pixels_b
+                # ----------------- Baixo -------------------
+            B = hsv_frame[y_area_plus_height - 3, x_area: x_area_plus_width]
+            mask_b = (((B[:,0] >= h_min) & (B[:,0] <= h_max)) & ((B[:,1] >= s_min) & (B[:,1] <= s_max)) & ((B[:,2] >= v_min) & (B[:,2] <= v_max)))
 
-        if (proportion_le >= 0.95) and (proportion_c >= 0.95) and (proportion_ld >= 0.95) and (proportion_b >= 0.95):
-            workspace_interrupted = False
-            print("Proporções:", proportion_le, proportion_c, proportion_ld, proportion_b)
+            valid_pixels_b = numpy.count_nonzero(mask_b)
+            total_pixels_b = B.shape[0]
+            if total_pixels_b > 0:
+                proportion_b = valid_pixels_b / total_pixels_b
+
+            if (proportion_le >= 0.95) and (proportion_c >= 0.95) and (proportion_ld >= 0.95) and (proportion_b >= 0.95):
+                workspace_interrupted = False
+                print("Proporções:", proportion_le, proportion_c, proportion_ld, proportion_b)
+            else:
+                workspace_interrupted = True
+                print("Proporções:", proportion_le, proportion_c, proportion_ld, proportion_b)
+
         else:
-            workspace_interrupted = True
-            print("Proporções:", proportion_le, proportion_c, proportion_ld, proportion_b)
+            workspace_interrupted = False
 
         # VERIFICAÇÃO PONTO CENTRAL
 

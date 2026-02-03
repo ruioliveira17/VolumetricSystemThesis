@@ -88,7 +88,7 @@ def bundle(hdrColor, hdrDepth_img, objects_info, threshold, hdrDepth):
             x1, y1, x2, y2 = obj["workspace_limits"]
             workspace_area2 = hdrDepth[y1:y2, x1:x2]
 
-            mask = (workspace_area2 >= (obj["depth"] - threshold)) & (workspace_area2 <= (obj["depth"] + threshold))
+            mask = (workspace_area2 >= (obj["depth"] - 25)) & (workspace_area2 <= (obj["depth"] + 25))
 
             depth_filtered = numpy.where(mask, workspace_area2, 0).astype(numpy.uint16)
 

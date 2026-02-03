@@ -144,11 +144,14 @@ def MinDepthAPI(depth, colorSlope, threshold, workspace, workspace_depth, not_se
                             if len(objects_info) == 0 or abs(min_value - objects_info[-1]["depth"]) > threshold:
                                 print(f"Ponto {min_idx} válido, todos vizinhos semelhantes")
                                 print("Profundidade:", min_value)
-                                half_width_px = int((workspace_width_m / 2) * fx / (object_depth / 1000.0))
-                                half_height_px = int((workspace_height_m / 2) * fy / (object_depth / 1000.0))
+                                half_width_px = (workspace_width_m / 2) * fx / (object_depth / 1000.0)
+                                half_height_px = (workspace_height_m / 2) * fy / (object_depth / 1000.0)
 
                                 workspace_limits = int(cx - half_width_px), int(cy - half_height_px), int(cx + half_width_px), int(cy + half_height_px)
                                 cv2.rectangle(frameState.colorToDepthFrame, (workspace_limits[0], workspace_limits[1]), (workspace_limits[2], workspace_limits[3]), (0, 0, 255), 2)
+                                print("Width:", half_width_px)
+                                print("Height:", half_height_px)
+                                print("WS Limits:", workspace_limits)
 
                                 objects_info.append({
                                             "depth": min_value,
