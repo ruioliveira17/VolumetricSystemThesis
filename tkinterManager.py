@@ -20,6 +20,8 @@ from HDRDef import hdrAPI
 
 from color_presets import COLOR_PRESETS
 
+from VolumeState import volumeState
+
 import uvicorn
 import requests
 
@@ -98,6 +100,14 @@ openCamera()
 
 def calibrate_click():
     global calibrate_label, caliError_label
+    TextCalibrated = "System Calibrated"
+    TextNotCalibrated = "System was not Calibrated"
+    TextError = "Error"
+    TextWsNotEmpty = "Workspace isn't Empty"
+    TextCenterNotAligned = "Center Point isn't Aligned"
+    TextWsNotEmptyAndCenterNotAligned = "Center Point isn't Aligned and Workspace isn't Empty"
+    TextClear = ""
+
     try:
         r = requests.get("http://127.0.0.1:8000/mask", timeout=0.2)
         maskValues = r.json()
@@ -109,14 +119,6 @@ def calibrate_click():
 
         center_aligned = data["Center Aligned"]
         ws_clear = data["Workspace Clear"]
-
-        TextCalibrated = "System Calibrated"
-        TextNotCalibrated = "System was not Calibrated"
-        TextError = "Error"
-        TextWsNotEmpty = "Workspace isn't Empty"
-        TextCenterNotAligned = "Center Point isn't Aligned"
-        TextWsNotEmptyAndCenterNotAligned = "Center Point isn't Aligned and Workspace isn't Empty"
-        TextClear = ""
 
         if center_aligned and ws_clear:
             calibrate_label.configure(text=f"{TextCalibrated}")
@@ -135,11 +137,13 @@ def calibrate_click():
         calibrate_label.configure(text=f"{TextError}")
         caliError_label.configure(text=f"{TextError}")
         pass
-    
-    #detection_area, workspace_depth, forced_exiting = calibrate(camState.camera, get_lower, get_upper, camState.colorSlope)
 
 def volume_click():
-    global volume_value_label, x_length_value_label, y_length_value_label, height_value_label
+    global volume_value_label, x_length_value_label, y_length_value_label, height_value_label, objOutOfLine_label
+    TextOutOfLine = "Objects are not inside the outline made by the yellow lines. A bigger error may be induced"
+    TextError = "Error"
+    TextClear = ""
+
     try:
         r = requests.post("http://127.0.0.1:8000/volumeObj", timeout=5)
         data = r.json()
@@ -155,7 +159,15 @@ def volume_click():
         volume_value_label.configure(text=f"{volume:.6f} m³")
         x_length_value_label.configure(text=f"{width:.1f} cm")
         y_length_value_label.configure(text=f"{height:.1f} cm")
-        height_value_label.configure(text=f"{height_obj:.1f} cm")
+        height_value_label.configure(text=f"{height_obj:.1f} cm")   
+
+        objects_outOfLineIdx = [i+1 for i, val in enumerate(volumeState.objects_outOfLine) if val]
+
+        if objects_outOfLineIdx:
+            indexes_str = ", ".join(str(idx) for idx in objects_outOfLineIdx)
+            objOutOfLine_label.configure(text=f"{TextOutOfLine}\nOut-of-line object indexes: {indexes_str}")
+        else:
+            objOutOfLine_label.configure(text=f"{TextClear}")
 
         data = requests.get("http://127.0.0.1:8000/getFrame/colorToDepthObject")
 
@@ -179,37 +191,77 @@ def volume_click():
 
             current_canvas.create_image(1500, 400, image=objecttk_img, anchor="center")
 
-        data = requests.get("http://127.0.0.1:8000/getFrame/colorToDepthObjects")
-        if data.status_code == 404:
-            raise ValueError("Frame not Available")
-        else:
-            colorToDepthObjectsFrame = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(colorToDepth_shape)
+        r = requests.get("http://127.0.0.1:8000/volumeMode", timeout=0.2)
+        mode = r.json()["Volume Mode"]
 
-            if colorToDepthObjectsFrame.dtype != numpy.uint8:
-                # Normaliza para 0-255 e converte para uint8
-                frame_uint8 = (numpy.clip(colorToDepthObjectsFrame, 0, 1) * 255).astype(numpy.uint8)
+        if mode == "Bundle":
+            data = requests.get("http://127.0.0.1:8000/getFrame/colorToDepthObjects")
+
+            if data.status_code == 404:
+                raise ValueError("Frame not Available")
             else:
-                frame_uint8 = colorToDepthObjectsFrame
+                colorToDepthObjectsFrame = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(colorToDepth_shape)
 
-            frame_objects = frame_uint8[:, :, ::-1]  # se BGR
+                if colorToDepthObjectsFrame.dtype != numpy.uint8:
+                    # Normaliza para 0-255 e converte para uint8
+                    frame_uint8 = (numpy.clip(colorToDepthObjectsFrame, 0, 1) * 255).astype(numpy.uint8)
+                else:
+                    frame_uint8 = colorToDepthObjectsFrame
 
-            pil_objs = Image.fromarray(frame_objects)
-            pil_objs = pil_objs.resize((560, 420), Image.LANCZOS)
-            objectstk_img = ImageTk.PhotoImage(pil_objs)
-            canvas_volume.tk_objects = objectstk_img
+                frame_objects = frame_uint8[:, :, ::-1]  # se BGR
 
-            current_canvas.create_image(1500, 830, image=objectstk_img, anchor="center")
+                pil_objs = Image.fromarray(frame_objects)
+                pil_objs = pil_objs.resize((560, 420), Image.LANCZOS)
+                objectstk_img = ImageTk.PhotoImage(pil_objs)
+                canvas_volume.tk_objects = objectstk_img
+
+                canvas_volume.image_bundleID = current_canvas.create_image(1500, 830, image=objectstk_img, anchor="center", tags="bundle_image")
+        else:
+            if hasattr(canvas_volume, "image_bundleID"):
+                current_canvas.delete(canvas_volume.image_bundleID)
+                del canvas_volume.image_bundleID
 
     except requests.exceptions.RequestException:
-        volume_value_label.configure(text="Erro")
-        x_length_value_label.configure(text="Erro")
-        y_length_value_label.configure(text="Erro")
-        height_value_label.configure(text="Erro")
+        volume_value_label.configure(text=f"{TextError}")
+        x_length_value_label.configure(text=f"{TextError}")
+        y_length_value_label.configure(text=f"{TextError}")
+        height_value_label.configure(text=f"{TextError}")
+
+        objOutOfLine_label.configure(text=f"{TextError}")
+
         print("Erro ao atualizar volume!")
         pass
     except ValueError as e:
         print("Erro:", e)
         pass
+
+def exposureSet_click():
+    try:
+        value = int(ExposureTime_var.get())
+        if 100 <= value <= 4000:
+             r = requests.post(
+                "http://127.0.0.1:8000/camera/setExposureTime",
+                json={"exposureTime": value},
+                timeout=0.5
+            )
+        else:
+            print("Exposure Time value must be between 100 and 4000.")
+    except ValueError:
+        print("Selected characters can't be used.\nOnly integer numbers can be used.")
+
+def colorSlopeSet_click():
+    try:
+        value = int(ColorSlope_var.get())
+        if 150 <= value <= 5000:
+             r = requests.post(
+                "http://127.0.0.1:8000/camera/setColorSlope",
+                json={"colorSlope": value},
+                timeout=0.5
+            )
+        else:
+            print("Color Slope value must be between 150 and 5000.")
+    except ValueError:
+        print("Selected characters can't be used.\nOnly integer numbers can be used.")
 
 def capFrame():
 
@@ -244,12 +296,6 @@ def capFrame():
 
     return colorFrame, colorToDepthFrame, depthFrame
 
-def StaticDynamic_toggle():
-    if StaticDynamic_var.get():
-        requests.post("http://127.0.0.1:8000/mode/dynamic")
-    else:
-        requests.post("http://127.0.0.1:8000/mode/static")
-
 def ExpHDR_toggle():
     global hdr_thread_started, hdr_threadObj
     if ExpHDR_var.get():
@@ -265,6 +311,30 @@ def ExpHDR_toggle():
         requests.post("http://127.0.0.1:8000/expositionMode/fixed")
         pause_event.clear()
         print("Thread HDR em pausa!")
+
+def StaticDynamic_toggle():
+    if StaticDynamic_var.get():
+        requests.post("http://127.0.0.1:8000/mode/dynamic")
+    else:
+        requests.post("http://127.0.0.1:8000/mode/static")
+
+def SingleBundle_toggle():
+    if SingleBundle_var.get():
+        requests.post("http://127.0.0.1:8000/volumeMode/bundle")
+    else:
+        requests.post("http://127.0.0.1:8000/volumeMode/singular")
+
+def RealVolume_toggle():
+    if RealVolume_var.get():
+        requests.post("http://127.0.0.1:8000/realVolumeMode/on")
+    else:
+        requests.post("http://127.0.0.1:8000/realVolumeMode/off")
+
+def DebugMode_toggle():
+    if DebugMode_var.get():
+        requests.post("http://127.0.0.1:8000/debugMode/on")
+    else:
+        requests.post("http://127.0.0.1:8000/debugMode/off")
 
 def apply_mask():
     try:
@@ -434,8 +504,6 @@ def key_pressed(event):
     except requests.exceptions.RequestException:
         pass
 
-    
-
 # Deactivate windows automatic dpi scale
 ctypes.windll.shcore.SetProcessDpiAwareness(1)
 
@@ -601,6 +669,9 @@ canvas_volume = tk.Canvas(root, bg='white', highlightthickness=0)
 label = tk.Label(canvas_volume, bg='white', text="Dimensões", font=('Arial', 70))
 label.pack(pady = 20)
 
+objOutOfLine_label = customtkinter.CTkLabel(canvas_volume, text="", text_color="black", font=("Arial", 20))
+objOutOfLine_label.place(x=950, y=130, anchor="center")
+
 #--------------------- Logo Balanças Marques ---------------------
 BM_logo = Image.open("BM_Logo.png").resize((360, 152))
 BM_logo_tk_volume = ImageTk.PhotoImage(BM_logo)
@@ -670,7 +741,45 @@ BM_logo = Image.open("BM_Logo.png").resize((360, 152))
 BM_logo_tk_config = ImageTk.PhotoImage(BM_logo)
 canvas_config.create_image(10, 10, anchor='nw', image=BM_logo_tk_config)
 
-#------------------ Static / Dynamic Interface -------------------
+#------------------- Exposition / HDR Toggle ---------------------
+
+ExpHDR_var = customtkinter.BooleanVar(value=False)
+
+ExpHDR_switch = customtkinter.CTkSwitch(canvas_config, text="", variable=ExpHDR_var, onvalue=True, offvalue=False, command=ExpHDR_toggle, switch_width=140, switch_height=50, fg_color="turquoise1", progress_color="dark turquoise", button_color="gray65", button_hover_color="gray45")
+canvas_config.create_window(350, 395, anchor="nw", window=ExpHDR_switch)
+
+label_exposition = tk.Label(canvas_config, text="Exposition", bg="white", font=("Arial", 20))
+label_hdr = tk.Label(canvas_config, text="HDR", bg="white", font=("Arial", 20))
+canvas_config.create_window(200, 400, anchor="nw", window=label_exposition)
+canvas_config.create_window(500, 400, anchor="nw", window=label_hdr)
+
+#---------------------- Exposure Time Set ------------------------
+
+ExposureTime_var = tk.StringVar()
+
+entry_exposure = tk.Entry(root, textvariable=ExposureTime_var, width=10, font=("Arial", 20), highlightthickness=2)
+canvas_config.create_window(1200, 400, anchor="nw", window=entry_exposure)
+
+label_expTime = tk.Label(canvas_config, text="Exposure Time:", bg="white", font=("Arial", 20))
+canvas_config.create_window(1000, 400, anchor="nw", window=label_expTime)
+
+exposureSet_button = tk.Button(canvas_config, text="Set", font=("Arial", 15), width=5, command=exposureSet_click)
+canvas_config.create_window(1370, 400, anchor="nw", window=exposureSet_button)
+
+#----------------------- Color Slope Set -------------------------
+
+ColorSlope_var = tk.StringVar()
+
+entry_colorSlope = tk.Entry(root, textvariable=ColorSlope_var, width=10, font=("Arial", 20), highlightthickness=2)
+canvas_config.create_window(1200, 500, anchor="nw", window=entry_colorSlope)
+
+label_colorSlope = tk.Label(canvas_config, text="Color Slope:", bg="white", font=("Arial", 20))
+canvas_config.create_window(1000, 500, anchor="nw", window=label_colorSlope)
+
+colorSlopeSet_button = tk.Button(canvas_config, text="Set", font=("Arial", 15), width=5, command=colorSlopeSet_click)
+canvas_config.create_window(1370, 500, anchor="nw", window=colorSlopeSet_button)
+
+#-------------------- Static / Dynamic Toggle --------------------
 
 StaticDynamic_var = customtkinter.BooleanVar(value=False)
 
@@ -682,17 +791,47 @@ label_dynamic = tk.Label(canvas_config, text="Dynamic", bg="white", font=("Arial
 canvas_config.create_window(200, 500, anchor="nw", window=label_static)
 canvas_config.create_window(400, 500, anchor="nw", window=label_dynamic)
 
-#------------------ Exposition / HDR Interface -------------------
+#-------------------- Single / Bundle Toggle --------------------
 
-ExpHDR_var = customtkinter.BooleanVar(value=False)
+SingleBundle_var = customtkinter.BooleanVar(value=False)
 
-ExpHDR_switch = customtkinter.CTkSwitch(canvas_config, text="", variable=ExpHDR_var, onvalue=True, offvalue=False, command=ExpHDR_toggle, switch_width=140, switch_height=50, fg_color="turquoise1", progress_color="dark turquoise", button_color="gray65", button_hover_color="gray45")
-canvas_config.create_window(350, 395, anchor="nw", window=ExpHDR_switch)
+SingleBundle_switch = customtkinter.CTkSwitch(canvas_config, text="", variable=SingleBundle_var, onvalue=True, offvalue=False, command=SingleBundle_toggle, switch_width=100, switch_height=50, fg_color="turquoise1", progress_color="dark turquoise", button_color="gray65", button_hover_color="gray45")
+canvas_config.create_window(290, 595, anchor="nw", window=SingleBundle_switch)
 
-label_exposition = tk.Label(canvas_config, text="Exposition", bg="white", font=("Arial", 20))
-label_hdr = tk.Label(canvas_config, text="HDR", bg="white", font=("Arial", 20))
-canvas_config.create_window(200, 400, anchor="nw", window=label_exposition)
-canvas_config.create_window(500, 400, anchor="nw", window=label_hdr)
+label_single = tk.Label(canvas_config, text="Single", bg="white", font=("Arial", 20))
+label_bundle = tk.Label(canvas_config, text="Bundle", bg="white", font=("Arial", 20))
+canvas_config.create_window(200, 600, anchor="nw", window=label_single)
+canvas_config.create_window(400, 600, anchor="nw", window=label_bundle)
+
+#-------------------- Real Volume Mode Toggle --------------------
+
+RealVolume_var = customtkinter.BooleanVar(value=False)
+
+RealVolume_switch = customtkinter.CTkSwitch(canvas_config, text="", variable=RealVolume_var, onvalue=True, offvalue=False, command=RealVolume_toggle, switch_width=100, switch_height=50, fg_color="turquoise1", progress_color="dark turquoise", button_color="gray65", button_hover_color="gray45")
+canvas_config.create_window(290, 745, anchor="nw", window=RealVolume_switch)
+
+label_debugMode = tk.Label(canvas_config, text="Real Volume", bg="white", font=("Arial", 20))
+canvas_config.create_window(340, 700, anchor="center", window=label_debugMode)
+
+label_debugOff = tk.Label(canvas_config, text="Off", bg="white", font=("Arial", 20))
+label_debugOn = tk.Label(canvas_config, text="On", bg="white", font=("Arial", 20))
+canvas_config.create_window(200, 750, anchor="nw", window=label_debugOff)
+canvas_config.create_window(400, 750, anchor="nw", window=label_debugOn)
+
+#----------------------- Debug Mode Toggle -----------------------
+
+DebugMode_var = customtkinter.BooleanVar(value=False)
+
+DebugMode_switch = customtkinter.CTkSwitch(canvas_config, text="", variable=DebugMode_var, onvalue=True, offvalue=False, command=DebugMode_toggle, switch_width=100, switch_height=50, fg_color="turquoise1", progress_color="dark turquoise", button_color="gray65", button_hover_color="gray45")
+canvas_config.create_window(290, 895, anchor="nw", window=DebugMode_switch)
+
+label_debugMode = tk.Label(canvas_config, text="Debug Mode", bg="white", font=("Arial", 20))
+canvas_config.create_window(340, 850, anchor="center", window=label_debugMode)
+
+label_debugOff = tk.Label(canvas_config, text="Off", bg="white", font=("Arial", 20))
+label_debugOn = tk.Label(canvas_config, text="On", bg="white", font=("Arial", 20))
+canvas_config.create_window(200, 900, anchor="nw", window=label_debugOff)
+canvas_config.create_window(400, 900, anchor="nw", window=label_debugOn)
 
 #-------------------- Calibration Interface ----------------------
 
@@ -977,27 +1116,35 @@ def update_camera_feed():
 
                     current_canvas.create_image(1500, 400, image=objecttk_img, anchor="center")
 
-                data = requests.get("http://127.0.0.1:8000/getFrame/colorToDepthObjects")
+                r = requests.get("http://127.0.0.1:8000/volumeMode", timeout=0.2)
+                mode = r.json()["Volume Mode"]
 
-                if data.status_code == 404:
-                    raise ValueError("Frame not Available")
-                else:
-                    colorToDepthObjectsFrame = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(colorToDepth_shape)
+                if mode == "Bundle":
+                    data = requests.get("http://127.0.0.1:8000/getFrame/colorToDepthObjects")
 
-                    if colorToDepthObjectsFrame.dtype != numpy.uint8:
-                        # Normaliza para 0-255 e converte para uint8
-                        frame_uint8 = (numpy.clip(colorToDepthObjectsFrame, 0, 1) * 255).astype(numpy.uint8)
+                    if data.status_code == 404:
+                        raise ValueError("Frame not Available")
                     else:
-                        frame_uint8 = colorToDepthObjectsFrame
+                        colorToDepthObjectsFrame = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(colorToDepth_shape)
 
-                    frame_objects = frame_uint8[:, :, ::-1]  # se BGR
+                        if colorToDepthObjectsFrame.dtype != numpy.uint8:
+                            # Normaliza para 0-255 e converte para uint8
+                            frame_uint8 = (numpy.clip(colorToDepthObjectsFrame, 0, 1) * 255).astype(numpy.uint8)
+                        else:
+                            frame_uint8 = colorToDepthObjectsFrame
 
-                    pil_objs = Image.fromarray(frame_objects)
-                    pil_objs = pil_objs.resize((560, 420), Image.LANCZOS)
-                    objectstk_img = ImageTk.PhotoImage(pil_objs)
-                    canvas_volume.tk_objects = objectstk_img
+                        frame_objects = frame_uint8[:, :, ::-1]  # se BGR
 
-                    current_canvas.create_image(1500, 830, image=objectstk_img, anchor="center")
+                        pil_objs = Image.fromarray(frame_objects)
+                        pil_objs = pil_objs.resize((560, 420), Image.LANCZOS)
+                        objectstk_img = ImageTk.PhotoImage(pil_objs)
+                        canvas_volume.tk_objects = objectstk_img
+
+                        canvas_volume.image_bundleID = current_canvas.create_image(1500, 830, image=objectstk_img, anchor="center", tags="bundle_image")
+                else:
+                    if hasattr(canvas_volume, "image_bundleID"):
+                        current_canvas.delete(canvas_volume.image_bundleID)
+                        del canvas_volume.image_bundleID
 
             except requests.exceptions.RequestException:
                 volume_value_label.configure(text="Erro")
@@ -1298,6 +1445,38 @@ def refresh_toggle():
         if mode == "Static":
             StaticDynamic_var.set(False)
             volume_button.place(x=780, y=850)
+
+        r = requests.get("http://127.0.0.1:8000/expositionMode", timeout=0.2)
+        mode = r.json()["Exposition Mode"]
+
+        if mode == "Fixed Exposition":
+            ExpHDR_var.set(False)
+        if mode == "HDR":
+            ExpHDR_var.set(True)
+
+        r = requests.get("http://127.0.0.1:8000/volumeMode", timeout=0.2)
+        mode = r.json()["Volume Mode"]
+
+        if mode == "Singular":
+            SingleBundle_var.set(False)
+        if mode == "Bundle":
+            SingleBundle_var.set(True)
+
+        r = requests.get("http://127.0.0.1:8000/realVolumeMode", timeout=0.2)
+        mode = r.json()["Real Volume Mode"]
+
+        if mode == "Off":
+            RealVolume_var.set(False)
+        if mode == "On":
+            RealVolume_var.set(True)
+
+        r = requests.get("http://127.0.0.1:8000/debugMode", timeout=0.2)
+        mode = r.json()["Debug Mode"]
+
+        if mode == "Off":
+            DebugMode_var.set(False)
+        if mode == "On":
+            DebugMode_var.set(True)
 
     except requests.exceptions.RequestException:
         pass

@@ -401,10 +401,6 @@ def calibrateAPI(colorFrame, colorToDepthFrame, depthFrame, detection_area, get_
 
     x_area, y_area, x_area_plus_width, y_area_plus_height = detection_area
 
-    #colorToDepthFrame = None
-    #depthFrame = None 
-    #colorFrame = None
-
     try:
         colorToDepthFrame = cv2.resize(colorToDepthFrame, (640, 480))
 
@@ -466,9 +462,6 @@ def calibrateAPI(colorFrame, colorToDepthFrame, depthFrame, detection_area, get_
             workspace_interrupted = False
 
         # VERIFICAÇÃO PONTO CENTRAL
-
-        #neighbors = hsv_frame[max(0, cy-3):cy+4, max(0, cx-3):cx+4]
-        #mask_center = (((neighbors[:,:,0] >= h_min) & (neighbors[:,:,0] <= h_max)) & ((neighbors[:,:,1] >= s_min) & (neighbors[:,:,1] <= s_max)) & ((neighbors[:,:,2] >= v_min) & (neighbors[:,:,2] <= v_max)))
 
         center_x_max = x_area + ((x_area_plus_width - x_area)/2) + 5
         center_x_min = x_area + ((x_area_plus_width - x_area)/2) - 5
@@ -557,16 +550,6 @@ def calibrateAPI(colorFrame, colorToDepthFrame, depthFrame, detection_area, get_
                 print("Workspace is Empty!")
             else:
                 print("Clear Workspace!")
-        
-        #elif key == 27:
-        #    print("----------------------------------------------------------------")
-        #    print("Forced exiting calibration")
-        #    forced_exiting = 1
-        #    cv2.destroyAllWindows()
-        #    print("---end---")
-        #    return detection_area, workspace_depth, forced_exiting
-        #else:
-        #    current_canvas.after(50, calibrate, camera, get_lower, get_upper, colorSlope, current_canvas)   
                 
     except Exception as e :
         print(e)

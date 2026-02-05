@@ -96,7 +96,7 @@ def MinDepth(hdrDepth, colorSlope, threshold, workspace, workspace_depth, not_se
 def MinDepthAPI(depth, colorSlope, threshold, workspace, workspace_depth, not_set, cx, cy, fx, fy):
     depth_copy = depth.copy()
 
-    valid_values = depth_copy[(depth_copy > 150) & (depth_copy < (workspace_depth - threshold))]
+    valid_values = depth_copy[(depth_copy > 150) & (depth_copy < (workspace_depth - 50))]
     objects_info = []
 
     workspace_width_m = 0.27
@@ -104,14 +104,13 @@ def MinDepthAPI(depth, colorSlope, threshold, workspace, workspace_depth, not_se
 
     try:
         while True:
-            valid_values = depth_copy[(depth_copy > 150) & (depth_copy < (workspace_depth - threshold))]
+            valid_values = depth_copy[(depth_copy > 150) & (depth_copy < (workspace_depth - 50))]
             if valid_values.size  == 0:
                 break
 
             else:
                 min_value = numpy.min(valid_values) # minimo da profundidade
 
-                #if min_value < minimum_value:
                 index = numpy.where(depth_copy == min_value)
                 min_idx = (index[0][0], index[1][0])
                 y, x = min_idx
@@ -119,18 +118,7 @@ def MinDepthAPI(depth, colorSlope, threshold, workspace, workspace_depth, not_se
                 for y, x in zip(index[0], index[1]):
                     neighbors = depth_copy[max(0, y-7):y+8, max(0, x-7):x+8]
 
-                    #workspace_width = int((workspace[2] - workspace[0])/2)
-
-                    #workspace_height = int((workspace[3] - workspace[1])/2)
-
                     object_depth = min_value
-
-                    #workspace_width_max = int((workspace_width * int(workspace_depth)) / object_depth)
-
-                    #workspace_height_max = int((workspace_height * int(workspace_depth)) / object_depth)
-
-                    #workspace_limits = int(cx - (workspace_width_max)), int(cy - (workspace_height_max)), int(cx + (workspace_width_max)), int(cy + (workspace_height_max))
-                    #print("Workspace Limits XD:", workspace_limits)
 
                     if ((x >= workspace[0]) and (x <= workspace[2])) and ((y >= workspace[1]) and (y <= workspace[3])):
                         valid_count = numpy.sum(numpy.abs(neighbors - min_value) <= threshold)
@@ -146,16 +134,19 @@ def MinDepthAPI(depth, colorSlope, threshold, workspace, workspace_depth, not_se
                                 print("Profundidade:", min_value)
                                 half_width_px = (workspace_width_m / 2) * fx / (object_depth / 1000.0)
                                 half_height_px = (workspace_height_m / 2) * fy / (object_depth / 1000.0)
+                                warning_half_width_px = ((workspace_width_m - 0.022) / 2) * fx / (object_depth / 1000.0)
+                                warning_half_height_px = ((workspace_height_m - 0.022) / 2) * fy / (object_depth / 1000.0)
 
                                 workspace_limits = int(cx - half_width_px), int(cy - half_height_px), int(cx + half_width_px), int(cy + half_height_px)
-                                cv2.rectangle(frameState.colorToDepthFrame, (workspace_limits[0], workspace_limits[1]), (workspace_limits[2], workspace_limits[3]), (0, 0, 255), 2)
+                                workspace_warning = int(cx - warning_half_width_px), int(cy - warning_half_height_px), int(cx + warning_half_width_px), int(cy + warning_half_height_px)
                                 print("Width:", half_width_px)
                                 print("Height:", half_height_px)
                                 print("WS Limits:", workspace_limits)
 
                                 objects_info.append({
                                             "depth": min_value,
-                                            "workspace_limits": workspace_limits
+                                            "workspace_limits": workspace_limits,
+                                            "workspace_warning": workspace_warning
                                         })
 
                                 point_idx = y,x

@@ -114,6 +114,7 @@ def get_color_Slope():
 @app.post("/camera/setExposureTime")
 def set_exposureTime(data: CamValues):
     camState.exposureTime = data.exposureTime
+    camState.camera.VZ_SetExposureTime(VzSensorType.VzToFSensor, c_int32(camState.exposureTime))
     return{
         "Exposure Time": camState.exposureTime
     }
@@ -462,7 +463,7 @@ def volume_Obj():
 
     depth_img = depthImg(depthFrame, camState.colorSlope)
     if depthState.not_set == 0:
-        depthState.minimum_value, depthState.not_set, volumeState.box_limits, volumeState.box_ws, volumeState.depths = bundle(colorToDepthFrame, depth_img, depthState.objects_info, depthState.threshold, depthFrame)
+        depthState.minimum_value, depthState.not_set, volumeState.box_limits, volumeState.box_ws, volumeState.depths, volumeState.objects_outOfLine = bundle(colorToDepthFrame, depthFrame, depth_img, depthState.objects_info, depthState.threshold, modeState.volumeMode)
         if volumeState.box_limits is not None and len(volumeState.box_limits) > 0:
             volumeState.volume, volumeState.width_meters, volumeState.height_meters = volumeAPI(workspaceState.workspace_depth, depthState.minimum_depth, volumeState.box_limits, volumeState.depths, camState.fx, camState.fy, camState.cx, camState.cy)
         else:
@@ -483,3 +484,53 @@ def volume_Obj():
         "min_depth": depthState.minimum_depth / 10,
         "ws_depth": workspaceState.workspace_depth / 10
     }
+
+@app.get("/volumeMode")
+def get_volMode():
+    return{
+        "Volume Mode": modeState.volumeMode,
+    }
+
+@app.post("/volumeMode/singular")
+def singularMode():
+    modeState.volumeMode = "Singular"
+    return {"Volume Mode:": modeState.volumeMode}
+
+@app.post("/volumeMode/bundle")
+def bundleMode():
+    modeState.volumeMode = "Bundle"
+    return {"Volume Mode:": modeState.volumeMode}
+
+@app.get("/realVolumeMode")
+def get_realVolMode():
+    return{
+        "Real Volume Mode": modeState.realVolumeMode,
+    }
+
+@app.post("/realVolumeMode/off")
+def realVolOff():
+    modeState.realVolumeMode = "Off"
+    return {"Real Volume Mode:": modeState.realVolumeMode}
+
+@app.post("/realVolumeMode/on")
+def realVolOn():
+    modeState.realVolumeMode = "On"
+    return {"Real Volume Mode:": modeState.realVolumeMode}
+
+#------------------------------------------------------- Debug -------------------------------------------------------
+
+@app.get("/debugMode")
+def get_debugMode():
+    return{
+        "Debug Mode": modeState.debugMode,
+    }
+
+@app.post("/debugMode/off")
+def debugOff():
+    modeState.debugMode = "Off"
+    return {"Debug Mode:": modeState.debugMode}
+
+@app.post("/debugMode/on")
+def debugOn():
+    modeState.debugMode = "On"
+    return {"Debug Mode:": modeState.debugMode}

@@ -69,7 +69,7 @@ def openCamera():
             camState.colorSlope = c_uint16(1500) #distância máxima pretendida 5 metros
             #print("ColorSlope", camState.colorSlope)
             camState.camera.VZ_SetExposureControlMode(VzSensorType.VzToFSensor, VzExposureControlMode.VzExposureControlMode_Manual)
-            camState.camera.VZ_SetExposureTime(VzSensorType.VzToFSensor, c_int32(1000))
+            camState.camera.VZ_SetExposureTime(VzSensorType.VzToFSensor, c_int32(camState.exposureTime))
 
             ret_code, exposureStruct = camState.camera.VZ_GetExposureTime(VzSensorType.VzToFSensor)
             print('Exposure Time:', exposureStruct.exposureTime)

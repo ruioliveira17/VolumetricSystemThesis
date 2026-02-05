@@ -255,6 +255,7 @@ def hdrAPI():
 
     try:
         while exposureTime <= 4000 and expositionBus_done == 0:
+            camState.exposureTime = exposureTime
             camState.camera.VZ_SetExposureTime(VzSensorType.VzToFSensor, c_int32(exposureTime))
 
             ret_code, exposureStruct = camState.camera.VZ_GetExposureTime(VzSensorType.VzToFSensor)
@@ -308,6 +309,7 @@ def hdrAPI():
                 
             expositionBus_done = 1
             exposureTime = 200
+            camState.exposureTime = exposureTime
 
             if hdrColor_done and hdrDepth_done:
                 hdr_done = 1

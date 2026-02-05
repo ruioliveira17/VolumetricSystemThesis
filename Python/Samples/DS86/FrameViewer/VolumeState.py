@@ -9,5 +9,6 @@ class VolumeState:
         self.width_meters = 0
         self.height_meters = 0
         self.volume = 0
+        self.objects_outOfLine = None
 
 volumeState = VolumeState()

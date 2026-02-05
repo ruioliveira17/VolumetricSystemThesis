@@ -71,7 +71,7 @@ def is_valid_area(c, min_area = 150, min_points = 15):
 
     return True
 
-def bundle(hdrColor, hdrDepth_img, objects_info, threshold, hdrDepth):
+def bundle(hdrColor, hdrDepth, hdrDepth_img, objects_info, threshold, volumeMode):
     contours = []
     ws_limits = []
     all_points_list = []
@@ -79,6 +79,7 @@ def bundle(hdrColor, hdrDepth_img, objects_info, threshold, hdrDepth):
     correct_shifted_contours = []
     belongs_to_previous = False
     depths = []
+    object_outOfLine = []
 
     hdrColor_copy = hdrColor.copy()
 
@@ -141,6 +142,15 @@ def bundle(hdrColor, hdrDepth_img, objects_info, threshold, hdrDepth):
                     if belongs_to_previous:
                         break
                 if not belongs_to_previous:
+                    workspace_warning = obj["workspace_warning"]
+
+                    if ((bbox_c[0] < workspace_warning[0]) or (bbox_c[1] > workspace_warning[2]) or (bbox_c[2] < workspace_warning[1]) or (bbox_c[3] > workspace_warning[3])):
+                        value = True
+                    else:
+                        value = False
+
+                    object_outOfLine.append(value)
+
                     correct_shifted_contours = []
                     correct_shifted_contours.append(c)
                     print("Adicionar ao Conjunto")
@@ -171,7 +181,7 @@ def bundle(hdrColor, hdrDepth_img, objects_info, threshold, hdrDepth):
     hdrColor_copy = hdrColor.copy()
     hdrColor_copy = cv2.resize(hdrColor_copy, (640, 480))
 
-    if len(all_points_list) > 0:
+    if len(all_points_list) > 0 and volumeMode == "Bundle":
         all_points = numpy.vstack(all_points_list)
 
         rect = cv2.minAreaRect(all_points)
@@ -184,4 +194,4 @@ def bundle(hdrColor, hdrDepth_img, objects_info, threshold, hdrDepth):
     not_set = 1
     minimum_value = 6000
                     
-    return minimum_value, not_set, all_points_list, ws_limits, depths
+    return minimum_value, not_set, all_points_list, ws_limits, depths, object_outOfLine

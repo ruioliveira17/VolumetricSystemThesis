@@ -19,6 +19,10 @@ def volumeAPI(workspace_depth, minimum_depth, box_limits, depths, fx, fy, cx, cy
     #width = 0
 
     pts_m = []
+    obj_pts_m = []
+    allObj_pts_m = []
+    bolume = []
+    realVolume = 0
 
     for i in range((len(depths))):
         pts_flat = box_limits[i].reshape(-1,2)
@@ -28,8 +32,38 @@ def volumeAPI(workspace_depth, minimum_depth, box_limits, depths, fx, fy, cx, cy
             Y = (v - cy) * (depths[i] / 1000) / fy
 
             pts_m.append([X, Y])
+            obj_pts_m.append([X, Y])
+        allObj_pts_m.append(obj_pts_m)
+        obj_pts_m = []
 
     pts_m = numpy.array(pts_m, dtype=numpy.float32)
+    #allObj_pts_m = [numpy.array(obj, dtype=numpy.float32) for obj in allObj_pts_m]
+
+    for idx, obj in enumerate(allObj_pts_m):
+        allObj_pts_m[idx] = numpy.array(obj, dtype=numpy.float32)
+        rect_m = cv2.minAreaRect(allObj_pts_m[idx])
+        width_meters, height_meters = rect_m[1]
+
+        if width_meters < height_meters:
+            width_meters, height_meters = height_meters, width_meters
+
+        xmin = allObj_pts_m[idx][:,0].min()
+        xmax = allObj_pts_m[idx][:,0].max()
+        ymin = allObj_pts_m[idx][:,1].min()
+        ymax = allObj_pts_m[idx][:,1].max()
+
+        wid = xmax + abs(xmin)
+        hei = ymax + abs(ymin)
+
+        if hei > wid:
+            height_meters, width_meters = width_meters, height_meters
+
+        volume = width_meters * height_meters * ((workspace_depth - depths[idx]) / 1000)
+        bolume.append(volume)
+        realVolume += volume
+
+    print(bolume)
+    print(realVolume)
 
     rect_m = cv2.minAreaRect(pts_m)
     width_meters, height_meters = rect_m[1]
