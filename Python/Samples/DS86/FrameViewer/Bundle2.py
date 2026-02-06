@@ -132,8 +132,9 @@ def bundle(hdrColor, hdrDepth, hdrDepth_img, objects_info, threshold, volumeMode
 
                         if boxes_overlap(bbox_c, bbox_prev):
                             print("Wotefoque")
-                            a, hdrColor_copy = contours_overlap_by_points(c, prev_c, hdrColor_copy)
-                            if a:
+                            boxesOverlap, hdrColor_copy = contours_overlap_by_points(c, prev_c, hdrColor_copy)
+                            contourDifference = cv2.matchShapes(c, prev_c, cv2.CONTOURS_MATCH_I1, 0)
+                            if boxesOverlap or contourDifference < 0.2:
                                 belongs_to_previous = True
                                 print("Pertence ao anterior o macaco")
                                 break

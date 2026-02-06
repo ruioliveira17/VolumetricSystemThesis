@@ -465,7 +465,7 @@ def volume_Obj():
     if depthState.not_set == 0:
         depthState.minimum_value, depthState.not_set, volumeState.box_limits, volumeState.box_ws, volumeState.depths, volumeState.objects_outOfLine = bundle(colorToDepthFrame, depthFrame, depth_img, depthState.objects_info, depthState.threshold, modeState.volumeMode)
         if volumeState.box_limits is not None and len(volumeState.box_limits) > 0:
-            volumeState.volume, volumeState.width_meters, volumeState.height_meters = volumeAPI(workspaceState.workspace_depth, depthState.minimum_depth, volumeState.box_limits, volumeState.depths, camState.fx, camState.fy, camState.cx, camState.cy)
+            volumeState.volume, volumeState.width_meters, volumeState.height_meters = volumeAPI(workspaceState.workspace_depth, depthState.minimum_depth, volumeState.box_limits, volumeState.depths, camState.fx, camState.fy, camState.cx, camState.cy, modeState.volumeMode, modeState.realVolumeMode)
         else:
             volumeState.volume = 0
             volumeState.width_meters = 0
@@ -477,11 +477,21 @@ def volume_Obj():
         volumeState.height_meters = 0
         depthState.minimum_depth = workspaceState.workspace_depth
 
+    if isinstance(volumeState.width_meters, list):
+        volumeState.width_meters = [w * 100 for w in volumeState.width_meters]
+    else:
+        volumeState.width_meters = volumeState.width_meters * 100
+
+    if isinstance(volumeState.height_meters, list):
+        volumeState.height_meters = [w * 100 for w in volumeState.height_meters]
+    else:
+        volumeState.height_meters = volumeState.height_meters * 100
+
     return{
         "volume": volumeState.volume,
-        "width": volumeState.width_meters * 100,
-        "height": volumeState.height_meters * 100,
-        "min_depth": depthState.minimum_depth / 10,
+        "width": volumeState.width_meters,
+        "height": volumeState.height_meters,
+        "depth": depthState.minimum_depth / 10,
         "ws_depth": workspaceState.workspace_depth / 10
     }
 
@@ -494,6 +504,7 @@ def get_volMode():
 @app.post("/volumeMode/singular")
 def singularMode():
     modeState.volumeMode = "Singular"
+    modeState.realVolumeMode = "Off"
     return {"Volume Mode:": modeState.volumeMode}
 
 @app.post("/volumeMode/bundle")
