@@ -93,10 +93,9 @@ def MinDepth(hdrDepth, colorSlope, threshold, workspace, workspace_depth, not_se
 
     return not_set, objects_info
 
-def MinDepthAPI(depth, colorSlope, threshold, workspace, workspace_depth, not_set, cx, cy, fx, fy):
-    depth_copy = depth.copy()
+def MinDepthAPI(depthFrame, detection_area, workspace_depth, threshold, not_set, cx, cy, fx, fy):
+    depth_copy = depthFrame.copy()
 
-    valid_values = depth_copy[(depth_copy > 150) & (depth_copy < (workspace_depth - 50))]
     objects_info = []
 
     workspace_width_m = 0.27
@@ -120,7 +119,7 @@ def MinDepthAPI(depth, colorSlope, threshold, workspace, workspace_depth, not_se
 
                     object_depth = min_value
 
-                    if ((x >= workspace[0]) and (x <= workspace[2])) and ((y >= workspace[1]) and (y <= workspace[3])):
+                    if ((x >= detection_area[0]) and (x <= detection_area[2])) and ((y >= detection_area[1]) and (y <= detection_area[3])):
                         valid_count = numpy.sum(numpy.abs(neighbors - min_value) <= threshold)
                         total_count = neighbors.size
 

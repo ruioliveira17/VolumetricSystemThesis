@@ -62,7 +62,6 @@ def getFrame(camera):
             colorFrame = frametmp.copy()
 
         if hasColorToDepth == 1 and hasDepth == 1 and hasColor == 1:
-            #return colorToDepthFrame, depthFrame, colorFrame
             frameState.colorToDepthFrame = colorToDepthFrame
             frameState.depthFrame = depthFrame
             frameState.colorFrame = colorFrame

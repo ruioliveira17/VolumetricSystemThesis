@@ -51,7 +51,7 @@ smax_slider = None
 vmin_slider = None
 vmax_slider = None
 
-res = None
+result = None
 colorToDepthFrame_copy = None
 depthFrame_copy = None
 
@@ -336,8 +336,8 @@ def StaticDynamic_toggle():
     else:
         requests.post("http://127.0.0.1:8000/mode/static")
 
-def SingleBundle_toggle():
-    if SingleBundle_var.get():
+def SingularBundle_toggle():
+    if SingularBundle_var.get():
         RealVolume_switch.configure(state="normal")
         requests.post("http://127.0.0.1:8000/volumeMode/bundle")
     else:
@@ -823,24 +823,24 @@ canvas_config.create_window(1370, 500, anchor="nw", window=colorSlopeSet_button)
 StaticDynamic_var = customtkinter.BooleanVar(value=False)
 
 StaticDynamic_switch = customtkinter.CTkSwitch(canvas_config, text="", variable=StaticDynamic_var, onvalue=True, offvalue=False, command=StaticDynamic_toggle, switch_width=100, switch_height=50, fg_color="turquoise1", progress_color="dark turquoise", button_color="gray65", button_hover_color="gray45")
-canvas_config.create_window(290, 495, anchor="nw", window=StaticDynamic_switch)
+canvas_config.create_window(310, 495, anchor="nw", window=StaticDynamic_switch)
 
 label_static = tk.Label(canvas_config, text="Static", bg="white", font=("Arial", 20))
 label_dynamic = tk.Label(canvas_config, text="Dynamic", bg="white", font=("Arial", 20))
 canvas_config.create_window(200, 500, anchor="nw", window=label_static)
-canvas_config.create_window(400, 500, anchor="nw", window=label_dynamic)
+canvas_config.create_window(410, 500, anchor="nw", window=label_dynamic)
 
-#-------------------- Single / Bundle Toggle --------------------
+#-------------------- Singular / Bundle Toggle --------------------
 
-SingleBundle_var = customtkinter.BooleanVar(value=False)
+SingularBundle_var = customtkinter.BooleanVar(value=False)
 
-SingleBundle_switch = customtkinter.CTkSwitch(canvas_config, text="", variable=SingleBundle_var, onvalue=True, offvalue=False, command=SingleBundle_toggle, switch_width=100, switch_height=50, fg_color="turquoise1", progress_color="dark turquoise", button_color="gray65", button_hover_color="gray45")
-canvas_config.create_window(290, 595, anchor="nw", window=SingleBundle_switch)
+SingularBundle_switch = customtkinter.CTkSwitch(canvas_config, text="", variable=SingularBundle_var, onvalue=True, offvalue=False, command=SingularBundle_toggle, switch_width=100, switch_height=50, fg_color="turquoise1", progress_color="dark turquoise", button_color="gray65", button_hover_color="gray45")
+canvas_config.create_window(310, 595, anchor="nw", window=SingularBundle_switch)
 
-label_single = tk.Label(canvas_config, text="Single", bg="white", font=("Arial", 20))
+label_single = tk.Label(canvas_config, text="Singular", bg="white", font=("Arial", 20))
 label_bundle = tk.Label(canvas_config, text="Bundle", bg="white", font=("Arial", 20))
 canvas_config.create_window(200, 600, anchor="nw", window=label_single)
-canvas_config.create_window(400, 600, anchor="nw", window=label_bundle)
+canvas_config.create_window(410, 600, anchor="nw", window=label_bundle)
 
 #-------------------- Real Volume Mode Toggle --------------------
 
@@ -848,30 +848,30 @@ RealVolume_var = customtkinter.BooleanVar(value=False)
 
 RealVolume_switch = customtkinter.CTkSwitch(canvas_config, text="", variable=RealVolume_var, onvalue=True, offvalue=False, command=RealVolume_toggle, switch_width=100, switch_height=50, fg_color="turquoise1", progress_color="dark turquoise", button_color="gray65", button_hover_color="gray45")
 RealVolume_switch.configure(state="disabled")
-canvas_config.create_window(290, 745, anchor="nw", window=RealVolume_switch)
+canvas_config.create_window(310, 745, anchor="nw", window=RealVolume_switch)
 
 label_realVolumeMode = tk.Label(canvas_config, text="Real Volume", bg="white", font=("Arial", 20))
-canvas_config.create_window(340, 700, anchor="center", window=label_realVolumeMode)
+canvas_config.create_window(360, 700, anchor="center", window=label_realVolumeMode)
 
 label_realVolumeOff = tk.Label(canvas_config, text="Off", bg="white", font=("Arial", 20))
 label_realVolumeOn = tk.Label(canvas_config, text="On", bg="white", font=("Arial", 20))
-canvas_config.create_window(200, 750, anchor="nw", window=label_realVolumeOff)
-canvas_config.create_window(400, 750, anchor="nw", window=label_realVolumeOn)
+canvas_config.create_window(250, 750, anchor="nw", window=label_realVolumeOff)
+canvas_config.create_window(420, 750, anchor="nw", window=label_realVolumeOn)
 
 #----------------------- Debug Mode Toggle -----------------------
 
 DebugMode_var = customtkinter.BooleanVar(value=False)
 
 DebugMode_switch = customtkinter.CTkSwitch(canvas_config, text="", variable=DebugMode_var, onvalue=True, offvalue=False, command=DebugMode_toggle, switch_width=100, switch_height=50, fg_color="turquoise1", progress_color="dark turquoise", button_color="gray65", button_hover_color="gray45")
-canvas_config.create_window(290, 895, anchor="nw", window=DebugMode_switch)
+canvas_config.create_window(310, 895, anchor="nw", window=DebugMode_switch)
 
 label_debugMode = tk.Label(canvas_config, text="Debug Mode", bg="white", font=("Arial", 20))
-canvas_config.create_window(340, 850, anchor="center", window=label_debugMode)
+canvas_config.create_window(360, 850, anchor="center", window=label_debugMode)
 
 label_debugOff = tk.Label(canvas_config, text="Off", bg="white", font=("Arial", 20))
 label_debugOn = tk.Label(canvas_config, text="On", bg="white", font=("Arial", 20))
-canvas_config.create_window(200, 900, anchor="nw", window=label_debugOff)
-canvas_config.create_window(400, 900, anchor="nw", window=label_debugOn)
+canvas_config.create_window(250, 900, anchor="nw", window=label_debugOff)
+canvas_config.create_window(420, 900, anchor="nw", window=label_debugOn)
 
 #-------------------- Calibration Interface ----------------------
 
@@ -1310,8 +1310,8 @@ def update_camera_feed():
         data = requests.get("http://127.0.0.1:8000/getFrame/depthCopy")
         depthFrame_copy = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(depthCopy_shape)
 
-        data = requests.get("http://127.0.0.1:8000/getFrame/res")
-        res = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(depthCopy_shape)
+        data = requests.get("http://127.0.0.1:8000/getFrame/result")
+        result = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(depthCopy_shape)
 
         if colorToDepthFrame_copy is None:
             if colorToDepthFrame.dtype != numpy.uint8:
@@ -1337,14 +1337,14 @@ def update_camera_feed():
         tk_img = ImageTk.PhotoImage(pil_img)
         current_canvas.tk_image = tk_img
 
-        if res is None:
-            res = numpy.zeros((480, 640, 3), dtype=numpy.uint8)
+        if result is None:
+            result = numpy.zeros((480, 640, 3), dtype=numpy.uint8)
 
-        if res.dtype != numpy.uint8:
+        if result.dtype != numpy.uint8:
             # Normaliza para 0-255 e converte para uint8
-            frame_uint8 = (numpy.clip(res, 0, 1) * 255).astype(numpy.uint8)
+            frame_uint8 = (numpy.clip(result, 0, 1) * 255).astype(numpy.uint8)
         else:
-            frame_uint8 = res
+            frame_uint8 = result
 
         frame_mask = frame_uint8[:, :, ::-1]  # se BGR
 
@@ -1538,9 +1538,9 @@ def refresh_toggle():
         volumeMode = r.json()["Volume Mode"]
 
         if volumeMode == "Singular":
-            SingleBundle_var.set(False)
+            SingularBundle_var.set(False)
         if volumeMode == "Bundle":
-            SingleBundle_var.set(True)
+            SingularBundle_var.set(True)
 
         r = requests.get("http://127.0.0.1:8000/realVolumeMode", timeout=0.2)
         realVolumeMode = r.json()["Real Volume Mode"]

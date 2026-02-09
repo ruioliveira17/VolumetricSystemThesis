@@ -46,7 +46,7 @@ def openCamera():
             exit()
 
         if  VzConnectStatus.Connected.value != device_info.status:
-            print("connect statu:",device_info.status)  
+            print("connect status:",device_info.status)  
             print("Call VZ_OpenDeviceByIP with connect status :",VzConnectStatus.Connected.value)
             exit()
         else:
@@ -57,7 +57,6 @@ def openCamera():
 
         ret = camState.camera.VZ_OpenDeviceByIP(device_info.ip)
         if  ret == 0:
-            #print("open device successful")
 
             ret = camState.camera.VZ_StartStream()
             if  ret == 0:
@@ -65,9 +64,7 @@ def openCamera():
             else:
                 print("VZ_StartStream failed:",ret)
 
-            #print("ColorSlope", camState.colorSlope)
             camState.colorSlope = c_uint16(1500) #distância máxima pretendida 5 metros
-            #print("ColorSlope", camState.colorSlope)
             camState.camera.VZ_SetExposureControlMode(VzSensorType.VzToFSensor, VzExposureControlMode.VzExposureControlMode_Manual)
             camState.camera.VZ_SetExposureTime(VzSensorType.VzToFSensor, c_int32(camState.exposureTime))
 
@@ -137,7 +134,6 @@ def openCamera():
             return{"message": "Success"}
 
         else:
-            #print('VZ_OpenDeviceByIP failed: ' + str(ret))
             return{"message": "Failed"}
 
 def closeCamera():

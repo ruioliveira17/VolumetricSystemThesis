@@ -6,8 +6,8 @@ from API.VzenseDS_api import *
 import cv2
 from FrameState import frameState
 
-def depthImg(hdrDepth, colorSlope):
-    img = numpy.int32(hdrDepth)
+def depthImg(depthFrame, colorSlope):
+    img = numpy.int32(depthFrame)
     img = img*255/colorSlope
     img = numpy.clip(img, 0, 255)
     img = numpy.uint8(img)
@@ -23,6 +23,14 @@ def get_bbox(pts):
     ymax = pts_flat[:,1].max()
     return xmin, xmax, ymin, ymax
 
+def too_close(box1, box2):
+    xmin1, xmax1, ymin1, ymax1 = box1 #Current
+    xmin2, xmax2, ymin2, ymax2 = box2 #Previous
+
+    if (abs(xmin2 - xmin1) <= 3 and abs(ymin2 - ymin1) <= 3) or (abs(xmax2 - xmax1) <= 3 and abs(ymax2 - ymax1) <= 3):
+        return True
+    return False
+
 def boxes_overlap(box1, box2):
     xmin1, xmax1, ymin1, ymax1 = box1 #Current
     xmin2, xmax2, ymin2, ymax2 = box2 #Previous
@@ -34,20 +42,18 @@ def boxes_overlap(box1, box2):
         return True
     return False
 
-def contours_overlap_by_points(c, prev_c, hdrColor_copy, min_ratio = 0.4):
+def contours_overlap_by_points(c, prev_c, colorToDepth_copy, min_ratio = 0.4):
     inside = 0
     total = len(c)
     print("Total", total)
 
     hull = cv2.convexHull(prev_c)
 
-    cv2.drawContours(hdrColor_copy, [hull], 0, (255, 0, 0), 2)
+    cv2.drawContours(colorToDepth_copy, [hull], 0, (255, 0, 0), 2)
 
     for p in c:
         x = int(p[0][0])
         y = int(p[0][1])
-
-        #print("Dist:", cv2.pointPolygonTest(hull, (x,y), True))
 
         if cv2.pointPolygonTest(hull, (x, y), False) >= 0:
             inside += 1
@@ -55,51 +61,42 @@ def contours_overlap_by_points(c, prev_c, hdrColor_copy, min_ratio = 0.4):
     print("Inside", inside)
     print("Quanto?", inside / total)
     
-    return (inside / total) >= min_ratio, hdrColor_copy
+    return (inside / total) >= min_ratio, colorToDepth_copy
 
-def is_valid_area(c, min_area = 150, min_points = 15):
-    #n = len(c)
-    #print("Pontos", n)
-
+def is_valid_area(c, min_area = 150):
     a = cv2.contourArea(c)
     print("Area", a)
 
-    #if n < min_points:
-    #    return False
     if a < min_area:
         return False
 
     return True
 
-def bundle(hdrColor, hdrDepth, hdrDepth_img, objects_info, threshold, volumeMode):
+def bundle(colorToDepthFrame, depthFrame, objects_info, colorSlope, volumeMode):
     contours = []
-    ws_limits = []
-    all_points_list = []
+    box_ws = []
+    box_limits = []
     shifted_contours = []
     correct_shifted_contours = []
-    belongs_to_previous = False
     depths = []
     object_outOfLine = []
+    belongs_to_previous = False
 
-    hdrColor_copy = hdrColor.copy()
+    colorToDepth_copy = colorToDepthFrame.copy()
 
     if len(objects_info) != 0:
         for obj in objects_info:
 
             x1, y1, x2, y2 = obj["workspace_limits"]
-            workspace_area2 = hdrDepth[y1:y2, x1:x2]
+            workspace_area2 = depthFrame[y1:y2, x1:x2]
 
             mask = (workspace_area2 >= (obj["depth"] - 25)) & (workspace_area2 <= (obj["depth"] + 25))
 
             depth_filtered = numpy.where(mask, workspace_area2, 0).astype(numpy.uint16)
 
-            img = numpy.int32(depth_filtered)
-            img = img*255/1500
-            img = numpy.clip(img, 0, 255)
-            img = numpy.uint8(img)
-            hdrDepth_img = cv2.applyColorMap(img, cv2.COLORMAP_RAINBOW)
+            depth_img = depthImg(depth_filtered, colorSlope)
 
-            gray = cv2.cvtColor(hdrDepth_img, cv2.COLOR_BGR2GRAY)
+            gray = cv2.cvtColor(depth_img, cv2.COLOR_BGR2GRAY)
         
             blur = cv2.GaussianBlur(gray, (15,15), 0)
             
@@ -132,12 +129,17 @@ def bundle(hdrColor, hdrDepth, hdrDepth_img, objects_info, threshold, volumeMode
 
                         if boxes_overlap(bbox_c, bbox_prev):
                             print("Wotefoque")
-                            boxesOverlap, hdrColor_copy = contours_overlap_by_points(c, prev_c, hdrColor_copy)
-                            contourDifference = cv2.matchShapes(c, prev_c, cv2.CONTOURS_MATCH_I1, 0)
-                            if boxesOverlap or contourDifference < 0.2:
+                            boxesOverlap, colorToDepth_copy = contours_overlap_by_points(c, prev_c, colorToDepth_copy)
+                            #contourDifference = cv2.matchShapes(c, prev_c, cv2.CONTOURS_MATCH_I1, 0)
+                            #print("Contour Difference:", contourDifference)
+                            if boxesOverlap: #or contourDifference < 0.02:
                                 belongs_to_previous = True
                                 print("Pertence ao anterior o macaco")
                                 break
+                        if too_close(bbox_c, bbox_prev):
+                            belongs_to_previous = True
+                            print("Too Close")
+                            break
                         print("Não pertence")
                         belongs_to_previous = False
                     if belongs_to_previous:
@@ -158,41 +160,51 @@ def bundle(hdrColor, hdrDepth, hdrDepth_img, objects_info, threshold, volumeMode
                     belongs_to_previous = False
                     all_shifted_contours = numpy.vstack(correct_shifted_contours)
                     contours.append([all_shifted_contours])
-                    ws_limits.append(obj["workspace_limits"])
+                    box_ws.append(obj["workspace_limits"])
                     depths.append(obj["depth"])
                     print("Número de Objetos no contours", len(contours))
 
             print("-------------------------------------------------------------------")
 
-    #hdrColor_copy = hdrColor.copy()
-    hdrColor_copy = cv2.resize(hdrColor_copy, (640, 480))
+    colorToDepth_copy = cv2.resize(colorToDepth_copy, (640, 480))
 
-    for contour_list in contours:
+    for obj_id, contour_list in enumerate(contours, start=1):
         for c in contour_list:
             rect = cv2.minAreaRect(c)
             box = cv2.boxPoints(rect)
             box = numpy.round(box).astype(numpy.int32)
-            cv2.drawContours(hdrColor_copy, [box], 0, (0, 255, 0), 2)
-            frameState.colorToDepthFrameObject = hdrColor_copy
+            cv2.drawContours(colorToDepth_copy, [box], 0, (0, 255, 0), 2)
+            idx_y = numpy.argmin(box[:,1])
+            idx_x = numpy.argmin(box[:,0])
+            x, y = box[idx_x]
+            x2, y2 = box[idx_y]
+            if abs(x - x2) <= 20 and abs(y - y2) <= 20:
+                print("Próx")
+                cv2.putText(colorToDepth_copy, str(obj_id), (x + 8, y + 20), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 0), 4, cv2.LINE_AA)
+                cv2.putText(colorToDepth_copy, str(obj_id), (x + 8, y + 20), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2, cv2.LINE_AA)
+            else:
+                print("Afast")
+                cv2.putText(colorToDepth_copy, str(obj_id), (x + 10, y + 10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 0), 4, cv2.LINE_AA)
+                cv2.putText(colorToDepth_copy, str(obj_id), (x + 10, y + 10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2, cv2.LINE_AA)
+            frameState.colorToDepthFrameObject = colorToDepth_copy
 
-    all_points_list = [c for contour_list in contours for c in contour_list if c.size > 0]
-    print("Número Objetos:", len(all_points_list))
-    #print(all_points_list)
+    box_limits = [c for contour_list in contours for c in contour_list if c.size > 0]
+    print("Número Objetos:", len(box_limits))
 
-    hdrColor_copy = hdrColor.copy()
-    hdrColor_copy = cv2.resize(hdrColor_copy, (640, 480))
+    colorToDepth_copy = colorToDepthFrame.copy()
+    colorToDepth_copy = cv2.resize(colorToDepth_copy, (640, 480))
 
-    if len(all_points_list) > 0 and volumeMode == "Bundle":
-        all_points = numpy.vstack(all_points_list)
+    if len(box_limits) > 0 and volumeMode == "Bundle":
+        all_points = numpy.vstack(box_limits)
 
         rect = cv2.minAreaRect(all_points)
         box = cv2.boxPoints(rect)
         box = numpy.round(box).astype(numpy.int32)
 
-        cv2.drawContours(hdrColor_copy, [box], 0,  (0, 255, 0), 2)
-        frameState.colorToDepthFrameObjects = hdrColor_copy
+        cv2.drawContours(colorToDepth_copy, [box], 0,  (0, 255, 0), 2)
+        frameState.colorToDepthFrameObjects = colorToDepth_copy
 
     not_set = 1
     minimum_value = 6000
                     
-    return minimum_value, not_set, all_points_list, ws_limits, depths, object_outOfLine
+    return minimum_value, not_set, box_ws, box_limits, depths, object_outOfLine

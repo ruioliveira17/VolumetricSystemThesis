@@ -94,7 +94,7 @@ def mask(camera, get_lower, get_upper, colorSlope):
     finally :
         print('end')
 
-def maskAPI(colorFrame, colorToDepthFrame, depthFrame, get_lower, get_upper, color, colorSlope, cx, cy):
+def maskAPI(colorToDepthFrame, depthFrame, lower, upper, color, colorSlope, cx, cy):
     detection_area = None
     x_area = None
     y_area = None
@@ -104,12 +104,11 @@ def maskAPI(colorFrame, colorToDepthFrame, depthFrame, get_lower, get_upper, col
     try:
         colorToDepthFrame = cv2.resize(colorToDepthFrame, (640, 480))
 
-
         hsv_frame = cv2.cvtColor(colorToDepthFrame, cv2.COLOR_BGR2HSV)
 
         # ------------------ ÁREA EXTERIOR -------------------
 
-        mask_hsv = cv2.inRange(hsv_frame, get_lower, get_upper)
+        mask_hsv = cv2.inRange(hsv_frame, lower, upper)
         if color == "Red":
             preset = COLOR_PRESETS["Red2"]
             lower = numpy.array(preset["lower"])
@@ -119,9 +118,9 @@ def maskAPI(colorFrame, colorToDepthFrame, depthFrame, get_lower, get_upper, col
 
             mask_hsv = mask_hsv | mask_hsv2
 
-        res = cv2.bitwise_and(colorToDepthFrame, colorToDepthFrame, mask=mask_hsv)
+        result = cv2.bitwise_and(colorToDepthFrame, colorToDepthFrame, mask=mask_hsv)
 
-        imgray = cv2.cvtColor(res, cv2.COLOR_BGR2GRAY)
+        imgray = cv2.cvtColor(result, cv2.COLOR_BGR2GRAY)
         ret, thresh = cv2.threshold(imgray, 127, 255, 0)
 
         colorToDepthFrame_copy = colorToDepthFrame.copy()
@@ -154,14 +153,14 @@ def maskAPI(colorFrame, colorToDepthFrame, depthFrame, get_lower, get_upper, col
 
         key = cv2.waitKey(1)
         
-        return res, colorToDepthFrame_copy, depthFrame_copy, detection_area  
+        return result, colorToDepthFrame_copy, depthFrame_copy, detection_area  
                 
     except Exception as e :
         print(e)
     finally :
         print('end')
 
-def manualWorkspaceDraw(colorFrame, colorToDepthFrame, depthFrame, detection_area, colorSlope, cx, cy):
+def manualWorkspaceDraw(colorToDepthFrame, depthFrame, detection_area, colorSlope, cx, cy):
     x_area, y_area, x_area_plus_width, y_area_plus_height = detection_area
 
     try:
@@ -389,7 +388,7 @@ def calibrate(camera, get_lower, get_upper, colorSlope):
 
     #return detection_area, workspace_depth, forced_exiting
 
-def calibrateAPI(colorFrame, colorToDepthFrame, depthFrame, detection_area, get_lower, get_upper, colorSlope, cx, cy, caliMode):
+def calibrateAPI(colorToDepthFrame, depthFrame, detection_area, lower, upper, colorSlope, cx, cy, caliMode):
 
     center_aligned = False # Ponto central tem a cor da calibração
 
@@ -406,10 +405,10 @@ def calibrateAPI(colorFrame, colorToDepthFrame, depthFrame, detection_area, get_
 
         hsv_frame = cv2.cvtColor(colorToDepthFrame, cv2.COLOR_BGR2HSV)
 
-        h_min, s_min, v_min = get_lower
-        h_max, s_max, v_max = get_upper
+        h_min, s_min, v_min = lower
+        h_max, s_max, v_max = upper
 
-        # VERIFICAÇÃO ÁREA WORKSPACE DETETÁVEL NÃO INTERROMPIDA   
+        # VERIFICAÇÃO ÁREA WORKSPACE DETETÁVEL NÃO INTERROMPIDA
 
         if caliMode == "Automatic":
 
@@ -473,7 +472,7 @@ def calibrateAPI(colorFrame, colorToDepthFrame, depthFrame, detection_area, get_
         else:
             center_aligned = False
 
-        # DEPTH
+        # Depth
         
         depthFrame = cv2.resize(depthFrame, (640, 480))
         
@@ -512,8 +511,6 @@ def calibrateAPI(colorFrame, colorToDepthFrame, depthFrame, detection_area, get_
         cv2.rectangle(depthFrame_copy, (x_area, y_area), (x_area_plus_width, y_area_plus_height), (255, 0, 0), 2)
         cv2.rectangle(depthFrame_copy, (x_area + 3, y_area + 3), (x_area_plus_width - 3, y_area_plus_height - 3), (0, 0, 255), 2)
 
-        #cv2.imshow("Depth Image", depthFrame)
-
         if (not workspace_interrupted) and workspace_free:
             workspace_clear = True
         else:
@@ -527,9 +524,7 @@ def calibrateAPI(colorFrame, colorToDepthFrame, depthFrame, detection_area, get_
             workspace_depth = None
 
         key = cv2.waitKey(1)
-        #return detection_area, workspace_depth, forced_exiting
-        #if  key == ord('c'):
-        #    print("----------------------------------------------------------------")
+
         if calibrated is True:
             print("System calibrated successfully!")
             print("Center is aligned")

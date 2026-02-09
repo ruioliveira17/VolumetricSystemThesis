@@ -5,18 +5,11 @@ sys.path.append('C:/Tese/Python')
 from API.VzenseDS_api import *
 import cv2
 
-def volumeAPI(workspace_depth, minimum_depth, box_limits, depths, fx, fy, cx, cy, volumeMode, realVolumeMode):
-    #w_pixels = 0
-    #h_pixels = 0
-    
+def volumeAPI(workspace_depth, minimum_depth, box_limits, depths, fx, fy, cx, cy, volumeMode, realVolumeMode): 
     volume = 0
     width_meters = 0
     height_meters = 0
     i = 0
-
-    #vol = 0
-    #height = 0
-    #width = 0
 
     pts_m = []
     obj_pts_m = []
@@ -127,7 +120,6 @@ def volumeAPI(workspace_depth, minimum_depth, box_limits, depths, fx, fy, cx, cy
             bolume.append(volume)
             if realVolumeMode == "On":
                 realVolume += volume
-
 
         volume = bolume
         width_meters = uidth

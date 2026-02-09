@@ -246,8 +246,6 @@ def hdrAPI():
     hasDepthArray = []
     hasColorArray = []
     exposureTimeArray = []
-    
-    i = 0
 
     DTC_can = False
     D_can = False
@@ -281,8 +279,7 @@ def hdrAPI():
 
             if DTC_can and D_can:
                 exposureTimeArray.append(exposureTime / 1e6)
-                exposureTime += 1900
-                i += 1
+                exposureTime += 950
             
             DTC_can = False
             D_can = False
@@ -317,7 +314,6 @@ def hdrAPI():
         if  hdr_done:
             expositionBus_done = 0
             hdr_done = 0
-            i = 0
             print("HDR Processed")
             camState.camera.VZ_SetExposureTime(VzSensorType.VzToFSensor, c_int32(700))
 
