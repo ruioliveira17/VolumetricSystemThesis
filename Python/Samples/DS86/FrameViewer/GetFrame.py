@@ -7,6 +7,8 @@ from API.VzenseDS_api import *
 from CameraState import camState
 from FrameState import frameState
 
+#import cv2
+
 def getFrame(camera):
     colorToDepthFrame = None
     depthFrame = None 
@@ -60,6 +62,8 @@ def getFrame(camera):
             frametmp.dtype = numpy.uint8
             frametmp.shape = (colorframe.height, colorframe.width,3)
             colorFrame = frametmp.copy()
+            #colorFrame = cv2.resize(colorFrame, (640, 480))
+            #cv2.circle(colorFrame, (int(800/2.5), int(608/2.5)), radius=3, color=(255, 0, 0), thickness=1)
 
         if hasColorToDepth == 1 and hasDepth == 1 and hasColor == 1:
             frameState.colorToDepthFrame = colorToDepthFrame

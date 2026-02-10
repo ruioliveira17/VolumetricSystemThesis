@@ -72,7 +72,7 @@ def is_valid_area(c, min_area = 150):
 
     return True
 
-def bundle(colorToDepthFrame, depthFrame, objects_info, colorSlope, volumeMode):
+def bundle(colorFrame, colorToDepthFrame, depthFrame, objects_info, colorSlope, volumeMode, cx, cy):
     contours = []
     box_ws = []
     box_limits = []
@@ -82,6 +82,7 @@ def bundle(colorToDepthFrame, depthFrame, objects_info, colorSlope, volumeMode):
     object_outOfLine = []
     belongs_to_previous = False
 
+    #colorToDepth_copy = colorFrame.copy()
     colorToDepth_copy = colorToDepthFrame.copy()
 
     if len(objects_info) != 0:
@@ -166,13 +167,20 @@ def bundle(colorToDepthFrame, depthFrame, objects_info, colorSlope, volumeMode):
 
             print("-------------------------------------------------------------------")
 
-    colorToDepth_copy = cv2.resize(colorToDepth_copy, (640, 480))
+    #colorToDepth_copy = cv2.resize(colorToDepth_copy, (640, 480))
+    #Sx = numpy.tan(numpy.radians(70/2)) / numpy.tan(numpy.radians(60/2))
+    #Sy = numpy.tan(numpy.radians(50/2)) / numpy.tan(numpy.radians(45/2))
 
     for obj_id, contour_list in enumerate(contours, start=1):
         for c in contour_list:
             rect = cv2.minAreaRect(c)
             box = cv2.boxPoints(rect)
+            #box_scaled = numpy.copy(box)
+            #box_scaled[:,0] = (box[:,0] - cx) * Sx
+            #box_scaled[:,1] = (box[:,1] - cy) * Sy
+            #box = numpy.round(box_scaled).astype(numpy.int32)
             box = numpy.round(box).astype(numpy.int32)
+            #cv2.drawContours(colorToDepth_copy, [box + [800, 608]], 0, (0, 255, 0), 2)
             cv2.drawContours(colorToDepth_copy, [box], 0, (0, 255, 0), 2)
             idx_y = numpy.argmin(box[:,1])
             idx_x = numpy.argmin(box[:,0])
@@ -186,6 +194,7 @@ def bundle(colorToDepthFrame, depthFrame, objects_info, colorSlope, volumeMode):
                 print("Afast")
                 cv2.putText(colorToDepth_copy, str(obj_id), (x + 10, y + 10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 0), 4, cv2.LINE_AA)
                 cv2.putText(colorToDepth_copy, str(obj_id), (x + 10, y + 10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2, cv2.LINE_AA)
+            colorToDepth_copy = cv2.resize(colorToDepth_copy, (640, 480))
             frameState.colorToDepthFrameObject = colorToDepth_copy
 
     box_limits = [c for contour_list in contours for c in contour_list if c.size > 0]

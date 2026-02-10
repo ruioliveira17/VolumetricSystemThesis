@@ -117,7 +117,7 @@ def openCamera():
             else:
                 print("VZ_SetConfidenceFilterParams failed:"+ str(ret))
         
-            ret, intrParam = camState.camera.VZ_GetSensorIntrinsicParameters()
+            ret, intrParam = camState.camera.VZ_GetSensorIntrinsicParameters(VzSensorType.VzToFSensor)
             if ret != 0:
                 raise RuntimeError("Error obtaining intrinsic parameters!")
             
@@ -130,6 +130,22 @@ def openCamera():
             print("Cy:", camState.cy)
             print("fx:", camState.fx)
             print("fy:", camState.fy)
+
+            ret, intrParam = camState.camera.VZ_GetSensorIntrinsicParameters(VzSensorType.VzColorSensor)
+            if ret != 0:
+                raise RuntimeError("Error obtaining intrinsic parameters!")
+
+            print("Cx:", intrParam.cx)
+            print("Cy:", intrParam.cy)
+            print("fx:", intrParam.fx)
+            print("fy:", intrParam.fy)
+
+            #ret, extrParam = camState.camera.VZ_GetSensorExtrinsicParameters()
+            #if ret != 0:
+            #    raise RuntimeError("Error obtaining intrinsic parameters!")
+            
+            #print("Translation:", list(extrParam.translation))
+            #print("Rotation:", list(extrParam.rotation))
 
             return{"message": "Success"}
 

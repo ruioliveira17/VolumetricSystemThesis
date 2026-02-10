@@ -427,6 +427,11 @@ def hdrExp():
 @app.post("/volumeObj")
 def volume_Obj():
     if frameState.colorToDepthFrameHDR is None or modeState.expositionMode == "Fixed Exposition":
+        colorFrame = frameState.colorFrame
+    else:
+        colorFrame = frameState.colorFrameHDR
+
+    if frameState.colorToDepthFrameHDR is None or modeState.expositionMode == "Fixed Exposition":
         colorToDepthFrame = frameState.colorToDepthFrame
     else:
         colorToDepthFrame = frameState.colorToDepthFrameHDR
@@ -445,7 +450,7 @@ def volume_Obj():
         print("New Min Value", depthState.minimum_value)
 
     if depthState.not_set == 0:
-        depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine = bundle(colorToDepthFrame, depthFrame, depthState.objects_info, camState.colorSlope, modeState.volumeMode)
+        depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine = bundle(colorFrame, colorToDepthFrame, depthFrame, depthState.objects_info, camState.colorSlope, modeState.volumeMode, camState.cx, camState.cy)
         if volumeState.box_limits is not None and len(volumeState.box_limits) > 0:
             volumeState.volume, volumeState.width_meters, volumeState.height_meters = volumeAPI(workspaceState.workspace_depth, depthState.minimum_depth, volumeState.box_limits, volumeState.depths, camState.fx, camState.fy, camState.cx, camState.cy, modeState.volumeMode, modeState.realVolumeMode)
         else:
