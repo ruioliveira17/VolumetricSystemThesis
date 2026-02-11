@@ -94,7 +94,7 @@ def mask(camera, get_lower, get_upper, colorSlope):
     finally :
         print('end')
 
-def maskAPI(colorToDepthFrame, depthFrame, lower, upper, color, colorSlope, cx, cy):
+def maskAPI(colorToDepthFrame, depthFrame, lower, upper, color, colorSlope, cx_d, cy_d):
     detection_area = None
     x_area = None
     y_area = None
@@ -136,7 +136,7 @@ def maskAPI(colorToDepthFrame, depthFrame, lower, upper, color, colorSlope, cx, 
 
         # PONTO CENTRAL
         
-        cv2.circle(colorToDepthFrame_copy, (cx, cy), radius=3, color=(255, 0, 0), thickness=1)
+        cv2.circle(colorToDepthFrame_copy, (cx_d, cy_d), radius=3, color=(255, 0, 0), thickness=1)
 
         depthFrame = cv2.resize(depthFrame, (640, 480))
        
@@ -160,7 +160,7 @@ def maskAPI(colorToDepthFrame, depthFrame, lower, upper, color, colorSlope, cx, 
     finally :
         print('end')
 
-def manualWorkspaceDraw(colorToDepthFrame, depthFrame, detection_area, colorSlope, cx, cy):
+def manualWorkspaceDraw(colorToDepthFrame, depthFrame, detection_area, colorSlope, cx_d, cy_d):
     x_area, y_area, x_area_plus_width, y_area_plus_height = detection_area
 
     try:
@@ -173,7 +173,7 @@ def manualWorkspaceDraw(colorToDepthFrame, depthFrame, detection_area, colorSlop
 
         # PONTO CENTRAL
         
-        cv2.circle(colorToDepthFrame_copy, (cx, cy), radius=3, color=(255, 0, 0), thickness=1)
+        cv2.circle(colorToDepthFrame_copy, (cx_d, cy_d), radius=3, color=(255, 0, 0), thickness=1)
 
         depthFrame = cv2.resize(depthFrame, (640, 480))
        
@@ -388,7 +388,7 @@ def calibrate(camera, get_lower, get_upper, colorSlope):
 
     #return detection_area, workspace_depth, forced_exiting
 
-def calibrateAPI(colorToDepthFrame, depthFrame, detection_area, lower, upper, colorSlope, cx, cy, caliMode):
+def calibrateAPI(colorToDepthFrame, depthFrame, detection_area, lower, upper, colorSlope, cx_d, cy_d, caliMode):
 
     center_aligned = False # Ponto central tem a cor da calibração
 
@@ -467,7 +467,7 @@ def calibrateAPI(colorToDepthFrame, depthFrame, detection_area, lower, upper, co
         center_y_max = y_area + ((y_area_plus_height - y_area)/2) + 5
         center_y_min = y_area + ((y_area_plus_height - y_area)/2) - 5
 
-        if (cx <= center_x_max) and (cx >= center_x_min) and (cy <= center_y_max) and (cy >= center_y_min):
+        if (cx_d <= center_x_max) and (cx_d >= center_x_min) and (cy_d <= center_y_max) and (cy_d >= center_y_min):
             center_aligned = True
         else:
             center_aligned = False
@@ -478,7 +478,7 @@ def calibrateAPI(colorToDepthFrame, depthFrame, detection_area, lower, upper, co
         
         # Profundidade "Centro"
 
-        workspace_center_neighbors = depthFrame[max(0, cy-3):cy+4, max(0, cx-3):cx+4]
+        workspace_center_neighbors = depthFrame[max(0, cy_d-3):cy_d+4, max(0, cx_d-3):cx_d+4]
         centerDepth_valid_values = workspace_center_neighbors[(workspace_center_neighbors >= 150) & (workspace_center_neighbors <= colorSlope)]
         if centerDepth_valid_values.size > 0:
             workspace_depth = numpy.mean(centerDepth_valid_values)
@@ -491,11 +491,15 @@ def calibrateAPI(colorToDepthFrame, depthFrame, detection_area, lower, upper, co
             avg_depth = numpy.mean(valid_values) # média da profundidade
             print("Avg Depth:", avg_depth)
             print("Workspace Depth", workspace_depth)
-            count = numpy.sum(numpy.abs(valid_values - workspace_depth) <= 10)
+            #count = numpy.sum(numpy.abs(valid_values - workspace_depth) <= 10)
+            count = numpy.sum(numpy.abs(valid_values - workspace_depth) <= 15)
+            #print("AAAA:", numpy.abs(valid_values - workspace_depth) <= 15)
+            print("Count:", count)
+            print("Size:", valid_values.size)
             proportion_valid = count / valid_values.size
             print("Proporção Profundidade:", proportion_valid)
 
-            if proportion_valid >= 0.9:
+            if proportion_valid >= 0.85:
                 workspace_free = True
                 workspace_depth = avg_depth
             else:

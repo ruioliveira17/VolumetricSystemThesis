@@ -7,8 +7,6 @@ class FrameState:
         self.depthFrameCopy = None
         self.res = None
         self.colorToDepthFrameObject = None
-        self.colorToDepthFrameObjects = None
-        #self.depthFrameObject = None
         self.colorFrameHDR = None
         self.colorToDepthFrameHDR = None
         self.depthFrameHDR = None

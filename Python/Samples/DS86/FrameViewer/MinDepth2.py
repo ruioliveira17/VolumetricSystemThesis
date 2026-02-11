@@ -93,7 +93,7 @@ def MinDepth(hdrDepth, colorSlope, threshold, workspace, workspace_depth, not_se
 
     return not_set, objects_info
 
-def MinDepthAPI(depthFrame, detection_area, workspace_depth, threshold, not_set, cx, cy, fx, fy):
+def MinDepthAPI(depthFrame, detection_area, workspace_depth, threshold, not_set, cx_d, cy_d, fx_d, fy_d):
     depth_copy = depthFrame.copy()
 
     objects_info = []
@@ -131,13 +131,13 @@ def MinDepthAPI(depthFrame, detection_area, workspace_depth, threshold, not_set,
                             if len(objects_info) == 0 or abs(min_value - objects_info[-1]["depth"]) > threshold:
                                 print(f"Ponto {min_idx} válido, todos vizinhos semelhantes")
                                 print("Profundidade:", min_value)
-                                half_width_px = (workspace_width_m / 2) * fx / (object_depth / 1000.0)
-                                half_height_px = (workspace_height_m / 2) * fy / (object_depth / 1000.0)
-                                warning_half_width_px = ((workspace_width_m - 0.022) / 2) * fx / (object_depth / 1000.0)
-                                warning_half_height_px = ((workspace_height_m - 0.022) / 2) * fy / (object_depth / 1000.0)
+                                half_width_px = (workspace_width_m / 2) * fx_d / (object_depth / 1000.0)
+                                half_height_px = (workspace_height_m / 2) * fy_d / (object_depth / 1000.0)
+                                warning_half_width_px = ((workspace_width_m - 0.022) / 2) * fx_d / (object_depth / 1000.0)
+                                warning_half_height_px = ((workspace_height_m - 0.022) / 2) * fy_d / (object_depth / 1000.0)
 
-                                workspace_limits = int(cx - half_width_px), int(cy - half_height_px), int(cx + half_width_px), int(cy + half_height_px)
-                                workspace_warning = int(cx - warning_half_width_px), int(cy - warning_half_height_px), int(cx + warning_half_width_px), int(cy + warning_half_height_px)
+                                workspace_limits = int(cx_d - half_width_px), int(cy_d - half_height_px), int(cx_d + half_width_px), int(cy_d + half_height_px)
+                                workspace_warning = int(cx_d - warning_half_width_px), int(cy_d - warning_half_height_px), int(cx_d + warning_half_width_px), int(cy_d + warning_half_height_px)
                                 print("Width:", half_width_px)
                                 print("Height:", half_height_px)
                                 print("WS Limits:", workspace_limits)

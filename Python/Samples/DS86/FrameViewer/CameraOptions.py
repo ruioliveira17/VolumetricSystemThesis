@@ -121,24 +121,29 @@ def openCamera():
             if ret != 0:
                 raise RuntimeError("Error obtaining intrinsic parameters!")
             
-            camState.fx = intrParam.fx
-            camState.fy = intrParam.fy
-            camState.cx = intrParam.cx
-            camState.cy = intrParam.cy
+            camState.fx_d = intrParam.fx
+            camState.fy_d = intrParam.fy
+            camState.cx_d = intrParam.cx
+            camState.cy_d = intrParam.cy
 
-            print("Cx:", camState.cx)
-            print("Cy:", camState.cy)
-            print("fx:", camState.fx)
-            print("fy:", camState.fy)
+            print("Cx Depth:", camState.cx_d)
+            print("Cy Depth:", camState.cy_d)
+            print("fx Depth:", camState.fx_d)
+            print("fy Depth:", camState.fy_d)
 
             ret, intrParam = camState.camera.VZ_GetSensorIntrinsicParameters(VzSensorType.VzColorSensor)
             if ret != 0:
                 raise RuntimeError("Error obtaining intrinsic parameters!")
 
-            print("Cx:", intrParam.cx)
-            print("Cy:", intrParam.cy)
-            print("fx:", intrParam.fx)
-            print("fy:", intrParam.fy)
+            camState.fx_rgb = intrParam.fx
+            camState.fy_rgb = intrParam.fy
+            camState.cx_rgb = intrParam.cx
+            camState.cy_rgb = intrParam.cy
+
+            print("Cx RGB:", camState.cx_rgb)
+            print("Cy RGB:", camState.cy_rgb)
+            print("fx RGB:", camState.fx_rgb)
+            print("fy RGB:", camState.fy_rgb)
 
             #ret, extrParam = camState.camera.VZ_GetSensorExtrinsicParameters()
             #if ret != 0:

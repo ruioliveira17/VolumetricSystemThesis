@@ -4,12 +4,12 @@ from fastapi.responses import JSONResponse
 from typing import Optional, List
 from pydantic import BaseModel
 from API.VzenseDS_api import *
-from Bundle2 import bundle
+from Bundle2 import bundleIdentifier, objIdentifier
 from CalibrationDefTkinter import calibrateAPI, maskAPI, manualWorkspaceDraw
 from CameraOptions import statusCamera
 from GetFrame import getFrame
 from MinDepth2 import MinDepthAPI
-from VolumeTkinter import volumeAPI
+from VolumeTkinter import volumeBundleAPI, volumeRealAPI
 from CameraState import camState
 from color_presets import COLOR_PRESETS
 from DepthState import depthState
@@ -164,13 +164,6 @@ def get_ColorToDepth_Frame_Object():
 
     return Response(content=frameState.colorToDepthFrameObject.tobytes(), media_type="application/octet-stream")
 
-@app.get("/getFrame/colorToDepthObjects")
-def get_ColorToDepth_Frame_Objects():
-    if frameState.colorToDepthFrameObject is None:
-        raise HTTPException(status_code=404, detail="Frame not available")
-
-    return Response(content=frameState.colorToDepthFrameObjects.tobytes(), media_type="application/octet-stream")
-
 @app.get("/getFrame/HDRcolor")
 def get_Color_HDRFrame():
     if frameState.colorFrameHDR is None:
@@ -285,7 +278,7 @@ def apply_mask(data: HSVValue):
     else:
         depthFrame = frameState.depthFrameHDR
 
-    result, colorToDepthFrame_copy, depthFrame_copy, detection_area = maskAPI(colorToDepthFrame, depthFrame, lower, upper, maskState.color, camState.colorSlope, int(camState.cx), int(camState.cy))
+    result, colorToDepthFrame_copy, depthFrame_copy, detection_area = maskAPI(colorToDepthFrame, depthFrame, lower, upper, maskState.color, camState.colorSlope, int(camState.cx_d), int(camState.cy_d))
 
     if result is None or colorToDepthFrame_copy is None or depthFrame_copy is None:
         return{"message:": "Mask application failed!"}
@@ -312,7 +305,7 @@ def apply_manualWS(data: ManualWorkspace):
 
     detection_area = data.detection_area
 
-    colorToDepthFrame_copy, depthFrame_copy, detection_area = manualWorkspaceDraw(colorToDepthFrame, depthFrame, detection_area, camState.colorSlope, int(camState.cx), int(camState.cy))
+    colorToDepthFrame_copy, depthFrame_copy, detection_area = manualWorkspaceDraw(colorToDepthFrame, depthFrame, detection_area, camState.colorSlope, int(camState.cx_d), int(camState.cy_d))
 
     frameState.colorToDepthFrameCopy = colorToDepthFrame_copy
     frameState.depthFrameCopy = depthFrame_copy
@@ -340,7 +333,7 @@ def calibrate(data: HSVValue):
     else:
         depthFrame = frameState.depthFrameHDR
 
-    detection_area, workspace_depth, center_aligned, workspace_clear = calibrateAPI(colorToDepthFrame, depthFrame, workspaceState.detection_area, lower, upper, camState.colorSlope, int(camState.cx), int(camState.cy), modeState.calibrationMode)
+    detection_area, workspace_depth, center_aligned, workspace_clear = calibrateAPI(colorToDepthFrame, depthFrame, workspaceState.detection_area, lower, upper, camState.colorSlope, int(camState.cx_d), int(camState.cy_d), modeState.calibrationMode)
 
     if detection_area is None or workspace_depth is None:
         workspaceState.center_aligned = center_aligned
@@ -424,8 +417,8 @@ def hdrExp():
 
 #------------------------------------------------------- Volume -------------------------------------------------------
 
-@app.post("/volumeObj")
-def volume_Obj():
+@app.post("/volumeBundle")
+def volume_Bundle():
     if frameState.colorToDepthFrameHDR is None or modeState.expositionMode == "Fixed Exposition":
         colorFrame = frameState.colorFrame
     else:
@@ -441,7 +434,7 @@ def volume_Obj():
     else:
         depthFrame = frameState.depthFrameHDR
 
-    depthState.not_set, depthState.objects_info = MinDepthAPI(depthFrame, workspaceState.detection_area, workspaceState.workspace_depth, depthState.threshold, depthState.not_set, camState.cx, camState.cy, camState.fx, camState.fy)
+    depthState.not_set, depthState.objects_info = MinDepthAPI(depthFrame, workspaceState.detection_area, workspaceState.workspace_depth, depthState.threshold, depthState.not_set, camState.cx_d, camState.cy_d, camState.fx_d, camState.fy_d)
 
     if depthState.objects_info is not None and len(depthState.objects_info) != 0:
         depthState.minimum_depth = depthState.objects_info[0]["depth"]
@@ -450,9 +443,9 @@ def volume_Obj():
         print("New Min Value", depthState.minimum_value)
 
     if depthState.not_set == 0:
-        depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine = bundle(colorFrame, colorToDepthFrame, depthFrame, depthState.objects_info, camState.colorSlope, modeState.volumeMode, camState.cx, camState.cy)
+        depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine = bundleIdentifier(colorFrame, colorToDepthFrame, depthFrame, depthState.objects_info, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb)
         if volumeState.box_limits is not None and len(volumeState.box_limits) > 0:
-            volumeState.volume, volumeState.width_meters, volumeState.height_meters = volumeAPI(workspaceState.workspace_depth, depthState.minimum_depth, volumeState.box_limits, volumeState.depths, camState.fx, camState.fy, camState.cx, camState.cy, modeState.volumeMode, modeState.realVolumeMode)
+            volumeState.volume, volumeState.width_meters, volumeState.height_meters = volumeBundleAPI(workspaceState.workspace_depth, depthState.minimum_depth, volumeState.box_limits, volumeState.depths, camState.fx_d, camState.fy_d, camState.cx_d, camState.cy_d)
         else:
             volumeState.volume = 0
             volumeState.width_meters = 0
@@ -482,38 +475,63 @@ def volume_Obj():
         "ws_depth": workspaceState.workspace_depth / 10
     }
 
-@app.get("/volumeMode")
-def get_volMode():
+@app.post("/volumeReal")
+def volume_Real():
+    if frameState.colorToDepthFrameHDR is None or modeState.expositionMode == "Fixed Exposition":
+        colorFrame = frameState.colorFrame
+    else:
+        colorFrame = frameState.colorFrameHDR
+
+    if frameState.colorToDepthFrameHDR is None or modeState.expositionMode == "Fixed Exposition":
+        colorToDepthFrame = frameState.colorToDepthFrame
+    else:
+        colorToDepthFrame = frameState.colorToDepthFrameHDR
+
+    if frameState.depthFrameHDR is None or modeState.expositionMode == "Fixed Exposition":
+        depthFrame = frameState.depthFrame
+    else:
+        depthFrame = frameState.depthFrameHDR
+
+    depthState.not_set, depthState.objects_info = MinDepthAPI(depthFrame, workspaceState.detection_area, workspaceState.workspace_depth, depthState.threshold, depthState.not_set, camState.cx_d, camState.cy_d, camState.fx_d, camState.fy_d)
+
+    if depthState.objects_info is not None and len(depthState.objects_info) != 0:
+        depthState.minimum_depth = depthState.objects_info[0]["depth"]
+        depthState.minimum_value = depthState.minimum_depth
+
+        print("New Min Value", depthState.minimum_value)
+
+    if depthState.not_set == 0:
+        depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine = objIdentifier(colorFrame, colorToDepthFrame, depthFrame, depthState.objects_info, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb)
+        if volumeState.box_limits is not None and len(volumeState.box_limits) > 0:
+            volumeState.volume, volumeState.width_meters, volumeState.height_meters = volumeRealAPI(workspaceState.workspace_depth, depthState.minimum_depth, volumeState.box_limits, volumeState.depths, camState.fx_d, camState.fy_d, camState.cx_d, camState.cy_d)
+        else:
+            volumeState.volume = 0
+            volumeState.width_meters = 0
+            volumeState.height_meters = 0
+            depthState.minimum_depth = workspaceState.workspace_depth
+    else:
+        volumeState.volume = 0
+        volumeState.width_meters = 0
+        volumeState.height_meters = 0
+        depthState.minimum_depth = workspaceState.workspace_depth
+
+    if isinstance(volumeState.width_meters, list):
+        volumeState.width_meters = [w * 100 for w in volumeState.width_meters]
+    else:
+        volumeState.width_meters = volumeState.width_meters * 100
+
+    if isinstance(volumeState.height_meters, list):
+        volumeState.height_meters = [w * 100 for w in volumeState.height_meters]
+    else:
+        volumeState.height_meters = volumeState.height_meters * 100
+
     return{
-        "Volume Mode": modeState.volumeMode,
+        "volume": volumeState.volume,
+        "width": volumeState.width_meters,
+        "height": volumeState.height_meters,
+        "depth": depthState.minimum_depth / 10,
+        "ws_depth": workspaceState.workspace_depth / 10
     }
-
-@app.post("/volumeMode/singular")
-def singularMode():
-    modeState.volumeMode = "Singular"
-    modeState.realVolumeMode = "Off"
-    return {"Volume Mode:": modeState.volumeMode}
-
-@app.post("/volumeMode/bundle")
-def bundleMode():
-    modeState.volumeMode = "Bundle"
-    return {"Volume Mode:": modeState.volumeMode}
-
-@app.get("/realVolumeMode")
-def get_realVolMode():
-    return{
-        "Real Volume Mode": modeState.realVolumeMode,
-    }
-
-@app.post("/realVolumeMode/off")
-def realVolOff():
-    modeState.realVolumeMode = "Off"
-    return {"Real Volume Mode:": modeState.realVolumeMode}
-
-@app.post("/realVolumeMode/on")
-def realVolOn():
-    modeState.realVolumeMode = "On"
-    return {"Real Volume Mode:": modeState.realVolumeMode}
 
 #------------------------------------------------------- Debug -------------------------------------------------------
 

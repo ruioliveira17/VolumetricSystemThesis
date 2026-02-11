@@ -140,8 +140,8 @@ def calibrate_click():
         caliError_label.configure(text=f"{TextError}")
         pass
 
-def volume_click():
-    global volume_value_label, x_length_value_label, y_length_value_label, height_value_label, objOutOfLine_label, objOption_menuID
+def volumeBundle_click():
+    global volume_value_label, volume_value_cm_label, x_length_value_label, y_length_value_label, height_value_label, objOutOfLine_label, objOption_menuID
     TextOutOfLine = "Objects are not inside the outline made by the yellow lines. A bigger error may be induced"
     TextError = "Error"
     TextClear = ""
@@ -151,7 +151,7 @@ def volume_click():
                 canvas_volume.delete(objOption_menuID)
                 objOption_menuID = None
     
-        r = requests.post("http://127.0.0.1:8000/volumeObj", timeout=5)
+        r = requests.post("http://127.0.0.1:8000/volumeBundle", timeout=5)
         data = r.json()
 
         volume = data["volume"]
@@ -160,16 +160,13 @@ def volume_click():
         min_depth = data["depth"]
         ws_depth = data["ws_depth"]
 
-        r = requests.get("http://127.0.0.1:8000/volumeMode", timeout=0.2)
-        volumeMode = r.json()["Volume Mode"]
+        height_obj = ws_depth - min_depth
 
-        if volumeMode == "Bundle":
-            height_obj = ws_depth - min_depth
-
-            volume_value_label.configure(text=f"{volume:.6f} m³")
-            x_length_value_label.configure(text=f"{width:.1f} cm")
-            y_length_value_label.configure(text=f"{height:.1f} cm")
-            height_value_label.configure(text=f"{height_obj:.1f} cm")   
+        volume_value_label.configure(text=f"{volume:.6f} m³")
+        volume_value_cm_label.configure(text=f"{(volume*1000000.0):.2f} cm³")
+        x_length_value_label.configure(text=f"{width:.1f} cm")
+        y_length_value_label.configure(text=f"{height:.1f} cm")
+        height_value_label.configure(text=f"{height_obj:.1f} cm")   
 
         objects_outOfLineIdx = [i+1 for i, val in enumerate(volumeState.objects_outOfLine) if val]
 
@@ -199,48 +196,92 @@ def volume_click():
             objecttk_img = ImageTk.PhotoImage(pil_obj)
             canvas_volume.tk_object = objecttk_img
 
-            current_canvas.create_image(1500, 400, image=objecttk_img, anchor="center")
+            current_canvas.create_image(1500, 615, image=objecttk_img, anchor="center")  
+            
+    except requests.exceptions.RequestException:
+        volume_value_label.configure(text=f"{TextError}")
+        volume_value_cm_label.configure(text=f"{TextError}")
+        x_length_value_label.configure(text=f"{TextError}")
+        y_length_value_label.configure(text=f"{TextError}")
+        height_value_label.configure(text=f"{TextError}")
 
-        objectsIdentified = [f"Objeto {i+1}" for i in range(len(volumeState.depths))]
+        objOutOfLine_label.configure(text=f"{TextError}")
+
+        print("Erro ao atualizar volume!")
+        pass
+    except ValueError as e:
+        print("Erro:", e)
+        pass
+
+def volumeReal_click():
+    global volume_value_label, volume_value_cm_label, x_length_value_label, y_length_value_label, height_value_label, objOutOfLine_label, objOption_menuID
+    TextOutOfLine = "Objects are not inside the outline made by the yellow lines. A bigger error may be induced"
+    TextError = "Error"
+    TextClear = ""
+
+    try:
+        volume_value_label.configure(text=f"{TextClear}")
+        volume_value_cm_label.configure(text=f"{TextClear}")
+        x_length_value_label.configure(text=f"{TextClear}")
+        y_length_value_label.configure(text=f"{TextClear}")
+        height_value_label.configure(text=f"{TextClear}")
+
+        if objOption_menuID is not None:
+                canvas_volume.delete(objOption_menuID)
+                objOption_menuID = None
+    
+        r = requests.post("http://127.0.0.1:8000/volumeReal", timeout=5)
+        data = r.json()
+
+        volume = data["volume"]
+        width = data["width"]
+        height = data["height"]
+        min_depth = data["depth"]
+        ws_depth = data["ws_depth"]
+
+        objects_outOfLineIdx = [i+1 for i, val in enumerate(volumeState.objects_outOfLine) if val]
+
+        if objects_outOfLineIdx:
+            indexes_str = ", ".join(str(idx) for idx in objects_outOfLineIdx)
+            objOutOfLine_label.configure(text=f"{TextOutOfLine}\nOut-of-line object(s): {indexes_str}")
+        else:
+            objOutOfLine_label.configure(text=f"{TextClear}")
+
+        data = requests.get("http://127.0.0.1:8000/getFrame/colorToDepthObject")
+
+        if data.status_code == 404:
+            raise ValueError("Frame not Available")
+        else:
+            colorToDepthObjectFrame = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(colorToDepth_shape)
+
+            if colorToDepthObjectFrame.dtype != numpy.uint8:
+                # Normaliza para 0-255 e converte para uint8
+                frame_uint8 = (numpy.clip(colorToDepthObjectFrame, 0, 1) * 255).astype(numpy.uint8)
+            else:
+                frame_uint8 = colorToDepthObjectFrame
+
+            frame_object = frame_uint8[:, :, ::-1]  # se BGR
+
+            pil_obj = Image.fromarray(frame_object)
+            pil_obj = pil_obj.resize((560, 420), Image.LANCZOS)
+            objecttk_img = ImageTk.PhotoImage(pil_obj)
+            canvas_volume.tk_object = objecttk_img
+
+            current_canvas.create_image(1500, 615, image=objecttk_img, anchor="center")
+
+        objectsIdentified = [f"Objeto {i+1}" for i in range(len(volumeState.depths))] + ["Total"]
 
         objOption_var = tk.StringVar(canvas_volume)
         objOption_var.set("Select an Object")
         objOption_menu = tk.OptionMenu(canvas_volume, objOption_var, *objectsIdentified, command=lambda option: showObjectInfo(option, volume, width, height, min_depth, ws_depth))
         objOption_menu.config(width=27, font=("Arial", 15))
 
-        if volumeMode == "Bundle":
-            data = requests.get("http://127.0.0.1:8000/getFrame/colorToDepthObjects")
-
-            if data.status_code == 404:
-                raise ValueError("Frame not Available")
-            else:
-                colorToDepthObjectsFrame = numpy.frombuffer(data.content, dtype=numpy.uint8).reshape(colorToDepth_shape)
-
-                if colorToDepthObjectsFrame.dtype != numpy.uint8:
-                    # Normaliza para 0-255 e converte para uint8
-                    frame_uint8 = (numpy.clip(colorToDepthObjectsFrame, 0, 1) * 255).astype(numpy.uint8)
-                else:
-                    frame_uint8 = colorToDepthObjectsFrame
-
-                frame_objects = frame_uint8[:, :, ::-1]  # se BGR
-
-                pil_objs = Image.fromarray(frame_objects)
-                pil_objs = pil_objs.resize((560, 420), Image.LANCZOS)
-                objectstk_img = ImageTk.PhotoImage(pil_objs)
-                canvas_volume.tk_objects = objectstk_img
-
-                canvas_volume.image_bundleID = current_canvas.create_image(1500, 830, image=objectstk_img, anchor="center", tags="bundle_image")
-
-        else:
-            if hasattr(canvas_volume, "image_bundleID"):
-                current_canvas.delete(canvas_volume.image_bundleID)
-                del canvas_volume.image_bundleID
-
-            objOption_menuID = canvas_volume.create_window(800, 200, anchor="nw", window=objOption_menu)
+        objOption_menuID = canvas_volume.create_window(800, 200, anchor="nw", window=objOption_menu)
             
             
     except requests.exceptions.RequestException:
         volume_value_label.configure(text=f"{TextError}")
+        volume_value_cm_label.configure(text=f"{TextError}")
         x_length_value_label.configure(text=f"{TextError}")
         y_length_value_label.configure(text=f"{TextError}")
         height_value_label.configure(text=f"{TextError}")
@@ -335,20 +376,6 @@ def StaticDynamic_toggle():
         requests.post("http://127.0.0.1:8000/mode/dynamic")
     else:
         requests.post("http://127.0.0.1:8000/mode/static")
-
-def SingularBundle_toggle():
-    if SingularBundle_var.get():
-        RealVolume_switch.configure(state="normal")
-        requests.post("http://127.0.0.1:8000/volumeMode/bundle")
-    else:
-        RealVolume_switch.configure(state="disabled")
-        requests.post("http://127.0.0.1:8000/volumeMode/singular")
-
-def RealVolume_toggle():
-    if RealVolume_var.get():
-        requests.post("http://127.0.0.1:8000/realVolumeMode/on")
-    else:
-        requests.post("http://127.0.0.1:8000/realVolumeMode/off")
 
 def DebugMode_toggle():
     if DebugMode_var.get():
@@ -525,18 +552,27 @@ def key_pressed(event):
         pass
 
 def showObjectInfo(obj, volume, width, height, min_depth, ws_depth):
-    global volume_value_label, x_length_value_label, y_length_value_label, height_value_label
+    global volume_value_label, volume_value_cm_label, x_length_value_label, y_length_value_label, height_value_label
+    TextClear = ""
 
     depths = volumeState.depths
 
-    idx = int(obj.split()[1]) - 1
+    if obj == "Total":
+        volume_value_label.configure(text=f"{volume[-1]:.6f} m³")
+        volume_value_cm_label.configure(text=f"{(volume[-1]*1000000.0):.2f} cm³")
+        x_length_value_label.configure(text=f"{TextClear}")
+        y_length_value_label.configure(text=f"{TextClear}")
+        height_value_label.configure(text=f"{TextClear}") 
+    else:
+        idx = int(obj.split()[1]) - 1
 
-    height_obj = ws_depth - depths[idx]/10
+        height_obj = ws_depth - depths[idx]/10
 
-    volume_value_label.configure(text=f"{volume[idx]:.6f} m³")
-    x_length_value_label.configure(text=f"{width[idx]:.1f} cm")
-    y_length_value_label.configure(text=f"{height[idx]:.1f} cm")
-    height_value_label.configure(text=f"{height_obj:.1f} cm")   
+        volume_value_label.configure(text=f"{volume[idx]:.6f} m³")
+        volume_value_cm_label.configure(text=f"{(volume[idx]*1000000.0):.2f} cm³")
+        x_length_value_label.configure(text=f"{width[idx]:.1f} cm")
+        y_length_value_label.configure(text=f"{height[idx]:.1f} cm")
+        height_value_label.configure(text=f"{height_obj:.1f} cm")   
 
 
 # Deactivate windows automatic dpi scale
@@ -714,13 +750,15 @@ canvas_volume.create_image(10, 10, anchor='nw', image=BM_logo_tk_volume)
 
 #-----------------------------------------------------------------
 
-volume_button = tk.Button(canvas_volume, text="Get Volume", font=("Arial", 20), width=25, height=1, command=volume_click)
-canvas_volume.create_window(780, 850, anchor="nw", window=volume_button)
+volumeReal_button = tk.Button(canvas_volume, text="Get Real Volume", font=("Arial", 20), width=25, height=1, command=volumeReal_click)
+canvas_volume.create_window(780, 850, anchor="nw", window=volumeReal_button)
+
+volumeBundle_button = tk.Button(canvas_volume, text="Get Bundle Volume", font=("Arial", 20), width=25, height=1, command=volumeBundle_click)
+canvas_volume.create_window(780, 920, anchor="nw", window=volumeBundle_button)
 
 volume_label = customtkinter.CTkLabel(canvas_volume, text="Volume:", text_color="black", font=("Arial", 36))
-#volume_label.place(x=800, y=280)
-realVolume_label = customtkinter.CTkLabel(canvas_volume, text="Real Vol:", text_color="black", font=("Arial", 36))
-#realVolume_label.place(x=800, y=280)
+volume_label.place(x=800, y=280)
+
 x_length_label = customtkinter.CTkLabel(canvas_volume, text="X:", text_color="black", font=("Arial", 36))
 x_length_label.place(x=800, y=430)
 y_length_label = customtkinter.CTkLabel(canvas_volume, text="Y:", text_color="black", font=("Arial", 36))
@@ -730,8 +768,8 @@ height_label.place(x=800, y=730)
 
 volume_value_label = customtkinter.CTkLabel(canvas_volume, text="", text_color="black", font=("Arial", 36))
 volume_value_label.place(x=950, y=280)
-realVolume_value_label = customtkinter.CTkLabel(canvas_volume, text="", text_color="black", font=("Arial", 36))
-realVolume_value_label.place(x=950, y=280)
+volume_value_cm_label = customtkinter.CTkLabel(canvas_volume, text="", text_color="black", font=("Arial", 36))
+volume_value_cm_label.place(x=950, y=330)
 x_length_value_label = customtkinter.CTkLabel(canvas_volume, text="", text_color="black", font=("Arial", 36))
 x_length_value_label.place(x=950, y=430)
 y_length_value_label = customtkinter.CTkLabel(canvas_volume, text="", text_color="black", font=("Arial", 36))
@@ -829,34 +867,6 @@ label_static = tk.Label(canvas_config, text="Static", bg="white", font=("Arial",
 label_dynamic = tk.Label(canvas_config, text="Dynamic", bg="white", font=("Arial", 20))
 canvas_config.create_window(200, 500, anchor="nw", window=label_static)
 canvas_config.create_window(410, 500, anchor="nw", window=label_dynamic)
-
-#-------------------- Singular / Bundle Toggle --------------------
-
-SingularBundle_var = customtkinter.BooleanVar(value=False)
-
-SingularBundle_switch = customtkinter.CTkSwitch(canvas_config, text="", variable=SingularBundle_var, onvalue=True, offvalue=False, command=SingularBundle_toggle, switch_width=100, switch_height=50, fg_color="turquoise1", progress_color="dark turquoise", button_color="gray65", button_hover_color="gray45")
-canvas_config.create_window(310, 595, anchor="nw", window=SingularBundle_switch)
-
-label_single = tk.Label(canvas_config, text="Singular", bg="white", font=("Arial", 20))
-label_bundle = tk.Label(canvas_config, text="Bundle", bg="white", font=("Arial", 20))
-canvas_config.create_window(200, 600, anchor="nw", window=label_single)
-canvas_config.create_window(410, 600, anchor="nw", window=label_bundle)
-
-#-------------------- Real Volume Mode Toggle --------------------
-
-RealVolume_var = customtkinter.BooleanVar(value=False)
-
-RealVolume_switch = customtkinter.CTkSwitch(canvas_config, text="", variable=RealVolume_var, onvalue=True, offvalue=False, command=RealVolume_toggle, switch_width=100, switch_height=50, fg_color="turquoise1", progress_color="dark turquoise", button_color="gray65", button_hover_color="gray45")
-RealVolume_switch.configure(state="disabled")
-canvas_config.create_window(310, 745, anchor="nw", window=RealVolume_switch)
-
-label_realVolumeMode = tk.Label(canvas_config, text="Real Volume", bg="white", font=("Arial", 20))
-canvas_config.create_window(360, 700, anchor="center", window=label_realVolumeMode)
-
-label_realVolumeOff = tk.Label(canvas_config, text="Off", bg="white", font=("Arial", 20))
-label_realVolumeOn = tk.Label(canvas_config, text="On", bg="white", font=("Arial", 20))
-canvas_config.create_window(250, 750, anchor="nw", window=label_realVolumeOff)
-canvas_config.create_window(420, 750, anchor="nw", window=label_realVolumeOn)
 
 #----------------------- Debug Mode Toggle -----------------------
 
@@ -1097,12 +1107,12 @@ def update_camera_feed():
     #-------------------------------------------------------------  Volume  ------------------------------------------------------------------------
 
     if current_canvas is canvas_volume:
-        global volume_value_label, x_length_value_label, y_length_value_label, height_value_label, objOutOfLine_label
+        global volume_value_label, volume_value_cm_label, x_length_value_label, y_length_value_label, height_value_label, objOutOfLine_label
         TextOutOfLine = "Objects are not inside the outline made by the yellow lines. A bigger error may be induced"
         TextError = "Error"
         TextClear = ""
 
-        r = requests.get("http://127.0.0.1:8000/volumeMode", timeout=0.2)
+        """r = requests.get("http://127.0.0.1:8000/volumeMode", timeout=0.2)
         volumeMode = r.json()["Volume Mode"]
 
         r = requests.get("http://127.0.0.1:8000/realVolumeMode", timeout=0.2)
@@ -1113,7 +1123,7 @@ def update_camera_feed():
             realVolume_label.place(x=800, y=280)
         if realVolumeMode == "Off":
             realVolume_label.place_forget()
-            volume_label.place(x=800, y=280)
+            volume_label.place(x=800, y=280)"""
 
         r = requests.get("http://127.0.0.1:8000/expositionMode", timeout=0.2)
         expositionMode = r.json()["Exposition Mode"]
@@ -1147,13 +1157,13 @@ def update_camera_feed():
                 min_depth = data["depth"]
                 ws_depth = data["ws_depth"]
 
-                if volumeMode == "Bundle":
+                """if volumeMode == "Bundle":
                     height_obj = ws_depth - min_depth
 
                     volume_value_label.configure(text=f"{volume:.6f} m³")
                     x_length_value_label.configure(text=f"{width:.1f} cm")
                     y_length_value_label.configure(text=f"{height:.1f} cm")
-                    height_value_label.configure(text=f"{height_obj:.1f} cm")   
+                    height_value_label.configure(text=f"{height_obj:.1f} cm")"""   
 
                 objects_outOfLineIdx = [i+1 for i, val in enumerate(volumeState.objects_outOfLine) if val]
 
@@ -1193,7 +1203,7 @@ def update_camera_feed():
                 objOption_menu = tk.OptionMenu(canvas_volume, objOption_var, *objectsIdentified, command=lambda option: showObjectInfo(option, volume, width, height, min_depth, ws_depth))
                 objOption_menu.config(width=27, font=("Arial", 15))
 
-                if volumeMode == "Bundle":
+                """if volumeMode == "Bundle":
                     data = requests.get("http://127.0.0.1:8000/getFrame/colorToDepthObjects")
 
                     if data.status_code == 404:
@@ -1221,10 +1231,11 @@ def update_camera_feed():
                         current_canvas.delete(canvas_volume.image_bundleID)
                         del canvas_volume.image_bundleID
 
-                    objOption_menuID = canvas_volume.create_window(800, 200, anchor="nw", window=objOption_menu)
+                    objOption_menuID = canvas_volume.create_window(800, 200, anchor="nw", window=objOption_menu)"""
 
             except requests.exceptions.RequestException:
                 volume_value_label.configure(text="Erro")
+                volume_value_cm_label.configure(text="Erro")
                 x_length_value_label.configure(text="Erro")
                 y_length_value_label.configure(text="Erro")
                 height_value_label.configure(text="Erro")
@@ -1521,10 +1532,12 @@ def refresh_toggle():
 
         if mode == "Dynamic":
             StaticDynamic_var.set(True)
-            volume_button.place_forget()
+            volumeReal_button.place_forget()
+            volumeBundle_button.place_forget()
         if mode == "Static":
             StaticDynamic_var.set(False)
-            volume_button.place(x=780, y=850)
+            volumeReal_button.place(x=780, y=850)
+            volumeBundle_button.place(x=780, y=920)
 
         r = requests.get("http://127.0.0.1:8000/expositionMode", timeout=0.2)
         expositionMode = r.json()["Exposition Mode"]
@@ -1534,7 +1547,7 @@ def refresh_toggle():
         if expositionMode == "HDR":
             ExpHDR_var.set(True)
 
-        r = requests.get("http://127.0.0.1:8000/volumeMode", timeout=0.2)
+        """r = requests.get("http://127.0.0.1:8000/volumeMode", timeout=0.2)
         volumeMode = r.json()["Volume Mode"]
 
         if volumeMode == "Singular":
@@ -1548,7 +1561,7 @@ def refresh_toggle():
         if realVolumeMode == "Off":
             RealVolume_var.set(False)
         if realVolumeMode == "On":
-            RealVolume_var.set(True)
+            RealVolume_var.set(True)"""
 
         r = requests.get("http://127.0.0.1:8000/debugMode", timeout=0.2)
         debugMode = r.json()["Debug Mode"]
