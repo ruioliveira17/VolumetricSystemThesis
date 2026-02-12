@@ -443,7 +443,7 @@ def volume_Bundle():
         print("New Min Value", depthState.minimum_value)
 
     if depthState.not_set == 0:
-        depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine = bundleIdentifier(colorFrame, colorToDepthFrame, depthFrame, depthState.objects_info, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb)
+        depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine = bundleIdentifier(colorFrame, colorToDepthFrame, depthFrame, depthState.objects_info, workspaceState.workspace_depth, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb)
         if volumeState.box_limits is not None and len(volumeState.box_limits) > 0:
             volumeState.volume, volumeState.width_meters, volumeState.height_meters = volumeBundleAPI(workspaceState.workspace_depth, depthState.minimum_depth, volumeState.box_limits, volumeState.depths, camState.fx_d, camState.fy_d, camState.cx_d, camState.cy_d)
         else:
@@ -475,6 +475,20 @@ def volume_Bundle():
         "ws_depth": workspaceState.workspace_depth / 10
     }
 
+@app.get("/getVolumeBundle")
+def get_Volume_Bundle():
+    response = {}
+
+    response["Bundle"] = {
+            "volume_m": round(float(volumeState.volume), 6),
+            "volume_cm": round(float(volumeState.volume * 1000000), 2),
+            "x": round(float(volumeState.width_meters), 1),
+            "y": round(float(volumeState.height_meters), 1),
+            "z": round(float(workspaceState.workspace_depth/10 - depthState.minimum_depth/10), 1)
+        }
+    
+    return response
+
 @app.post("/volumeReal")
 def volume_Real():
     if frameState.colorToDepthFrameHDR is None or modeState.expositionMode == "Fixed Exposition":
@@ -501,9 +515,9 @@ def volume_Real():
         print("New Min Value", depthState.minimum_value)
 
     if depthState.not_set == 0:
-        depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine = objIdentifier(colorFrame, colorToDepthFrame, depthFrame, depthState.objects_info, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb)
+        depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine = objIdentifier(colorFrame, colorToDepthFrame, depthFrame, depthState.objects_info, workspaceState.workspace_depth, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb)
         if volumeState.box_limits is not None and len(volumeState.box_limits) > 0:
-            volumeState.volume, volumeState.width_meters, volumeState.height_meters = volumeRealAPI(workspaceState.workspace_depth, depthState.minimum_depth, volumeState.box_limits, volumeState.depths, camState.fx_d, camState.fy_d, camState.cx_d, camState.cy_d)
+            volumeState.volume, volumeState.width_meters, volumeState.height_meters = volumeRealAPI(workspaceState.workspace_depth, volumeState.box_limits, volumeState.depths, camState.fx_d, camState.fy_d, camState.cx_d, camState.cy_d)
         else:
             volumeState.volume = 0
             volumeState.width_meters = 0
@@ -532,6 +546,33 @@ def volume_Real():
         "depth": depthState.minimum_depth / 10,
         "ws_depth": workspaceState.workspace_depth / 10
     }
+
+@app.get("/getVolumeReal")
+def get_Volume_Real():
+    response = {}
+
+    volumes = volumeState.volume if isinstance(volumeState.volume, list) else [volumeState.volume]
+    widths = volumeState.width_meters if isinstance(volumeState.width_meters, list) else [volumeState.width_meters]
+    heights = volumeState.height_meters if isinstance(volumeState.height_meters, list) else [volumeState.height_meters]
+    depths = volumeState.depths if isinstance(volumeState.depths, list) else [volumeState.depths]
+
+    num_objects = len(depths)
+
+    for i in range(num_objects):
+        response[f"Objeto {i+1}"] = {
+            "volume_m": round(float(volumes[i]), 6),
+            "volume_cm": round(float(volumes[i] * 1000000), 2),
+            "x": round(float(widths[i]), 1),
+            "y": round(float(heights[i]), 1),
+            "z": round(float(workspaceState.workspace_depth/10 - depths[i]/10), 1)
+        }
+
+    response["Total"] = {
+        "volume_m": round(float(volumes[-1]), 6),
+        "volume_cm": round(float(volumes[-1] * 1000000), 2)
+    }
+    
+    return response
 
 #------------------------------------------------------- Debug -------------------------------------------------------
 

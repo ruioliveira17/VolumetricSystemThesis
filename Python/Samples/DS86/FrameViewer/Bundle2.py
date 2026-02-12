@@ -6,6 +6,10 @@ from API.VzenseDS_api import *
 import cv2
 from FrameState import frameState
 
+offset_x_959mm_depth = 40
+offset_y_959mm_depth = -15
+or_depth_offset = 959.548329678014
+
 def depthImg(depthFrame, colorSlope):
     img = numpy.int32(depthFrame)
     img = img*255/colorSlope
@@ -72,7 +76,7 @@ def is_valid_area(c, min_area = 150):
 
     return True
 
-def bundleIdentifier(colorFrame, colorToDepthFrame, depthFrame, objects_info, colorSlope, cx_d, cy_d, cx_rgb, cy_rgb):
+def bundleIdentifier(colorFrame, colorToDepthFrame, depthFrame, objects_info, workspace_depth, colorSlope, cx_d, cy_d, cx_rgb, cy_rgb):
     contours = []
     box_ws = []
     box_limits = []
@@ -130,7 +134,7 @@ def bundleIdentifier(colorFrame, colorToDepthFrame, depthFrame, objects_info, co
 
                         if boxes_overlap(bbox_c, bbox_prev):
                             print("Wotefoque")
-                            boxesOverlap, colorToDepth_copy = contours_overlap_by_points(c, prev_c, colorToDepth_copy2)
+                            boxesOverlap, colorToDepth_copy2 = contours_overlap_by_points(c, prev_c, colorToDepth_copy2)
                             #contourDifference = cv2.matchShapes(c, prev_c, cv2.CONTOURS_MATCH_I1, 0)
                             #print("Contour Difference:", contourDifference)
                             if boxesOverlap: #or contourDifference < 0.02:
@@ -168,12 +172,9 @@ def bundleIdentifier(colorFrame, colorToDepthFrame, depthFrame, objects_info, co
             print("-------------------------------------------------------------------")
 
     Sx = ((1600/2) / numpy.tan(numpy.radians(70/2))) / ((640/2) / numpy.tan(numpy.radians(60/2)))
-    Sy = ((1200/2) / numpy.tan(numpy.radians(50/2))) / ((480/2) / numpy.tan(numpy.radians(45/2)))
-    print("Sx:", Sx)
-    print("Sy:", Sy)          
+    Sy = ((1200/2) / numpy.tan(numpy.radians(50/2))) / ((480/2) / numpy.tan(numpy.radians(45/2)))         
 
     box_limits = [c for contour_list in contours for c in contour_list if c.size > 0]
-    print("Número Objetos:", len(box_limits))
 
     if len(box_limits) > 0:
         all_points = numpy.vstack(box_limits)
@@ -181,8 +182,8 @@ def bundleIdentifier(colorFrame, colorToDepthFrame, depthFrame, objects_info, co
         rect = cv2.minAreaRect(all_points)
         box = cv2.boxPoints(rect)
         box_scaled = numpy.copy(box)
-        box_scaled[:,0] = (box[:,0] - cx_d) * Sx + cx_rgb + 40
-        box_scaled[:,1] = (box[:,1] - cy_d) * (Sy-0.2) + cy_rgb - 15
+        box_scaled[:,0] = (box[:,0] - cx_d) * Sx + cx_rgb + (offset_x_959mm_depth * workspace_depth)/or_depth_offset
+        box_scaled[:,1] = (box[:,1] - cy_d) * (Sy-0.2) + cy_rgb + (offset_y_959mm_depth * workspace_depth)/or_depth_offset
         box_scaled = numpy.round(box_scaled).astype(numpy.int32)
         #box = numpy.round(box).astype(numpy.int32)
 
@@ -198,7 +199,7 @@ def bundleIdentifier(colorFrame, colorToDepthFrame, depthFrame, objects_info, co
                     
     return minimum_value, not_set, box_ws, box_limits, depths, object_outOfLine
 
-def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, objects_info, colorSlope, cx_d, cy_d, cx_rgb, cy_rgb):
+def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, objects_info, workspace_depth, colorSlope, cx_d, cy_d, cx_rgb, cy_rgb):
     contours = []
     box_ws = []
     box_limits = []
@@ -245,7 +246,7 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, objects_info, color
 
             for c in shifted_contours_sorted:
                 if not is_valid_area(c):
-                    print("Contornos Inválidos")
+                    #print("Contornos Inválidos")
                     continue
 
                 bbox_c = get_bbox(c)
@@ -255,19 +256,19 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, objects_info, color
                         bbox_prev = get_bbox(prev_c)
 
                         if boxes_overlap(bbox_c, bbox_prev):
-                            print("Wotefoque")
-                            boxesOverlap, colorToDepth_copy = contours_overlap_by_points(c, prev_c, colorToDepth_copy2)
+                            #print("Wotefoque")
+                            boxesOverlap, colorToDepth_copy2 = contours_overlap_by_points(c, prev_c, colorToDepth_copy2)
                             #contourDifference = cv2.matchShapes(c, prev_c, cv2.CONTOURS_MATCH_I1, 0)
                             #print("Contour Difference:", contourDifference)
                             if boxesOverlap: #or contourDifference < 0.02:
                                 belongs_to_previous = True
-                                print("Pertence ao anterior o macaco")
+                                #print("Pertence ao anterior o macaco")
                                 break
                         if too_close(bbox_c, bbox_prev):
                             belongs_to_previous = True
-                            print("Too Close")
+                            #print("Too Close")
                             break
-                        print("Não pertence")
+                        #print("Não pertence")
                         belongs_to_previous = False
                     if belongs_to_previous:
                         break
@@ -289,23 +290,20 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, objects_info, color
                     contours.append([all_shifted_contours])
                     box_ws.append(obj["workspace_limits"])
                     depths.append(obj["depth"])
-                    print("Número de Objetos no contours", len(contours))
 
             print("-------------------------------------------------------------------")
 
     #colorToDepth_copy = cv2.resize(colorToDepth_copy, (640, 480))
     Sx = ((1600/2) / numpy.tan(numpy.radians(70/2))) / ((640/2) / numpy.tan(numpy.radians(60/2)))
     Sy = ((1200/2) / numpy.tan(numpy.radians(50/2))) / ((480/2) / numpy.tan(numpy.radians(45/2)))
-    print("Sx:", Sx)
-    print("Sy:", Sy)
 
     for obj_id, contour_list in enumerate(contours, start=1):
         for c in contour_list:
             rect = cv2.minAreaRect(c)
             box = cv2.boxPoints(rect)
             box_scaled = numpy.copy(box)
-            box_scaled[:,0] = (box[:,0] - cx_d) * Sx + cx_rgb + 40
-            box_scaled[:,1] = (box[:,1] - cy_d) * (Sy-0.2) + cy_rgb - 15
+            box_scaled[:,0] = (box[:,0] - cx_d) * Sx + cx_rgb + (offset_x_959mm_depth * workspace_depth)/or_depth_offset
+            box_scaled[:,1] = (box[:,1] - cy_d) * (Sy-0.2) + cy_rgb + (offset_y_959mm_depth * workspace_depth)/or_depth_offset
             box_scaled = numpy.round(box_scaled).astype(numpy.int32)
             #box = numpy.round(box).astype(numpy.int32)
             cv2.drawContours(colorToDepth_copy2, [box_scaled + [int(abs((cx_rgb) - cx_d*2.5)), int(abs((cy_rgb) - cy_d*2.5))]], 0, (0, 0, 0), 16)

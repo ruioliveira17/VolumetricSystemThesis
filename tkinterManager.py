@@ -2,15 +2,18 @@ import tkinter as tk
 import customtkinter
 import cv2
 
+from tkinter import simpledialog, messagebox
+
 from PIL import Image, ImageTk
 import ctypes
 import numpy
-import base64
 import sys
+import json
+import os
+
 sys.path.append('C:/Tese/Python')
 
 from API.VzenseDS_api import *
-import time
 import threading
 
 sys.path.append('C:/Tese/Python/Samples/DS86/FrameViewer')
@@ -31,6 +34,7 @@ def run_api():
 api_thread = threading.Thread(target=run_api, daemon=True)
 api_thread.start()
 
+USER_FILE = "auth/users.json"
 overlay = None
 
 hmin_label = None
@@ -100,6 +104,128 @@ hdr_threadObj = threading.Thread(target=hdr_thread, args=(stop_event, pause_even
 
 openCamera()
 
+def confirm_exit_overlay(event = None):
+    global overlay
+
+    if overlay is not None:
+        return
+
+    overlay = tk.Frame(root, bg="", highlightthickness=0, bd=0)
+    overlay.place(relx=0, rely=0, relwidth=1, relheight=1)
+
+    box = tk.Frame(overlay, bg="lightgrey", padx=40, pady=30, highlightbackground="black", highlightthickness=1)
+    box.place(relx=0.5, rely=0.5, anchor="center")
+
+    label = tk.Label(box, text="Queres mesmo sair? :(",
+                     fg="black", bg="lightgrey", font=("Arial", 14))
+    label.pack(pady=(0, 20))
+
+    btn_yes = tk.Button(box, text="Sim!", width=10, command=exit_app)
+    btn_yes.pack(side="left", padx=10)
+
+    btn_no = tk.Button(box, text="Não!", width=10, command=close_overlay)
+    btn_no.pack(side="right", padx=10)
+
+def close_overlay():
+    global overlay
+    if overlay is not None:
+        overlay.destroy()
+        overlay = None
+
+def exit_app():
+    global hdr_thread_started
+    if hdr_thread_started:
+        stop_event.set()
+        pause_event.set()
+        hdr_threadObj.join()
+    root.destroy()
+    closeCamera()
+
+def load_users():
+    if not os.path.exists(USER_FILE):
+        with open(USER_FILE, "w") as f:
+            json.dump({}, f)
+    with open(USER_FILE, "r") as f:
+        return json.load(f)
+    
+def save_users(users):
+    with open(USER_FILE, "w") as f:
+        json.dump(users, f, indent=4)
+
+def check_login(username, password):
+    users = load_users()
+    if username in users and users[username]["password"] == password:
+        return users[username]["role"]
+    return None
+
+def add_user(entry_username, entry_password, error_label, role="user"):
+    username = entry_username.get()
+    password = entry_password.get()
+    users = load_users()
+    if not username or not password:
+        error_label.configure(text="É necessário preencher todos os campos!")
+        return False
+    if username in users:
+        error_label.configure(text="Username já registrado! Escolha outro username para avançar.")
+        return False
+    error_label.configure(text="Utilizador criado com sucesso!")
+    users[username] = {"password": password, "role": role}
+    save_users(users)
+    entry_username.delete(0, tk.END)
+    entry_password.delete(0, tk.END)
+    return True
+
+def close_login(error_label):
+    if current_user["username"] == "None":
+        error_label.configure(text="É necessário fazer login ou criar um utilizador novo!")
+        return
+    close_overlay()
+
+def login_overlay(root):
+    global overlay, current_user
+
+    if overlay is not None:
+        return
+
+    overlay = tk.Frame(root, bg="")
+    overlay.place(relx=0, rely=0, relwidth=1, relheight=1)
+
+    box = tk.Frame(overlay, bg="lightgrey", padx=30, pady=30, highlightbackground="black", highlightthickness=1, width=235, height=270)
+    box.place(relx=0.5, rely=0.5, anchor="center")
+    box.pack_propagate(False)
+
+    tk.Label(box, text="Login", font=("Arial", 16), bg="lightgrey").pack(pady=(0,5))
+    tk.Label(box, text="Username:", bg="lightgrey").pack()
+    entry_user = tk.Entry(box)
+    entry_user.pack(pady=(0,5))
+    tk.Label(box, text="Password:", bg="lightgrey").pack()
+    entry_pass = tk.Entry(box, show="*")
+    entry_pass.pack(pady=(0,5))
+
+    error_label = tk.Label(box, text="", font=("Arial", 10), bg="lightgrey", wraplength = 180, justify="center", height=3)
+    error_label.pack(pady=(0,3))
+
+    def attempt_login():
+        global overlay, current_user
+        username = entry_user.get()
+        password = entry_pass.get()
+
+        role = check_login(username, password)
+        if role:
+            current_user = {"username": username, "role": role}
+            update_user_label()
+            close_login(error_label)
+        else:
+            error_label.config(text = "Dados inválidos, tente novamente!")
+
+    tk.Button(box, text="Login", width=10, command=attempt_login).pack(side="left", padx=5)
+    tk.Button(box, text="Registrar", width=10, command = lambda: add_user(entry_user, entry_pass, error_label)).pack(side="left", padx=5)
+    close_button = tk.Button(box, text="X", font=("Arial", 10, "bold"), width=3, command=lambda: close_login(error_label), bg="red", fg="white")
+    close_button.place(x=155,y=-20)
+
+def update_user_label():
+    user_label.configure(text=f"Olá {current_user['username']}!")
+
 def calibrate_click():
     global calibrate_label, caliError_label
     TextCalibrated = "System Calibrated"
@@ -151,22 +277,15 @@ def volumeBundle_click():
                 canvas_volume.delete(objOption_menuID)
                 objOption_menuID = None
     
-        r = requests.post("http://127.0.0.1:8000/volumeBundle", timeout=5)
-        data = r.json()
+        requests.post("http://127.0.0.1:8000/volumeBundle", timeout=5)
 
-        volume = data["volume"]
-        width = data["width"]
-        height = data["height"]
-        min_depth = data["depth"]
-        ws_depth = data["ws_depth"]
+        data = requests.get("http://127.0.0.1:8000/getVolumeBundle").json()
 
-        height_obj = ws_depth - min_depth
-
-        volume_value_label.configure(text=f"{volume:.6f} m³")
-        volume_value_cm_label.configure(text=f"{(volume*1000000.0):.2f} cm³")
-        x_length_value_label.configure(text=f"{width:.1f} cm")
-        y_length_value_label.configure(text=f"{height:.1f} cm")
-        height_value_label.configure(text=f"{height_obj:.1f} cm")   
+        volume_value_label.configure(text=f"{data["Bundle"]["volume_m"]:.6f} m³")
+        volume_value_cm_label.configure(text=f"{(data["Bundle"]["volume_cm"]):.2f} cm³")
+        x_length_value_label.configure(text=f"{data["Bundle"]["x"]:.1f} cm")
+        y_length_value_label.configure(text=f"{data["Bundle"]["y"]:.1f} cm")
+        height_value_label.configure(text=f"{data["Bundle"]["z"]:.1f} cm")   
 
         objects_outOfLineIdx = [i+1 for i, val in enumerate(volumeState.objects_outOfLine) if val]
 
@@ -230,14 +349,7 @@ def volumeReal_click():
                 canvas_volume.delete(objOption_menuID)
                 objOption_menuID = None
     
-        r = requests.post("http://127.0.0.1:8000/volumeReal", timeout=5)
-        data = r.json()
-
-        volume = data["volume"]
-        width = data["width"]
-        height = data["height"]
-        min_depth = data["depth"]
-        ws_depth = data["ws_depth"]
+        requests.post("http://127.0.0.1:8000/volumeReal", timeout=5)
 
         objects_outOfLineIdx = [i+1 for i, val in enumerate(volumeState.objects_outOfLine) if val]
 
@@ -273,7 +385,7 @@ def volumeReal_click():
 
         objOption_var = tk.StringVar(canvas_volume)
         objOption_var.set("Select an Object")
-        objOption_menu = tk.OptionMenu(canvas_volume, objOption_var, *objectsIdentified, command=lambda option: showObjectInfo(option, volume, width, height, min_depth, ws_depth))
+        objOption_menu = tk.OptionMenu(canvas_volume, objOption_var, *objectsIdentified, command=lambda option: showObjectInfo(option))
         objOption_menu.config(width=27, font=("Arial", 15))
 
         objOption_menuID = canvas_volume.create_window(800, 200, anchor="nw", window=objOption_menu)
@@ -490,6 +602,11 @@ def color_click(event):
         except requests.exceptions.RequestException:
             pass
 
+def login_click(event):
+    x, y = event.x, event.y
+    if login_rect[0] <= x <= login_rect[2] and login_rect[1] <= y <= login_rect[3]:
+        login_overlay(canvas_main)
+
 def color_changed(*args):
     print("Color:", selected_color.get())
     color = selected_color.get()
@@ -551,28 +668,26 @@ def key_pressed(event):
     except requests.exceptions.RequestException:
         pass
 
-def showObjectInfo(obj, volume, width, height, min_depth, ws_depth):
+def showObjectInfo(option):
     global volume_value_label, volume_value_cm_label, x_length_value_label, y_length_value_label, height_value_label
     TextClear = ""
 
-    depths = volumeState.depths
+    data = requests.get("http://127.0.0.1:8000/getVolumeReal").json()
 
-    if obj == "Total":
-        volume_value_label.configure(text=f"{volume[-1]:.6f} m³")
-        volume_value_cm_label.configure(text=f"{(volume[-1]*1000000.0):.2f} cm³")
+    if option == "Total":
+        volume_value_label.configure(text=f"{data["Total"]["volume_m"]:.6f} m³")
+        volume_value_cm_label.configure(text=f"{data["Total"]["volume_cm"]:.2f} cm³")
         x_length_value_label.configure(text=f"{TextClear}")
         y_length_value_label.configure(text=f"{TextClear}")
         height_value_label.configure(text=f"{TextClear}") 
     else:
-        idx = int(obj.split()[1]) - 1
+        obj_data = data[option]
 
-        height_obj = ws_depth - depths[idx]/10
-
-        volume_value_label.configure(text=f"{volume[idx]:.6f} m³")
-        volume_value_cm_label.configure(text=f"{(volume[idx]*1000000.0):.2f} cm³")
-        x_length_value_label.configure(text=f"{width[idx]:.1f} cm")
-        y_length_value_label.configure(text=f"{height[idx]:.1f} cm")
-        height_value_label.configure(text=f"{height_obj:.1f} cm")   
+        volume_value_label.configure(text=f"{obj_data["volume_m"]:.6f} m³")
+        volume_value_cm_label.configure(text=f"{obj_data["volume_cm"]:.2f} cm³")
+        x_length_value_label.configure(text=f"{obj_data["x"]:.1f} cm")
+        y_length_value_label.configure(text=f"{obj_data["y"]:.1f} cm")
+        height_value_label.configure(text=f"{obj_data["z"]:.1f} cm")   
 
 
 # Deactivate windows automatic dpi scale
@@ -600,8 +715,6 @@ BM_logo = Image.open("BM_Logo.png").resize((360, 152))
 BM_logo_tk = ImageTk.PhotoImage(BM_logo)
 main_rect = [0, 0, 370, 162]
 canvas_main.create_image(10, 10, anchor='nw', image=BM_logo_tk)
-
-#-----------------------------------------------------------------
 
 #----------------------- Camera Interface ------------------------
 
@@ -702,6 +815,27 @@ conf_icon_tk = ImageTk.PhotoImage(conf_icon)
 conf_icon_x = conf_x + conf_width/2 - 400/2
 conf_icon_y = conf_y + conf_height/2 - 400/2
 canvas_main.create_image(conf_icon_x, conf_icon_y, anchor='nw', image=conf_icon_tk)
+
+#-----------------------------------------------------------------
+
+#----------------------------- User ------------------------------
+login_height, login_width = 100, 100
+login_x, login_y = 1920, 0
+
+login_icon = Image.open("user.png").resize((150, 150))
+login_icon_tk = ImageTk.PhotoImage(login_icon)
+login_icon_x = login_x - login_width/2
+login_icon_y = login_y + login_height/2
+canvas_main.create_image(login_icon_x, login_icon_y, anchor='center', image=login_icon_tk)
+login_rect = [login_x - login_width, login_y, login_x, login_y + login_height]
+
+current_user = {"username": "None", "role": "None"}
+
+user_label = customtkinter.CTkLabel(canvas_main, text=f"Olá {current_user['username']}!", text_color="black", font=("Arial", 24))
+user_label.place(x=1800, y=45, anchor="e")
+update_user_label()
+
+login_overlay(canvas_main)
 
 #-----------------------------------------------------------------
 
@@ -1024,7 +1158,7 @@ def change_canvas(event):
         current_canvas = canvas_stacking
         last_canvas = canvas_main
 
-    elif current_canvas is canvas_main and conf_rect[0] <= x <= conf_rect[2] and conf_rect[1] <= y <= conf_rect[3]:
+    elif current_canvas is canvas_main and conf_rect[0] <= x <= conf_rect[2] and conf_rect[1] <= y <= conf_rect[3] and current_user["role"] == "admin":
         # Clicou no quadrado de configuração
         canvas_main.pack_forget()
         canvas_config.pack(fill="both", expand=True)
@@ -1142,6 +1276,7 @@ def update_camera_feed():
         r = requests.get("http://127.0.0.1:8000/mode", timeout=0.2)
         mode = r.json()["Mode"]
 
+        """
         if mode == "Dynamic":
             try:
                 if objOption_menuID is not None:
@@ -1157,13 +1292,13 @@ def update_camera_feed():
                 min_depth = data["depth"]
                 ws_depth = data["ws_depth"]
 
-                """if volumeMode == "Bundle":
+                if volumeMode == "Bundle":
                     height_obj = ws_depth - min_depth
 
                     volume_value_label.configure(text=f"{volume:.6f} m³")
                     x_length_value_label.configure(text=f"{width:.1f} cm")
                     y_length_value_label.configure(text=f"{height:.1f} cm")
-                    height_value_label.configure(text=f"{height_obj:.1f} cm")"""   
+                    height_value_label.configure(text=f"{height_obj:.1f} cm")  
 
                 objects_outOfLineIdx = [i+1 for i, val in enumerate(volumeState.objects_outOfLine) if val]
 
@@ -1195,15 +1330,12 @@ def update_camera_feed():
 
                     current_canvas.create_image(1500, 400, image=objecttk_img, anchor="center")
 
-                objectsIdentified = [f"Objeto {i+1}" for i in range(len(volumeState.depths))]
-                print(objectsIdentified)
-
                 objOption_var = tk.StringVar(canvas_volume)
                 objOption_var.set("Select an Object")
                 objOption_menu = tk.OptionMenu(canvas_volume, objOption_var, *objectsIdentified, command=lambda option: showObjectInfo(option, volume, width, height, min_depth, ws_depth))
                 objOption_menu.config(width=27, font=("Arial", 15))
 
-                """if volumeMode == "Bundle":
+                if volumeMode == "Bundle":
                     data = requests.get("http://127.0.0.1:8000/getFrame/colorToDepthObjects")
 
                     if data.status_code == 404:
@@ -1225,13 +1357,13 @@ def update_camera_feed():
                         canvas_volume.tk_objects = objectstk_img
 
                         canvas_volume.image_bundleID = current_canvas.create_image(1500, 830, image=objectstk_img, anchor="center", tags="bundle_image")
-
+                
                 else:
                     if hasattr(canvas_volume, "image_bundleID"):
                         current_canvas.delete(canvas_volume.image_bundleID)
                         del canvas_volume.image_bundleID
 
-                    objOption_menuID = canvas_volume.create_window(800, 200, anchor="nw", window=objOption_menu)"""
+                    objOption_menuID = canvas_volume.create_window(800, 200, anchor="nw", window=objOption_menu)
 
             except requests.exceptions.RequestException:
                 volume_value_label.configure(text="Erro")
@@ -1247,6 +1379,7 @@ def update_camera_feed():
             except ValueError as e:
                 print("Erro:", e)
                 pass
+        """
 
         if colorToDepthFrame.dtype != numpy.uint8:
             # Normaliza para 0-255 e converte para uint8
@@ -1425,43 +1558,6 @@ def update_sliders():
         vmax_label_text = str(vmax_slider.get())
         vmax_label.configure(text=f"{vmax_label_text}")
 
-def confirm_exit_overlay(event = None):
-    global overlay
-
-    if overlay is not None:
-        return
-
-    overlay = tk.Frame(root, bg="", highlightthickness=0, bd=0)
-    overlay.place(relx=0, rely=0, relwidth=1, relheight=1)
-
-    box = tk.Frame(overlay, bg="lightgrey", padx=40, pady=30, highlightbackground="black", highlightthickness=1)
-    box.place(relx=0.5, rely=0.5, anchor="center")
-
-    label = tk.Label(box, text="Queres mesmo sair? :(",
-                     fg="black", bg="lightgrey", font=("Arial", 14))
-    label.pack(pady=(0, 20))
-
-    btn_yes = tk.Button(box, text="Sim!", width=10, command=exit_app)
-    btn_yes.pack(side="left", padx=10)
-
-    btn_no = tk.Button(box, text="Não!", width=10, command=close_overlay)
-    btn_no.pack(side="right", padx=10)
-
-def close_overlay():
-    global overlay
-    if overlay is not None:
-        overlay.destroy()
-        overlay = None
-
-def exit_app():
-    global hdr_thread_started
-    if hdr_thread_started:
-        stop_event.set()
-        pause_event.set()
-        hdr_threadObj.join()
-    root.destroy()
-    closeCamera()
-
 def sliding_hmin(value):
     hmin = int(value)
     try:
@@ -1580,6 +1676,7 @@ def refresh_toggle():
 #-----------------------------------------------------------------
 
 canvas_main.bind("<Button-1>", change_canvas)
+canvas_main.bind("<Button-1>", login_click, add="+")
 canvas_camara.bind("<Button-1>", change_canvas)
 canvas_barcode.bind("<Button-1>", change_canvas)
 canvas_volume.bind("<Button-1>", change_canvas)

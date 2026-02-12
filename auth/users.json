@@ -1,0 +1,14 @@
+{
+    "BM_Admin": {
+        "password": "BM1967",
+        "role": "admin"
+    },
+    "User1": {
+        "password": "1234",
+        "role": "user"
+    },
+    "BMAAA": {
+        "password": "AAAAA",
+        "role": "user"
+    }
+}

@@ -51,7 +51,7 @@ def volumeBundleAPI(workspace_depth, minimum_depth, box_limits, depths, fx_d, fy
 
     return volume, width_meters, height_meters
 
-def volumeRealAPI(workspace_depth, minimum_depth, box_limits, depths, fx_d, fy_d, cx_d, cy_d): 
+def volumeRealAPI(workspace_depth, box_limits, depths, fx_d, fy_d, cx_d, cy_d): 
     volume = 0
     width_meters = 0
     height_meters = 0
