@@ -10,4 +10,5 @@ class FrameState:
         self.colorFrameHDR = None
         self.colorToDepthFrameHDR = None
         self.depthFrameHDR = None
+        self.calibrationColorFrame = None
 frameState = FrameState()

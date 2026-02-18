@@ -76,7 +76,29 @@ def is_valid_area(c, min_area = 150):
 
     return True
 
-def bundleIdentifier(colorFrame, colorToDepthFrame, depthFrame, objects_info, workspace_depth, colorSlope, cx_d, cy_d, cx_rgb, cy_rgb):
+def comparisonCaliImageCurrImage(colorFrame, calibrationColorFrame, box_scaled):
+    mask = numpy.zeros(colorFrame.shape[:2], dtype=numpy.uint8)
+
+    cv2.fillPoly(mask, [box_scaled], 255)
+    total_pixels = numpy.count_nonzero(mask)
+
+    current = cv2.bitwise_and(colorFrame, colorFrame, mask=mask)
+    cali = cv2.bitwise_and(calibrationColorFrame, calibrationColorFrame, mask=mask)
+
+    currentGray = cv2.cvtColor(current, cv2.COLOR_BGR2GRAY)
+    caliGray = cv2.cvtColor(cali, cv2.COLOR_BGR2GRAY)
+
+    diff = cv2.absdiff(currentGray, caliGray)
+
+    diffPercentage = numpy.sum(diff>20) / total_pixels
+    print("Diff Percentage:", diffPercentage)
+
+    if diffPercentage > 0.05:
+        return True
+    
+    return False
+
+def bundleIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFrame, objects_info, workspace_depth, colorSlope, cx_d, cy_d, cx_rgb, cy_rgb):
     contours = []
     box_ws = []
     box_limits = []
@@ -88,6 +110,9 @@ def bundleIdentifier(colorFrame, colorToDepthFrame, depthFrame, objects_info, wo
 
     colorToDepth_copy2 = colorFrame.copy()
     #colorToDepth_copy = colorToDepthFrame.copy()
+
+    Sx = ((1600/2) / numpy.tan(numpy.radians(70/2))) / ((640/2) / numpy.tan(numpy.radians(60/2)))
+    Sy = ((1200/2) / numpy.tan(numpy.radians(50/2))) / ((480/2) / numpy.tan(numpy.radians(45/2)))   
 
     if len(objects_info) != 0:
         for obj in objects_info:
@@ -122,6 +147,15 @@ def bundleIdentifier(colorFrame, colorToDepthFrame, depthFrame, objects_info, wo
             print("-------------------------------------------------------------------")
 
             for c in shifted_contours_sorted:
+                rect = cv2.minAreaRect(c)
+                box = cv2.boxPoints(rect)
+                box_scaled = numpy.copy(box)
+                box_scaled[:,0] = (box[:,0] - cx_d) * Sx + cx_rgb + (offset_x_959mm_depth * workspace_depth)/or_depth_offset
+                box_scaled[:,1] = (box[:,1] - cy_d) * (Sy-0.2) + cy_rgb + (offset_y_959mm_depth * workspace_depth)/or_depth_offset
+                box_scaled = numpy.round(box_scaled).astype(numpy.int32)
+                if not comparisonCaliImageCurrImage(colorFrame, calibrationColorFrame, box_scaled):
+                    continue
+
                 if not is_valid_area(c):
                     print("Contornos Inválidos")
                     continue
@@ -156,23 +190,19 @@ def bundleIdentifier(colorFrame, colorToDepthFrame, depthFrame, objects_info, wo
                         value = True
                     else:
                         value = False
+                        correct_shifted_contours = []
+                        correct_shifted_contours.append(c)
+                        print("Adicionar ao Conjunto")
+                        belongs_to_previous = False
+                        all_shifted_contours = numpy.vstack(correct_shifted_contours)
+                        contours.append([all_shifted_contours])
+                        box_ws.append(obj["workspace_limits"])
+                        depths.append(obj["depth"])
+                        print("Número de Objetos no contours", len(contours))
 
                     object_outOfLine.append(value)
 
-                    correct_shifted_contours = []
-                    correct_shifted_contours.append(c)
-                    print("Adicionar ao Conjunto")
-                    belongs_to_previous = False
-                    all_shifted_contours = numpy.vstack(correct_shifted_contours)
-                    contours.append([all_shifted_contours])
-                    box_ws.append(obj["workspace_limits"])
-                    depths.append(obj["depth"])
-                    print("Número de Objetos no contours", len(contours))
-
-            print("-------------------------------------------------------------------")
-
-    Sx = ((1600/2) / numpy.tan(numpy.radians(70/2))) / ((640/2) / numpy.tan(numpy.radians(60/2)))
-    Sy = ((1200/2) / numpy.tan(numpy.radians(50/2))) / ((480/2) / numpy.tan(numpy.radians(45/2)))         
+            print("-------------------------------------------------------------------")      
 
     box_limits = [c for contour_list in contours for c in contour_list if c.size > 0]
 
@@ -199,7 +229,7 @@ def bundleIdentifier(colorFrame, colorToDepthFrame, depthFrame, objects_info, wo
                     
     return minimum_value, not_set, box_ws, box_limits, depths, object_outOfLine
 
-def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, objects_info, workspace_depth, colorSlope, cx_d, cy_d, cx_rgb, cy_rgb):
+def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFrame, objects_info, workspace_depth, colorSlope, cx_d, cy_d, cx_rgb, cy_rgb):
     contours = []
     box_ws = []
     box_limits = []
@@ -211,6 +241,9 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, objects_info, works
 
     colorToDepth_copy2 = colorFrame.copy()
     #colorToDepth_copy = colorToDepthFrame.copy()
+
+    Sx = ((1600/2) / numpy.tan(numpy.radians(70/2))) / ((640/2) / numpy.tan(numpy.radians(60/2)))
+    Sy = ((1200/2) / numpy.tan(numpy.radians(50/2))) / ((480/2) / numpy.tan(numpy.radians(45/2)))
 
     if len(objects_info) != 0:
         for obj in objects_info:
@@ -245,6 +278,15 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, objects_info, works
             print("-------------------------------------------------------------------")
 
             for c in shifted_contours_sorted:
+                rect = cv2.minAreaRect(c)
+                box = cv2.boxPoints(rect)
+                box_scaled = numpy.copy(box)
+                box_scaled[:,0] = (box[:,0] - cx_d) * Sx + cx_rgb + (offset_x_959mm_depth * workspace_depth)/or_depth_offset
+                box_scaled[:,1] = (box[:,1] - cy_d) * (Sy-0.2) + cy_rgb + (offset_y_959mm_depth * workspace_depth)/or_depth_offset
+                box_scaled = numpy.round(box_scaled).astype(numpy.int32)
+                if not comparisonCaliImageCurrImage(colorFrame, calibrationColorFrame, box_scaled):
+                    continue
+
                 if not is_valid_area(c):
                     #print("Contornos Inválidos")
                     continue
@@ -279,23 +321,22 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, objects_info, works
                         value = True
                     else:
                         value = False
+                        correct_shifted_contours = []
+                        correct_shifted_contours.append(c)
+                        print("Adicionar ao Conjunto")
+                        belongs_to_previous = False
+                        all_shifted_contours = numpy.vstack(correct_shifted_contours)
+                        contours.append([all_shifted_contours])
+                        box_ws.append(obj["workspace_limits"])
+                        depths.append(obj["depth"])
 
                     object_outOfLine.append(value)
-
-                    correct_shifted_contours = []
-                    correct_shifted_contours.append(c)
-                    print("Adicionar ao Conjunto")
-                    belongs_to_previous = False
-                    all_shifted_contours = numpy.vstack(correct_shifted_contours)
-                    contours.append([all_shifted_contours])
-                    box_ws.append(obj["workspace_limits"])
-                    depths.append(obj["depth"])
 
             print("-------------------------------------------------------------------")
 
     #colorToDepth_copy = cv2.resize(colorToDepth_copy, (640, 480))
-    Sx = ((1600/2) / numpy.tan(numpy.radians(70/2))) / ((640/2) / numpy.tan(numpy.radians(60/2)))
-    Sy = ((1200/2) / numpy.tan(numpy.radians(50/2))) / ((480/2) / numpy.tan(numpy.radians(45/2)))
+    #Sx = ((1600/2) / numpy.tan(numpy.radians(70/2))) / ((640/2) / numpy.tan(numpy.radians(60/2)))
+    #Sy = ((1200/2) / numpy.tan(numpy.radians(50/2))) / ((480/2) / numpy.tan(numpy.radians(45/2)))
 
     for obj_id, contour_list in enumerate(contours, start=1):
         for c in contour_list:
@@ -328,6 +369,7 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, objects_info, works
     frameState.colorToDepthFrameObject = colorToDepth_copy2
     box_limits = [c for contour_list in contours for c in contour_list if c.size > 0]
     print("Número Objetos:", len(box_limits))
+    print("OutOfLine", object_outOfLine)
 
     not_set = 1
     minimum_value = 6000

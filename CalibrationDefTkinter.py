@@ -388,7 +388,7 @@ def calibrate(camera, get_lower, get_upper, colorSlope):
 
     #return detection_area, workspace_depth, forced_exiting
 
-def calibrateAPI(colorToDepthFrame, depthFrame, detection_area, lower, upper, colorSlope, cx_d, cy_d, caliMode):
+def calibrateAPI(colorToDepthFrame, depthFrame, colorFrame, detection_area, lower, upper, colorSlope, cx_d, cy_d, caliMode):
 
     center_aligned = False # Ponto central tem a cor da calibração
 
@@ -535,7 +535,7 @@ def calibrateAPI(colorToDepthFrame, depthFrame, detection_area, lower, upper, co
             cv2.destroyAllWindows()
             print("---end---")
             
-            return detection_area, workspace_depth, center_aligned, workspace_clear
+            return detection_area, workspace_depth, center_aligned, workspace_clear, colorFrame
         else:
             print("System isnt calibrated!")
             print("Try Again!")
@@ -554,4 +554,4 @@ def calibrateAPI(colorToDepthFrame, depthFrame, detection_area, lower, upper, co
     finally :
         print('end')
 
-    return detection_area, workspace_depth, center_aligned, workspace_clear
+    return detection_area, workspace_depth, center_aligned, workspace_clear, colorFrame

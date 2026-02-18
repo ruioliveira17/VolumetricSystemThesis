@@ -22,8 +22,54 @@ from WorkspaceState import workspaceState
 from contextlib import asynccontextmanager
 import json
 import os
+import cv2
+
+USER_FILE = "auth/users.json"
+
+#----------------------------------------------------   Base Models    ----------------------------------------------------
+
+class HSVValue(BaseModel):
+    hmin: Optional[int] = None
+    hmax: Optional[int] = None
+    smin: Optional[int] = None
+    smax: Optional[int] = None
+    vmin: Optional[int] = None
+    vmax: Optional[int] = None
+    color: Optional[str] = None
+    optionSelected: Optional[str] = None
+
+class CamValues(BaseModel):
+    colorSlope: Optional[int] = 1500
+    exposureTime: Optional[int] = 700
+
+class ManualWorkspace(BaseModel):
+    detection_area: List[int] = None
+
+class LoginData(BaseModel):
+    username: str
+    password: str
+
+class RegisterData(BaseModel):
+    username: str
+    password: str
+    role: str
+
+#--------------------------------------------------------------------------------------------------------------------------
+
+def load_users():
+    if not os.path.exists(USER_FILE):
+        with open(USER_FILE, "w") as f:
+            json.dump({}, f)
+    with open(USER_FILE, "r") as f:
+        return json.load(f)
+    
+def save_users(users):
+    with open(USER_FILE, "w") as f:
+        json.dump(users, f, indent=4)
 
 def save_WS_calibration():
+    cv2.imwrite("config/calibrationColorFrame.png", frameState.calibrationColorFrame)
+
     data = {
         "detection_area": workspaceState.detection_area,
         "workspace_depth": workspaceState.workspace_depth,
@@ -33,7 +79,8 @@ def save_WS_calibration():
         "smax": maskState.smax,
         "vmin": maskState.vmin,
         "vmax": maskState.vmax,
-        "color": maskState.color
+        "color": maskState.color,
+        "calibrationColorFrame_path": "config/calibrationColorFrame.png"
     }
 
     os.makedirs("config", exist_ok=True)
@@ -61,6 +108,7 @@ async def lifespan(app: FastAPI):
         maskState.vmin = calib["vmin"]
         maskState.vmax = calib["vmax"]
         maskState.color = calib["color"]
+        frameState.calibrationColorFrame = cv2.imread(calib["calibrationColorFrame_path"])
 
         print("Calibração carregada!")
 
@@ -76,29 +124,38 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-#----------------------------------------------------   Base Models    ----------------------------------------------------
+#-------------------------------------------------------   Login   --------------------------------------------------------
 
-class HSVValue(BaseModel):
-    hmin: Optional[int] = None
-    hmax: Optional[int] = None
-    smin: Optional[int] = None
-    smax: Optional[int] = None
-    vmin: Optional[int] = None
-    vmax: Optional[int] = None
-    color: Optional[str] = None
-    optionSelected: Optional[str] = None
+@app.post("/login")
+def login(login_data: LoginData):
+    users = load_users()
 
-class CamValues(BaseModel):
-    colorSlope: Optional[int] = 1500
-    exposureTime: Optional[int] = 700
+    if login_data.username in users and users[login_data.username]["password"] == login_data.password:
+        return {"role": users[login_data.username]["role"]}
+    
+    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Dados inválidos!")
 
-class ManualWorkspace(BaseModel):
-    detection_area: List[int] = None
+@app.post("/register")
+def register(register_data: RegisterData):
+    users = load_users()
+
+    if not register_data.username or not register_data.password:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="É necessário preencher todos os campos!")
+    
+    if register_data.username in users:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username já registrado! Escolha outro username para avançar.")
+    
+    given_role = register_data.role if register_data.role in ["admin", "user"] else "user"
+
+    users[register_data.username] = {"password": register_data.password, "role": given_role}
+    save_users(users)
+
+    return {"message": "Utilizador criado com sucesso!"}
 
 #-------------------------------------------------------   Camera   -------------------------------------------------------
 
 @app.get("/camera/status")
-def status():
+def camStatus():
     return statusCamera()
 
 @app.get("/camera/exposureTime")
@@ -333,7 +390,7 @@ def calibrate(data: HSVValue):
     else:
         depthFrame = frameState.depthFrameHDR
 
-    detection_area, workspace_depth, center_aligned, workspace_clear = calibrateAPI(colorToDepthFrame, depthFrame, workspaceState.detection_area, lower, upper, camState.colorSlope, int(camState.cx_d), int(camState.cy_d), modeState.calibrationMode)
+    detection_area, workspace_depth, center_aligned, workspace_clear, frameState.calibrationColorFrame = calibrateAPI(colorToDepthFrame, depthFrame, colorFrame, workspaceState.detection_area, lower, upper, camState.colorSlope, int(camState.cx_d), int(camState.cy_d), modeState.calibrationMode)
 
     if detection_area is None or workspace_depth is None:
         workspaceState.center_aligned = center_aligned
@@ -443,7 +500,7 @@ def volume_Bundle():
         print("New Min Value", depthState.minimum_value)
 
     if depthState.not_set == 0:
-        depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine = bundleIdentifier(colorFrame, colorToDepthFrame, depthFrame, depthState.objects_info, workspaceState.workspace_depth, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb)
+        depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine = bundleIdentifier(colorFrame, colorToDepthFrame, depthFrame, frameState.calibrationColorFrame, depthState.objects_info, workspaceState.workspace_depth, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb)
         if volumeState.box_limits is not None and len(volumeState.box_limits) > 0:
             volumeState.volume, volumeState.width_meters, volumeState.height_meters = volumeBundleAPI(workspaceState.workspace_depth, depthState.minimum_depth, volumeState.box_limits, volumeState.depths, camState.fx_d, camState.fy_d, camState.cx_d, camState.cy_d)
         else:
@@ -515,7 +572,7 @@ def volume_Real():
         print("New Min Value", depthState.minimum_value)
 
     if depthState.not_set == 0:
-        depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine = objIdentifier(colorFrame, colorToDepthFrame, depthFrame, depthState.objects_info, workspaceState.workspace_depth, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb)
+        depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine = objIdentifier(colorFrame, colorToDepthFrame, depthFrame, frameState.calibrationColorFrame, depthState.objects_info, workspaceState.workspace_depth, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb)
         if volumeState.box_limits is not None and len(volumeState.box_limits) > 0:
             volumeState.volume, volumeState.width_meters, volumeState.height_meters = volumeRealAPI(workspaceState.workspace_depth, volumeState.box_limits, volumeState.depths, camState.fx_d, camState.fy_d, camState.cx_d, camState.cy_d)
         else:

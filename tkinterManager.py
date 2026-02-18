@@ -34,7 +34,7 @@ def run_api():
 api_thread = threading.Thread(target=run_api, daemon=True)
 api_thread.start()
 
-USER_FILE = "auth/users.json"
+current_user = {"username": "None", "role": "None"}
 overlay = None
 
 hmin_label = None
@@ -141,39 +141,45 @@ def exit_app():
     root.destroy()
     closeCamera()
 
-def load_users():
-    if not os.path.exists(USER_FILE):
-        with open(USER_FILE, "w") as f:
-            json.dump({}, f)
-    with open(USER_FILE, "r") as f:
-        return json.load(f)
-    
-def save_users(users):
-    with open(USER_FILE, "w") as f:
-        json.dump(users, f, indent=4)
-
-def check_login(username, password):
-    users = load_users()
-    if username in users and users[username]["password"] == password:
-        return users[username]["role"]
-    return None
-
-def add_user(entry_username, entry_password, error_label, role="user"):
+def attempt_login(entry_username, entry_password, error_label):
+    global current_user
     username = entry_username.get()
     password = entry_password.get()
-    users = load_users()
-    if not username or not password:
-        error_label.configure(text="É necessário preencher todos os campos!")
+
+    try:
+        response = requests.post("http://localhost:8000/login", json={"username": username, "password": password})
+
+        if response.status_code == 200:
+            role = response.json()["role"]
+            current_user = {"username": username, "role": role}
+            update_user_label()
+            close_login(error_label)
+        else:
+            error_label.config(text = "Dados inválidos, tente novamente!")
+
+    except requests.exceptions.RequestException:
+        error_label.config(text = "Erro de conexão com o servidor.")
+
+def add_user(entry_username, entry_password, error_label, current_user):
+    username = entry_username.get()
+    password = entry_password.get()
+    role = current_user["role"]
+
+    try:
+        response = requests.post("http://localhost:8000/register", json={"username": username, "password": password, "role": role})
+
+        if response.status_code == 200:
+            error_label.config(text = "Utilizador criado com sucesso!")
+            entry_username.delete(0, tk.END)
+            entry_password.delete(0, tk.END)
+            return True
+        else:
+            error_label.config(text = response.json()["detail"])
+            return False
+    
+    except requests.exceptions.RequestException:
+        error_label.config(text = "Erro de conexão com o servidor.")
         return False
-    if username in users:
-        error_label.configure(text="Username já registrado! Escolha outro username para avançar.")
-        return False
-    error_label.configure(text="Utilizador criado com sucesso!")
-    users[username] = {"password": password, "role": role}
-    save_users(users)
-    entry_username.delete(0, tk.END)
-    entry_password.delete(0, tk.END)
-    return True
 
 def close_login(error_label):
     if current_user["username"] == "None":
@@ -205,21 +211,8 @@ def login_overlay(root):
     error_label = tk.Label(box, text="", font=("Arial", 10), bg="lightgrey", wraplength = 180, justify="center", height=3)
     error_label.pack(pady=(0,3))
 
-    def attempt_login():
-        global overlay, current_user
-        username = entry_user.get()
-        password = entry_pass.get()
-
-        role = check_login(username, password)
-        if role:
-            current_user = {"username": username, "role": role}
-            update_user_label()
-            close_login(error_label)
-        else:
-            error_label.config(text = "Dados inválidos, tente novamente!")
-
-    tk.Button(box, text="Login", width=10, command=attempt_login).pack(side="left", padx=5)
-    tk.Button(box, text="Registrar", width=10, command = lambda: add_user(entry_user, entry_pass, error_label)).pack(side="left", padx=5)
+    tk.Button(box, text="Login", width=10, command = lambda: attempt_login(entry_user, entry_pass, error_label)).pack(side="left", padx=5)
+    tk.Button(box, text="Registrar", width=10, command = lambda: add_user(entry_user, entry_pass, error_label, current_user)).pack(side="left", padx=5)
     close_button = tk.Button(box, text="X", font=("Arial", 10, "bold"), width=3, command=lambda: close_login(error_label), bg="red", fg="white")
     close_button.place(x=155,y=-20)
 
@@ -268,32 +261,38 @@ def calibrate_click():
 
 def volumeBundle_click():
     global volume_value_label, volume_value_cm_label, x_length_value_label, y_length_value_label, height_value_label, objOutOfLine_label, objOption_menuID
-    TextOutOfLine = "Objects are not inside the outline made by the yellow lines. A bigger error may be induced"
+    TextOutOfLine = "There are objects outside the yellow stripes. To detect them, make sure they are inside the stripes."
     TextError = "Error"
     TextClear = ""
 
     try:
+        volume_value_label.configure(text=f"{TextClear}")
+        volume_value_cm_label.configure(text=f"{TextClear}")
+        x_length_value_label.configure(text=f"{TextClear}")
+        y_length_value_label.configure(text=f"{TextClear}")
+        height_value_label.configure(text=f"{TextClear}")
+
         if objOption_menuID is not None:
-                canvas_volume.delete(objOption_menuID)
-                objOption_menuID = None
+            canvas_volume.delete(objOption_menuID)
+            objOption_menuID = None
     
         requests.post("http://127.0.0.1:8000/volumeBundle", timeout=5)
-
-        data = requests.get("http://127.0.0.1:8000/getVolumeBundle").json()
-
-        volume_value_label.configure(text=f"{data["Bundle"]["volume_m"]:.6f} m³")
-        volume_value_cm_label.configure(text=f"{(data["Bundle"]["volume_cm"]):.2f} cm³")
-        x_length_value_label.configure(text=f"{data["Bundle"]["x"]:.1f} cm")
-        y_length_value_label.configure(text=f"{data["Bundle"]["y"]:.1f} cm")
-        height_value_label.configure(text=f"{data["Bundle"]["z"]:.1f} cm")   
 
         objects_outOfLineIdx = [i+1 for i, val in enumerate(volumeState.objects_outOfLine) if val]
 
         if objects_outOfLineIdx:
-            indexes_str = ", ".join(str(idx) for idx in objects_outOfLineIdx)
-            objOutOfLine_label.configure(text=f"{TextOutOfLine}\nOut-of-line object(s): {indexes_str}")
+            #indexes_str = ", ".join(str(idx) for idx in objects_outOfLineIdx)
+            objOutOfLine_label.configure(text=f"{TextOutOfLine}")
         else:
             objOutOfLine_label.configure(text=f"{TextClear}")
+
+            data = requests.get("http://127.0.0.1:8000/getVolumeBundle").json()
+
+            volume_value_label.configure(text=f"{data["Bundle"]["volume_m"]:.6f} m³")
+            volume_value_cm_label.configure(text=f"{(data["Bundle"]["volume_cm"]):.2f} cm³")
+            x_length_value_label.configure(text=f"{data["Bundle"]["x"]:.1f} cm")
+            y_length_value_label.configure(text=f"{data["Bundle"]["y"]:.1f} cm")
+            height_value_label.configure(text=f"{data["Bundle"]["z"]:.1f} cm")   
 
         data = requests.get("http://127.0.0.1:8000/getFrame/colorToDepthObject")
 
@@ -334,7 +333,7 @@ def volumeBundle_click():
 
 def volumeReal_click():
     global volume_value_label, volume_value_cm_label, x_length_value_label, y_length_value_label, height_value_label, objOutOfLine_label, objOption_menuID
-    TextOutOfLine = "Objects are not inside the outline made by the yellow lines. A bigger error may be induced"
+    TextOutOfLine = "There are objects outside the yellow stripes. To detect them, make sure they are inside the stripes."
     TextError = "Error"
     TextClear = ""
 
@@ -355,7 +354,7 @@ def volumeReal_click():
 
         if objects_outOfLineIdx:
             indexes_str = ", ".join(str(idx) for idx in objects_outOfLineIdx)
-            objOutOfLine_label.configure(text=f"{TextOutOfLine}\nOut-of-line object(s): {indexes_str}")
+            objOutOfLine_label.configure(text=f"{TextOutOfLine}")
         else:
             objOutOfLine_label.configure(text=f"{TextClear}")
 
@@ -381,14 +380,15 @@ def volumeReal_click():
 
             current_canvas.create_image(1500, 615, image=objecttk_img, anchor="center")
 
-        objectsIdentified = [f"Objeto {i+1}" for i in range(len(volumeState.depths))] + ["Total"]
+        if len(volumeState.depths) > 0:
+            objectsIdentified = [f"Objeto {i+1}" for i in range(len(volumeState.depths))] + ["Total"]
 
-        objOption_var = tk.StringVar(canvas_volume)
-        objOption_var.set("Select an Object")
-        objOption_menu = tk.OptionMenu(canvas_volume, objOption_var, *objectsIdentified, command=lambda option: showObjectInfo(option))
-        objOption_menu.config(width=27, font=("Arial", 15))
+            objOption_var = tk.StringVar(canvas_volume)
+            objOption_var.set("Select an Object")
+            objOption_menu = tk.OptionMenu(canvas_volume, objOption_var, *objectsIdentified, command=lambda option: showObjectInfo(option))
+            objOption_menu.config(width=27, font=("Arial", 15))
 
-        objOption_menuID = canvas_volume.create_window(800, 200, anchor="nw", window=objOption_menu)
+            objOption_menuID = canvas_volume.create_window(800, 200, anchor="nw", window=objOption_menu)
             
             
     except requests.exceptions.RequestException:
@@ -501,12 +501,6 @@ def apply_mask():
         maskValues = r.json()
         
         requests.post("http://127.0.0.1:8000/applyMask", json=maskValues, timeout=0.5)
-    except requests.exceptions.RequestException:
-        pass
-
-def getMinDepth():
-    try:
-        requests.post("http://127.0.0.1:8000/depth", timeout=5)
     except requests.exceptions.RequestException:
         pass
 
@@ -689,7 +683,6 @@ def showObjectInfo(option):
         y_length_value_label.configure(text=f"{obj_data["y"]:.1f} cm")
         height_value_label.configure(text=f"{obj_data["z"]:.1f} cm")   
 
-
 # Deactivate windows automatic dpi scale
 ctypes.windll.shcore.SetProcessDpiAwareness(1)
 
@@ -706,6 +699,9 @@ canvas_main.pack(fill="both", expand=True)
 
 current_canvas = canvas_main
 last_canvas = None
+
+if current_user["username"] == "None":
+    login_overlay(canvas_main)
 
 label = tk.Label(canvas_main, bg='white', text="Menu", font=('Arial', 70))
 label.pack(pady = 20)
@@ -829,13 +825,10 @@ login_icon_y = login_y + login_height/2
 canvas_main.create_image(login_icon_x, login_icon_y, anchor='center', image=login_icon_tk)
 login_rect = [login_x - login_width, login_y, login_x, login_y + login_height]
 
-current_user = {"username": "None", "role": "None"}
-
-user_label = customtkinter.CTkLabel(canvas_main, text=f"Olá {current_user['username']}!", text_color="black", font=("Arial", 24))
+user_label = customtkinter.CTkLabel(canvas_main, text=f"", text_color="black", font=("Arial", 24))
 user_label.place(x=1800, y=45, anchor="e")
-update_user_label()
-
-login_overlay(canvas_main)
+if current_user["username"] != "None":
+    update_user_label()
 
 #-----------------------------------------------------------------
 
@@ -1273,8 +1266,8 @@ def update_camera_feed():
         data = requests.get("http://127.0.0.1:8000/camera/colorSlope", timeout=1)
         colorSlope = data.json()["colorSlope"]
 
-        r = requests.get("http://127.0.0.1:8000/mode", timeout=0.2)
-        mode = r.json()["Mode"]
+        #r = requests.get("http://127.0.0.1:8000/mode", timeout=0.2)
+        #mode = r.json()["Mode"]
 
         """
         if mode == "Dynamic":
