@@ -11,12 +11,13 @@ import sys
 import json
 import os
 
-sys.path.append('C:/Tese/Python')
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.join(BASE_DIR, "Python"))
 
 from API.VzenseDS_api import *
 import threading
 
-sys.path.append('C:/Tese/Python/Samples/DS86/FrameViewer')
+sys.path.append(os.path.join(BASE_DIR, "Python", "Samples", "DS86", "FrameViewer"))
 
 from CameraOptions import openCamera, closeCamera
 from HDRDef import hdrAPI
@@ -29,7 +30,7 @@ import uvicorn
 import requests
 
 def run_api():
-    uvicorn.run("api:app", host="127.0.0.1", port=8000, log_level="info")
+    uvicorn.run("api:app", host="0.0.0.0", port=8000, log_level="info")
 
 api_thread = threading.Thread(target=run_api, daemon=True)
 api_thread.start()

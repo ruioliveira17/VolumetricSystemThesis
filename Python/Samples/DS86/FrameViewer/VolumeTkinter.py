@@ -1,6 +1,8 @@
 from pickle import FALSE, TRUE
 import sys
-sys.path.append('C:/Tese/Python')
+import os
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.join(BASE_DIR, "Python"))
 
 from API.VzenseDS_api import *
 import cv2

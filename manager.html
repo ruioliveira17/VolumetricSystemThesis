@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>BM Volumetric System</title>
+    <link rel="icon" type="image/png" href="BM_MiniLogo.png">
+    <style>
+        body {
+            font-family: Arial;
+            text-align: center;
+            background-color: white;
+        }
+
+       .logo {
+            width: 280px;
+            position: absolute;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: white;
+            border: none;
+       }
+
+       .logo img{
+            width: 280px;
+            object-fit: contain;
+       }
+
+       .login {
+            position: absolute;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100px;
+            height: 100px;
+            background-color: white;
+            border: none;
+       }
+
+       .login img {
+            width: 150px;
+            height: 150px;
+            object-fit: contain;
+        }
+
+        .buttons button {
+            position: absolute;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .buttons img {
+            width: 350px;
+            height: 350px;
+            object-fit: contain;
+        }
+
+        .type1 {background-color: turquoise; border: 1px solid black; width: 400px; height: 300px;}
+        .type2 {background-color: springgreen; border: 1px solid black; width: 400px; height: 300px;}
+
+        .menu-title {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+
+            position: absolute;
+            font-size: 90px;
+            font-weight: semi-bold;
+            color: black;
+            text-align: center;
+        }
+
+    </style>
+</head>
+
+<body>
+    <div id="login-screen">
+        <h2>Login</h2>
+        <input type="text" id="username" placeholder="Username"><br><br>
+        <input type="password" id="password" placeholder="Password"><br><br>
+        <button onclick="login()">Login</button>
+
+        <p style="margin-top: 15px;">
+            Don't have an account? 
+            <span onclick="showRegisterScreen()" style="color: black; cursor: pointer; text-decoration: underline;">
+                Register
+            </span>
+        </p>
+
+        <p id="error-label" style="color: red;"></p>
+    </div>
+
+    <div id="register-screen" style="display: none;">
+        <h2>Register</h2>
+        <input type="text" id="reg-username" placeholder="Username"><br><br>
+        <input type="password" id="reg-password" placeholder="Password"><br><br>
+        
+        <select id="reg-role" onchange="handleRoleChange()">
+            <option value="user">User</option>
+            <option value="admin">Admin</option>
+        </select><br><br>
+
+        <input type="text" id="reg-code" placeholder="Admin Code" disabled><br><br>
+
+        <button onclick="register()">Register</button>
+
+        <p style="margin-top: 15px;">
+            Already have an account? 
+            <span onclick="showLoginScreen()" style="color: black; cursor: pointer; text-decoration: underline;">
+                Login
+            </span>
+        </p>
+
+        <p id="reg-error-label" style="color: red;"></p>
+
+    </div>
+
+    <div id="main-menu" style="display: none;">
+        <!-- Logo -->
+        <button class="logo" onclick="goBack()" style="top: 10px; left: 10px;"><img src="BM_Logo.png" alt="BM Company Logo"></button>
+
+        <!-- Botões -->
+        <div class="buttons">
+            <button class="type1" onclick="goTo('camera-menu')" style="top: 180px; left: 225px;"><img src="cam_icon.png" alt="Camera Icon"></button>
+            <button class="type2" onclick="goTo('barcode-menu')" style="top: 180px; left: 760px;"><img src="barcode.png" alt="2"></button>
+            <button class="type1" onclick="goTo('volume-menu')" style="top: 180px; right: 225px;"><img src="boxvol.png" alt="3"></button>
+            <button class="type2" onclick="goTo('storage-menu')" style="top: 555px; left: 225px;"><img src="storage.png" alt="4"></button>
+            <button class="type1" onclick="goTo('stacking-menu')" style="top: 555px; left: 760px;"><img src="stacking.png" alt="5"></button>
+            <button class="type2" onclick="goTo('config-menu')" style="top: 555px; right: 225px;"><img src="conf_icon.png" alt="6"></button>
+        </div>
+
+        <!-- Login -->
+        <button class="login" onclick="UserInfo()" style="top: 10px; right: 10px;"><img src="user.png" alt="User Icon"></button>
+
+        <!-- Menu Title -->
+        <div class="menu-title">Menu</div>
+    </div>
+
+    <!-- User Panel -->
+    <div id="user-panel" style="display: none; position: absolute; top: 22px; right: 110px; background-color: lightblue; border: 1px solid black; padding: 10px; width: 200px; height: 55px;">
+        <p id="user-name" style="margin: 0; text-align: left;">User:</p>
+        <p id="user-role" style="margin: 0; text-align: left;">Role:</p>
+        <div style="display: flex; justify-content: flex-end; margin-top: 0px;">
+            <span id="logout-text" onclick="logout()" style="color: black; cursor: pointer; text-decoration: underline;">Logout</span>
+        </div>
+    </div>
+
+    <!-- Camera Panel -->
+    <div id="camera-menu" style="display: none;">
+        <!-- Logo -->
+        <button class="logo" onclick="goBack()" style="top: 10px; left: 10px;"><img src="BM_Logo.png" alt="BM Company Logo"></button>
+
+        <!-- Login -->
+        <button class="login" onclick="UserInfo()" style="top: 10px; right: 10px;"><img src="user.png" alt="7"></button>
+
+        <!-- Menu Title -->
+        <div class="menu-title">Camera</div>
+
+        <img id="camera-img" src="" style="width: 1000px; height: 750px; object-fit: contain; padding: 100px;">
+    </div>
+
+    <!-- Barcode Panel -->
+    <div id="barcode-menu" style="display: none;">
+        <!-- Logo -->
+        <button class="logo" onclick="goBack()" style="top: 10px; left: 10px;"><img src="BM_Logo.png" alt="BM Company Logo"></button>
+
+        <!-- Login -->
+        <button class="login" onclick="UserInfo()" style="top: 10px; right: 10px;"><img src="user.png" alt="7"></button>
+
+        <!-- Menu Title -->
+        <div class="menu-title">Barcode</div>
+    </div>
+
+    <!-- Volume Panel -->
+    <div id="volume-menu" style="display: none;">
+        <!-- Logo -->
+        <button class="logo" onclick="goBack()" style="top: 10px; left: 10px;"><img src="BM_Logo.png" alt="BM Company Logo"></button>
+
+        <!-- Login -->
+        <button class="login" onclick="UserInfo()" style="top: 10px; right: 10px;"><img src="user.png" alt="7"></button>
+
+        <!-- Menu Title -->
+        <div class="menu-title">Volume</div>
+    </div>
+
+    <!-- Storage Panel -->
+    <div id="storage-menu" style="display: none;">
+        <!-- Logo -->
+        <button class="logo" onclick="goBack()" style="top: 10px; left: 10px;"><img src="BM_Logo.png" alt="BM Company Logo"></button>
+
+        <!-- Login -->
+        <button class="login" onclick="UserInfo()" style="top: 10px; right: 10px;"><img src="user.png" alt="7"></button>
+
+        <!-- Menu Title -->
+        <div class="menu-title">Storage</div>
+    </div>
+
+    <!-- Stacking Panel -->
+    <div id="stacking-menu" style="display: none;">
+        <!-- Logo -->
+        <button class="logo" onclick="goBack()" style="top: 10px; left: 10px;"><img src="BM_Logo.png" alt="BM Company Logo"></button>
+
+        <!-- Login -->
+        <button class="login" onclick="UserInfo()" style="top: 10px; right: 10px;"><img src="user.png" alt="7"></button>
+
+        <!-- Menu Title -->
+        <div class="menu-title">Stacking</div>
+    </div>
+
+    <!-- Configuration Panel -->
+    <div id="config-menu" style="display: none;">
+        <!-- Logo -->
+        <button class="logo" onclick="goBack()" style="top: 10px; left: 10px;"><img src="BM_Logo.png" alt="BM Company Logo"></button>
+
+        <!-- Login -->
+        <button class="login" onclick="UserInfo()" style="top: 10px; right: 10px;"><img src="user.png" alt="7"></button>
+
+        <!-- Menu Title -->
+        <div class="menu-title">Configuration</div>
+    </div>
+
+    <script>
+        let currentMenu = "main-menu";
+        let previousMenu = null;
+        let cameraLoopInterval = null;
+
+        function showLoginScreen() {
+            document.getElementById("register-screen").style.display = "none";
+            document.getElementById("login-screen").style.display = "block";
+            document.getElementById("reg-error-label").textContent = "";
+            document.getElementById("reg-username").value = "";
+            document.getElementById("reg-password").value = "";
+            document.getElementById("reg-role").value = "user";
+            document.getElementById("reg-code").value = "";
+        }
+
+        window.addEventListener("DOMContentLoaded", () => {
+            const savedUser = JSON.parse(localStorage.getItem("current_user"));
+            if(savedUser) {
+                document.getElementById("login-screen").style.display = "none";
+                document.getElementById("main-menu").style.display = "block";
+            }
+        });
+
+        async function login() {
+            const user = document.getElementById("username").value;
+            const pass = document.getElementById("password").value;
+            const errorLabel = document.getElementById("error-label");
+
+            if (!user || !pass) {
+                errorLabel.textContent = "Please fill in all fields.";
+                return;
+            }
+
+            try{
+                const response = await fetch('http://10.0.30.211:8000/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username: user, password: pass })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const role = data.role;
+
+                    localStorage.setItem("current_user", JSON.stringify({ username: user, role: role }));
+
+                    document.getElementById("login-screen").style.display = "none";
+                    document.getElementById("main-menu").style.display = "block";
+                } else {
+                    const data = await response.json();
+                    errorLabel.textContent =  data.detail;
+                }
+            } catch (error) {
+                errorLabel.textContent = "Server connection error.";
+            }
+        }
+
+        function showRegisterScreen() {
+            document.getElementById("login-screen").style.display = "none";
+            document.getElementById("register-screen").style.display = "block";
+            document.getElementById("error-label").textContent = "";
+            document.getElementById("username").value = "";
+            document.getElementById("password").value = "";
+        }
+
+        async function register() {
+            const user = document.getElementById("reg-username").value;
+            const pass = document.getElementById("reg-password").value;
+            const role = document.getElementById("reg-role").value;
+            const code = document.getElementById("reg-code").value;
+            const errorLabel = document.getElementById("reg-error-label");
+
+            if (!user || !pass || (role === "admin" && !code)) {
+                errorLabel.textContent = "Please fill in all fields.";
+                return;
+            }
+
+            try {
+                const response = await fetch('http://10.0.30.211:8000/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username: user, password: pass, role: role, code: code })
+                });
+                
+                const data = await response.json();
+
+                if (!response.ok) {
+                   errorLabel.textContent = data.detail || "Registration failed.";
+                    return;
+                }
+
+            } catch (error) {
+                errorLabel.textContent = "Server connection error.";
+                return;
+            }
+
+            errorLabel.textContent = "Registration successful!";
+            showLoginScreen();
+        }
+
+        function handleRoleChange() {
+            const role = document.getElementById("reg-role");
+            const code = document.getElementById("reg-code");
+
+            if (role.value === "admin") {
+                code.disabled = false;
+            } else {
+                code.disabled = true;
+                code.value = "";
+            }
+        }
+
+        function UserInfo() {
+            const panel = document.getElementById("user-panel");
+            const currentUser = JSON.parse(localStorage.getItem("current_user"));
+
+            if (!currentUser) return;
+
+            document.getElementById("user-name").textContent = "User: " + currentUser.username;
+            document.getElementById("user-role").textContent = "Role: " + currentUser.role;
+
+            panel.style.display = (panel.style.display === "block") ? "none" : "block";
+        }
+
+        document.addEventListener("click", function(event) {
+            const panel = document.getElementById("user-panel");
+            const clickedInsidePanel = panel.contains(event.target);
+            const clickedLoginButton = event.target.closest(".login");
+
+            if (panel.style.display === "block" && 
+                !clickedInsidePanel && 
+                !clickedLoginButton) {
+                panel.style.display = "none";
+            }
+        });
+
+        function logout() {
+            localStorage.removeItem("current_user");
+            document.getElementById("main-menu").style.display = "none";
+            document.getElementById("camera-menu").style.display = "none";
+            document.getElementById("login-screen").style.display = "block";
+            document.getElementById("user-panel").style.display = "none"; 
+            document.getElementById("username").value = "";
+            document.getElementById("password").value = "";
+        }
+
+        function goTo(menuID) {
+            previousMenu = currentMenu;
+
+            document.getElementById(currentMenu).style.display = "none";
+            document.getElementById(menuID).style.display = "block";    
+
+            currentMenu = menuID; 
+
+            if (menuID === "camera-menu") {
+                updateCameraFeedLoop();
+            } else {
+                if (cameraLoopInterval){
+                    clearInterval(cameraLoopInterval);
+                    cameraLoopInterval = null;
+                } 
+            }
+        }
+
+        function goBack() {
+            if (!previousMenu) return;
+
+            document.getElementById(currentMenu).style.display = "none";
+            document.getElementById(previousMenu).style.display = "block";
+
+            currentMenu = previousMenu;
+            previousMenu = null;
+        }
+
+        async function updateCameraFeed() {
+            try{
+                const modeResponse = await fetch('http://10.0.30.211:8000/expositionMode');
+                const modeData = await modeResponse.json();
+
+                if (modeData["Exposition Mode"] === "Fixed Exposition") {
+                    await fetch('http://10.0.30.211:8000/captureFrame', { method: 'POST' });
+                }
+
+                let frameUrl = 'http://10.0.30.211:8000/getFrame/color';
+                if (modeData["Exposition Mode"] === "HDR") {
+                    let resp = await fetch('http://10.0.30.211:8000/getFrame/HDRcolor');
+                    if (resp.status === 204) {
+                        resp = await fetch(frameUrl);
+                    }
+                    const blob = await resp.blob();
+                    document.getElementById("camera-img").src = URL.createObjectURL(blob);
+                } else {
+                    const resp = await fetch(frameUrl);
+                    const blob = await resp.blob();
+                    document.getElementById("camera-img").src = URL.createObjectURL(blob);
+                }
+            }catch (error) {
+                console.error("Camera error:", error);
+            }
+        }
+
+        function updateCameraFeedLoop() {
+            if (cameraLoopInterval) return;
+
+            cameraLoopInterval = setInterval(() => {
+                if (currentMenu === "camera-menu") {
+                    updateCameraFeed();
+                }
+            }, 200);
+        }
+    </script>
+
+</body>
+</html>

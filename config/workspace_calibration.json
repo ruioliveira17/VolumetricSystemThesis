@@ -1,11 +1,11 @@
 {
     "detection_area": [
-        232,
-        145,
+        233,
+        146,
         385,
         353
     ],
-    "workspace_depth": 961.6862608032537,
+    "workspace_depth": 961.8288215791677,
     "hmin": 23,
     "hmax": 32,
     "smin": 100,

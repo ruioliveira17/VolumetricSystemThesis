@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Path, Query, HTTPException, status, Response
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 from typing import Optional, List
 from pydantic import BaseModel
 from API.VzenseDS_api import *
@@ -22,6 +23,8 @@ from WorkspaceState import workspaceState
 from contextlib import asynccontextmanager
 import json
 import os
+import io
+from PIL import Image
 import cv2
 
 USER_FILE = "auth/users.json"
@@ -53,6 +56,7 @@ class RegisterData(BaseModel):
     username: str
     password: str
     role: str
+    code: Optional[str] = None
 
 #--------------------------------------------------------------------------------------------------------------------------
 
@@ -124,6 +128,14 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 #-------------------------------------------------------   Login   --------------------------------------------------------
 
 @app.post("/login")
@@ -133,19 +145,23 @@ def login(login_data: LoginData):
     if login_data.username in users and users[login_data.username]["password"] == login_data.password:
         return {"role": users[login_data.username]["role"]}
     
-    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Dados inválidos!")
+    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid username or password.")
 
 @app.post("/register")
 def register(register_data: RegisterData):
     users = load_users()
 
     if not register_data.username or not register_data.password:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="É necessário preencher todos os campos!")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Please fill all fields!")
     
     if register_data.username in users:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username já registrado! Escolha outro username para avançar.")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username already used! Choose another username.")
     
-    given_role = register_data.role if register_data.role in ["admin", "user"] else "user"
+    given_role = "user"
+    if register_data.role == "admin":
+        if register_data.code != "ADMBM":
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid admin code! Please provide a valid admin code to create an admin user.")
+        given_role = "admin"
 
     users[register_data.username] = {"password": register_data.password, "role": given_role}
     save_users(users)
@@ -192,7 +208,22 @@ def capture_frame():
 
 @app.get("/getFrame/color")
 def get_Color_Frame():
-    return Response(content=frameState.colorFrame.tobytes(), media_type="application/octet-stream")
+    colorFrame = frameState.colorFrame  # teu array numpy BGR
+    if colorFrame.dtype != numpy.uint8:
+        # Normaliza caso não seja uint8
+        colorFrame = (numpy.clip(colorFrame, 0, 1) * 255).astype(numpy.uint8)
+    
+    # Converte BGR -> RGB
+    img_rgb = colorFrame[:, :, ::-1]
+    pil_img = Image.fromarray(img_rgb)
+
+    # Salva em PNG na memória
+    buf = io.BytesIO()
+    pil_img.save(buf, format="PNG")
+    buf.seek(0)
+
+    return Response(content=buf.read(), media_type="image/png")
+    #return Response(content=frameState.colorFrame.tobytes(), media_type="application/octet-stream")
 
 @app.get("/getFrame/colorToDepth")
 def get_ColorToDepth_Frame():

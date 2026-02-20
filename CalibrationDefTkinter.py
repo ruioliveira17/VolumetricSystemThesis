@@ -1,6 +1,8 @@
 from pickle import FALSE, TRUE
 import sys
-sys.path.append('C:/Tese/Python/Samples/DS86/FrameViewer')
+import os
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.join(BASE_DIR, "Python", "Samples", "DS86", "FrameViewer"))
 #from GetFrame import getFrame
 #from FrameState import frameState
 
