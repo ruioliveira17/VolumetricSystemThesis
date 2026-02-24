@@ -208,7 +208,7 @@ def capture_frame():
 
 @app.get("/getFrame/color")
 def get_Color_Frame():
-    colorFrame = frameState.colorFrame  # teu array numpy BGR
+    colorFrame = frameState.colorFrame 
     if colorFrame.dtype != numpy.uint8:
         # Normaliza caso não seja uint8
         colorFrame = (numpy.clip(colorFrame, 0, 1) * 255).astype(numpy.uint8)
@@ -227,11 +227,51 @@ def get_Color_Frame():
 
 @app.get("/getFrame/colorToDepth")
 def get_ColorToDepth_Frame():
-    return Response(content=frameState.colorToDepthFrame.tobytes(), media_type="application/octet-stream")
+    colorToDepthFrame = frameState.colorToDepthFrame
+    if colorToDepthFrame.dtype != numpy.uint8:
+        # Normaliza caso não seja uint8
+        colorToDepthFrame = (numpy.clip(colorToDepthFrame, 0, 1) * 255).astype(numpy.uint8)
+    
+    # Converte BGR -> RGB
+    img_rgb = colorToDepthFrame[:, :, ::-1]
+    pil_img = Image.fromarray(img_rgb)
+
+    # Salva em PNG na memória
+    buf = io.BytesIO()
+    pil_img.save(buf, format="PNG")
+    buf.seek(0)
+
+    return Response(content=buf.read(), media_type="image/png")
+    #return Response(content=frameState.colorToDepthFrame.tobytes(), media_type="application/octet-stream")
 
 @app.get("/getFrame/depth")
 def get_Depth_Frame():
-    return Response(content=frameState.depthFrame.tobytes(), media_type="application/octet-stream")
+    depthFrame = frameState.depthFrame
+    colorSlope = camState.colorSlope
+
+    img = numpy.int32(depthFrame)
+    img = img * 255 / colorSlope
+    img = numpy.clip(img, 0, 255)
+    img = numpy.uint8(img)
+    depth_img = cv2.applyColorMap(img, cv2.COLORMAP_RAINBOW)
+
+    if depth_img.dtype != numpy.uint8:
+        # Normaliza para 0-255 e converte para uint8
+        frame_uint8 = (numpy.clip(depth_img, 0, 1) * 255).astype(numpy.uint8)
+    else:
+        frame_uint8 = depth_img
+
+    # BGR -> RGB
+    frame_depth = frame_uint8[:, :, ::-1]
+
+    pil_img = Image.fromarray(frame_depth)
+
+    buf = io.BytesIO()
+    pil_img.save(buf, format="PNG")
+    buf.seek(0)
+
+    return Response(buf.read(), media_type="image/png")
+    #return Response(content=frameState.depthFrame.tobytes(), media_type="application/octet-stream")
 
 @app.get("/getFrame/colorToDepthCopy")
 def get_ColorToDepth_Frame_Copy():
@@ -247,10 +287,25 @@ def get_Result():
 
 @app.get("/getFrame/colorToDepthObject")
 def get_ColorToDepth_Frame_Object():
-    if frameState.colorToDepthFrameObject is None:
+    colorToDepthFrameObject = frameState.colorToDepthFrameObject
+    if colorToDepthFrameObject is None:
         raise HTTPException(status_code=404, detail="Frame not available")
+    
+    if colorToDepthFrameObject.dtype != numpy.uint8:
+        # Normaliza caso não seja uint8
+        colorToDepthFrameObject = (numpy.clip(colorToDepthFrameObject, 0, 1) * 255).astype(numpy.uint8)
+    
+    # Converte BGR -> RGB
+    img_rgb = colorToDepthFrameObject[:, :, ::-1]
+    pil_img = Image.fromarray(img_rgb)
 
-    return Response(content=frameState.colorToDepthFrameObject.tobytes(), media_type="application/octet-stream")
+    # Salva em PNG na memória
+    buf = io.BytesIO()
+    pil_img.save(buf, format="PNG")
+    buf.seek(0)
+
+    return Response(content=buf.read(), media_type="image/png")
+    #return Response(content=frameState.colorToDepthFrameObject.tobytes(), media_type="application/octet-stream")
 
 @app.get("/getFrame/HDRcolor")
 def get_Color_HDRFrame():
@@ -661,6 +716,10 @@ def get_Volume_Real():
     }
     
     return response
+
+@app.get("/getObjectsOutOfLine")
+def get_Objects_OutOfLine():
+    return {"objects_outOfLine": volumeState.objects_outOfLine}
 
 #------------------------------------------------------- Debug -------------------------------------------------------
 

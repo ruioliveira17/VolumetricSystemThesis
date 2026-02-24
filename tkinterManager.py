@@ -1637,22 +1637,6 @@ def refresh_toggle():
         if expositionMode == "HDR":
             ExpHDR_var.set(True)
 
-        """r = requests.get("http://127.0.0.1:8000/volumeMode", timeout=0.2)
-        volumeMode = r.json()["Volume Mode"]
-
-        if volumeMode == "Singular":
-            SingularBundle_var.set(False)
-        if volumeMode == "Bundle":
-            SingularBundle_var.set(True)
-
-        r = requests.get("http://127.0.0.1:8000/realVolumeMode", timeout=0.2)
-        realVolumeMode = r.json()["Real Volume Mode"]
-
-        if realVolumeMode == "Off":
-            RealVolume_var.set(False)
-        if realVolumeMode == "On":
-            RealVolume_var.set(True)"""
-
         r = requests.get("http://127.0.0.1:8000/debugMode", timeout=0.2)
         debugMode = r.json()["Debug Mode"]
 

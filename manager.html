@@ -60,6 +60,7 @@
 
         .type1 {background-color: turquoise; border: 1px solid black; width: 400px; height: 300px;}
         .type2 {background-color: springgreen; border: 1px solid black; width: 400px; height: 300px;}
+        .type3 {background-color: turquoise; border: 1px solid black; width: 1520px; height: 50px;}
 
         .menu-title {
             position: absolute;
@@ -72,6 +73,66 @@
             font-weight: semi-bold;
             color: black;
             text-align: center;
+        }
+
+        #depth-img {
+            position: absolute;
+            left: 480px;
+            top: 400px;
+            transform: translate(-50%, -50%);
+            width: 560px;
+            height: 420px;
+            object-fit: contain;
+        } 
+
+        #colorToDepth-img {
+            position: absolute;
+            left: 480px;
+            top: 830px;
+            transform: translate(-50%, -50%);
+            width: 560px;
+            height: 420px;
+            object-fit: contain;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+
+        .switch input { 
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px; width: 26px;
+            left: 4px; bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: turquoise;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
         }
 
     </style>
@@ -119,7 +180,7 @@
 
     </div>
 
-    <div id="main-menu" style="display: none;">
+    <div id="main-menu" style="display: none; position: relative;">
         <!-- Logo -->
         <button class="logo" onclick="goBack()" style="top: 10px; left: 10px;"><img src="BM_Logo.png" alt="BM Company Logo"></button>
 
@@ -141,7 +202,7 @@
     </div>
 
     <!-- User Panel -->
-    <div id="user-panel" style="display: none; position: absolute; top: 22px; right: 110px; background-color: lightblue; border: 1px solid black; padding: 10px; width: 200px; height: 55px;">
+    <div id="user-panel" style="display: none; position: absolute; top: 22px; right: 120px; background-color: lightblue; border: 1px solid black; padding: 10px; width: 200px; height: 55px;">
         <p id="user-name" style="margin: 0; text-align: left;">User:</p>
         <p id="user-role" style="margin: 0; text-align: left;">Role:</p>
         <div style="display: flex; justify-content: flex-end; margin-top: 0px;">
@@ -150,7 +211,7 @@
     </div>
 
     <!-- Camera Panel -->
-    <div id="camera-menu" style="display: none;">
+    <div id="camera-menu" style="display: none; position: relative;">
         <!-- Logo -->
         <button class="logo" onclick="goBack()" style="top: 10px; left: 10px;"><img src="BM_Logo.png" alt="BM Company Logo"></button>
 
@@ -160,11 +221,11 @@
         <!-- Menu Title -->
         <div class="menu-title">Camera</div>
 
-        <img id="camera-img" src="" style="width: 1000px; height: 750px; object-fit: contain; padding: 100px;">
+        <img id="camera-img" src="" style="width: 1000px; height: 750px; object-fit: contain; padding: 110px;">
     </div>
 
     <!-- Barcode Panel -->
-    <div id="barcode-menu" style="display: none;">
+    <div id="barcode-menu" style="display: none; position: relative;">
         <!-- Logo -->
         <button class="logo" onclick="goBack()" style="top: 10px; left: 10px;"><img src="BM_Logo.png" alt="BM Company Logo"></button>
 
@@ -176,7 +237,7 @@
     </div>
 
     <!-- Volume Panel -->
-    <div id="volume-menu" style="display: none;">
+    <div id="volume-menu" style="display: none; position: relative;">
         <!-- Logo -->
         <button class="logo" onclick="goBack()" style="top: 10px; left: 10px;"><img src="BM_Logo.png" alt="BM Company Logo"></button>
 
@@ -185,10 +246,60 @@
 
         <!-- Menu Title -->
         <div class="menu-title">Volume</div>
+
+        <!-- Aviso -->
+        <div id="objOutOfLine_label" style="
+            position: absolute;
+            left: 950px;
+            top: 130px;
+            transform: translate(-50%, -50%);
+            font-size: 20px;
+            font-family: Arial;
+        ">
+        </div>
+
+        <!-- Labels -->
+        <div style="position:absolute; left:800px; top:280px; font-size:36px;">Volume:</div>
+        <div style="position:absolute; left:800px; top:430px; font-size:36px;">X:</div>
+        <div style="position:absolute; left:800px; top:580px; font-size:36px;">Y:</div>
+        <div style="position:absolute; left:800px; top:730px; font-size:36px;">Height:</div>
+
+        <!-- Valores -->
+        <div id="volume_value_label" style="position:absolute; left:950px; top:280px; font-size:36px;"></div>
+        <div id="volume_value_cm_label" style="position:absolute; left:950px; top:330px; font-size:36px;"></div>
+        <div id="x_length_value_label" style="position:absolute; left:950px; top:430px; font-size:36px;"></div>
+        <div id="y_length_value_label" style="position:absolute; left:950px; top:580px; font-size:36px;"></div>
+        <div id="height_value_label" style="position:absolute; left:950px; top:730px; font-size:36px;"></div>
+
+        <!-- Botões -->
+        <button onclick="volumeReal_click()" style="
+            position:absolute;
+            left:780px;
+            top:850px;
+            width:300px;
+            font-size:20px;
+        ">
+            Get Real Volume
+        </button>
+
+        <button onclick="volumeBundle_click()" style="
+            position:absolute;
+            left:780px;
+            top:920px;
+            width:300px;
+            font-size:20px;
+        ">
+            Get Bundle Volume
+        </button>
+
+        <!-- Imagens -->
+        <img id="depth-img">
+        <img id="colorToDepth-img">
+        <img id="object-img" style="position: absolute; left: 1500px; top: 615px; transform: translate(-50%, -50%); width: 560px; height: 420px; object-fit: contain;">
     </div>
 
     <!-- Storage Panel -->
-    <div id="storage-menu" style="display: none;">
+    <div id="storage-menu" style="display: none; position: relative;">
         <!-- Logo -->
         <button class="logo" onclick="goBack()" style="top: 10px; left: 10px;"><img src="BM_Logo.png" alt="BM Company Logo"></button>
 
@@ -200,7 +311,7 @@
     </div>
 
     <!-- Stacking Panel -->
-    <div id="stacking-menu" style="display: none;">
+    <div id="stacking-menu" style="display: none; position: relative;">
         <!-- Logo -->
         <button class="logo" onclick="goBack()" style="top: 10px; left: 10px;"><img src="BM_Logo.png" alt="BM Company Logo"></button>
 
@@ -212,7 +323,7 @@
     </div>
 
     <!-- Configuration Panel -->
-    <div id="config-menu" style="display: none;">
+    <div id="config-menu" style="display: none; position: relative;">
         <!-- Logo -->
         <button class="logo" onclick="goBack()" style="top: 10px; left: 10px;"><img src="BM_Logo.png" alt="BM Company Logo"></button>
 
@@ -221,11 +332,81 @@
 
         <!-- Menu Title -->
         <div class="menu-title">Configuration</div>
+
+        <div id="config-error" style="
+            position: absolute;
+            left: 950px;
+            top: 130px;
+            transform: translate(-50%, -50%);
+            font-size: 20px;
+            font-family: Arial;
+        ">
+        </div>
+
+        <!-- Exposure / HDR Switch -->
+        <div style="position: absolute; top: 310px; left: 200px;">
+            <span style="font-size: 20px; margin-right: 10px;">Exposition</span>
+            <label class="switch">
+                <input type="checkbox" id="ExpHDR_switch" onchange="ExpHDR_toggle()">
+                <span class="slider round"></span>
+            </label>
+            <span style="font-size: 20px; margin-left: 10px;">HDR</span>
+        </div>
+
+        <!-- Static / Dynamic Switch -->
+        <div style="position: absolute; top: 410px; left: 200px;">
+            <span style="font-size: 20px; margin-right: 10px;">Static</span>
+            <label class="switch">
+                <input type="checkbox" id="StaticDynamic_switch" onchange="StaticDynamic_toggle()">
+                <span class="slider round"></span>
+            </label>
+            <span style="font-size: 20px; margin-left: 10px;">Dynamic</span>
+        </div>
+
+        <!-- Debug Mode Switch -->
+        <span style="font-size: 20px; position: absolute; top: 680px; left: 200px;">Debug Mode</span>
+        <div style="position: absolute; top: 710px; left: 200px;">
+            <span style="font-size: 20px; margin-right: 10px;">On</span>
+            <label class="switch">
+                <input type="checkbox" id="DebugMode_switch" onchange="DebugMode_toggle()">
+                <span class="slider round"></span>
+            </label>
+            <span style="font-size: 20px; margin-left: 10px;">Off</span>
+        </div>
+
+        <div style="position: relative; top: 310px; left: 1000px; display:flex; align-items:center; gap:10px;">
+            <label for="exposureTime">Exposure Time:</label>
+            <input type="text" id="exposureTime" />
+            <button onclick="exposureSet_click()">Set</button>
+        </div>
+        
+        <div style="position: relative; top: 360px; left: 1000px; display:flex; align-items:center; gap:10px;">
+            <label for="colorSlope">Color Slope:</label>
+            <input type="text" id="colorSlope" />
+            <button onclick="colorSlopeSet_click()">Set</button>
+        </div>
+
+        <div class="buttons">
+            <button class="type3" onclick="goTo('calibration-menu')" style="top: 180px; left: 200px; color:white; font-size: 18px;">Calibração</button>
+        </div>
+    </div>
+
+    <!-- Calibration Panel -->
+    <div id="calibration-menu" style="display: none; position: relative;">
+        <!-- Logo -->
+        <button class="logo" onclick="goBack()" style="top: 10px; left: 10px;"><img src="BM_Logo.png" alt="BM Company Logo"></button>
+
+        <!-- Login -->
+        <button class="login" onclick="UserInfo()" style="top: 10px; right: 10px;"><img src="user.png" alt="7"></button>
+
+        <!-- Menu Title -->
+        <div class="menu-title">Calibration</div>
+        
     </div>
 
     <script>
-        let currentMenu = "main-menu";
-        let previousMenu = null;
+        let menuStack = [];
+        let currentMenu = null;
         let cameraLoopInterval = null;
 
         function showLoginScreen() {
@@ -242,7 +423,8 @@
             const savedUser = JSON.parse(localStorage.getItem("current_user"));
             if(savedUser) {
                 document.getElementById("login-screen").style.display = "none";
-                document.getElementById("main-menu").style.display = "block";
+                currentMenu = "main-menu";
+                document.getElementById(currentMenu).style.display = "block";
             }
         });
 
@@ -272,7 +454,8 @@
                     localStorage.setItem("current_user", JSON.stringify({ username: user, role: role }));
 
                     document.getElementById("login-screen").style.display = "none";
-                    document.getElementById("main-menu").style.display = "block";
+                    currentMenu = "main-menu";
+                    document.getElementById(currentMenu).style.display = "block";
                 } else {
                     const data = await response.json();
                     errorLabel.textContent =  data.detail;
@@ -365,23 +548,28 @@
 
         function logout() {
             localStorage.removeItem("current_user");
-            document.getElementById("main-menu").style.display = "none";
-            document.getElementById("camera-menu").style.display = "none";
+            cameraLoopInterval = null;
+            document.getElementById(currentMenu).style.display = "none";
+            document.getElementById("user-panel").style.display = "none";
+            
             document.getElementById("login-screen").style.display = "block";
-            document.getElementById("user-panel").style.display = "none"; 
+
             document.getElementById("username").value = "";
             document.getElementById("password").value = "";
+
+            menuStack = [];
+            currentMenu = null;
         }
 
         function goTo(menuID) {
-            previousMenu = currentMenu;
-
-            document.getElementById(currentMenu).style.display = "none";
+            if(currentMenu) {
+                menuStack.push(currentMenu);
+                document.getElementById(currentMenu).style.display = "none";
+            }
             document.getElementById(menuID).style.display = "block";    
-
             currentMenu = menuID; 
 
-            if (menuID === "camera-menu") {
+            if (menuID === "camera-menu" || menuID === "volume-menu" || menuID === "calibration-menu") {
                 updateCameraFeedLoop();
             } else {
                 if (cameraLoopInterval){
@@ -389,16 +577,179 @@
                     cameraLoopInterval = null;
                 } 
             }
+
+            if (menuID === "config-menu") {
+                refreshToggles();
+            }
         }
 
         function goBack() {
-            if (!previousMenu) return;
+            if (menuStack.length === 0) return;
 
             document.getElementById(currentMenu).style.display = "none";
-            document.getElementById(previousMenu).style.display = "block";
+            currentMenu = menuStack.pop();
+            document.getElementById(currentMenu).style.display = "block";
+        }
 
-            currentMenu = previousMenu;
-            previousMenu = null;
+        async function volumeBundle_click() {
+            const TextOutOfLine = "There are objects outside the yellow stripes. To detect them, make sure they are inside the stripes.";
+            const TextError = "Error";
+
+            try {
+                document.getElementById("volume_value_label").textContent = "";
+                document.getElementById("volume_value_cm_label").textContent = "";
+                document.getElementById("x_length_value_label").textContent = "";
+                document.getElementById("y_length_value_label").textContent = "";
+                document.getElementById("height_value_label").textContent = "";
+
+                const dropdown = document.getElementById("objOption_menu");
+                if (dropdown) dropdown.remove();
+
+                await fetch('http://10.0.30.211:8000/volumeBundle', { method: 'POST' });
+
+                const response = await fetch('http://10.0.30.211:8000/getObjectsOutOfLine');
+                const data = await response.json();
+                const objectsOutOfLine = data.objects_outOfLine.map((val, i) => val ? i + 1 : null).filter(v => v !== null);
+                if (objectsOutOfLine.length > 0) {
+                    document.getElementById("objOutOfLine_label").textContent = TextOutOfLine;
+                } else {
+                    document.getElementById("objOutOfLine_label").textContent = "";
+
+                    const dataResponse = await fetch('http://10.0.30.211:8000/getVolumeBundle');
+                    const volumeData = await dataResponse.json();
+
+                    document.getElementById("volume_value_label").innerText = volumeData.Bundle.volume_m.toFixed(6) + " m³";
+                    document.getElementById("volume_value_cm_label").innerText = volumeData.Bundle.volume_cm.toFixed(2) + " cm³";
+                    document.getElementById("x_length_value_label").innerText = volumeData.Bundle.x.toFixed(1) + " cm";
+                    document.getElementById("y_length_value_label").innerText = volumeData.Bundle.y.toFixed(1) + " cm";
+                    document.getElementById("height_value_label").innerText = volumeData.Bundle.z.toFixed(1) + " cm";
+                }
+
+                const imgResp = await fetch("http://10.0.30.211:8000/getFrame/colorToDepthObject");
+                if (imgResp.status === 404) throw new Error("Frame not Available");
+
+                const blob = await imgResp.blob();
+                document.getElementById("object-img").src = URL.createObjectURL(blob);
+
+            } catch (error) {
+                document.getElementById("volume_value_label").innerText = TextError;
+                document.getElementById("volume_value_cm_label").innerText = TextError;
+                document.getElementById("x_length_value_label").innerText = TextError;
+                document.getElementById("y_length_value_label").innerText = TextError;
+                document.getElementById("height_value_label").innerText = TextError;
+                document.getElementById("objOutOfLine_label").innerText = TextError;
+
+                console.error(error);
+            }
+        }
+
+        async function volumeReal_click() {
+            const TextOutOfLine = "There are objects outside the yellow stripes. To detect them, make sure they are inside the stripes.";
+            const TextError = "Error";
+
+            try {
+                document.getElementById("volume_value_label").textContent = "";
+                document.getElementById("volume_value_cm_label").textContent = "";
+                document.getElementById("x_length_value_label").textContent = "";
+                document.getElementById("y_length_value_label").textContent = "";
+                document.getElementById("height_value_label").textContent = "";
+
+                const oldDropdown = document.getElementById("objOption_menu");
+                if (oldDropdown) {
+                    oldDropdown.remove();
+                }
+
+                await fetch('http://10.0.30.211:8000/volumeReal', { method: 'POST' });
+
+                const response = await fetch('http://10.0.30.211:8000/getObjectsOutOfLine');
+                const data = await response.json();
+                const objectsOutOfLine = data.objects_outOfLine.map((val, i) => val ? i + 1 : null).filter(v => v !== null);
+                if (objectsOutOfLine.length > 0) {
+                    document.getElementById("objOutOfLine_label").textContent = TextOutOfLine;
+                } else {
+                    document.getElementById("objOutOfLine_label").textContent = "";
+                }
+
+                const dataResponse = await fetch('http://10.0.30.211:8000/getVolumeReal');
+                const volumeData = await dataResponse.json();
+
+                const imgResp = await fetch("http://10.0.30.211:8000/getFrame/colorToDepthObject");
+                if (imgResp.status === 404) throw new Error("Frame not Available");
+
+                const blob = await imgResp.blob();
+                document.getElementById("object-img").src = URL.createObjectURL(blob);
+
+                const objIdentified = Object.keys(volumeData).filter(key => key !== "Total");
+                const objTotal = volumeData["Total"]
+                
+                if (objIdentified.length === 1) {
+                    const objData = volumeData[objIdentified[0]];
+                    document.getElementById("volume_value_label").innerText = objData.volume_m.toFixed(6) + " m³";
+                    document.getElementById("volume_value_cm_label").innerText = objData.volume_cm.toFixed(2) + " cm³";
+                    document.getElementById("x_length_value_label").innerText = objData.x.toFixed(1) + " cm";
+                    document.getElementById("y_length_value_label").innerText = objData.y.toFixed(1) + " cm";
+                    document.getElementById("height_value_label").innerText = objData.z.toFixed(1) + " cm";
+                } else if (objIdentified.length > 1) {
+                    const select = document.createElement("select");
+                    select.id = "objOption_menu";
+                    select.style.width = "300px";
+                    select.style.fontSize = "16px";
+                    select.style.position = "absolute";
+                    select.style.left = "800px";
+                    select.style.top = "200px";
+
+                    const placeholder = document.createElement("option");
+                    placeholder.text = "Select an Object";
+                    placeholder.disabled = true;
+                    placeholder.selected = true;
+                    placeholder.value = "";
+                    select.add(placeholder);
+
+                    objIdentified.forEach(objName => {
+                        const option = document.createElement("option");
+                        option.text = objName;
+                        option.value = objName;
+                        select.add(option);
+                    });
+
+                    const totalOption = document.createElement("option");
+                    totalOption.value = "Total";
+                    totalOption.text = "Total";
+                    select.add(totalOption);   
+
+                    select.addEventListener("change", (event) => {
+                        document.getElementById("volume_value_label").textContent = "";
+                        document.getElementById("volume_value_cm_label").textContent = "";
+                        document.getElementById("x_length_value_label").textContent = "";
+                        document.getElementById("y_length_value_label").textContent = "";
+                        document.getElementById("height_value_label").textContent = "";
+
+                        const selected = event.target.value;
+                        if (!selected) return;
+
+                        const objData = volumeData[selected];
+                        if (!objData) return;
+
+                        document.getElementById("volume_value_label").innerText = objData.volume_m.toFixed(6) + " m³";
+                        document.getElementById("volume_value_cm_label").innerText = objData.volume_cm.toFixed(2) + " cm³";
+                        document.getElementById("x_length_value_label").innerText = objData.x.toFixed(1) + " cm";
+                        document.getElementById("y_length_value_label").innerText = objData.y.toFixed(1) + " cm";
+                        document.getElementById("height_value_label").innerText = objData.z.toFixed(1) + " cm";
+                    });
+
+                    document.getElementById("volume-menu").appendChild(select);
+
+                }
+            } catch (error) {
+                document.getElementById("volume_value_label").innerText = TextError;
+                document.getElementById("volume_value_cm_label").innerText = TextError;
+                document.getElementById("x_length_value_label").innerText = TextError;
+                document.getElementById("y_length_value_label").innerText = TextError;
+                document.getElementById("height_value_label").innerText = TextError;
+                document.getElementById("objOutOfLine_label").innerText = TextError;
+
+                console.error(error);
+            }
         }
 
         async function updateCameraFeed() {
@@ -410,18 +761,46 @@
                     await fetch('http://10.0.30.211:8000/captureFrame', { method: 'POST' });
                 }
 
-                let frameUrl = 'http://10.0.30.211:8000/getFrame/color';
+                let colorFrameUrl = 'http://10.0.30.211:8000/getFrame/color';
+                let colorToDepthFrameUrl = 'http://10.0.30.211:8000/getFrame/colorToDepth';
+                let depthFrameUrl = 'http://10.0.30.211:8000/getFrame/depth';
                 if (modeData["Exposition Mode"] === "HDR") {
                     let resp = await fetch('http://10.0.30.211:8000/getFrame/HDRcolor');
                     if (resp.status === 204) {
-                        resp = await fetch(frameUrl);
+                        resp = await fetch(colorFrameUrl);
                     }
                     const blob = await resp.blob();
                     document.getElementById("camera-img").src = URL.createObjectURL(blob);
                 } else {
-                    const resp = await fetch(frameUrl);
+                    const resp = await fetch(colorFrameUrl);
                     const blob = await resp.blob();
                     document.getElementById("camera-img").src = URL.createObjectURL(blob);
+                }
+
+                if (modeData["Exposition Mode"] === "HDR") {
+                    let resp = await fetch('http://10.0.30.211:8000/getFrame/HDRcolorToDepth');
+                    if (resp.status === 204) {
+                        resp = await fetch(colorToDepthFrameUrl);
+                    }
+                    const blob = await resp.blob();
+                    document.getElementById("colorToDepth-img").src = URL.createObjectURL(blob);
+                } else {
+                    const resp = await fetch(colorToDepthFrameUrl);
+                    const blob = await resp.blob();
+                    document.getElementById("colorToDepth-img").src = URL.createObjectURL(blob);
+                }
+
+                if (modeData["Exposition Mode"] === "HDR") {
+                    let resp = await fetch('http://10.0.30.211:8000/getFrame/HDRdepth');
+                    if (resp.status === 204) {
+                        resp = await fetch(depthFrameUrl);
+                    }
+                    const blob = await resp.blob();
+                    document.getElementById("depth-img").src = URL.createObjectURL(blob);
+                } else {
+                    const resp = await fetch(depthFrameUrl);
+                    const blob = await resp.blob();
+                    document.getElementById("depth-img").src = URL.createObjectURL(blob);
                 }
             }catch (error) {
                 console.error("Camera error:", error);
@@ -432,11 +811,123 @@
             if (cameraLoopInterval) return;
 
             cameraLoopInterval = setInterval(() => {
-                if (currentMenu === "camera-menu") {
+                if (currentMenu === "camera-menu" || currentMenu === "volume-menu" || currentMenu === "calibration-menu") {
                     updateCameraFeed();
                 }
-            }, 200);
+            }, 333);
         }
+        
+        async function ExpHDR_toggle() {
+            const checked = document.getElementById("ExpHDR_switch").checked;
+            if (checked) {
+                await fetch("http://127.0.0.1:8000/expositionMode/hdr", { method: "POST" });
+            } else {
+                await fetch("http://127.0.0.1:8000/expositionMode/fixed", { method: "POST" });
+            }
+        }
+
+        async function StaticDynamic_toggle() {
+            const checked = document.getElementById("StaticDynamic_switch").checked;
+            if (checked) {
+                await fetch("http://127.0.0.1:8000/mode/dynamic", { method: "POST" });
+            } else {
+                await fetch("http://127.0.0.1:8000/mode/static", { method: "POST" });
+            }
+        }
+
+        async function DebugMode_toggle() {
+            const checked = document.getElementById("DebugMode_switch").checked;
+            if (checked) {
+                await fetch("http://127.0.0.1:8000/debugMode/on", { method: "POST" });
+            } else {
+                await fetch("http://127.0.0.1:8000/debugMode/off", { method: "POST" });
+            }
+        }
+
+        async function exposureSet_click() {
+            const value = parseInt(document.getElementById("exposureTime").value);
+            
+            if (isNaN(value)) {
+                document.getElementById("config-error").textContent = "Only integer values are allowed for exposure time.";
+                return;
+            }
+
+            if (value < 100 || value > 4000) {
+                document.getElementById("config-error").textContent = "Exposure Time value must be between 100 and 4000.";
+                return;
+            }
+
+            try {
+                await fetch("http://127.0.0.1:8000/camera/setExposureTime", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ exposureTime: value })
+                });
+            } catch (error) {
+                console.error("Exposure set error:", error);
+            }
+        }
+
+        async function colorSlopeSet_click() {
+            const value = parseInt(document.getElementById("colorSlope").value);
+            if (isNaN(value)) {
+                document.getElementById("config-error").textContent = "Only integer values are allowed for color slope.";
+                return;
+            }
+
+            if (value < 150 || value > 5000) {
+                document.getElementById("config-error").textContent = "Color Slope value must be between 150 and 5000.";
+                return;
+            }
+
+            try {
+                await fetch("http://127.0.0.1:8000/camera/setColorSlope", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ colorSlope: value })
+                });
+            } catch (error) {
+                console.error("Color slope set error:", error);
+            }
+        }
+
+        async function refreshToggles() {
+            try {
+                // MODE (Static / Dynamic)
+                let r = await fetch("http://127.0.0.1:8000/mode");
+                let modeData = await r.json();
+
+                document.getElementById("StaticDynamic_switch").checked =
+                    (modeData["Mode"] === "Dynamic");
+
+                // EXPOSITION MODE
+                r = await fetch("http://127.0.0.1:8000/expositionMode");
+                let expData = await r.json();
+
+                document.getElementById("ExpHDR_switch").checked =
+                    (expData["Exposition Mode"] === "HDR");
+
+                // DEBUG MODE
+                r = await fetch("http://127.0.0.1:8000/debugMode");
+                let debugData = await r.json();
+
+                document.getElementById("DebugMode_switch").checked =
+                    (debugData["Debug Mode"] === "On");
+
+            } catch (error) {
+                console.log("Toggle refresh error:", error);
+            }
+
+            // só continua a atualizar se estiveres no config menu
+            if (currentMenu === "config-menu") {
+                setTimeout(refreshToggles, 100);
+            }
+        }
+
     </script>
 
 </body>
