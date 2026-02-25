@@ -58,6 +58,11 @@ class RegisterData(BaseModel):
     role: str
     code: Optional[str] = None
 
+class RGBPoint(BaseModel):
+    r : int
+    g : int
+    b : int
+
 #--------------------------------------------------------------------------------------------------------------------------
 
 def load_users():
@@ -92,6 +97,10 @@ def save_WS_calibration():
     with open("config/workspace_calibration.json", "w") as f:
         json.dump(data, f, indent=4)
 
+def rgb_to_hsv(r, g, b):
+    rgb = numpy.uint8([[[r, g, b]]])
+    hsv = cv2.cvtColor(rgb, cv2.COLOR_RGB2HSV)
+    return hsv[0][0].tolist()
 #-----------------------------------------------------   Lifespan   -------------------------------------------------------
 
 @asynccontextmanager
@@ -275,7 +284,29 @@ def get_Depth_Frame():
 
 @app.get("/getFrame/colorToDepthCopy")
 def get_ColorToDepth_Frame_Copy():
-    return Response(content=frameState.colorToDepthFrameCopy.tobytes(), media_type="application/octet-stream")
+    colorToDepthFrameCopy = frameState.colorToDepthFrameCopy
+
+    if colorToDepthFrameCopy is None:
+        colorToDepthFrameCopy = frameState.colorToDepthFrame
+        if colorToDepthFrameCopy.dtype != numpy.uint8:
+            # Normaliza caso não seja uint8
+            colorToDepthFrameCopy = (numpy.clip(colorToDepthFrameCopy, 0, 1) * 255).astype(numpy.uint8)
+    else:
+        if colorToDepthFrameCopy.dtype != numpy.uint8:
+            # Normaliza caso não seja uint8
+            colorToDepthFrameCopy = (numpy.clip(colorToDepthFrameCopy, 0, 1) * 255).astype(numpy.uint8)
+    
+    # Converte BGR -> RGB
+    img_rgb = colorToDepthFrameCopy[:, :, ::-1]
+    pil_img = Image.fromarray(img_rgb)
+
+    # Salva em PNG na memória
+    buf = io.BytesIO()
+    pil_img.save(buf, format="PNG")
+    buf.seek(0)
+
+    return Response(content=buf.read(), media_type="image/png")
+    #return Response(content=frameState.colorToDepthFrameCopy.tobytes(), media_type="application/octet-stream")
 
 @app.get("/getFrame/depthCopy")
 def get_Depth_Frame_Copy():
@@ -283,7 +314,25 @@ def get_Depth_Frame_Copy():
 
 @app.get("/getFrame/result")
 def get_Result():
-    return Response(content=frameState.result.tobytes(), media_type="application/octet-stream")
+    result = frameState.res
+    if result is None:
+        result = numpy.zeros((480, 640, 3), dtype=numpy.uint8)
+    
+    if result.dtype != numpy.uint8:
+        # Normaliza caso não seja uint8
+        result = (numpy.clip(result, 0, 1) * 255).astype(numpy.uint8)
+    
+    # Converte BGR -> RGB
+    img_rgb = result[:, :, ::-1]
+    pil_img = Image.fromarray(img_rgb)
+
+    # Salva em PNG na memória
+    buf = io.BytesIO()
+    pil_img.save(buf, format="PNG")
+    buf.seek(0)
+
+    return Response(content=buf.read(), media_type="image/png")
+    #return Response(content=frameState.result.tobytes(), media_type="application/octet-stream")
 
 @app.get("/getFrame/colorToDepthObject")
 def get_ColorToDepth_Frame_Object():
@@ -380,6 +429,42 @@ def set_maskColor(data: HSVValue):
     maskState.color = data.color
     return{"color": maskState.color}
 
+@app.post("/mask/colorClick")
+def clickSet_maskColor(data: RGBPoint):
+    color_ack = False
+    preset = COLOR_PRESETS
+
+    hsv = rgb_to_hsv(data.r, data.g, data.b)
+
+    for color_name, vals in preset.items():
+        lower = vals["lower"]
+        upper = vals["upper"]
+
+        if lower[0] <= hsv[0] <= upper[0] and lower[1] <= hsv[1] <= upper[1] and lower[2] <= hsv[2] <= upper[2]:
+            color_ack = True
+            print("Color:", color_name)
+            if color_name == "Red2":
+                color_name = "Red"
+            print("Color:", color_name)
+            maskState.color = color_name
+    if color_ack == False:
+        min_dist = float("inf")
+        closest_color = None
+        for color_name, vals in preset.items():
+            lower = numpy.array(vals["lower"])
+            upper = numpy.array(vals["upper"])
+            mid = (lower + upper) / 2
+            dist = ((mid[0] - hsv[0])**2 + (mid[1] - hsv[1])**2 + (mid[2] - hsv[2])**2)**0.5
+            if dist < min_dist:
+                min_dist = dist
+                closest_color = color_name
+                
+        if closest_color == "Red2":
+            closest_color = "Red"
+        print("Closest Color:", closest_color)
+        maskState.color = closest_color
+    return{"color": maskState.color}
+
 @app.post("/mask/optionSelected")
 def set_maskColor(data: HSVValue):
     maskState.optionSelected = data.optionSelected
@@ -426,7 +511,7 @@ def apply_mask(data: HSVValue):
     if result is None or colorToDepthFrame_copy is None or depthFrame_copy is None:
         return{"message:": "Mask application failed!"}
 
-    frameState.result = result
+    frameState.res = result
     frameState.colorToDepthFrameCopy = colorToDepthFrame_copy
     frameState.depthFrameCopy = depthFrame_copy
     workspaceState.detection_area = detection_area
@@ -513,12 +598,12 @@ def get_calMode():
     }
 
 @app.post("/calibrate/mode/automatic")
-def static():
+def automaticCalibration():
     modeState.calibrationMode = "Automatic"
     return {"mode:": modeState.calibrationMode}
 
 @app.post("/calibrate/mode/manual")
-def dynamic():
+def manualCalibration():
     modeState.calibrationMode = "Manual"
     return {"mode:": modeState.calibrationMode}
 

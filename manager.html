@@ -135,6 +135,35 @@
             transform: translateX(26px);
         }
 
+        .readonly-slider {
+            display: flex;
+            align-items: center;
+            pointer-events: none; 
+        }
+
+        input[type="range"] {
+            appearance: none;  
+            width: 500px;
+        }
+
+        /* Track - a barra por baixo */
+        input[type="range"]::-webkit-slider-runnable-track {
+            height: 20px;          /* grossura da barra */
+            background: #ccc;      /* cor da barra */
+            border-radius: 10px;
+        }
+
+        /* Thumb - a bolinha que mexe */
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 30px;           /* altura da bolinha */
+            width: 30px;            /* largura da bolinha */
+            background: #ccc;
+            border: 1px solid #9d9d9d;
+            border-radius: 50%;
+            margin-top: -5px;      /* para centralizar a bolinha na barra */
+        }
+
     </style>
 </head>
 
@@ -374,12 +403,14 @@
             <span style="font-size: 20px; margin-left: 10px;">Off</span>
         </div>
 
+        <!-- Exposure Time Set -->
         <div style="position: relative; top: 310px; left: 1000px; display:flex; align-items:center; gap:10px;">
             <label for="exposureTime">Exposure Time:</label>
             <input type="text" id="exposureTime" />
             <button onclick="exposureSet_click()">Set</button>
         </div>
         
+        <!-- Color Slope Set -->
         <div style="position: relative; top: 360px; left: 1000px; display:flex; align-items:center; gap:10px;">
             <label for="colorSlope">Color Slope:</label>
             <input type="text" id="colorSlope" />
@@ -402,12 +433,114 @@
         <!-- Menu Title -->
         <div class="menu-title">Calibration</div>
         
+        <!-- Automatic / Manual -->
+        <div style="position: absolute; top: 250px; left: 900px;">
+            <span style="font-size: 20px; margin-right: 10px;">Automatic</span>
+            <label class="switch">
+                <input type="checkbox" id="AutoManual_switch" onchange="AutoManual_toggle()">
+                <span class="slider round"></span>
+            </label>
+            <span style="font-size: 20px; margin-left: 10px;">Manual</span>
+        </div>
+        
+        <button onclick="calibrate_click()" style="
+            position:absolute;
+            left:900px;
+            top:760px;
+            width:300px;
+            font-size:20px;
+        ">
+            Calibrate
+        </button>
+
+         <!-- Imagens -->
+        <img id="colorToDepthCopy-img" style="position: absolute; left: 480px; top: 400px; transform: translate(-50%, -50%); width: 560px; height: 420px; object-fit: contain;">
+        <img id="mask-img" style="position: absolute; left: 480px; top: 830px; transform: translate(-50%, -50%); width: 560px; height: 420px; object-fit: contain;">
+
+
+        <!-- Color Dropdown -->
+        <div style="position: absolute; top: 300px; left: 900px;">
+            <label for="colorDropdown">Select Color:</label>
+            <select id="colorDropdown" onchange="colorDropdown_change()">
+                <option value="Select a Point" selected=true>Select a Point</option>
+                <option value="Black">Black</option>
+                <option value="White">White</option>
+                <option value="Grey">Grey</option>
+                <option value="Red">Red</option>
+                <option value="Pink">Pink</option>
+                <option value="Orange">Orange</option>
+                <option value="Brown">Brown</option>
+                <option value="Yellow">Yellow</option>
+                <option value="Green">Green</option>
+                <option value="Blue-Green">Blue-Green</option>
+                <option value="Blue">Blue</option>
+                <option value="Purple">Purple</option>
+                <option value="Light Purple">Light Purple</option>
+            </select>
+        </div> 
+
+        <!-- Avisos -->
+        <div id="calibrateLabel" style="
+            position: absolute;
+            left: 950px;
+            top: 130px;
+            transform: translate(-50%, -50%);
+            font-size: 20px;
+            font-family: Arial;
+        ">
+        </div>
+
+        <div id="caliErrorLabel" style="
+            position: absolute;
+            left: 950px;
+            top: 150px;
+            transform: translate(-50%, -50%);
+            font-size: 20px;
+            font-family: Arial;
+        ">
+        </div>
+
+        <div class="readonly-slider" style="position: absolute; top: 350px; left: 900px;">
+            <input type="range" id="hminSlider" min="0" max="179" value="0">
+            <label style="margin-left: 15px;">Minimum Hue: <span id="hminValue">0</span></label>
+        </div>
+
+        <div class="readonly-slider" style="position: absolute; top: 410px; left: 900px;">
+            <input type="range" id="hmaxSlider" min="0" max="179" value="179">
+            <label style="margin-left: 15px;">Maximum Hue: <span id="hmaxValue">179</span></label>
+        </div>
+
+        <div class="readonly-slider" style="position: absolute; top: 470px; left: 900px;">
+            <input type="range" id="sminSlider" min="0" max="255" value="0">
+            <label style="margin-left: 15px;">Minimum Saturation: <span id="sminValue">0</span></label>
+        </div>
+
+        <div class="readonly-slider" style="position: absolute; top: 530px; left: 900px;">
+            <input type="range" id="smaxSlider" min="0" max="255" value="255">
+            <label style="margin-left: 15px;">Maximum Saturation: <span id="smaxValue">255</span></label>
+        </div>
+
+        <div class="readonly-slider" style="position: absolute; top: 590px; left: 900px;">
+            <input type="range" id="vminSlider" min="0" max="255" value="0">
+            <label style="margin-left: 15px;">Minimum Value: <span id="vminValue">0</span></label>
+        </div>
+
+        <div class="readonly-slider" style="position: absolute; top: 650px; left: 900px;">
+            <input type="range" id="vmaxSlider" min="0" max="255" value="255">
+            <label style="margin-left: 15px;">Maximum Value: <span id="vmaxValue">255</span></label>
+        </div>
+
     </div>
 
     <script>
         let menuStack = [];
         let currentMenu = null;
         let cameraLoopInterval = null;
+        let colorClickInitialized = false;
+        let selected_bar = null;
+        let step = 1;
+        let thresh = 10;
+        let detection_area = [0, 0, 0, 0];
 
         function showLoginScreen() {
             document.getElementById("register-screen").style.display = "none";
@@ -578,8 +711,12 @@
                 } 
             }
 
-            if (menuID === "config-menu") {
+            if (menuID === "config-menu" || menuID === "calibration-menu") {
                 refreshToggles();
+            }
+            if (menuID === "calibration-menu") {
+                refreshSliders();
+                screenClick();
             }
         }
 
@@ -802,6 +939,26 @@
                     const blob = await resp.blob();
                     document.getElementById("depth-img").src = URL.createObjectURL(blob);
                 }
+
+                if (currentMenu === "calibration-menu") {
+                    r = await fetch("http://127.0.0.1:8000/calibrate/mode");
+                    let calibData = await r.json();
+                    if (calibData["Calibrate Mode"] === "Automatic") {
+                        applyMask();
+                    } else if (calibData["Calibrate Mode"] === "Manual") {
+                        applyManualWSDraw();
+                    }
+                    // Color frame
+                    const colorResp = await fetch("http://127.0.0.1:8000/getFrame/colorToDepthCopy");
+                    const colorToDepthBlob = await colorResp.blob();
+                    document.getElementById("colorToDepthCopy-img").src = URL.createObjectURL(colorToDepthBlob);
+
+                    // Mask frame
+                    const maskResp = await fetch("http://127.0.0.1:8000/getFrame/result");
+                    const maskBlob = await maskResp.blob();
+                    document.getElementById("mask-img").src = URL.createObjectURL(maskBlob);
+
+                }    
             }catch (error) {
                 console.error("Camera error:", error);
             }
@@ -842,6 +999,18 @@
             } else {
                 await fetch("http://127.0.0.1:8000/debugMode/off", { method: "POST" });
             }
+        }
+
+        async function AutoManual_toggle() {
+            const checked = document.getElementById("AutoManual_switch").checked;
+            if (checked) {
+                await fetch("http://127.0.0.1:8000/calibrate/mode/manual", { method: "POST" });
+                selected_bar = null;
+            } else {
+                await fetch("http://127.0.0.1:8000/calibrate/mode/automatic", { method: "POST" });
+            }
+
+            setColorDropdownState(checked);
         }
 
         async function exposureSet_click() {
@@ -897,36 +1066,230 @@
 
         async function refreshToggles() {
             try {
-                // MODE (Static / Dynamic)
-                let r = await fetch("http://127.0.0.1:8000/mode");
-                let modeData = await r.json();
+                if(currentMenu === "config-menu") {
+                    // MODE (Static / Dynamic)
+                    let r = await fetch("http://127.0.0.1:8000/mode");
+                    let modeData = await r.json();
 
-                document.getElementById("StaticDynamic_switch").checked =
-                    (modeData["Mode"] === "Dynamic");
+                    document.getElementById("StaticDynamic_switch").checked =
+                        (modeData["Mode"] === "Dynamic");
 
-                // EXPOSITION MODE
-                r = await fetch("http://127.0.0.1:8000/expositionMode");
-                let expData = await r.json();
+                    // EXPOSITION MODE
+                    r = await fetch("http://127.0.0.1:8000/expositionMode");
+                    let expData = await r.json();
 
-                document.getElementById("ExpHDR_switch").checked =
-                    (expData["Exposition Mode"] === "HDR");
+                    document.getElementById("ExpHDR_switch").checked =
+                        (expData["Exposition Mode"] === "HDR");
 
-                // DEBUG MODE
-                r = await fetch("http://127.0.0.1:8000/debugMode");
-                let debugData = await r.json();
+                    // DEBUG MODE
+                    r = await fetch("http://127.0.0.1:8000/debugMode");
+                    let debugData = await r.json();
 
-                document.getElementById("DebugMode_switch").checked =
-                    (debugData["Debug Mode"] === "On");
+                    document.getElementById("DebugMode_switch").checked =
+                        (debugData["Debug Mode"] === "On");
+                } else if (currentMenu === "calibration-menu") {
+                    // CALIBRATION MODE
+                    r = await fetch("http://127.0.0.1:8000/calibrate/mode");
+                    let calibData = await r.json();
 
+                    document.getElementById("AutoManual_switch").checked =
+                        (calibData["Calibrate Mode"] === "Manual");
+                }
             } catch (error) {
                 console.log("Toggle refresh error:", error);
             }
 
             // só continua a atualizar se estiveres no config menu
-            if (currentMenu === "config-menu") {
+            if (currentMenu === "config-menu" || currentMenu === "calibration-menu") {
                 setTimeout(refreshToggles, 100);
             }
         }
+
+        async function refreshSliders() {
+            try {
+                const resp = await fetch("http://127.0.0.1:8000/mask", { method: 'GET' });
+                const data = await resp.json();
+
+                document.getElementById("hminSlider").value = data.hmin;
+                document.getElementById("hminValue").textContent = data.hmin;
+
+                document.getElementById("hmaxSlider").value = data.hmax;
+                document.getElementById("hmaxValue").textContent = data.hmax;
+
+                document.getElementById("sminSlider").value = data.smin;
+                document.getElementById("sminValue").textContent = data.smin;
+
+                document.getElementById("smaxSlider").value = data.smax;
+                document.getElementById("smaxValue").textContent = data.smax;
+
+                document.getElementById("vminSlider").value = data.vmin;
+                document.getElementById("vminValue").textContent = data.vmin;
+
+                document.getElementById("vmaxSlider").value = data.vmax;
+                document.getElementById("vmaxValue").textContent = data.vmax;
+
+            } catch (err) {
+                console.warn("Não foi possível atualizar sliders:", err);
+            }
+
+            if (currentMenu === "calibration-menu") {
+                setTimeout(refreshSliders, 100);
+            }
+        }
+
+        async function applyMask() {
+            try {
+                if (currentMenu !== "calibration-menu") return;
+                const r = await fetch("http://127.0.0.1:8000/mask");
+                const maskValues = await r.json();
+                await fetch("http://127.0.0.1:8000/applyMask", {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(maskValues)
+                });
+            } catch (err) { console.warn("Erro applyMask:", err); }
+        }
+
+        async function applyManualWSDraw() {
+            try {
+                if (selected_bar === null) {
+                    const r = await fetch("http://127.0.0.1:8000/calibrate/params");
+                    detection_area = (await r.json())["Detection Area"];
+                }
+                await fetch("http://127.0.0.1:8000/applyManualWorkspace", {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ detection_area })
+                });
+            } catch (err) { console.warn("Erro applyManualWSDraw:", err); }
+        }
+
+        async function colorDropdown_change() {
+            try {
+                const color = document.getElementById("colorDropdown").value;
+                await fetch("http://127.0.0.1:8000/mask/color", {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ color })
+                });
+                await fetch("http://127.0.0.1:8000/mask/optionSelected", {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ optionSelected: color })
+                });
+            } catch (err) { console.warn("Erro a mudar cor:", err); }
+        }
+
+        function setColorDropdownState(calibrationMode) {
+            const dropdown = document.getElementById("colorDropdown");
+            dropdown.disabled = calibrationMode;
+        }
+
+        async function screenClick() {
+            if (colorClickInitialized) return;
+
+            const img = document.getElementById("colorToDepthCopy-img");
+            img.addEventListener("click", async (event) => {
+
+                try {
+                    const r = await fetch("http://127.0.0.1:8000/calibrate/mode");
+                    let calibData = await r.json();
+
+                    if (calibData["Calibrate Mode"] === "Automatic") {
+                        const r = await fetch("http://127.0.0.1:8000/mask");
+                        const maskValues = await r.json();
+                        let optionSelected = maskValues.optionSelected;
+
+                        if (optionSelected === "Select a Point") {
+                            const canvas =document.createElement("canvas");
+                            canvas.width = img.width;
+                            canvas.height = img.height;
+                            const ctx = canvas.getContext("2d");
+
+                            ctx.drawImage(img, 0, 0, img.width, img.height);
+                        
+                            const rect = img.getBoundingClientRect();
+                            const x = event.clientX - rect.left;
+                            const y = event.clientY - rect.top;
+
+                            const pixel = ctx.getImageData(x, y, 1, 1).data; // [r, g, b, a]
+
+                            await fetch("http://127.0.0.1:8000/mask/colorClick", {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ r: pixel[0], g: pixel[1], b: pixel[2] })
+                            });
+                        }
+                    } else if (calibData["Calibrate Mode"] === "Manual") {
+                        const r = await fetch("http://127.0.0.1:8000/calibrate/params");
+                        const response = await r.json();
+                        let [x1, y1, x2, y2] = response["Detection Area"];
+
+                        const rect = img.getBoundingClientRect();
+                        const x = (event.clientX - rect.left) * (img.naturalWidth / img.width); // ajustar coordenada x para a resolução original
+                        const y = (event.clientY - rect.top) * (img.naturalHeight / img.height); // ajustar coordenada y para a resolução original
+
+                        if (x1 - thresh <= x && x <= x1 + thresh && y1 - thresh <= y && y <= y2 + thresh) {
+                            selected_bar = "left";
+                        } else if (x2 - thresh <= x && x <= x2 + thresh && y1 - thresh <= y && y <= y2 + thresh) {
+                            selected_bar = "right";
+                        } else if (y1 - thresh <= y && y <= y1 + thresh && x1 - thresh <= x && x <= x2 + thresh) {
+                            selected_bar = "top";
+                        } else if (y2 - thresh <= y && y <= y2 + thresh && x1 - thresh <= x && x <= x2 + thresh) {
+                            selected_bar = "bottom";
+                        } else {
+                            selected_bar = null;
+                        }
+
+                        console.log("Selected bar:", selected_bar);
+                    }
+                } catch (err) { console.warn("Erro colorClick:", err); }
+            });
+                    
+            colorClickInitialized = true;
+        }
+
+        document.addEventListener("keydown", async (event) => {
+            try {
+                const r_mode = await fetch("http://127.0.0.1:8000/calibrate/mode");
+                const calibData = await r_mode.json();
+
+                if (calibData["Calibrate Mode"] !== "Manual") return;
+
+                // Pegar detection_area do servidor
+                const r = await fetch("http://127.0.0.1:8000/calibrate/params");
+                let data = await r.json();
+                detection_area = data["Detection Area"]; // [x1, y1, x2, y2]
+
+                const img = document.getElementById("colorToDepthCopy-img");
+                const maxX = img.naturalWidth;
+                const maxY = img.naturalHeight;
+
+                let [x1, y1, x2, y2] = detection_area;
+
+                if (event.key === "ArrowLeft") {
+                    if (selected_bar === "left") x1 = Math.max(0, x1 - step);
+                    else if (selected_bar === "right") x2 = Math.max(0, x2 - step);
+
+                } else if (event.key === "ArrowRight") {
+                    if (selected_bar === "left") x1 = Math.min(maxX, x1 + step);
+                    else if (selected_bar === "right") x2 = Math.min(maxX, x2 + step);
+
+                } else if (event.key === "ArrowUp") {
+                    if (selected_bar === "top") y1 = Math.max(0, y1 - step);
+                    else if (selected_bar === "bottom") y2 = Math.max(0, y2 - step);
+
+                } else if (event.key === "ArrowDown") {
+                    if (selected_bar === "top") y1 = Math.min(maxY, y1 + step);
+                    else if (selected_bar === "bottom") y2 = Math.min(maxY, y2 + step);
+                }
+
+                detection_area = [x1, y1, x2, y2];
+
+            } catch (err) {
+                console.warn("Erro key_pressed:", err);
+            }
+        });
 
     </script>
 
