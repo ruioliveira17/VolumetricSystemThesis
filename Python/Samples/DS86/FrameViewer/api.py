@@ -7,8 +7,9 @@ from pydantic import BaseModel
 from API.VzenseDS_api import *
 from Bundle2 import bundleIdentifier, objIdentifier
 from CalibrationDefTkinter import calibrateAPI, maskAPI, manualWorkspaceDraw
-from CameraOptions import statusCamera
+from CameraOptions import openCamera, closeCamera, statusCamera
 from GetFrame import getFrame
+from HDRDef import hdrAPI
 from MinDepth2 import MinDepthAPI
 from VolumeTkinter import volumeBundleAPI, volumeRealAPI
 from CameraState import camState
@@ -21,13 +22,19 @@ from VolumeState import volumeState
 from WorkspaceState import workspaceState
 
 from contextlib import asynccontextmanager
+import cv2
+import io
 import json
 import os
-import io
 from PIL import Image
-import cv2
+import threading
 
 USER_FILE = "auth/users.json"
+
+stop_event = threading.Event()
+pause_event = threading.Event()
+pause_event.set()
+hdr_threadObj = None
 
 #----------------------------------------------------   Base Models    ----------------------------------------------------
 
@@ -101,6 +108,22 @@ def rgb_to_hsv(r, g, b):
     rgb = numpy.uint8([[[r, g, b]]])
     hsv = cv2.cvtColor(rgb, cv2.COLOR_RGB2HSV)
     return hsv[0][0].tolist()
+
+def hdr_thread(stop_event, pause_event):
+    while not stop_event.is_set():
+        if not pause_event.wait(timeout  = 0.1):
+            continue
+
+        if stop_event.is_set():
+            break
+
+        try:
+            hdrAPI()
+        except Exception as e:
+            if stop_event.is_set():
+                break
+            print("Erro na thread:", repr(e))
+
 #-----------------------------------------------------   Lifespan   -------------------------------------------------------
 
 @asynccontextmanager
@@ -108,22 +131,28 @@ async def lifespan(app: FastAPI):
     # STARTUP
     path = "config/workspace_calibration.json"
 
+    openCamera()
+
     if os.path.exists(path):
-        with open(path, "r") as f:
-            calib = json.load(f)
+        try:
+            with open(path, "r") as f:
+                calib = json.load(f)
 
-        workspaceState.detection_area = calib["detection_area"]
-        workspaceState.workspace_depth = calib["workspace_depth"]
-        maskState.hmin = calib["hmin"]
-        maskState.hmax = calib["hmax"]
-        maskState.smin = calib["smin"]
-        maskState.smax = calib["smax"]
-        maskState.vmin = calib["vmin"]
-        maskState.vmax = calib["vmax"]
-        maskState.color = calib["color"]
-        frameState.calibrationColorFrame = cv2.imread(calib["calibrationColorFrame_path"])
+            workspaceState.detection_area = calib["detection_area"]
+            workspaceState.workspace_depth = calib["workspace_depth"]
+            maskState.hmin = calib["hmin"]
+            maskState.hmax = calib["hmax"]
+            maskState.smin = calib["smin"]
+            maskState.smax = calib["smax"]
+            maskState.vmin = calib["vmin"]
+            maskState.vmax = calib["vmax"]
+            maskState.color = calib["color"]
+            frameState.calibrationColorFrame = cv2.imread(calib["calibrationColorFrame_path"])
 
-        print("Calibração carregada!")
+            print("Calibração carregada!")
+        except Exception as e:
+            print("Error loading calibration:", e)
+            calib = None
 
     else:
         print("É necessário realizar calibração!")
@@ -132,6 +161,12 @@ async def lifespan(app: FastAPI):
 
     #SHUTDOWN
     print("API a desligar")
+    stop_event.set()
+
+    if hdr_threadObj and hdr_threadObj.is_alive():
+        hdr_threadObj.join()
+
+    closeCamera()
 
 #----------------------------------------------------   Criar App   -------------------------------------------------------
 
@@ -636,11 +671,22 @@ def get_expMode():
 @app.post("/expositionMode/fixed")
 def fixedExp():
     modeState.expositionMode = "Fixed Exposition"
+    pause_event.clear()
     return {"Exposition Mode:": modeState.expositionMode}
 
 @app.post("/expositionMode/hdr")
 def hdrExp():
+    global hdr_threadObj
+
     modeState.expositionMode = "HDR"
+    
+    if hdr_threadObj and hdr_threadObj.is_alive():
+        pause_event.set()
+    else:
+        stop_event.clear()
+        hdr_threadObj = threading.Thread(target=hdr_thread, args=(stop_event, pause_event), daemon=True)
+        hdr_threadObj.start()
+
     return {"Exposition Mode:": modeState.expositionMode}
 
 #------------------------------------------------------- Volume -------------------------------------------------------
