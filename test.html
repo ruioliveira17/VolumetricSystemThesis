@@ -11,34 +11,29 @@
             font-family: Arial;
             text-align: center;
             background-color: white;
-            overflow: auto;
-            min-width: none;
-            min-height: 20px;
-
-            margin: 0;
-            height: 100vh;
-            width: 100vw;
+            overflow: hidden;
         }
 
-        .menu {
+        .main-menu {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            height: 95vh;
+            height: 100vh;
+            width: 100vw;
             position: relative;
         }
 
-       .logo {
+        .logo {
             position: absolute;
             cursor: pointer;
             display: flex;
             justify-content: center;
             align-items: center;
             background-color: white;
-            border: none;
-            top: 2vh;
-            left: 2vw;
+            border: solid 1px black;
+            top: 0vh;
+            left: 0vw;
             z-index: 10;
             transition: 0.3s;
        }
@@ -52,256 +47,11 @@
             transform: scale(1.05);
         }
 
-       .login {
-            position: absolute;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            top: 2vh;
-            right: 2vw;
-            background-color: white;
-            border:  0.2vh solid black;
-            z-index: 10;
-            transition: 0.3s;
-       }
-
-       .login img {
-            width: 6vw;
-            object-fit: contain;
-            cursor: pointer;
-        }
-
-        .login img:hover {
-            transform: scale(1.05);
-        }
-
-        .user-panel {
-            display: none; 
-            position: absolute; 
-            right: 110%; 
-            margin-right: 0.5vw;
-            background-color: lightblue; 
-            border: 0.2vh solid black; 
-            padding: 1.8vh;
-            min-width: 9vw;
-            max-width: 14vw; 
-            height: auto;
-            z-index: 10;
-            font-size: 1vw;
-        }
-
-        .type1 {background-color: turquoise; border: 0.2vh solid black;}
-        .type2 {background-color: springgreen; border: 0.2vh solid black;}
-        .type3 {background-color: turquoise; border: 1px solid black; width: 1520px; height: 50px;}
-
-        .title-container{
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 10;
-            margin-bottom: 8vh;
-        }
-
-        .menu-title {
-            font-size: 5vw;
-            font-weight: semi-bold;
-            color: black;
-        }
-
-        .menu-grid-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1;
-            margin-bottom: 8vh;
-        }
-
-        .menu-grid {
-            display: grid;
-            justify-content: center;
-            grid-template-columns: repeat(3, 1fr);
-            row-gap: 3vh;
-            column-gap: 5vw;
-            width: 85vw;
-        }
-
-        .menu-grid button {
-            width: 100%;
-            aspect-ratio: 16/9;
-            transition: 0.3s;
-
-            cursor: pointer;
-        }
-
-        .menu-grid button:hover {
-            transform: scale(1.05);
-        }
-
-        .menu-grid img {
-            width: 60%;
-        }
-
-        .camera-img {
-            width: 55vw;
-            height: auto;
-            object-fit: contain;
-            margin-top: -8vh;
-        }
-
-        .warning {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 1.2vw;
-            margin-top: -8vh;
-        }
-
-        .boxInfo-row {
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            margin-top: 10vh;
-        }
-
-        .boxInfo-column {
-            display: flex;
-            flex-direction: column;
-            min-height: 5.2vw;
-        }
-
-        .boxInfo {
-            font-size:1.6vw;
-            text-align: left;
-            width: 9vw;
-        }
-
-        .under-text {
-            margin-top: 2vh;
-        }
-
-        .volumeButton {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin: 5vh auto 0 auto;
-            width:20vw;
-            font-size:1.2vw;
-            border: 0.2vh solid black;
-        }
-        
-        .volumeButton:hover {
-            transform: scale(1.05);
-        }
-
-        .buttons button {
-            position: absolute;
-            cursor: pointer;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .buttons img {
-            width: 350px;
-            height: 350px;
-            object-fit: contain;
-        }
-
-        #depth-img {
-            position: absolute;
-            left: 480px;
-            top: 400px;
-            transform: translate(-50%, -50%);
-            width: 560px;
-            height: 420px;
-            object-fit: contain;
-        } 
-
-        #colorToDepth-img {
-            position: absolute;
-            left: 480px;
-            top: 830px;
-            transform: translate(-50%, -50%);
-            width: 560px;
-            height: 420px;
-            object-fit: contain;
-        }
-
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 60px;
-            height: 34px;
-        }
-
-        .switch input { 
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background-color: #ccc;
-            transition: .4s;
-            border-radius: 34px;
-        }
-
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 26px; width: 26px;
-            left: 4px; bottom: 4px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-        }
-
-        input:checked + .slider {
-            background-color: turquoise;
-        }
-
-        input:checked + .slider:before {
-            transform: translateX(26px);
-        }
-
-        .readonly-slider {
-            display: flex;
-            align-items: center;
-            pointer-events: none; 
-        }
-
-        input[type="range"] {
-            appearance: none;  
-            width: 500px;
-        }
-
-        /* Track - a barra por baixo */
-        input[type="range"]::-webkit-slider-runnable-track {
-            height: 20px;          /* grossura da barra */
-            background: #ccc;      /* cor da barra */
-            border-radius: 10px;
-        }
-
-        /* Thumb - a bolinha que mexe */
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            height: 30px;           /* altura da bolinha */
-            width: 30px;            /* largura da bolinha */
-            background: #ccc;
-            border: 1px solid #9d9d9d;
-            border-radius: 50%;
-            margin-top: -5px;      /* para centralizar a bolinha na barra */
-        }
-
     </style>
 </head>
 
 <body>
-    <!-- Login Screen Panel -->
-    <div id="login-screen" class="menu">
+    <div id="login-screen">
         <h2>Login</h2>
         <input type="text" id="username" placeholder="Username"><br><br>
         <input type="password" id="password" placeholder="Password"><br><br>
@@ -317,8 +67,7 @@
         <p id="error-label" style="color: red;"></p>
     </div>
 
-    <!-- Register Screen Panel -->
-    <div id="register-screen" class="menu" style="display: none;">
+    <div id="register-screen" style="display: none;">
         <h2>Register</h2>
         <input type="text" id="reg-username" placeholder="Username"><br><br>
         <input type="password" id="reg-password" placeholder="Password"><br><br>
@@ -343,24 +92,15 @@
 
     </div>
 
-    <!-- Main Menu Panel -->
-    <div id="main-menu" class="menu" style="display: none;">
+    <div id="main-menu" class="main-menu" style="display: none;">
         <!-- Logo -->
         <button class="logo" onclick="goBack()">
             <img src="BM_Logo.png" alt="BM Logo">
         </button>
 
         <!-- Login -->
-        <button class="login" onclick="UserInfo(this)">
+        <button class="login" onclick="UserInfo()">
             <img src="user.png" alt="User">
-            <!-- User Panel -->
-            <div class="user-panel">
-                <p id="user-name" style="margin: 0; text-align: left;">User:</p>
-                <p id="user-role" style="margin: 0; text-align: left;">Role:</p>
-                <div style="display: flex; justify-content: flex-end; margin-top: 0px;">
-                    <span id="logout-text" onclick="logout()" style="color: black; cursor: pointer; text-decoration: underline;">Logout</span>
-                </div>
-            </div>
         </button>
 
         <!-- Menu Title -->
@@ -381,24 +121,25 @@
         </div>
     </div>
 
+    <!-- User Panel -->
+    <div id="user-panel" class="user-panel">
+        <p id="user-name" style="margin: 0; text-align: left;">User:</p>
+        <p id="user-role" style="margin: 0; text-align: left;">Role:</p>
+        <div style="display: flex; justify-content: flex-end; margin-top: 0px;">
+            <span id="logout-text" onclick="logout()" style="color: black; cursor: pointer; text-decoration: underline;">Logout</span>
+        </div>
+    </div>
+
     <!-- Camera Panel -->
-    <div id="camera-menu" class="menu" style="display: none;">
+    <div id="camera-menu" style="display: none; position: relative;">
         <!-- Logo -->
         <button class="logo" onclick="goBack()">
             <img src="BM_Logo.png" alt="BM Logo">
         </button>
 
         <!-- Login -->
-        <button class="login" onclick="UserInfo(this)">
+        <button class="login" onclick="UserInfo()">
             <img src="user.png" alt="User">
-            <!-- User Panel -->
-            <div class="user-panel">
-                <p id="user-name" style="margin: 0; text-align: left;">User:</p>
-                <p id="user-role" style="margin: 0; text-align: left;">Role:</p>
-                <div style="display: flex; justify-content: flex-end; margin-top: 0px;">
-                    <span id="logout-text" onclick="logout()" style="color: black; cursor: pointer; text-decoration: underline;">Logout</span>
-                </div>
-            </div>
         </button>
 
         <!-- Menu Title -->
@@ -406,27 +147,19 @@
             <div class="menu-title">Camera</div>
         </div>
 
-        <img id="camera-img" class="camera-img" src="" alt="Color Img">
+        <img id="camera-img" src="" style="width: 1000px; height: 750px; object-fit: contain; padding: 110px;" alt="Color Img">
     </div>
 
     <!-- Barcode Panel -->
-    <div id="barcode-menu" class="menu" style="display: none;">
+    <div id="barcode-menu" style="display: none; position: relative;">
         <!-- Logo -->
         <button class="logo" onclick="goBack()">
             <img src="BM_Logo.png" alt="BM Logo">
         </button>
 
         <!-- Login -->
-        <button class="login" onclick="UserInfo(this)">
+        <button class="login" onclick="UserInfo()">
             <img src="user.png" alt="User">
-            <!-- User Panel -->
-            <div class="user-panel">
-                <p id="user-name" style="margin: 0; text-align: left;">User:</p>
-                <p id="user-role" style="margin: 0; text-align: left;">Role:</p>
-                <div style="display: flex; justify-content: flex-end; margin-top: 0px;">
-                    <span id="logout-text" onclick="logout()" style="color: black; cursor: pointer; text-decoration: underline;">Logout</span>
-                </div>
-            </div>
         </button>
 
         <!-- Menu Title -->
@@ -436,23 +169,15 @@
     </div>
 
     <!-- Volume Panel -->
-    <div id="volume-menu" class="menu" style="display: none;">
+    <div id="volume-menu" style="display: none; position: relative;">
         <!-- Logo -->
         <button class="logo" onclick="goBack()">
             <img src="BM_Logo.png" alt="BM Logo">
         </button>
 
         <!-- Login -->
-        <button class="login" onclick="UserInfo(this)">
+        <button class="login" onclick="UserInfo()">
             <img src="user.png" alt="User">
-            <!-- User Panel -->
-            <div class="user-panel">
-                <p id="user-name" style="margin: 0; text-align: left;">User:</p>
-                <p id="user-role" style="margin: 0; text-align: left;">Role:</p>
-                <div style="display: flex; justify-content: flex-end; margin-top: 0px;">
-                    <span id="logout-text" onclick="logout()" style="color: black; cursor: pointer; text-decoration: underline;">Logout</span>
-                </div>
-            </div>
         </button>
 
         <!-- Menu Title -->
@@ -461,36 +186,49 @@
         </div>
 
         <!-- Aviso -->
-        <div id="objOutOfLine_label" class="warning"></div>
+        <div id="objOutOfLine_label" style="
+            position: absolute;
+            left: 950px;
+            top: 130px;
+            transform: translate(-50%, -50%);
+            font-size: 20px;
+            font-family: Arial;
+        ">
+        </div>
 
         <!-- Labels -->
-        <div  class="boxInfo-row">
-            <div class="boxInfo">Volume:</div>
-            <div class="boxInfo-column">
-                <div id="volume_value_label" class="boxInfo"></div>
-                <div id="volume_value_cm_label" class="boxInfo under-text"></div>
-            </div>
-        </div>
+        <div style="position:absolute; left:800px; top:280px; font-size:36px;">Volume:</div>
+        <div style="position:absolute; left:800px; top:430px; font-size:36px;">X:</div>
+        <div style="position:absolute; left:800px; top:580px; font-size:36px;">Y:</div>
+        <div style="position:absolute; left:800px; top:730px; font-size:36px;">Height:</div>
 
-        <div  class="boxInfo-row">
-            <div class="boxInfo">X:</div>
-            <div id="x_length_value_label" class="boxInfo"></div>
-        </div>
-        
-        <div  class="boxInfo-row">
-            <div class="boxInfo">Y:</div>
-            <div id="y_length_value_label" class="boxInfo"></div>
-        </div>
-
-        <div  class="boxInfo-row">
-            <div class="boxInfo">Height:</div>
-            <div id="height_value_label" class="boxInfo"></div>
-        </div>
+        <!-- Valores -->
+        <div id="volume_value_label" style="position:absolute; left:950px; top:280px; font-size:36px;"></div>
+        <div id="volume_value_cm_label" style="position:absolute; left:950px; top:330px; font-size:36px;"></div>
+        <div id="x_length_value_label" style="position:absolute; left:950px; top:430px; font-size:36px;"></div>
+        <div id="y_length_value_label" style="position:absolute; left:950px; top:580px; font-size:36px;"></div>
+        <div id="height_value_label" style="position:absolute; left:950px; top:730px; font-size:36px;"></div>
 
         <!-- Botões -->
-        <button onclick="volumeReal_click()" class="volumeButton">Get Real Volume</button>
+        <button onclick="volumeReal_click()" style="
+            position:absolute;
+            left:780px;
+            top:850px;
+            width:300px;
+            font-size:20px;
+        ">
+            Get Real Volume
+        </button>
 
-        <button onclick="volumeBundle_click()" class="volumeButton">Get Bundle Volume</button>
+        <button onclick="volumeBundle_click()" style="
+            position:absolute;
+            left:780px;
+            top:920px;
+            width:300px;
+            font-size:20px;
+        ">
+            Get Bundle Volume
+        </button>
 
         <!-- Imagens -->
         <img id="depth-img">
@@ -499,23 +237,15 @@
     </div>
 
     <!-- Storage Panel -->
-    <div id="storage-menu" class="menu" style="display: none;">
+    <div id="storage-menu" style="display: none; position: relative;">
         <!-- Logo -->
         <button class="logo" onclick="goBack()">
             <img src="BM_Logo.png" alt="BM Logo">
         </button>
 
         <!-- Login -->
-        <button class="login" onclick="UserInfo(this)">
+        <button class="login" onclick="UserInfo()">
             <img src="user.png" alt="User">
-            <!-- User Panel -->
-            <div class="user-panel">
-                <p id="user-name" style="margin: 0; text-align: left;">User:</p>
-                <p id="user-role" style="margin: 0; text-align: left;">Role:</p>
-                <div style="display: flex; justify-content: flex-end; margin-top: 0px;">
-                    <span id="logout-text" onclick="logout()" style="color: black; cursor: pointer; text-decoration: underline;">Logout</span>
-                </div>
-            </div>
         </button>
 
         <!-- Menu Title -->
@@ -525,25 +255,16 @@
     </div>
 
     <!-- Stacking Panel -->
-    <div id="stacking-menu" class="menu" style="display: none;"">
+    <div id="stacking-menu" style="display: none; position: relative;">
         <!-- Logo -->
         <button class="logo" onclick="goBack()">
             <img src="BM_Logo.png" alt="BM Logo">
         </button>
 
         <!-- Login -->
-        <button class="login" onclick="UserInfo(this)">
+        <button class="login" onclick="UserInfo()">
             <img src="user.png" alt="User">
-            <!-- User Panel -->
-            <div class="user-panel">
-                <p id="user-name" style="margin: 0; text-align: left;">User:</p>
-                <p id="user-role" style="margin: 0; text-align: left;">Role:</p>
-                <div style="display: flex; justify-content: flex-end; margin-top: 0px;">
-                    <span id="logout-text" onclick="logout()" style="color: black; cursor: pointer; text-decoration: underline;">Logout</span>
-                </div>
-            </div>
         </button>
-
 
         <!-- Menu Title -->
         <div class="title-container">
@@ -552,25 +273,16 @@
     </div>
 
     <!-- Configuration Panel -->
-    <div id="config-menu" class="menu" style="display: none;">
+    <div id="config-menu" style="display: none; position: relative;">
         <!-- Logo -->
         <button class="logo" onclick="goBack()">
             <img src="BM_Logo.png" alt="BM Logo">
         </button>
 
         <!-- Login -->
-        <button class="login" onclick="UserInfo(this)">
+        <button class="login" onclick="UserInfo()">
             <img src="user.png" alt="User">
-            <!-- User Panel -->
-            <div class="user-panel">
-                <p id="user-name" style="margin: 0; text-align: left;">User:</p>
-                <p id="user-role" style="margin: 0; text-align: left;">Role:</p>
-                <div style="display: flex; justify-content: flex-end; margin-top: 0px;">
-                    <span id="logout-text" onclick="logout()" style="color: black; cursor: pointer; text-decoration: underline;">Logout</span>
-                </div>
-            </div>
         </button>
-
 
         <!-- Menu Title -->
         <div class="title-container">
@@ -638,25 +350,16 @@
     </div>
 
     <!-- Calibration Panel -->
-    <div id="calibration-menu" class="menu" style="display: none;">
+    <div id="calibration-menu" style="display: none; position: relative;">
         <!-- Logo -->
         <button class="logo" onclick="goBack()">
             <img src="BM_Logo.png" alt="BM Logo">
         </button>
 
         <!-- Login -->
-        <button class="login" onclick="UserInfo(this)">
+        <button class="login" onclick="UserInfo()">
             <img src="user.png" alt="User">
-            <!-- User Panel -->
-            <div class="user-panel">
-                <p id="user-name" style="margin: 0; text-align: left;">User:</p>
-                <p id="user-role" style="margin: 0; text-align: left;">Role:</p>
-                <div style="display: flex; justify-content: flex-end; margin-top: 0px;">
-                    <span id="logout-text" onclick="logout()" style="color: black; cursor: pointer; text-decoration: underline;">Logout</span>
-                </div>
-            </div>
         </button>
-
 
         <!-- Menu Title -->
         <div class="title-container">
@@ -774,7 +477,7 @@
 
         function showLoginScreen() {
             document.getElementById("register-screen").style.display = "none";
-            document.getElementById("login-screen").style.display = "flex";
+            document.getElementById("login-screen").style.display = "block";
             document.getElementById("reg-error-label").textContent = "";
             document.getElementById("reg-username").value = "";
             document.getElementById("reg-password").value = "";
@@ -830,7 +533,7 @@
 
         function showRegisterScreen() {
             document.getElementById("login-screen").style.display = "none";
-            document.getElementById("register-screen").style.display = "flex";
+            document.getElementById("register-screen").style.display = "block";
             document.getElementById("error-label").textContent = "";
             document.getElementById("username").value = "";
             document.getElementById("password").value = "";
@@ -885,38 +588,37 @@
             }
         }
 
-        function UserInfo(button) {
-            const panel = button.querySelector(".user-panel");
+        function UserInfo() {
+            const panel = document.getElementById("user-panel");
             const currentUser = JSON.parse(localStorage.getItem("current_user"));
 
             if (!currentUser) return;
 
-            panel.querySelector("#user-name").textContent = "User: " + currentUser.username;
-            panel.querySelector("#user-role").textContent = "Role: " + currentUser.role;
+            document.getElementById("user-name").textContent = "User: " + currentUser.username;
+            document.getElementById("user-role").textContent = "Role: " + currentUser.role;
 
             panel.style.display = (panel.style.display === "block") ? "none" : "block";
         }
 
         document.addEventListener("click", function(event) {
+            const panel = document.getElementById("user-panel");
+            const clickedInsidePanel = panel.contains(event.target);
             const clickedLoginButton = event.target.closest(".login");
-            
-            // fecha todos os painéis que estão abertos, exceto o do login clicado
-            document.querySelectorAll(".login .user-panel").forEach(panel => {
-                if (panel.style.display === "block" && (!clickedLoginButton || !clickedLoginButton.contains(panel))) {
-                    panel.style.display = "none";
-                }
-            });
+
+            if (panel.style.display === "block" && 
+                !clickedInsidePanel && 
+                !clickedLoginButton) {
+                panel.style.display = "none";
+            }
         });
 
         function logout() {
             localStorage.removeItem("current_user");
             cameraLoopInterval = null;
             document.getElementById(currentMenu).style.display = "none";
-            document.querySelectorAll(".login .user-panel").forEach(panel => {
-                panel.style.display = "none";
-            });
+            document.getElementById("user-panel").style.display = "none";
             
-            showLoginScreen();
+            document.getElementById("login-screen").style.display = "block";
 
             document.getElementById("username").value = "";
             document.getElementById("password").value = "";
@@ -1060,14 +762,11 @@
                 } else if (objIdentified.length > 1) {
                     const select = document.createElement("select");
                     select.id = "objOption_menu";
-                    select.style.width = "16vw";
-                    select.style.fontSize = "1vw";
+                    select.style.width = "300px";
+                    select.style.fontSize = "16px";
                     select.style.position = "absolute";
-                    select.style.left = "50%";
-                    select.style.transform = "translateX(-50%)"
-                    select.style.top = "18%";
-                    select.style.border = "0.2vh solid black";
-                    select.style.textAlign = "center";
+                    select.style.left = "800px";
+                    select.style.top = "200px";
 
                     const placeholder = document.createElement("option");
                     placeholder.text = "Select an Object";
@@ -1426,58 +1125,56 @@
             img.addEventListener("click", async (event) => {
 
                 try {
-                    if (currentMenu === "calibration-menu"){
-                        const r = await fetch("http://10.0.30.175:8000/calibrate/mode");
-                        let calibData = await r.json();
+                    const r = await fetch("http://10.0.30.175:8000/calibrate/mode");
+                    let calibData = await r.json();
 
-                        if (calibData["Calibrate Mode"] === "Automatic") {
-                            const r = await fetch("http://10.0.30.175:8000/mask");
-                            const maskValues = await r.json();
-                            let optionSelected = maskValues.optionSelected;
+                    if (calibData["Calibrate Mode"] === "Automatic") {
+                        const r = await fetch("http://10.0.30.175:8000/mask");
+                        const maskValues = await r.json();
+                        let optionSelected = maskValues.optionSelected;
 
-                            if (optionSelected === "Select a Point") {
-                                const canvas =document.createElement("canvas");
-                                canvas.width = img.width;
-                                canvas.height = img.height;
-                                const ctx = canvas.getContext("2d");
+                        if (optionSelected === "Select a Point") {
+                            const canvas =document.createElement("canvas");
+                            canvas.width = img.width;
+                            canvas.height = img.height;
+                            const ctx = canvas.getContext("2d");
 
-                                ctx.drawImage(img, 0, 0, img.width, img.height);
-                            
-                                const rect = img.getBoundingClientRect();
-                                const x = event.clientX - rect.left;
-                                const y = event.clientY - rect.top;
-
-                                const pixel = ctx.getImageData(x, y, 1, 1).data; // [r, g, b, a]
-
-                                await fetch("http://10.0.30.175:8000/mask/colorClick", {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ r: pixel[0], g: pixel[1], b: pixel[2] })
-                                });
-                            }
-                        } else if (calibData["Calibrate Mode"] === "Manual") {
-                            const r = await fetch("http://10.0.30.175:8000/calibrate/params");
-                            const response = await r.json();
-                            let [x1, y1, x2, y2] = response["Detection Area"];
-
+                            ctx.drawImage(img, 0, 0, img.width, img.height);
+                        
                             const rect = img.getBoundingClientRect();
-                            const x = (event.clientX - rect.left) * (img.naturalWidth / img.width); // ajustar coordenada x para a resolução original
-                            const y = (event.clientY - rect.top) * (img.naturalHeight / img.height); // ajustar coordenada y para a resolução original
+                            const x = event.clientX - rect.left;
+                            const y = event.clientY - rect.top;
 
-                            if (x1 - thresh <= x && x <= x1 + thresh && y1 - thresh <= y && y <= y2 + thresh) {
-                                selected_bar = "left";
-                            } else if (x2 - thresh <= x && x <= x2 + thresh && y1 - thresh <= y && y <= y2 + thresh) {
-                                selected_bar = "right";
-                            } else if (y1 - thresh <= y && y <= y1 + thresh && x1 - thresh <= x && x <= x2 + thresh) {
-                                selected_bar = "top";
-                            } else if (y2 - thresh <= y && y <= y2 + thresh && x1 - thresh <= x && x <= x2 + thresh) {
-                                selected_bar = "bottom";
-                            } else {
-                                selected_bar = null;
-                            }
+                            const pixel = ctx.getImageData(x, y, 1, 1).data; // [r, g, b, a]
 
-                            console.log("Selected bar:", selected_bar);
+                            await fetch("http://10.0.30.175:8000/mask/colorClick", {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ r: pixel[0], g: pixel[1], b: pixel[2] })
+                            });
                         }
+                    } else if (calibData["Calibrate Mode"] === "Manual") {
+                        const r = await fetch("http://10.0.30.175:8000/calibrate/params");
+                        const response = await r.json();
+                        let [x1, y1, x2, y2] = response["Detection Area"];
+
+                        const rect = img.getBoundingClientRect();
+                        const x = (event.clientX - rect.left) * (img.naturalWidth / img.width); // ajustar coordenada x para a resolução original
+                        const y = (event.clientY - rect.top) * (img.naturalHeight / img.height); // ajustar coordenada y para a resolução original
+
+                        if (x1 - thresh <= x && x <= x1 + thresh && y1 - thresh <= y && y <= y2 + thresh) {
+                            selected_bar = "left";
+                        } else if (x2 - thresh <= x && x <= x2 + thresh && y1 - thresh <= y && y <= y2 + thresh) {
+                            selected_bar = "right";
+                        } else if (y1 - thresh <= y && y <= y1 + thresh && x1 - thresh <= x && x <= x2 + thresh) {
+                            selected_bar = "top";
+                        } else if (y2 - thresh <= y && y <= y2 + thresh && x1 - thresh <= x && x <= x2 + thresh) {
+                            selected_bar = "bottom";
+                        } else {
+                            selected_bar = null;
+                        }
+
+                        console.log("Selected bar:", selected_bar);
                     }
                 } catch (err) { console.warn("Erro colorClick:", err); }
             });
@@ -1487,42 +1184,41 @@
 
         document.addEventListener("keydown", async (event) => {
             try {
-                 if (currentMenu === "calibration-menu") {
-                    const r_mode = await fetch("http://10.0.30.175:8000/calibrate/mode");
-                    const calibData = await r_mode.json();
+                const r_mode = await fetch("http://10.0.30.175:8000/calibrate/mode");
+                const calibData = await r_mode.json();
 
-                    if (calibData["Calibrate Mode"] !== "Manual") return;
+                if (calibData["Calibrate Mode"] !== "Manual") return;
 
-                    // Pegar detection_area do servidor
-                    const r = await fetch("http://10.0.30.175:8000/calibrate/params");
-                    let data = await r.json();
-                    detection_area = data["Detection Area"]; // [x1, y1, x2, y2]
+                // Pegar detection_area do servidor
+                const r = await fetch("http://10.0.30.175:8000/calibrate/params");
+                let data = await r.json();
+                detection_area = data["Detection Area"]; // [x1, y1, x2, y2]
 
-                    const img = document.getElementById("colorToDepthCopy-img");
-                    const maxX = img.naturalWidth;
-                    const maxY = img.naturalHeight;
+                const img = document.getElementById("colorToDepthCopy-img");
+                const maxX = img.naturalWidth;
+                const maxY = img.naturalHeight;
 
-                    let [x1, y1, x2, y2] = detection_area;
+                let [x1, y1, x2, y2] = detection_area;
 
-                    if (event.key === "ArrowLeft") {
-                        if (selected_bar === "left") x1 = Math.max(0, x1 - step);
-                        else if (selected_bar === "right") x2 = Math.max(0, x2 - step);
+                if (event.key === "ArrowLeft") {
+                    if (selected_bar === "left") x1 = Math.max(0, x1 - step);
+                    else if (selected_bar === "right") x2 = Math.max(0, x2 - step);
 
-                    } else if (event.key === "ArrowRight") {
-                        if (selected_bar === "left") x1 = Math.min(maxX, x1 + step);
-                        else if (selected_bar === "right") x2 = Math.min(maxX, x2 + step);
+                } else if (event.key === "ArrowRight") {
+                    if (selected_bar === "left") x1 = Math.min(maxX, x1 + step);
+                    else if (selected_bar === "right") x2 = Math.min(maxX, x2 + step);
 
-                    } else if (event.key === "ArrowUp") {
-                        if (selected_bar === "top") y1 = Math.max(0, y1 - step);
-                        else if (selected_bar === "bottom") y2 = Math.max(0, y2 - step);
+                } else if (event.key === "ArrowUp") {
+                    if (selected_bar === "top") y1 = Math.max(0, y1 - step);
+                    else if (selected_bar === "bottom") y2 = Math.max(0, y2 - step);
 
-                    } else if (event.key === "ArrowDown") {
-                        if (selected_bar === "top") y1 = Math.min(maxY, y1 + step);
-                        else if (selected_bar === "bottom") y2 = Math.min(maxY, y2 + step);
-                    }
-
-                    detection_area = [x1, y1, x2, y2];
+                } else if (event.key === "ArrowDown") {
+                    if (selected_bar === "top") y1 = Math.min(maxY, y1 + step);
+                    else if (selected_bar === "bottom") y2 = Math.min(maxY, y2 + step);
                 }
+
+                detection_area = [x1, y1, x2, y2];
+
             } catch (err) {
                 console.warn("Erro key_pressed:", err);
             }
