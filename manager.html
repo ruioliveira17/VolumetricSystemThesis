@@ -193,45 +193,56 @@
             transform: scale(1.05);
         }
 
-        .buttons button {
+        #volume-depthimg {
             position: absolute;
-            cursor: pointer;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .buttons img {
-            width: 350px;
-            height: 350px;
-            object-fit: contain;
-        }
-
-        #depth-img {
-            position: absolute;
-            left: 480px;
-            top: 400px;
+            left: 25vw;
+            top: 37vh;
             transform: translate(-50%, -50%);
-            width: 560px;
-            height: 420px;
+            width: 24vw;
             object-fit: contain;
         } 
 
-        #colorToDepth-img {
+        #volume-colorToDepthimg {
             position: absolute;
-            left: 480px;
-            top: 830px;
+            left: 25vw;
+            top: 77vh;
             transform: translate(-50%, -50%);
-            width: 560px;
-            height: 420px;
+            width: 24vw;
+            object-fit: contain;
+        }
+
+        #object-img{
+            position: absolute;
+            left: 78vw;
+            top: 57vh;
+            transform: translate(-50%, -50%);
+            width: 33vw; 
+            object-fit: contain;
+        }
+
+        #calibration-colorToDepthimg {
+            position: absolute;
+            left: 25vw;
+            top: 37vh;
+            transform: translate(-50%, -50%);
+            width: 24vw;
+            object-fit: contain;
+        } 
+
+        #calibration-mask {
+            position: absolute;
+            left: 25vw;
+            top: 77vh;
+            transform: translate(-50%, -50%);
+            width: 24vw;
             object-fit: contain;
         }
 
         .switch {
             position: relative;
             display: inline-block;
-            width: 60px;
-            height: 34px;
+            width: 3vw;
+            height: 3.6vh;
         }
 
         .switch input { 
@@ -240,20 +251,28 @@
             height: 0;
         }
 
+        .switch-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5vw;
+            font-size: 1vw;
+            margin-bottom: 2vh;
+        }
+
         .slider {
             position: absolute;
             cursor: pointer;
             top: 0; left: 0; right: 0; bottom: 0;
             background-color: #ccc;
             transition: .4s;
-            border-radius: 34px;
+            border-radius: 2.6vh;
         }
 
         .slider:before {
             position: absolute;
             content: "";
-            height: 26px; width: 26px;
-            left: 4px; bottom: 4px;
+            height: 2.6vh; width: 1.2vw;
+            left: 0.25vw; bottom: 0.4vh;
             background-color: white;
             transition: .4s;
             border-radius: 50%;
@@ -264,7 +283,68 @@
         }
 
         input:checked + .slider:before {
-            transform: translateX(26px);
+            transform: translateX(1.2vw);
+        }
+
+        .input-box {
+            display: flex;
+            align-items: center;
+            gap: 1vw;
+            font-size: 1vw;
+            margin-bottom: 2vh;
+            width: fit-content;
+        }
+
+        .input-box label{
+            display: inline-block;
+            width: 7vw;
+            text-align: left;
+        }
+
+        .input-box input {
+            font-size: 1vw;
+            padding: 0.3vh 0.5vw;
+            border: 0.2vh solid black;
+        }
+
+        .input-box button {
+            font-size: 1vw;
+            padding: 0.3vh 0.5vw;
+            cursor: pointer;
+            border: 0.2vh solid black;
+        }
+
+        .calibButton button {
+            position: absolute;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            top: 20vh;
+            left: 10vw;
+            color: white;
+            font-size: 1vw;
+            padding: 0.5vh 1vw;
+            width: 80vw;
+            height: 5vh;
+            border: 0.2vh solid black;
+        }
+
+        .calibrateButton {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 5vh auto 0 auto;
+            width:20vw;
+            font-size:1.2vw;
+            border: 0.2vh solid black;
+            position: absolute;
+            left:47vw;
+            top:73vh;
+        }
+        
+        .calibrateButton:hover {
+            transform: scale(1.05);
         }
 
         .readonly-slider {
@@ -275,25 +355,25 @@
 
         input[type="range"] {
             appearance: none;  
-            width: 500px;
+            width: 26vw;
         }
 
         /* Track - a barra por baixo */
         input[type="range"]::-webkit-slider-runnable-track {
-            height: 20px;          /* grossura da barra */
+            height: 1.9vh;          /* grossura da barra */
             background: #ccc;      /* cor da barra */
-            border-radius: 10px;
+            border-radius: 0.5vw;
         }
 
         /* Thumb - a bolinha que mexe */
         input[type="range"]::-webkit-slider-thumb {
             -webkit-appearance: none;
-            height: 30px;           /* altura da bolinha */
-            width: 30px;            /* largura da bolinha */
+            height: 3.2vh;           /* altura da bolinha */
+            width: 1.6vw;            /* largura da bolinha */
             background: #ccc;
-            border: 1px solid #9d9d9d;
+            border: 0.2vh solid #9d9d9d;
             border-radius: 50%;
-            margin-top: -5px;      /* para centralizar a bolinha na barra */
+            margin-top: -0.6vh;      /* para centralizar a bolinha na barra */
         }
 
     </style>
@@ -493,9 +573,9 @@
         <button onclick="volumeBundle_click()" class="volumeButton">Get Bundle Volume</button>
 
         <!-- Imagens -->
-        <img id="depth-img">
-        <img id="colorToDepth-img">
-        <img id="object-img" style="position: absolute; left: 1500px; top: 615px; transform: translate(-50%, -50%); width: 560px; height: 420px; object-fit: contain;" alt="Objects Image">
+        <img id="volume-depthimg" alt="Depth Img">
+        <img id="volume-colorToDepthimg" alt="ColorToDepth Img">
+        <img id="object-img" alt="Objects Image">
     </div>
 
     <!-- Storage Panel -->
@@ -571,69 +651,61 @@
             </div>
         </button>
 
-
         <!-- Menu Title -->
         <div class="title-container">
             <div class="menu-title">Configurations</div>
         </div>
 
-        <div id="config-error" style="
-            position: absolute;
-            left: 950px;
-            top: 130px;
-            transform: translate(-50%, -50%);
-            font-size: 20px;
-            font-family: Arial;
-        ">
+        <div id="config-error" class="warning">
         </div>
 
         <!-- Exposure / HDR Switch -->
-        <div style="position: absolute; top: 310px; left: 200px;">
-            <span style="font-size: 20px; margin-right: 10px;">Exposition</span>
+        <div class="switch-row" style="position: absolute; top: 29vh; left: 10vw;">
+            <span>Exposition</span>
             <label class="switch">
                 <input type="checkbox" id="ExpHDR_switch" onchange="ExpHDR_toggle()">
                 <span class="slider round"></span>
             </label>
-            <span style="font-size: 20px; margin-left: 10px;">HDR</span>
+            <span>HDR</span>
         </div>
 
         <!-- Static / Dynamic Switch -->
-        <div style="position: absolute; top: 410px; left: 200px;">
-            <span style="font-size: 20px; margin-right: 10px;">Static</span>
+        <div class="switch-row" style="position: absolute; top: 38vh; left: 10vw;">
+            <span>Static</span>
             <label class="switch">
                 <input type="checkbox" id="StaticDynamic_switch" onchange="StaticDynamic_toggle()">
                 <span class="slider round"></span>
             </label>
-            <span style="font-size: 20px; margin-left: 10px;">Dynamic</span>
+            <span>Dynamic</span>
         </div>
 
         <!-- Debug Mode Switch -->
-        <span style="font-size: 20px; position: absolute; top: 680px; left: 200px;">Debug Mode</span>
-        <div style="position: absolute; top: 710px; left: 200px;">
-            <span style="font-size: 20px; margin-right: 10px;">On</span>
+        <span style="font-size: 1vw; position: absolute; top: 63vh; left: 10.5vw;">Debug Mode</span>
+        <div class="switch-row" style="position: absolute; top: 66vh; left: 10vw;">
+            <span>On</span>
             <label class="switch">
                 <input type="checkbox" id="DebugMode_switch" onchange="DebugMode_toggle()">
                 <span class="slider round"></span>
             </label>
-            <span style="font-size: 20px; margin-left: 10px;">Off</span>
+            <span>Off</span>
         </div>
 
         <!-- Exposure Time Set -->
-        <div style="position: relative; top: 310px; left: 1000px; display:flex; align-items:center; gap:10px;">
+        <div class="input-box" style="position: absolute; top: 29vh; left: 52vw;">
             <label for="exposureTime">Exposure Time:</label>
             <input type="text" id="exposureTime" />
             <button onclick="exposureSet_click()">Set</button>
         </div>
-        
+
         <!-- Color Slope Set -->
-        <div style="position: relative; top: 360px; left: 1000px; display:flex; align-items:center; gap:10px;">
-            <label for="colorSlope">Color Slope:</label>
+        <div class="input-box" style="position: absolute; top: 34vh; left: 52vw;">
+            <label for="exposureTime"> Color Slope:</label>
             <input type="text" id="colorSlope" />
             <button onclick="colorSlopeSet_click()">Set</button>
         </div>
 
-        <div class="buttons">
-            <button class="type3" onclick="goTo('calibration-menu')" style="top: 180px; left: 200px; color:white; font-size: 18px;">Calibração</button>
+        <div class="calibButton">
+            <button class="type3" onclick="goTo('calibration-menu')">Calibração</button>
         </div>
     </div>
 
@@ -657,41 +729,32 @@
             </div>
         </button>
 
-
         <!-- Menu Title -->
         <div class="title-container">
             <div class="menu-title">Calibration</div>
         </div>
         
         <!-- Automatic / Manual -->
-        <div style="position: absolute; top: 250px; left: 900px;">
-            <span style="font-size: 20px; margin-right: 10px;">Automatic</span>
+        <div class="switch-row" style="position: absolute; top: 26vh; left: 47vw;">
+            <span>Automatic</span>
             <label class="switch">
                 <input type="checkbox" id="AutoManual_switch" onchange="AutoManual_toggle()">
                 <span class="slider round"></span>
             </label>
-            <span style="font-size: 20px; margin-left: 10px;">Manual</span>
+            <span>Manual</span>
         </div>
         
-        <button onclick="calibrate_click()" style="
-            position:absolute;
-            left:900px;
-            top:760px;
-            width:300px;
-            font-size:20px;
-        ">
-            Calibrate
-        </button>
+        <button onclick="calibrate_click()" class="calibrateButton">Calibrate</button>
 
          <!-- Imagens -->
-        <img id="colorToDepthCopy-img" style="position: absolute; left: 480px; top: 400px; transform: translate(-50%, -50%); width: 560px; height: 420px; object-fit: contain;" alt="Workspace Detected">
-        <img id="mask-img" style="position: absolute; left: 480px; top: 830px; transform: translate(-50%, -50%); width: 560px; height: 420px; object-fit: contain;" alt="Detection Mask">
+        <img id="calibration-colorToDepthimg" alt="Workspace Detected">
+        <img id="calibration-mask" alt="Detection Mask">
 
 
         <!-- Color Dropdown -->
-        <div style="position: absolute; top: 300px; left: 900px;">
-            <label for="colorDropdown">Select Color:</label>
-            <select id="colorDropdown" onchange="colorDropdown_change()">
+        <div style="position: absolute; top: 32vh; left: 47vw; display: flex; align-items: center;">
+            <label for="colorDropdown" style="font-size: 0.8vw; margin-right: 1vw;">Select Color:</label>
+            <select id="colorDropdown" onchange="colorDropdown_change()" style="width: 10vw; height: 4vh; font-size: 0.8vw; border: 0.2vh solid black; text-align: center;">
                 <option value="Select a Point" selected=true>Select a Point</option>
                 <option value="Black">Black</option>
                 <option value="White">White</option>
@@ -710,54 +773,38 @@
         </div> 
 
         <!-- Avisos -->
-        <div id="calibrateLabel" style="
-            position: absolute;
-            left: 950px;
-            top: 130px;
-            transform: translate(-50%, -50%);
-            font-size: 20px;
-            font-family: Arial;
-        ">
-        </div>
+        <div id="calibrateLabel" class="warning"></div>
 
-        <div id="caliErrorLabel" style="
-            position: absolute;
-            left: 950px;
-            top: 160px;
-            transform: translate(-50%, -50%);
-            font-size: 20px;
-            font-family: Arial;
-        ">
-        </div>
+        <div id="caliErrorLabel" class="warning" style="margin-top: 1.4vh;"></div>
 
-        <div class="readonly-slider" style="position: absolute; top: 350px; left: 900px;">
+        <div class="readonly-slider" style="position: absolute; top: 38vh; left: 47vw;">
             <input type="range" id="hminSlider" min="0" max="179" value="0">
-            <label style="margin-left: 15px;">Minimum Hue: <span id="hminValue">0</span></label>
+            <label style="margin-left: 0.8vw; font-size: 1vw;">Minimum Hue: <span id="hminValue">0</span></label>
         </div>
 
-        <div class="readonly-slider" style="position: absolute; top: 410px; left: 900px;">
+        <div class="readonly-slider" style="position: absolute; top: 44vh; left: 47vw;">
             <input type="range" id="hmaxSlider" min="0" max="179" value="179">
-            <label style="margin-left: 15px;">Maximum Hue: <span id="hmaxValue">179</span></label>
+            <label style="margin-left: 0.8vw; font-size: 1vw;">Maximum Hue: <span id="hmaxValue">179</span></label>
         </div>
 
-        <div class="readonly-slider" style="position: absolute; top: 470px; left: 900px;">
+        <div class="readonly-slider" style="position: absolute; top: 50vh; left: 47vw;">
             <input type="range" id="sminSlider" min="0" max="255" value="0">
-            <label style="margin-left: 15px;">Minimum Saturation: <span id="sminValue">0</span></label>
+            <label style="margin-left: 0.8vw; font-size: 1vw;">Minimum Saturation: <span id="sminValue">0</span></label>
         </div>
 
-        <div class="readonly-slider" style="position: absolute; top: 530px; left: 900px;">
+        <div class="readonly-slider" style="position: absolute; top: 56vh; left: 47vw;">
             <input type="range" id="smaxSlider" min="0" max="255" value="255">
-            <label style="margin-left: 15px;">Maximum Saturation: <span id="smaxValue">255</span></label>
+            <label style="margin-left: 0.8vw; font-size: 1vw;">Maximum Saturation: <span id="smaxValue">255</span></label>
         </div>
 
-        <div class="readonly-slider" style="position: absolute; top: 590px; left: 900px;">
+        <div class="readonly-slider" style="position: absolute; top: 62vh; left: 47vw;">
             <input type="range" id="vminSlider" min="0" max="255" value="0">
-            <label style="margin-left: 15px;">Minimum Value: <span id="vminValue">0</span></label>
+            <label style="margin-left: 0.8vw; font-size: 1vw;">Minimum Value: <span id="vminValue">0</span></label>
         </div>
 
-        <div class="readonly-slider" style="position: absolute; top: 650px; left: 900px;">
+        <div class="readonly-slider" style="position: absolute; top: 68vh; left: 47vw;">
             <input type="range" id="vmaxSlider" min="0" max="255" value="255">
-            <label style="margin-left: 15px;">Maximum Value: <span id="vmaxValue">255</span></label>
+            <label style="margin-left: 0.8vw; font-size: 1vw;">Maximum Value: <span id="vmaxValue">255</span></label>
         </div>
 
     </div>
@@ -1154,11 +1201,11 @@
                         resp = await fetch(colorToDepthFrameUrl);
                     }
                     const blob = await resp.blob();
-                    document.getElementById("colorToDepth-img").src = URL.createObjectURL(blob);
+                    document.getElementById("volume-colorToDepthimg").src = URL.createObjectURL(blob);
                 } else {
                     const resp = await fetch(colorToDepthFrameUrl);
                     const blob = await resp.blob();
-                    document.getElementById("colorToDepth-img").src = URL.createObjectURL(blob);
+                    document.getElementById("volume-colorToDepthimg").src = URL.createObjectURL(blob);
                 }
 
                 if (modeData["Exposition Mode"] === "HDR") {
@@ -1167,11 +1214,11 @@
                         resp = await fetch(depthFrameUrl);
                     }
                     const blob = await resp.blob();
-                    document.getElementById("depth-img").src = URL.createObjectURL(blob);
+                    document.getElementById("volume-depthimg").src = URL.createObjectURL(blob);
                 } else {
                     const resp = await fetch(depthFrameUrl);
                     const blob = await resp.blob();
-                    document.getElementById("depth-img").src = URL.createObjectURL(blob);
+                    document.getElementById("volume-depthimg").src = URL.createObjectURL(blob);
                 }
 
                 if (currentMenu === "calibration-menu") {
@@ -1185,12 +1232,12 @@
                     // Color frame
                     const colorResp = await fetch("http://10.0.30.175:8000/getFrame/colorToDepthCopy");
                     const colorToDepthBlob = await colorResp.blob();
-                    document.getElementById("colorToDepthCopy-img").src = URL.createObjectURL(colorToDepthBlob);
+                    document.getElementById("calibration-colorToDepthimg").src = URL.createObjectURL(colorToDepthBlob);
 
                     // Mask frame
                     const maskResp = await fetch("http://10.0.30.175:8000/getFrame/result");
                     const maskBlob = await maskResp.blob();
-                    document.getElementById("mask-img").src = URL.createObjectURL(maskBlob);
+                    document.getElementById("calibration-mask").src = URL.createObjectURL(maskBlob);
 
                 }    
             }catch (error) {
