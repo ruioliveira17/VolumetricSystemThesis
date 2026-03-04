@@ -1,0 +1,92 @@
+Ver1.3.1
+1.Optimizate the code for upgrading the device FW
+
+Ver1.3.0
+1.Release for DCAM650 & DCAM660
+
+Ver1.2.8
+1.Support DCAM650 & DCAM660
+
+Ver1.2.7
+1.Add sleep 1000ms in the VZ_SetWorkMode api
+2.Optimizate code and fix some errors
+
+Ver1.2.6
+1.Optimizate the code for checking the device remove
+
+Ver1.2.5
+1.Optimizate the code for checking the device status
+2.Add memset before memcy for IP
+
+Ver1.2.4
+1.Optimizate code check the time from frame ready to get frame is out of 1s or not
+
+Ver1.2.3
+1.Optimizate softwaretrigger
+2.Support jsonfile update
+3.Fix some errors
+4.Support Arm32 (arm-linux-gnueabihf)
+
+Ver1.2.2
+1.Add the sn field in the Log module
+2.Add API VZ_SetParamsByJson, the json file can be saved by NebulaGUITool(V1.2.2)
+3.Fix some errors
+4.Add API VZ_SetColorGain/VZ_GetColorGain which is used in VzExposureControlMode_Manual
+
+Ver1.2.1
+1.For VZ_SetWorkMode API: 
+	to set ActiveMode, the Firmware set the Time filter default true; 
+	to set SlaveMode, the Firmware set the Time filter default false.
+  if need change the the Time filter status,call the API VZ_SetTimeFilterParams
+2.Optimizate code
+
+Ver1.2.0
+1.Support DS86 & DS87
+2.Add API for DS86 & DS87
+	VZ_SetInputSignalParamsForHWTrigger
+	VZ_GetInputSignalParamsForHWTrigger
+	VZ_SetOutputSignalParams
+	VZ_GetOutputSignalParams
+
+Ver1.1.20
+1.Fix bug in VZ_ConvertDepthFrameToPointCloudVector api with VzTransformDepthImgToColorSensorFrame
+2.Add samples PointCloudCaptureAndSaveDepthImgToColorSensor and PointCloudVectorAndSaveDepthImgToColorSensor
+3.Optimizate code
+
+Ver1.1.19
+1.Add HDR Mode VZ_SetHDRModeEnabled/VZ_GetHDRModeEnabled,(support firmware version: after 20221207)
+2.Optimizate code
+
+Ver1.1.17
+1.Optimizate code
+2.Add Samples ToFExposureTimeSetGet & ToFFiltersSetGet
+
+Ver1.1.16
+1.Modify the api of filters
+2.fix some errors
+
+Ver1.1.13
+1.Change the name of the header file
+2.Modify filter error
+
+Ver1.1.0
+1.Optimizing the SDK Architecture
+2.Modify the API of VZ_SetColorResolution/VZ_GetColorResolution
+
+Ver1.0.9
+1.Change the library name frome vzenseDS_api to NebulaSDK
+2.Adjust the file directory structure
+
+Ver1.0.8
+1.add VZ_S/GetExposureControlMode
+2.Modify the API of VZ_SetExposureTime
+3.Modify the API of VZ_ConvertDepthFrameToPointCloudVector for support VzTransformDepthImgToColorSensorFrame
+
+Ver1.0.7
+Modify the SDK API
+
+Ver1.0.6
+Modify the SDK API
+
+Ver1.0.5
+First version

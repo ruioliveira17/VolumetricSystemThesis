@@ -1,0 +1,17 @@
+{
+    "detection_area": [
+        228,
+        146,
+        381,
+        354
+    ],
+    "workspace_depth": 961.6270809505655,
+    "hmin": 23,
+    "hmax": 32,
+    "smin": 100,
+    "smax": 255,
+    "vmin": 100,
+    "vmax": 255,
+    "color": "Yellow",
+    "calibrationColorFrame_path": "config/calibrationColorFrame.png"
+}

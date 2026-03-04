@@ -1,0 +1,1424 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>BM Volumetric System</title>
+    <link rel="icon" type="image/png" href="BM_MiniLogo.png">
+    <style>
+        body {
+            font-family: Arial;
+            text-align: center;
+            background-color: white;
+            overflow: hidden;
+        }
+
+        .main-menu {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            position: relative;
+        }
+
+       .logo {
+            position: absolute;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: white;
+            border: none;
+            top: 0vh;
+            left: 0vw;
+            z-index: 10;
+            transition: 0.3s;
+       }
+
+       .logo img{
+            width: 15vw;
+            object-fit: contain;
+       }
+
+       .logo:hover {
+            transform: scale(1.05);
+        }
+
+       .login {
+            position: absolute;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            top: 0vh;
+            right: 0vw;
+            background-color: white;
+            border:  1px solid black;
+            z-index: 10;
+            transition: 0.3s;
+       }
+
+       .login img {
+            width: 6vw;
+            object-fit: contain;
+        }
+
+        .login:hover {
+            transform: scale(1.05);
+        }
+
+        .type1 {background-color: turquoise; border: 1px solid black;}
+        .type2 {background-color: springgreen; border: 1px solid black;}
+        .type3 {background-color: turquoise; border: 1px solid black; width: 1520px; height: 50px;}
+
+        .menu-title {
+            position: absolute;
+            top: 2vh;
+            left: 50%;
+            transform: translateX(-50%);
+
+            font-size: 5vw;
+            font-weight: semi-bold;
+            color: black;
+            text-align: center;
+            z-index: 10;
+        }
+
+        .menu-grid-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            
+            width: 100vw;
+            height: 100vh;
+            z-index: 1;
+        }
+
+        .menu-grid {
+            display: grid;
+            justify-content: center;
+            grid-template-columns: repeat(3, 1fr);
+            row-gap: 3vh;
+            column-gap: 5vw;
+            width: 80vw;
+        }
+
+        .menu-grid button {
+            width: 100%;
+            aspect-ratio: 16/9;
+            transition: 0.3s;
+
+            cursor: pointer;
+        }
+
+        .menu-grid button:hover {
+            transform: scale(1.05);
+        }
+
+        .menu-grid img {
+            width: 60%;
+        }
+
+        .buttons button {
+            position: absolute;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .buttons img {
+            width: 350px;
+            height: 350px;
+            object-fit: contain;
+        }
+
+        #depth-img {
+            position: absolute;
+            left: 480px;
+            top: 400px;
+            transform: translate(-50%, -50%);
+            width: 560px;
+            height: 420px;
+            object-fit: contain;
+        } 
+
+        #colorToDepth-img {
+            position: absolute;
+            left: 480px;
+            top: 830px;
+            transform: translate(-50%, -50%);
+            width: 560px;
+            height: 420px;
+            object-fit: contain;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+
+        .switch input { 
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px; width: 26px;
+            left: 4px; bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: turquoise;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        .readonly-slider {
+            display: flex;
+            align-items: center;
+            pointer-events: none; 
+        }
+
+        input[type="range"] {
+            appearance: none;  
+            width: 500px;
+        }
+
+        /* Track - a barra por baixo */
+        input[type="range"]::-webkit-slider-runnable-track {
+            height: 20px;          /* grossura da barra */
+            background: #ccc;      /* cor da barra */
+            border-radius: 10px;
+        }
+
+        /* Thumb - a bolinha que mexe */
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 30px;           /* altura da bolinha */
+            width: 30px;            /* largura da bolinha */
+            background: #ccc;
+            border: 1px solid #9d9d9d;
+            border-radius: 50%;
+            margin-top: -5px;      /* para centralizar a bolinha na barra */
+        }
+
+    </style>
+</head>
+
+<body>
+    <div id="login-screen">
+        <h2>Login</h2>
+        <input type="text" id="username" placeholder="Username"><br><br>
+        <input type="password" id="password" placeholder="Password"><br><br>
+        <button onclick="login()">Login</button>
+
+        <p style="margin-top: 15px;">
+            Don't have an account? 
+            <span onclick="showRegisterScreen()" style="color: black; cursor: pointer; text-decoration: underline;">
+                Register
+            </span>
+        </p>
+
+        <p id="error-label" style="color: red;"></p>
+    </div>
+
+    <div id="register-screen" style="display: none;">
+        <h2>Register</h2>
+        <input type="text" id="reg-username" placeholder="Username"><br><br>
+        <input type="password" id="reg-password" placeholder="Password"><br><br>
+        
+        <select id="reg-role" onchange="handleRoleChange()">
+            <option value="user">User</option>
+            <option value="admin">Admin</option>
+        </select><br><br>
+
+        <input type="text" id="reg-code" placeholder="Admin Code" disabled><br><br>
+
+        <button onclick="register()">Register</button>
+
+        <p style="margin-top: 15px;">
+            Already have an account? 
+            <span onclick="showLoginScreen()" style="color: black; cursor: pointer; text-decoration: underline;">
+                Login
+            </span>
+        </p>
+
+        <p id="reg-error-label" style="color: red;"></p>
+
+    </div>
+
+    <div id="main-menu" class="main-menu">
+        <!-- Logo -->
+        <button class="logo" onclick="goBack()">
+            <img src="BM_Logo.png">
+        </button>
+
+        <!-- Login -->
+        <button class="login" onclick="UserInfo()">
+            <img src="user.png">
+        </button>
+
+        <!-- Menu Title -->
+        <div class="menu-title">Menu</div>
+
+        <!-- Botões -->
+        <div class="menu-grid-container">
+            <div class="menu-grid">
+                <button class="type1" onclick="goTo('camera-menu')"><img src="cam_icon.png"></button>
+                <button class="type2" onclick="goTo('barcode-menu')"><img src="barcode.png"></button>
+                <button class="type1" onclick="goTo('volume-menu')"><img src="boxvol.png"></button>
+                <button class="type2" onclick="goTo('storage-menu')"><img src="storage.png"></button>
+                <button class="type1" onclick="goTo('stacking-menu')"><img src="stacking.png"></button>
+                <button class="type2" onclick="goTo('config-menu')"><img src="conf_icon.png"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Panel -->
+    <div id="user-panel" style="display: none; position: absolute; top: 22px; right: 120px; background-color: lightblue; border: 1px solid black; padding: 10px; width: 200px; height: 55px; z-index: 10;">
+        <p id="user-name" style="margin: 0; text-align: left;">User:</p>
+        <p id="user-role" style="margin: 0; text-align: left;">Role:</p>
+        <div style="display: flex; justify-content: flex-end; margin-top: 0px;">
+            <span id="logout-text" onclick="logout()" style="color: black; cursor: pointer; text-decoration: underline;">Logout</span>
+        </div>
+    </div>
+
+    <!-- Camera Panel -->
+    <div id="camera-menu" style="display: none; position: relative;">
+        <!-- Logo -->
+        <button class="logo" onclick="goBack()" style="top: 10px; left: 10px;"><img src="BM_Logo.png" alt="BM Company Logo"></button>
+
+        <!-- Login -->
+        <button class="login" onclick="UserInfo()" style="top: 10px; right: 10px;"><img src="user.png" alt="7"></button>
+
+        <!-- Menu Title -->
+        <div class="menu-title">Camera</div>
+
+        <img id="camera-img" src="" style="width: 1000px; height: 750px; object-fit: contain; padding: 110px;">
+    </div>
+
+    <!-- Barcode Panel -->
+    <div id="barcode-menu" style="display: none; position: relative;">
+        <!-- Logo -->
+        <button class="logo" onclick="goBack()" style="top: 10px; left: 10px;"><img src="BM_Logo.png" alt="BM Company Logo"></button>
+
+        <!-- Login -->
+        <button class="login" onclick="UserInfo()" style="top: 10px; right: 10px;"><img src="user.png" alt="7"></button>
+
+        <!-- Menu Title -->
+        <div class="menu-title">Barcode</div>
+    </div>
+
+    <!-- Volume Panel -->
+    <div id="volume-menu" style="display: none; position: relative;">
+        <!-- Logo -->
+        <button class="logo" onclick="goBack()" style="top: 10px; left: 10px;"><img src="BM_Logo.png" alt="BM Company Logo"></button>
+
+        <!-- Login -->
+        <button class="login" onclick="UserInfo()" style="top: 10px; right: 10px;"><img src="user.png" alt="7"></button>
+
+        <!-- Menu Title -->
+        <div class="menu-title">Volume</div>
+
+        <!-- Aviso -->
+        <div id="objOutOfLine_label" style="
+            position: absolute;
+            left: 950px;
+            top: 130px;
+            transform: translate(-50%, -50%);
+            font-size: 20px;
+            font-family: Arial;
+        ">
+        </div>
+
+        <!-- Labels -->
+        <div style="position:absolute; left:800px; top:280px; font-size:36px;">Volume:</div>
+        <div style="position:absolute; left:800px; top:430px; font-size:36px;">X:</div>
+        <div style="position:absolute; left:800px; top:580px; font-size:36px;">Y:</div>
+        <div style="position:absolute; left:800px; top:730px; font-size:36px;">Height:</div>
+
+        <!-- Valores -->
+        <div id="volume_value_label" style="position:absolute; left:950px; top:280px; font-size:36px;"></div>
+        <div id="volume_value_cm_label" style="position:absolute; left:950px; top:330px; font-size:36px;"></div>
+        <div id="x_length_value_label" style="position:absolute; left:950px; top:430px; font-size:36px;"></div>
+        <div id="y_length_value_label" style="position:absolute; left:950px; top:580px; font-size:36px;"></div>
+        <div id="height_value_label" style="position:absolute; left:950px; top:730px; font-size:36px;"></div>
+
+        <!-- Botões -->
+        <button onclick="volumeReal_click()" style="
+            position:absolute;
+            left:780px;
+            top:850px;
+            width:300px;
+            font-size:20px;
+        ">
+            Get Real Volume
+        </button>
+
+        <button onclick="volumeBundle_click()" style="
+            position:absolute;
+            left:780px;
+            top:920px;
+            width:300px;
+            font-size:20px;
+        ">
+            Get Bundle Volume
+        </button>
+
+        <!-- Imagens -->
+        <img id="depth-img">
+        <img id="colorToDepth-img">
+        <img id="object-img" style="position: absolute; left: 1500px; top: 615px; transform: translate(-50%, -50%); width: 560px; height: 420px; object-fit: contain;">
+    </div>
+
+    <!-- Storage Panel -->
+    <div id="storage-menu" style="display: none; position: relative;">
+        <!-- Logo -->
+        <button class="logo" onclick="goBack()" style="top: 10px; left: 10px;"><img src="BM_Logo.png" alt="BM Company Logo"></button>
+
+        <!-- Login -->
+        <button class="login" onclick="UserInfo()" style="top: 10px; right: 10px;"><img src="user.png" alt="7"></button>
+
+        <!-- Menu Title -->
+        <div class="menu-title">Storage</div>
+    </div>
+
+    <!-- Stacking Panel -->
+    <div id="stacking-menu" style="display: none; position: relative;">
+        <!-- Logo -->
+        <button class="logo" onclick="goBack()" style="top: 10px; left: 10px;"><img src="BM_Logo.png" alt="BM Company Logo"></button>
+
+        <!-- Login -->
+        <button class="login" onclick="UserInfo()" style="top: 10px; right: 10px;"><img src="user.png" alt="7"></button>
+
+        <!-- Menu Title -->
+        <div class="menu-title">Stacking</div>
+    </div>
+
+    <!-- Configuration Panel -->
+    <div id="config-menu" style="display: none; position: relative;">
+        <!-- Logo -->
+        <button class="logo" onclick="goBack()" style="top: 10px; left: 10px;"><img src="BM_Logo.png" alt="BM Company Logo"></button>
+
+        <!-- Login -->
+        <button class="login" onclick="UserInfo()" style="top: 10px; right: 10px;"><img src="user.png" alt="7"></button>
+
+        <!-- Menu Title -->
+        <div class="menu-title">Configuration</div>
+
+        <div id="config-error" style="
+            position: absolute;
+            left: 950px;
+            top: 130px;
+            transform: translate(-50%, -50%);
+            font-size: 20px;
+            font-family: Arial;
+        ">
+        </div>
+
+        <!-- Exposure / HDR Switch -->
+        <div style="position: absolute; top: 310px; left: 200px;">
+            <span style="font-size: 20px; margin-right: 10px;">Exposition</span>
+            <label class="switch">
+                <input type="checkbox" id="ExpHDR_switch" onchange="ExpHDR_toggle()">
+                <span class="slider round"></span>
+            </label>
+            <span style="font-size: 20px; margin-left: 10px;">HDR</span>
+        </div>
+
+        <!-- Static / Dynamic Switch -->
+        <div style="position: absolute; top: 410px; left: 200px;">
+            <span style="font-size: 20px; margin-right: 10px;">Static</span>
+            <label class="switch">
+                <input type="checkbox" id="StaticDynamic_switch" onchange="StaticDynamic_toggle()">
+                <span class="slider round"></span>
+            </label>
+            <span style="font-size: 20px; margin-left: 10px;">Dynamic</span>
+        </div>
+
+        <!-- Debug Mode Switch -->
+        <span style="font-size: 20px; position: absolute; top: 680px; left: 200px;">Debug Mode</span>
+        <div style="position: absolute; top: 710px; left: 200px;">
+            <span style="font-size: 20px; margin-right: 10px;">On</span>
+            <label class="switch">
+                <input type="checkbox" id="DebugMode_switch" onchange="DebugMode_toggle()">
+                <span class="slider round"></span>
+            </label>
+            <span style="font-size: 20px; margin-left: 10px;">Off</span>
+        </div>
+
+        <!-- Exposure Time Set -->
+        <div style="position: relative; top: 310px; left: 1000px; display:flex; align-items:center; gap:10px;">
+            <label for="exposureTime">Exposure Time:</label>
+            <input type="text" id="exposureTime" />
+            <button onclick="exposureSet_click()">Set</button>
+        </div>
+        
+        <!-- Color Slope Set -->
+        <div style="position: relative; top: 360px; left: 1000px; display:flex; align-items:center; gap:10px;">
+            <label for="colorSlope">Color Slope:</label>
+            <input type="text" id="colorSlope" />
+            <button onclick="colorSlopeSet_click()">Set</button>
+        </div>
+
+        <div class="buttons">
+            <button class="type3" onclick="goTo('calibration-menu')" style="top: 180px; left: 200px; color:white; font-size: 18px;">Calibração</button>
+        </div>
+    </div>
+
+    <!-- Calibration Panel -->
+    <div id="calibration-menu" style="display: none; position: relative;">
+        <!-- Logo -->
+        <button class="logo" onclick="goBack()" style="top: 10px; left: 10px;"><img src="BM_Logo.png" alt="BM Company Logo"></button>
+
+        <!-- Login -->
+        <button class="login" onclick="UserInfo()" style="top: 10px; right: 10px;"><img src="user.png" alt="7"></button>
+
+        <!-- Menu Title -->
+        <div class="menu-title">Calibration</div>
+        
+        <!-- Automatic / Manual -->
+        <div style="position: absolute; top: 250px; left: 900px;">
+            <span style="font-size: 20px; margin-right: 10px;">Automatic</span>
+            <label class="switch">
+                <input type="checkbox" id="AutoManual_switch" onchange="AutoManual_toggle()">
+                <span class="slider round"></span>
+            </label>
+            <span style="font-size: 20px; margin-left: 10px;">Manual</span>
+        </div>
+        
+        <button onclick="calibrate_click()" style="
+            position:absolute;
+            left:900px;
+            top:760px;
+            width:300px;
+            font-size:20px;
+        ">
+            Calibrate
+        </button>
+
+         <!-- Imagens -->
+        <img id="colorToDepthCopy-img" style="position: absolute; left: 480px; top: 400px; transform: translate(-50%, -50%); width: 560px; height: 420px; object-fit: contain;">
+        <img id="mask-img" style="position: absolute; left: 480px; top: 830px; transform: translate(-50%, -50%); width: 560px; height: 420px; object-fit: contain;">
+
+
+        <!-- Color Dropdown -->
+        <div style="position: absolute; top: 300px; left: 900px;">
+            <label for="colorDropdown">Select Color:</label>
+            <select id="colorDropdown" onchange="colorDropdown_change()">
+                <option value="Select a Point" selected=true>Select a Point</option>
+                <option value="Black">Black</option>
+                <option value="White">White</option>
+                <option value="Grey">Grey</option>
+                <option value="Red">Red</option>
+                <option value="Pink">Pink</option>
+                <option value="Orange">Orange</option>
+                <option value="Brown">Brown</option>
+                <option value="Yellow">Yellow</option>
+                <option value="Green">Green</option>
+                <option value="Blue-Green">Blue-Green</option>
+                <option value="Blue">Blue</option>
+                <option value="Purple">Purple</option>
+                <option value="Light Purple">Light Purple</option>
+            </select>
+        </div> 
+
+        <!-- Avisos -->
+        <div id="calibrateLabel" style="
+            position: absolute;
+            left: 950px;
+            top: 130px;
+            transform: translate(-50%, -50%);
+            font-size: 20px;
+            font-family: Arial;
+        ">
+        </div>
+
+        <div id="caliErrorLabel" style="
+            position: absolute;
+            left: 950px;
+            top: 160px;
+            transform: translate(-50%, -50%);
+            font-size: 20px;
+            font-family: Arial;
+        ">
+        </div>
+
+        <div class="readonly-slider" style="position: absolute; top: 350px; left: 900px;">
+            <input type="range" id="hminSlider" min="0" max="179" value="0">
+            <label style="margin-left: 15px;">Minimum Hue: <span id="hminValue">0</span></label>
+        </div>
+
+        <div class="readonly-slider" style="position: absolute; top: 410px; left: 900px;">
+            <input type="range" id="hmaxSlider" min="0" max="179" value="179">
+            <label style="margin-left: 15px;">Maximum Hue: <span id="hmaxValue">179</span></label>
+        </div>
+
+        <div class="readonly-slider" style="position: absolute; top: 470px; left: 900px;">
+            <input type="range" id="sminSlider" min="0" max="255" value="0">
+            <label style="margin-left: 15px;">Minimum Saturation: <span id="sminValue">0</span></label>
+        </div>
+
+        <div class="readonly-slider" style="position: absolute; top: 530px; left: 900px;">
+            <input type="range" id="smaxSlider" min="0" max="255" value="255">
+            <label style="margin-left: 15px;">Maximum Saturation: <span id="smaxValue">255</span></label>
+        </div>
+
+        <div class="readonly-slider" style="position: absolute; top: 590px; left: 900px;">
+            <input type="range" id="vminSlider" min="0" max="255" value="0">
+            <label style="margin-left: 15px;">Minimum Value: <span id="vminValue">0</span></label>
+        </div>
+
+        <div class="readonly-slider" style="position: absolute; top: 650px; left: 900px;">
+            <input type="range" id="vmaxSlider" min="0" max="255" value="255">
+            <label style="margin-left: 15px;">Maximum Value: <span id="vmaxValue">255</span></label>
+        </div>
+
+    </div>
+
+    <script>
+        let menuStack = [];
+        let currentMenu = null;
+        let cameraLoopInterval = null;
+        let colorClickInitialized = false;
+        let selected_bar = null;
+        let step = 1;
+        let thresh = 10;
+        let detection_area = [0, 0, 0, 0];
+
+        function showLoginScreen() {
+            document.getElementById("register-screen").style.display = "none";
+            document.getElementById("login-screen").style.display = "block";
+            document.getElementById("reg-error-label").textContent = "";
+            document.getElementById("reg-username").value = "";
+            document.getElementById("reg-password").value = "";
+            document.getElementById("reg-role").value = "user";
+            document.getElementById("reg-code").value = "";
+        }
+
+        window.addEventListener("DOMContentLoaded", () => {
+            const savedUser = JSON.parse(localStorage.getItem("current_user"));
+            if(savedUser) {
+                document.getElementById("login-screen").style.display = "none";
+                currentMenu = "main-menu";
+                document.getElementById(currentMenu).style.display = "block";
+            }
+        });
+
+        async function login() {
+            const user = document.getElementById("username").value;
+            const pass = document.getElementById("password").value;
+            const errorLabel = document.getElementById("error-label");
+
+            if (!user || !pass) {
+                errorLabel.textContent = "Please fill in all fields.";
+                return;
+            }
+
+            try{
+                const response = await fetch('http://10.0.30.211:8000/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username: user, password: pass })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const role = data.role;
+
+                    localStorage.setItem("current_user", JSON.stringify({ username: user, role: role }));
+
+                    document.getElementById("login-screen").style.display = "none";
+                    currentMenu = "main-menu";
+                    document.getElementById(currentMenu).style.display = "block";
+                } else {
+                    const data = await response.json();
+                    errorLabel.textContent =  data.detail;
+                }
+            } catch (error) {
+                errorLabel.textContent = "Server connection error.";
+            }
+        }
+
+        function showRegisterScreen() {
+            document.getElementById("login-screen").style.display = "none";
+            document.getElementById("register-screen").style.display = "block";
+            document.getElementById("error-label").textContent = "";
+            document.getElementById("username").value = "";
+            document.getElementById("password").value = "";
+        }
+
+        async function register() {
+            const user = document.getElementById("reg-username").value;
+            const pass = document.getElementById("reg-password").value;
+            const role = document.getElementById("reg-role").value;
+            const code = document.getElementById("reg-code").value;
+            const errorLabel = document.getElementById("reg-error-label");
+
+            if (!user || !pass || (role === "admin" && !code)) {
+                errorLabel.textContent = "Please fill in all fields.";
+                return;
+            }
+
+            try {
+                const response = await fetch('http://10.0.30.211:8000/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username: user, password: pass, role: role, code: code })
+                });
+                
+                const data = await response.json();
+
+                if (!response.ok) {
+                   errorLabel.textContent = data.detail || "Registration failed.";
+                    return;
+                }
+
+            } catch (error) {
+                errorLabel.textContent = "Server connection error.";
+                return;
+            }
+
+            errorLabel.textContent = "Registration successful!";
+            showLoginScreen();
+        }
+
+        function handleRoleChange() {
+            const role = document.getElementById("reg-role");
+            const code = document.getElementById("reg-code");
+
+            if (role.value === "admin") {
+                code.disabled = false;
+            } else {
+                code.disabled = true;
+                code.value = "";
+            }
+        }
+
+        function UserInfo() {
+            const panel = document.getElementById("user-panel");
+            const currentUser = JSON.parse(localStorage.getItem("current_user"));
+
+            if (!currentUser) return;
+
+            document.getElementById("user-name").textContent = "User: " + currentUser.username;
+            document.getElementById("user-role").textContent = "Role: " + currentUser.role;
+
+            panel.style.display = (panel.style.display === "block") ? "none" : "block";
+        }
+
+        document.addEventListener("click", function(event) {
+            const panel = document.getElementById("user-panel");
+            const clickedInsidePanel = panel.contains(event.target);
+            const clickedLoginButton = event.target.closest(".login");
+
+            if (panel.style.display === "block" && 
+                !clickedInsidePanel && 
+                !clickedLoginButton) {
+                panel.style.display = "none";
+            }
+        });
+
+        function logout() {
+            localStorage.removeItem("current_user");
+            cameraLoopInterval = null;
+            document.getElementById(currentMenu).style.display = "none";
+            document.getElementById("user-panel").style.display = "none";
+            
+            document.getElementById("login-screen").style.display = "block";
+
+            document.getElementById("username").value = "";
+            document.getElementById("password").value = "";
+
+            menuStack = [];
+            currentMenu = null;
+        }
+
+        function goTo(menuID) {
+            if(currentMenu) {
+                menuStack.push(currentMenu);
+                document.getElementById(currentMenu).style.display = "none";
+            }
+            document.getElementById(menuID).style.display = "block";    
+            currentMenu = menuID; 
+
+            if (menuID === "camera-menu" || menuID === "volume-menu" || menuID === "calibration-menu") {
+                updateCameraFeedLoop();
+            } else {
+                if (cameraLoopInterval){
+                    clearInterval(cameraLoopInterval);
+                    cameraLoopInterval = null;
+                } 
+            }
+
+            if (menuID === "config-menu" || menuID === "calibration-menu") {
+                refreshToggles();
+            }
+            if (menuID === "calibration-menu") {
+                refreshSliders();
+                screenClick();
+            }
+        }
+
+        function goBack() {
+            if (menuStack.length === 0) return;
+
+            document.getElementById(currentMenu).style.display = "none";
+            currentMenu = menuStack.pop();
+            document.getElementById(currentMenu).style.display = "block";
+        }
+
+        async function volumeBundle_click() {
+            const TextOutOfLine = "There are objects outside the yellow stripes. To detect them, make sure they are inside the stripes.";
+            const TextError = "Error";
+
+            try {
+                document.getElementById("volume_value_label").textContent = "";
+                document.getElementById("volume_value_cm_label").textContent = "";
+                document.getElementById("x_length_value_label").textContent = "";
+                document.getElementById("y_length_value_label").textContent = "";
+                document.getElementById("height_value_label").textContent = "";
+
+                const dropdown = document.getElementById("objOption_menu");
+                if (dropdown) dropdown.remove();
+
+                await fetch('http://10.0.30.211:8000/volumeBundle', { method: 'POST' });
+
+                const response = await fetch('http://10.0.30.211:8000/getObjectsOutOfLine');
+                const data = await response.json();
+                const objectsOutOfLine = data.objects_outOfLine.map((val, i) => val ? i + 1 : null).filter(v => v !== null);
+                if (objectsOutOfLine.length > 0) {
+                    document.getElementById("objOutOfLine_label").textContent = TextOutOfLine;
+                } else {
+                    document.getElementById("objOutOfLine_label").textContent = "";
+
+                    const dataResponse = await fetch('http://10.0.30.211:8000/getVolumeBundle');
+                    const volumeData = await dataResponse.json();
+
+                    document.getElementById("volume_value_label").innerText = volumeData.Bundle.volume_m.toFixed(6) + " m³";
+                    document.getElementById("volume_value_cm_label").innerText = volumeData.Bundle.volume_cm.toFixed(2) + " cm³";
+                    document.getElementById("x_length_value_label").innerText = volumeData.Bundle.x.toFixed(1) + " cm";
+                    document.getElementById("y_length_value_label").innerText = volumeData.Bundle.y.toFixed(1) + " cm";
+                    document.getElementById("height_value_label").innerText = volumeData.Bundle.z.toFixed(1) + " cm";
+                }
+
+                const imgResp = await fetch("http://10.0.30.211:8000/getFrame/colorToDepthObject");
+                if (imgResp.status === 404) throw new Error("Frame not Available");
+
+                const blob = await imgResp.blob();
+                document.getElementById("object-img").src = URL.createObjectURL(blob);
+
+            } catch (error) {
+                document.getElementById("volume_value_label").innerText = TextError;
+                document.getElementById("volume_value_cm_label").innerText = TextError;
+                document.getElementById("x_length_value_label").innerText = TextError;
+                document.getElementById("y_length_value_label").innerText = TextError;
+                document.getElementById("height_value_label").innerText = TextError;
+                document.getElementById("objOutOfLine_label").innerText = TextError;
+
+                console.error(error);
+            }
+        }
+
+        async function volumeReal_click() {
+            const TextOutOfLine = "There are objects outside the yellow stripes. To detect them, make sure they are inside the stripes.";
+            const TextError = "Error";
+
+            try {
+                document.getElementById("volume_value_label").textContent = "";
+                document.getElementById("volume_value_cm_label").textContent = "";
+                document.getElementById("x_length_value_label").textContent = "";
+                document.getElementById("y_length_value_label").textContent = "";
+                document.getElementById("height_value_label").textContent = "";
+
+                const oldDropdown = document.getElementById("objOption_menu");
+                if (oldDropdown) {
+                    oldDropdown.remove();
+                }
+
+                await fetch('http://10.0.30.211:8000/volumeReal', { method: 'POST' });
+
+                const response = await fetch('http://10.0.30.211:8000/getObjectsOutOfLine');
+                const data = await response.json();
+                const objectsOutOfLine = data.objects_outOfLine.map((val, i) => val ? i + 1 : null).filter(v => v !== null);
+                if (objectsOutOfLine.length > 0) {
+                    document.getElementById("objOutOfLine_label").textContent = TextOutOfLine;
+                } else {
+                    document.getElementById("objOutOfLine_label").textContent = "";
+                }
+
+                const dataResponse = await fetch('http://10.0.30.211:8000/getVolumeReal');
+                const volumeData = await dataResponse.json();
+
+                const imgResp = await fetch("http://10.0.30.211:8000/getFrame/colorToDepthObject");
+                if (imgResp.status === 404) throw new Error("Frame not Available");
+
+                const blob = await imgResp.blob();
+                document.getElementById("object-img").src = URL.createObjectURL(blob);
+
+                const objIdentified = Object.keys(volumeData).filter(key => key !== "Total");
+                const objTotal = volumeData["Total"]
+                
+                if (objIdentified.length === 1) {
+                    const objData = volumeData[objIdentified[0]];
+                    document.getElementById("volume_value_label").innerText = objData.volume_m.toFixed(6) + " m³";
+                    document.getElementById("volume_value_cm_label").innerText = objData.volume_cm.toFixed(2) + " cm³";
+                    document.getElementById("x_length_value_label").innerText = objData.x.toFixed(1) + " cm";
+                    document.getElementById("y_length_value_label").innerText = objData.y.toFixed(1) + " cm";
+                    document.getElementById("height_value_label").innerText = objData.z.toFixed(1) + " cm";
+                } else if (objIdentified.length > 1) {
+                    const select = document.createElement("select");
+                    select.id = "objOption_menu";
+                    select.style.width = "300px";
+                    select.style.fontSize = "16px";
+                    select.style.position = "absolute";
+                    select.style.left = "800px";
+                    select.style.top = "200px";
+
+                    const placeholder = document.createElement("option");
+                    placeholder.text = "Select an Object";
+                    placeholder.disabled = true;
+                    placeholder.selected = true;
+                    placeholder.value = "";
+                    select.add(placeholder);
+
+                    objIdentified.forEach(objName => {
+                        const option = document.createElement("option");
+                        option.text = objName;
+                        option.value = objName;
+                        select.add(option);
+                    });
+
+                    const totalOption = document.createElement("option");
+                    totalOption.value = "Total";
+                    totalOption.text = "Total";
+                    select.add(totalOption);   
+
+                    select.addEventListener("change", (event) => {
+                        document.getElementById("volume_value_label").textContent = "";
+                        document.getElementById("volume_value_cm_label").textContent = "";
+                        document.getElementById("x_length_value_label").textContent = "";
+                        document.getElementById("y_length_value_label").textContent = "";
+                        document.getElementById("height_value_label").textContent = "";
+
+                        const selected = event.target.value;
+                        if (!selected) return;
+
+                        const objData = volumeData[selected];
+                        if (!objData) return;
+
+                        document.getElementById("volume_value_label").innerText = objData.volume_m.toFixed(6) + " m³";
+                        document.getElementById("volume_value_cm_label").innerText = objData.volume_cm.toFixed(2) + " cm³";
+                        document.getElementById("x_length_value_label").innerText = objData.x.toFixed(1) + " cm";
+                        document.getElementById("y_length_value_label").innerText = objData.y.toFixed(1) + " cm";
+                        document.getElementById("height_value_label").innerText = objData.z.toFixed(1) + " cm";
+                    });
+
+                    document.getElementById("volume-menu").appendChild(select);
+
+                }
+            } catch (error) {
+                document.getElementById("volume_value_label").innerText = TextError;
+                document.getElementById("volume_value_cm_label").innerText = TextError;
+                document.getElementById("x_length_value_label").innerText = TextError;
+                document.getElementById("y_length_value_label").innerText = TextError;
+                document.getElementById("height_value_label").innerText = TextError;
+                document.getElementById("objOutOfLine_label").innerText = TextError;
+
+                console.error(error);
+            }
+        }
+
+        async function updateCameraFeed() {
+            try{
+                const modeResponse = await fetch('http://10.0.30.211:8000/expositionMode');
+                const modeData = await modeResponse.json();
+
+                if (modeData["Exposition Mode"] === "Fixed Exposition") {
+                    await fetch('http://10.0.30.211:8000/captureFrame', { method: 'POST' });
+                }
+
+                let colorFrameUrl = 'http://10.0.30.211:8000/getFrame/color';
+                let colorToDepthFrameUrl = 'http://10.0.30.211:8000/getFrame/colorToDepth';
+                let depthFrameUrl = 'http://10.0.30.211:8000/getFrame/depth';
+                if (modeData["Exposition Mode"] === "HDR") {
+                    let resp = await fetch('http://10.0.30.211:8000/getFrame/HDRcolor');
+                    if (resp.status === 204) {
+                        resp = await fetch(colorFrameUrl);
+                    }
+                    const blob = await resp.blob();
+                    document.getElementById("camera-img").src = URL.createObjectURL(blob);
+                } else {
+                    const resp = await fetch(colorFrameUrl);
+                    const blob = await resp.blob();
+                    document.getElementById("camera-img").src = URL.createObjectURL(blob);
+                }
+
+                if (modeData["Exposition Mode"] === "HDR") {
+                    let resp = await fetch('http://10.0.30.211:8000/getFrame/HDRcolorToDepth');
+                    if (resp.status === 204) {
+                        resp = await fetch(colorToDepthFrameUrl);
+                    }
+                    const blob = await resp.blob();
+                    document.getElementById("colorToDepth-img").src = URL.createObjectURL(blob);
+                } else {
+                    const resp = await fetch(colorToDepthFrameUrl);
+                    const blob = await resp.blob();
+                    document.getElementById("colorToDepth-img").src = URL.createObjectURL(blob);
+                }
+
+                if (modeData["Exposition Mode"] === "HDR") {
+                    let resp = await fetch('http://10.0.30.211:8000/getFrame/HDRdepth');
+                    if (resp.status === 204) {
+                        resp = await fetch(depthFrameUrl);
+                    }
+                    const blob = await resp.blob();
+                    document.getElementById("depth-img").src = URL.createObjectURL(blob);
+                } else {
+                    const resp = await fetch(depthFrameUrl);
+                    const blob = await resp.blob();
+                    document.getElementById("depth-img").src = URL.createObjectURL(blob);
+                }
+
+                if (currentMenu === "calibration-menu") {
+                    r = await fetch("http://127.0.0.1:8000/calibrate/mode");
+                    let calibData = await r.json();
+                    if (calibData["Calibrate Mode"] === "Automatic") {
+                        applyMask();
+                    } else if (calibData["Calibrate Mode"] === "Manual") {
+                        applyManualWSDraw();
+                    }
+                    // Color frame
+                    const colorResp = await fetch("http://127.0.0.1:8000/getFrame/colorToDepthCopy");
+                    const colorToDepthBlob = await colorResp.blob();
+                    document.getElementById("colorToDepthCopy-img").src = URL.createObjectURL(colorToDepthBlob);
+
+                    // Mask frame
+                    const maskResp = await fetch("http://127.0.0.1:8000/getFrame/result");
+                    const maskBlob = await maskResp.blob();
+                    document.getElementById("mask-img").src = URL.createObjectURL(maskBlob);
+
+                }    
+            }catch (error) {
+                console.error("Camera error:", error);
+            }
+        }
+
+        function updateCameraFeedLoop() {
+            if (cameraLoopInterval) return;
+
+            cameraLoopInterval = setInterval(() => {
+                if (currentMenu === "camera-menu" || currentMenu === "volume-menu" || currentMenu === "calibration-menu") {
+                    updateCameraFeed();
+                }
+            }, 333);
+        }
+        
+        async function ExpHDR_toggle() {
+            const checked = document.getElementById("ExpHDR_switch").checked;
+            if (checked) {
+                await fetch("http://127.0.0.1:8000/expositionMode/hdr", { method: "POST" });
+            } else {
+                await fetch("http://127.0.0.1:8000/expositionMode/fixed", { method: "POST" });
+            }
+        }
+
+        async function StaticDynamic_toggle() {
+            const checked = document.getElementById("StaticDynamic_switch").checked;
+            if (checked) {
+                await fetch("http://127.0.0.1:8000/mode/dynamic", { method: "POST" });
+            } else {
+                await fetch("http://127.0.0.1:8000/mode/static", { method: "POST" });
+            }
+        }
+
+        async function DebugMode_toggle() {
+            const checked = document.getElementById("DebugMode_switch").checked;
+            if (checked) {
+                await fetch("http://127.0.0.1:8000/debugMode/on", { method: "POST" });
+            } else {
+                await fetch("http://127.0.0.1:8000/debugMode/off", { method: "POST" });
+            }
+        }
+
+        async function AutoManual_toggle() {
+            const checked = document.getElementById("AutoManual_switch").checked;
+            if (checked) {
+                await fetch("http://127.0.0.1:8000/calibrate/mode/manual", { method: "POST" });
+                selected_bar = null;
+            } else {
+                await fetch("http://127.0.0.1:8000/calibrate/mode/automatic", { method: "POST" });
+            }
+
+            setColorDropdownState(checked);
+        }
+
+        async function exposureSet_click() {
+            const value = parseInt(document.getElementById("exposureTime").value);
+            
+            if (isNaN(value)) {
+                document.getElementById("config-error").textContent = "Only integer values are allowed for exposure time.";
+                return;
+            }
+
+            if (value < 100 || value > 4000) {
+                document.getElementById("config-error").textContent = "Exposure Time value must be between 100 and 4000.";
+                return;
+            }
+
+            try {
+                await fetch("http://127.0.0.1:8000/camera/setExposureTime", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ exposureTime: value })
+                });
+            } catch (error) {
+                console.error("Exposure set error:", error);
+            }
+        }
+
+        async function colorSlopeSet_click() {
+            const value = parseInt(document.getElementById("colorSlope").value);
+            if (isNaN(value)) {
+                document.getElementById("config-error").textContent = "Only integer values are allowed for color slope.";
+                return;
+            }
+
+            if (value < 150 || value > 5000) {
+                document.getElementById("config-error").textContent = "Color Slope value must be between 150 and 5000.";
+                return;
+            }
+
+            try {
+                await fetch("http://127.0.0.1:8000/camera/setColorSlope", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ colorSlope: value })
+                });
+            } catch (error) {
+                console.error("Color slope set error:", error);
+            }
+        }
+
+        async function refreshToggles() {
+            try {
+                if(currentMenu === "config-menu") {
+                    // MODE (Static / Dynamic)
+                    let r = await fetch("http://127.0.0.1:8000/mode");
+                    let modeData = await r.json();
+
+                    document.getElementById("StaticDynamic_switch").checked =
+                        (modeData["Mode"] === "Dynamic");
+
+                    // EXPOSITION MODE
+                    r = await fetch("http://127.0.0.1:8000/expositionMode");
+                    let expData = await r.json();
+
+                    document.getElementById("ExpHDR_switch").checked =
+                        (expData["Exposition Mode"] === "HDR");
+
+                    // DEBUG MODE
+                    r = await fetch("http://127.0.0.1:8000/debugMode");
+                    let debugData = await r.json();
+
+                    document.getElementById("DebugMode_switch").checked =
+                        (debugData["Debug Mode"] === "On");
+                } else if (currentMenu === "calibration-menu") {
+                    // CALIBRATION MODE
+                    r = await fetch("http://127.0.0.1:8000/calibrate/mode");
+                    let calibData = await r.json();
+
+                    document.getElementById("AutoManual_switch").checked =
+                        (calibData["Calibrate Mode"] === "Manual");
+                }
+            } catch (error) {
+                console.log("Toggle refresh error:", error);
+            }
+
+            // só continua a atualizar se estiveres no config menu
+            if (currentMenu === "config-menu" || currentMenu === "calibration-menu") {
+                setTimeout(refreshToggles, 100);
+            }
+        }
+
+        async function refreshSliders() {
+            try {
+                const resp = await fetch("http://127.0.0.1:8000/mask", { method: 'GET' });
+                const data = await resp.json();
+
+                document.getElementById("hminSlider").value = data.hmin;
+                document.getElementById("hminValue").textContent = data.hmin;
+
+                document.getElementById("hmaxSlider").value = data.hmax;
+                document.getElementById("hmaxValue").textContent = data.hmax;
+
+                document.getElementById("sminSlider").value = data.smin;
+                document.getElementById("sminValue").textContent = data.smin;
+
+                document.getElementById("smaxSlider").value = data.smax;
+                document.getElementById("smaxValue").textContent = data.smax;
+
+                document.getElementById("vminSlider").value = data.vmin;
+                document.getElementById("vminValue").textContent = data.vmin;
+
+                document.getElementById("vmaxSlider").value = data.vmax;
+                document.getElementById("vmaxValue").textContent = data.vmax;
+
+            } catch (err) {
+                console.warn("Não foi possível atualizar sliders:", err);
+            }
+
+            if (currentMenu === "calibration-menu") {
+                setTimeout(refreshSliders, 100);
+            }
+        }
+
+        async function applyMask() {
+            try {
+                if (currentMenu !== "calibration-menu") return;
+                const r = await fetch("http://127.0.0.1:8000/mask");
+                const maskValues = await r.json();
+                await fetch("http://127.0.0.1:8000/applyMask", {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(maskValues)
+                });
+            } catch (err) { console.warn("Erro applyMask:", err); }
+        }
+
+        async function applyManualWSDraw() {
+            try {
+                if (selected_bar === null) {
+                    const r = await fetch("http://127.0.0.1:8000/calibrate/params");
+                    detection_area = (await r.json())["Detection Area"];
+                }
+                await fetch("http://127.0.0.1:8000/applyManualWorkspace", {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ detection_area })
+                });
+            } catch (err) { console.warn("Erro applyManualWSDraw:", err); }
+        }
+
+        async function colorDropdown_change() {
+            try {
+                const color = document.getElementById("colorDropdown").value;
+                await fetch("http://127.0.0.1:8000/mask/color", {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ color })
+                });
+                await fetch("http://127.0.0.1:8000/mask/optionSelected", {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ optionSelected: color })
+                });
+            } catch (err) { console.warn("Erro a mudar cor:", err); }
+        }
+
+        function setColorDropdownState(calibrationMode) {
+            const dropdown = document.getElementById("colorDropdown");
+            dropdown.disabled = calibrationMode;
+        }
+
+        async function screenClick() {
+            if (colorClickInitialized) return;
+
+            const img = document.getElementById("colorToDepthCopy-img");
+            img.addEventListener("click", async (event) => {
+
+                try {
+                    const r = await fetch("http://127.0.0.1:8000/calibrate/mode");
+                    let calibData = await r.json();
+
+                    if (calibData["Calibrate Mode"] === "Automatic") {
+                        const r = await fetch("http://127.0.0.1:8000/mask");
+                        const maskValues = await r.json();
+                        let optionSelected = maskValues.optionSelected;
+
+                        if (optionSelected === "Select a Point") {
+                            const canvas =document.createElement("canvas");
+                            canvas.width = img.width;
+                            canvas.height = img.height;
+                            const ctx = canvas.getContext("2d");
+
+                            ctx.drawImage(img, 0, 0, img.width, img.height);
+                        
+                            const rect = img.getBoundingClientRect();
+                            const x = event.clientX - rect.left;
+                            const y = event.clientY - rect.top;
+
+                            const pixel = ctx.getImageData(x, y, 1, 1).data; // [r, g, b, a]
+
+                            await fetch("http://127.0.0.1:8000/mask/colorClick", {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ r: pixel[0], g: pixel[1], b: pixel[2] })
+                            });
+                        }
+                    } else if (calibData["Calibrate Mode"] === "Manual") {
+                        const r = await fetch("http://127.0.0.1:8000/calibrate/params");
+                        const response = await r.json();
+                        let [x1, y1, x2, y2] = response["Detection Area"];
+
+                        const rect = img.getBoundingClientRect();
+                        const x = (event.clientX - rect.left) * (img.naturalWidth / img.width); // ajustar coordenada x para a resolução original
+                        const y = (event.clientY - rect.top) * (img.naturalHeight / img.height); // ajustar coordenada y para a resolução original
+
+                        if (x1 - thresh <= x && x <= x1 + thresh && y1 - thresh <= y && y <= y2 + thresh) {
+                            selected_bar = "left";
+                        } else if (x2 - thresh <= x && x <= x2 + thresh && y1 - thresh <= y && y <= y2 + thresh) {
+                            selected_bar = "right";
+                        } else if (y1 - thresh <= y && y <= y1 + thresh && x1 - thresh <= x && x <= x2 + thresh) {
+                            selected_bar = "top";
+                        } else if (y2 - thresh <= y && y <= y2 + thresh && x1 - thresh <= x && x <= x2 + thresh) {
+                            selected_bar = "bottom";
+                        } else {
+                            selected_bar = null;
+                        }
+
+                        console.log("Selected bar:", selected_bar);
+                    }
+                } catch (err) { console.warn("Erro colorClick:", err); }
+            });
+                    
+            colorClickInitialized = true;
+        }
+
+        document.addEventListener("keydown", async (event) => {
+            try {
+                const r_mode = await fetch("http://127.0.0.1:8000/calibrate/mode");
+                const calibData = await r_mode.json();
+
+                if (calibData["Calibrate Mode"] !== "Manual") return;
+
+                // Pegar detection_area do servidor
+                const r = await fetch("http://127.0.0.1:8000/calibrate/params");
+                let data = await r.json();
+                detection_area = data["Detection Area"]; // [x1, y1, x2, y2]
+
+                const img = document.getElementById("colorToDepthCopy-img");
+                const maxX = img.naturalWidth;
+                const maxY = img.naturalHeight;
+
+                let [x1, y1, x2, y2] = detection_area;
+
+                if (event.key === "ArrowLeft") {
+                    if (selected_bar === "left") x1 = Math.max(0, x1 - step);
+                    else if (selected_bar === "right") x2 = Math.max(0, x2 - step);
+
+                } else if (event.key === "ArrowRight") {
+                    if (selected_bar === "left") x1 = Math.min(maxX, x1 + step);
+                    else if (selected_bar === "right") x2 = Math.min(maxX, x2 + step);
+
+                } else if (event.key === "ArrowUp") {
+                    if (selected_bar === "top") y1 = Math.max(0, y1 - step);
+                    else if (selected_bar === "bottom") y2 = Math.max(0, y2 - step);
+
+                } else if (event.key === "ArrowDown") {
+                    if (selected_bar === "top") y1 = Math.min(maxY, y1 + step);
+                    else if (selected_bar === "bottom") y2 = Math.min(maxY, y2 + step);
+                }
+
+                detection_area = [x1, y1, x2, y2];
+
+            } catch (err) {
+                console.warn("Erro key_pressed:", err);
+            }
+        });
+
+        async function calibrate_click() {
+            const calibrateLabel = document.getElementById("calibrateLabel");
+            const caliErrorLabel = document.getElementById("caliErrorLabel");
+
+            const TextCalibrated = "System Calibrated";
+            const TextNotCalibrated = "System was not Calibrated";
+            const TextError = "Error";
+            const TextWsNotEmpty = "Workspace isn't Empty";
+            const TextCenterNotAligned = "Center Point isn't Aligned";
+            const TextWsNotEmptyAndCenterNotAligned = "Center Point isn't Aligned and Workspace isn't Empty";
+            const TextClear = "";
+
+            try {
+                const maskResponse = await fetch("http://127.0.0.1:8000/mask");
+                if (!maskResponse.ok) throw new Error("Mask request failed");
+                const maskValues = await maskResponse.json();
+
+                const calibrateResponse = await fetch("http://127.0.0.1:8000/calibrate", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(maskValues)
+                });
+
+                if (!calibrateResponse.ok) throw new Error("Calibrate request failed");
+
+                const flagsResponse = await fetch("http://127.0.0.1:8000/calibrate/flags");
+                if (!flagsResponse.ok) throw new Error("Flags request failed");
+
+                const data = await flagsResponse.json();
+
+                const center_aligned = data["Center Aligned"];
+                const ws_clear = data["Workspace Clear"];
+
+                if (center_aligned && ws_clear) {
+                    calibrateLabel.innerText = TextCalibrated;
+                    caliErrorLabel.innerText = TextClear;
+                }
+                else if (center_aligned && !ws_clear) {
+                    calibrateLabel.innerText = TextNotCalibrated;
+                    caliErrorLabel.innerText = TextWsNotEmpty;
+                }
+                else if (!center_aligned && ws_clear) {
+                    calibrateLabel.innerText = TextNotCalibrated;
+                    caliErrorLabel.innerText = TextCenterNotAligned;
+                }
+                else {
+                    calibrateLabel.innerText = TextNotCalibrated;
+                    caliErrorLabel.innerText = TextWsNotEmptyAndCenterNotAligned;
+                }
+
+            } catch (error) {
+                calibrateLabel.innerText = TextError;
+                caliErrorLabel.innerText = TextError;
+                console.error(error);
+            }
+        }
+
+    </script>
+
+</body>
+</html>
