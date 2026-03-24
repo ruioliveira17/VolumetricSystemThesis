@@ -1,6 +1,7 @@
 from pickle import FALSE, TRUE
 import sys
 import os
+import numpy
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(BASE_DIR, "Python"))
@@ -101,7 +102,7 @@ def comparisonCaliImageCurrImage(colorFrame, calibrationColorFrame, box_scaled):
     
     return False
 
-def bundleIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFrame, objects_info, workspace_depth, colorSlope, cx_d, cy_d, cx_rgb, cy_rgb):
+def bundleIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFrame, objects_info, workspace_depth, threshold, colorSlope, cx_d, cy_d, cx_rgb, cy_rgb):
     contours = []
     box_ws = []
     box_limits = []
@@ -115,15 +116,25 @@ def bundleIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColor
     #colorToDepth_copy = colorToDepthFrame.copy()
 
     Sx = ((1600/2) / numpy.tan(numpy.radians(70/2))) / ((640/2) / numpy.tan(numpy.radians(60/2)))
-    Sy = ((1200/2) / numpy.tan(numpy.radians(50/2))) / ((480/2) / numpy.tan(numpy.radians(45/2)))   
+    Sy = ((1200/2) / numpy.tan(numpy.radians(50/2))) / ((480/2) / numpy.tan(numpy.radians(45/2)))
+    print("Sx:", Sx)
+    print("Sy:", Sy)  
 
     if len(objects_info) != 0:
-        for obj in objects_info:
+        for i, obj in enumerate(objects_info):
 
-            x1, y1, x2, y2 = obj["workspace_limits"]
-            workspace_area2 = depthFrame[y1:y2, x1:x2]
+            #x1, y1, x2, y2 = obj["workspace_limits"]
+            #workspace_area2 = depthFrame[y1:y2, x1:x2]
 
-            mask = (workspace_area2 >= (obj["depth"] - 25)) & (workspace_area2 <= (obj["depth"] + 25))
+            mask = numpy.zeros(depthFrame.shape, dtype = numpy.uint8)
+
+            box = numpy.array(obj["workspace_limits"], dtype=numpy.int32)
+
+            cv2.fillPoly(mask, [box], 255)
+
+            workspace_area2 = cv2.bitwise_and(depthFrame, depthFrame, mask=mask)
+
+            mask = (workspace_area2 >= (obj["depth"] - threshold)) & (workspace_area2 <= (obj["depth"] + threshold))
 
             depth_filtered = numpy.where(mask, workspace_area2, 0).astype(numpy.uint16)
 
@@ -131,9 +142,9 @@ def bundleIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColor
 
             gray = cv2.cvtColor(depth_img, cv2.COLOR_BGR2GRAY)
         
-            blur = cv2.GaussianBlur(gray, (15,15), 0)
+            blur = cv2.GaussianBlur(gray, (5,5), 0)
             
-            _, binary = cv2.threshold(blur, 140, 255, cv2.THRESH_BINARY)
+            _, binary = cv2.threshold(blur, 100, 255, cv2.THRESH_BINARY)
 
             invBinary = cv2.bitwise_not(binary)
 
@@ -142,9 +153,20 @@ def bundleIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColor
 
             contour, _ = cv2.findContours(morf, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-            shifted_contours = [c + numpy.array([[[x1, y1]]], dtype=numpy.int32) for c in contour]
+            cv2.imwrite(f"debug_morf{i}.png", morf)
+            cv2.imwrite(f"debug_depth{i}.png", depth_filtered)
+            cv2.imwrite(f"debug_depthcolored{i}.png", depth_img)
+            cv2.imwrite(f"debug_binary{i}.png", binary)
+            cv2.imwrite(f"debug_inv{i}.png", invBinary)
+            debug_contours = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
+            cv2.drawContours(debug_contours, contour, -1, (0,255,0), 2)
+
+            cv2.imwrite(f"debug_contours{i}.png", debug_contours)
+
+            #shifted_contours = [c + numpy.array([[[x1, y1]]], dtype=numpy.int32) for c in contour]
             
-            shifted_contours_sorted = sorted(shifted_contours, key=lambda x: len(x), reverse=True)
+            #shifted_contours_sorted = sorted(shifted_contours, key=lambda x: len(x), reverse=True)
+            shifted_contours_sorted = sorted(contour, key=lambda x: len(x), reverse=True)
 
             print("Depth:", obj["depth"])
             print("-------------------------------------------------------------------")
@@ -153,8 +175,8 @@ def bundleIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColor
                 rect = cv2.minAreaRect(c)
                 box = cv2.boxPoints(rect)
                 box_scaled = numpy.copy(box)
-                box_scaled[:,0] = (box[:,0] - cx_d) * Sx + cx_rgb + (offset_x_959mm_depth * workspace_depth)/or_depth_offset
-                box_scaled[:,1] = (box[:,1] - cy_d) * (Sy-0.2) + cy_rgb + (offset_y_959mm_depth * workspace_depth)/or_depth_offset
+                box_scaled[:,0] = (box[:,0] - cx_d) * Sx + cx_rgb + (offset_x_959mm_depth * or_depth_offset)/workspace_depth
+                box_scaled[:,1] = (box[:,1] - cy_d) * (Sy-0.2) + cy_rgb + (offset_y_959mm_depth * or_depth_offset)/workspace_depth
                 box_scaled = numpy.round(box_scaled).astype(numpy.int32)
                 if not comparisonCaliImageCurrImage(colorFrame, calibrationColorFrame, box_scaled):
                     continue
@@ -189,10 +211,21 @@ def bundleIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColor
                 if not belongs_to_previous:
                     workspace_warning = obj["workspace_warning"]
 
-                    if ((bbox_c[0] < workspace_warning[0]) or (bbox_c[1] > workspace_warning[2]) or (bbox_c[2] < workspace_warning[1]) or (bbox_c[3] > workspace_warning[3])):
-                        value = True
-                    else:
-                        value = False
+                    ws_poly = numpy.array(workspace_warning, dtype = numpy.int32)
+                    value = False
+
+                    for pt in box:
+                        x, y = int(pt[0]), int(pt[1])
+
+                        if cv2.pointPolygonTest(ws_poly, (x, y), False) < 0:
+                            value = True
+                            break
+
+                    #if ((bbox_c[0] < workspace_warning[0]) or (bbox_c[1] > workspace_warning[2]) or (bbox_c[2] < workspace_warning[1]) or (bbox_c[3] > workspace_warning[3])):
+                    #    value = True
+                    #else:
+                    #    value = False
+                    if value == False:
                         correct_shifted_contours = []
                         correct_shifted_contours.append(c)
                         print("Adicionar ao Conjunto")
@@ -215,8 +248,8 @@ def bundleIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColor
         rect = cv2.minAreaRect(all_points)
         box = cv2.boxPoints(rect)
         box_scaled = numpy.copy(box)
-        box_scaled[:,0] = (box[:,0] - cx_d) * Sx + cx_rgb + (offset_x_959mm_depth * workspace_depth)/or_depth_offset
-        box_scaled[:,1] = (box[:,1] - cy_d) * (Sy-0.2) + cy_rgb + (offset_y_959mm_depth * workspace_depth)/or_depth_offset
+        box_scaled[:,0] = (box[:,0] - cx_d) * Sx + cx_rgb + (offset_x_959mm_depth * or_depth_offset)/workspace_depth
+        box_scaled[:,1] = (box[:,1] - cy_d) * (Sy-0.2) + cy_rgb + (offset_y_959mm_depth * or_depth_offset)/workspace_depth
         box_scaled = numpy.round(box_scaled).astype(numpy.int32)
         #box = numpy.round(box).astype(numpy.int32)
 
@@ -226,13 +259,15 @@ def bundleIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColor
     
     colorToDepth_copy2 = cv2.resize(colorToDepth_copy2, (640, 480))
     frameState.colorToDepthFrameObject = colorToDepth_copy2
+    print("Número Objetos:", len(box_limits))
+    print("OutOfLine", object_outOfLine)
 
     not_set = 1
     minimum_value = 6000
                     
     return minimum_value, not_set, box_ws, box_limits, depths, object_outOfLine
 
-def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFrame, objects_info, workspace_depth, colorSlope, cx_d, cy_d, cx_rgb, cy_rgb):
+def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFrame, objects_info, workspace_depth, threshold, colorSlope, cx_d, cy_d, cx_rgb, cy_rgb):
     contours = []
     box_ws = []
     box_limits = []
@@ -243,18 +278,27 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
     belongs_to_previous = False
 
     colorToDepth_copy2 = colorFrame.copy()
-    #colorToDepth_copy = colorToDepthFrame.copy()
 
     Sx = ((1600/2) / numpy.tan(numpy.radians(70/2))) / ((640/2) / numpy.tan(numpy.radians(60/2)))
     Sy = ((1200/2) / numpy.tan(numpy.radians(50/2))) / ((480/2) / numpy.tan(numpy.radians(45/2)))
+    print("Sx:", Sx)
+    print("Sy:", Sy)
 
     if len(objects_info) != 0:
         for obj in objects_info:
 
-            x1, y1, x2, y2 = obj["workspace_limits"]
-            workspace_area2 = depthFrame[y1:y2, x1:x2]
+            #x1, y1, x2, y2 = obj["workspace_limits"]
+            #workspace_area2 = depthFrame[y1:y2, x1:x2]
 
-            mask = (workspace_area2 >= (obj["depth"] - 25)) & (workspace_area2 <= (obj["depth"] + 25))
+            mask = numpy.zeros(depthFrame.shape, dtype = numpy.uint8)
+
+            box = numpy.array(obj["workspace_limits"], dtype=numpy.int32)
+
+            cv2.fillPoly(mask, [box], 255)
+
+            workspace_area2 = cv2.bitwise_and(depthFrame, depthFrame, mask=mask)
+
+            mask = (workspace_area2 >= (obj["depth"] - threshold)) & (workspace_area2 <= (obj["depth"] + threshold))
 
             depth_filtered = numpy.where(mask, workspace_area2, 0).astype(numpy.uint16)
 
@@ -262,10 +306,10 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
 
             gray = cv2.cvtColor(depth_img, cv2.COLOR_BGR2GRAY)
         
-            blur = cv2.GaussianBlur(gray, (15,15), 0)
+            blur = cv2.GaussianBlur(gray, (5,5), 0)
             
-            _, binary = cv2.threshold(blur, 140, 255, cv2.THRESH_BINARY)
-
+            _, binary = cv2.threshold(blur, 100, 255, cv2.THRESH_BINARY)
+            
             invBinary = cv2.bitwise_not(binary)
 
             element = numpy.ones((3, 3), numpy.uint8)
@@ -273,9 +317,10 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
 
             contour, _ = cv2.findContours(morf, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-            shifted_contours = [c + numpy.array([[[x1, y1]]], dtype=numpy.int32) for c in contour]
+            #shifted_contours = [c + numpy.array([[[x1, y1]]], dtype=numpy.int32) for c in contour]
             
-            shifted_contours_sorted = sorted(shifted_contours, key=lambda x: len(x), reverse=True)
+            #shifted_contours_sorted = sorted(shifted_contours, key=lambda x: len(x), reverse=True)
+            shifted_contours_sorted = sorted(contour, key=lambda x: len(x), reverse=True)
 
             print("Depth:", obj["depth"])
             print("-------------------------------------------------------------------")
@@ -283,10 +328,12 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
             for c in shifted_contours_sorted:
                 rect = cv2.minAreaRect(c)
                 box = cv2.boxPoints(rect)
+                print("Box :", box)
                 box_scaled = numpy.copy(box)
-                box_scaled[:,0] = (box[:,0] - cx_d) * Sx + cx_rgb + (offset_x_959mm_depth * workspace_depth)/or_depth_offset
-                box_scaled[:,1] = (box[:,1] - cy_d) * (Sy-0.2) + cy_rgb + (offset_y_959mm_depth * workspace_depth)/or_depth_offset
+                box_scaled[:,0] = (box[:,0] - cx_d) * Sx + cx_rgb + (offset_x_959mm_depth * or_depth_offset)/workspace_depth
+                box_scaled[:,1] = (box[:,1] - cy_d) * (Sy-0.2) + cy_rgb + (offset_y_959mm_depth * or_depth_offset)/workspace_depth
                 box_scaled = numpy.round(box_scaled).astype(numpy.int32)
+                print("Box_Scaled:", box_scaled)
                 if not comparisonCaliImageCurrImage(colorFrame, calibrationColorFrame, box_scaled):
                     continue
 
@@ -297,33 +344,42 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
                 bbox_c = get_bbox(c)
 
                 for prev_list in contours:
+                    print("Watching Previous...")
                     for prev_c in prev_list:
                         bbox_prev = get_bbox(prev_c)
 
                         if boxes_overlap(bbox_c, bbox_prev):
-                            #print("Wotefoque")
+                            print("Wotefoque")
                             boxesOverlap, colorToDepth_copy2 = contours_overlap_by_points(c, prev_c, colorToDepth_copy2)
-                            #contourDifference = cv2.matchShapes(c, prev_c, cv2.CONTOURS_MATCH_I1, 0)
-                            #print("Contour Difference:", contourDifference)
+                            
                             if boxesOverlap: #or contourDifference < 0.02:
                                 belongs_to_previous = True
-                                #print("Pertence ao anterior o macaco")
+                                print("Pertence ao anterior o macaco")
                                 break
                         if too_close(bbox_c, bbox_prev):
                             belongs_to_previous = True
-                            #print("Too Close")
+                            print("Too Close")
                             break
-                        #print("Não pertence")
+                        print("Não pertence")
                         belongs_to_previous = False
                     if belongs_to_previous:
                         break
                 if not belongs_to_previous:
                     workspace_warning = obj["workspace_warning"]
+                    ws_poly = numpy.array(workspace_warning, dtype = numpy.int32)
+                    value = False
 
-                    if ((bbox_c[0] < workspace_warning[0]) or (bbox_c[1] > workspace_warning[2]) or (bbox_c[2] < workspace_warning[1]) or (bbox_c[3] > workspace_warning[3])):
-                        value = True
-                    else:
-                        value = False
+                    for pt in box:
+                        x, y = int(pt[0]), int(pt[1])
+
+                        if cv2.pointPolygonTest(ws_poly, (x, y), False) < 0:
+                            value = True
+                            break
+                    #if ((bbox_c[0] < workspace_warning[0]) or (bbox_c[1] > workspace_warning[2]) or (bbox_c[2] < workspace_warning[1]) or (bbox_c[3] > workspace_warning[3])):
+                    #    value = True
+                    #else:
+                    #    value = False
+                    if not value:
                         correct_shifted_contours = []
                         correct_shifted_contours.append(c)
                         print("Adicionar ao Conjunto")
@@ -337,33 +393,23 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
 
             print("-------------------------------------------------------------------")
 
-    #colorToDepth_copy = cv2.resize(colorToDepth_copy, (640, 480))
-    #Sx = ((1600/2) / numpy.tan(numpy.radians(70/2))) / ((640/2) / numpy.tan(numpy.radians(60/2)))
-    #Sy = ((1200/2) / numpy.tan(numpy.radians(50/2))) / ((480/2) / numpy.tan(numpy.radians(45/2)))
-
     for obj_id, contour_list in enumerate(contours, start=1):
         for c in contour_list:
             rect = cv2.minAreaRect(c)
             box = cv2.boxPoints(rect)
             box_scaled = numpy.copy(box)
-            box_scaled[:,0] = (box[:,0] - cx_d) * Sx + cx_rgb + (offset_x_959mm_depth * workspace_depth)/or_depth_offset
-            box_scaled[:,1] = (box[:,1] - cy_d) * (Sy-0.2) + cy_rgb + (offset_y_959mm_depth * workspace_depth)/or_depth_offset
+            box_scaled[:,0] = (box[:,0] - cx_d) * Sx + cx_rgb + (offset_x_959mm_depth * or_depth_offset)/workspace_depth
+            box_scaled[:,1] = (box[:,1] - cy_d) * (Sy-0.2) + cy_rgb + (offset_y_959mm_depth * or_depth_offset)/workspace_depth
             box_scaled = numpy.round(box_scaled).astype(numpy.int32)
-            #box = numpy.round(box).astype(numpy.int32)
+            
             cv2.drawContours(colorToDepth_copy2, [box_scaled + [int(abs((cx_rgb) - cx_d*2.5)), int(abs((cy_rgb) - cy_d*2.5))]], 0, (0, 0, 0), 16)
             cv2.drawContours(colorToDepth_copy2, [box_scaled + [int(abs((cx_rgb) - cx_d*2.5)), int(abs((cy_rgb) - cy_d*2.5))]], 0, (255, 255, 0), 8)
-            #cv2.drawContours(colorToDepth_copy, [box], 0, (0, 0, 0), 6)
-            #cv2.drawContours(colorToDepth_copy, [box], 0, (255, 255, 0), 2)
+            
             idx_y = numpy.argmin(box_scaled[:,1])
             idx_x = numpy.argmin(box_scaled[:,0])
             x, y = box_scaled[idx_x]
             x2, y2 = box_scaled[idx_y]
-            #if abs(x - x2) <= 100 and abs(y - y2) <= 100:
-            #    print("Próx")
-            #    cv2.putText(colorToDepth_copy2, str(obj_id), (x + 16, y + 40), cv2.FONT_HERSHEY_SIMPLEX, 1.4, (0, 0, 0), 16, cv2.LINE_AA)
-            #    cv2.putText(colorToDepth_copy2, str(obj_id), (x + 16, y + 40), cv2.FONT_HERSHEY_SIMPLEX, 1.4, (255, 255, 255), 8, cv2.LINE_AA)
-            #else:
-            #    print("Afast")
+            
             cv2.putText(colorToDepth_copy2, str(obj_id), (x + 15, y + 40), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 0), 14, cv2.LINE_AA)
             cv2.putText(colorToDepth_copy2, str(obj_id), (x + 15, y + 40), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (255, 255, 255), 7, cv2.LINE_AA)
             

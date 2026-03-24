@@ -10,11 +10,11 @@ import time
 from CameraState import camState
 
 def openCamera():
-    print("Opening Camera!")
-
     if camState.camera is not None:
+        print("Camera is already opened!")
         return{"message": "Nothing to Open"}
-    else:    
+    else:
+        print("Opening Camera!")
         camState.camera = VzenseTofCam()
 
         camera_count = camState.camera.VZ_GetDeviceCount()
@@ -58,6 +58,7 @@ def openCamera():
             print("connectStatus: "+str(device_info.status))
 
         ret = camState.camera.VZ_OpenDeviceByIP(device_info.ip)
+        print("VZ_OpenDeviceByIP ret =", ret)
         if  ret == 0:
 
             ret = camState.camera.VZ_StartStream()
@@ -66,7 +67,19 @@ def openCamera():
             else:
                 print("VZ_StartStream failed:",ret)
 
-            camState.colorSlope = c_uint16(1500) #distância máxima pretendida 5 metros
+            ret,params = camState.camera.VZ_GetTimeFilterParams()
+            if  ret == 0:
+                print("The default TimeFilter switch is " + str(params.enable))
+            else:
+                print("VZ_GetTimeFilterParams failed:"+ str(ret))   
+
+            params.enable = True
+            ret = camState.camera.VZ_SetTimeFilterParams(params)
+            if  ret == 0:
+                print("Set TimeFilter switch to "+ str(params.enable) + " is Ok")   
+            else:
+                print("VZ_SetTimeFilterParams failed:"+ str(ret))   
+
             camState.camera.VZ_SetExposureControlMode(VzSensorType.VzToFSensor, VzExposureControlMode.VzExposureControlMode_Manual)
             camState.camera.VZ_SetExposureTime(VzSensorType.VzToFSensor, c_int32(camState.exposureTime))
 
@@ -93,13 +106,39 @@ def openCamera():
             else:
                 print("VZ_SetTransformColorImgToDepthSensorEnabled failed:",ret)    
 
+            ret,params = camState.camera.VZ_GetFlyingPixelFilterParams()
+            if  ret == 0:
+                print("The default FlyingPixelFilter switch is " + str(params.enable))
+            else:
+                print("VZ_GetFlyingPixelFilterParams failed:"+ str(ret))   
+
+            params.enable = True
+            ret = camState.camera.VZ_SetFlyingPixelFilterParams(params)
+            if  ret == 0:
+                print("Set FlyingPixelFilter switch to "+ str(params.enable) + " is Ok")   
+            else:
+                print("VZ_SetFlyingPixelFilterParams failed:"+ str(ret))   
+
+            ret,enable = camState.camera.VZ_GetFillHoleFilterEnabled()
+            if  ret == 0:
+                print("The default FillHoleFilter switch is " + str(enable))
+            else:
+                print("VZ_GetFillHoleFilterEnabled failed:"+ str(ret))   
+
+            enable = True
+            ret = camState.camera.VZ_SetFillHoleFilterEnabled(enable)
+            if  ret == 0:
+                print("Set FillHoleFilter switch to "+ str(enable) + " is Ok")   
+            else:
+                print("VZ_SetFillHoleFilterEnabled failed:"+ str(ret))   
+
             ret,enable = camState.camera.VZ_GetSpatialFilterEnabled()
             if  ret == 0:
                 print("The default SpatialFilter switch is " + str(enable))
             else:
                 print("VZ_GetSpatialFilterEnabled failed:"+ str(ret))   
 
-            enable = not enable
+            enable = True
             ret = camState.camera.VZ_SetSpatialFilterEnabled(enable)
             if  ret == 0:
                 print("Set SpatialFilter switch to "+ str(enable) + " is Ok")   
@@ -153,7 +192,6 @@ def openCamera():
             
             #print("Translation:", list(extrParam.translation))
             #print("Rotation:", list(extrParam.rotation))
-
             return{"message": "Success"}
 
         else:

@@ -330,7 +330,7 @@
             border: 0.2vh solid black;
         }
 
-        .calibrateButton {
+        .startCalibrationButton {
             display: flex;
             justify-content: center;
             align-items: center;
@@ -343,9 +343,28 @@
             top:73vh;
         }
         
+        .startCalibrationButton:hover {
+            transform: scale(1.05);
+        }
+        
+        .calibrateButton {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 5vh auto 0 auto;
+            width:20vw;
+            font-size:1.2vw;
+            border: 0.2vh solid black;
+            position: absolute;
+            left:47vw;
+            top:78vh;
+        }
+        
         .calibrateButton:hover {
             transform: scale(1.05);
         }
+
+        
 
         .readonly-slider {
             display: flex;
@@ -744,6 +763,7 @@
             <span>Manual</span>
         </div>
         
+        <button onclick="startCalibration_click()" class="startCalibrationButton">Start Calibration</button>
         <button onclick="calibrate_click()" class="calibrateButton">Calibrate</button>
 
          <!-- Imagens -->
@@ -815,7 +835,7 @@
         let cameraLoopInterval = null;
         let colorClickInitialized = false;
         let selected_bar = null;
-        let step = 1;
+        let step = 10;
         let thresh = 10;
         let detection_area = [0, 0, 0, 0];
 
@@ -1020,6 +1040,55 @@
                 const dropdown = document.getElementById("objOption_menu");
                 if (dropdown) dropdown.remove();
 
+                const modeResponse = await fetch('http://10.0.30.175:8000/expositionMode');
+                const modeData = await modeResponse.json();
+                
+                {/*if (modeData["Exposition Mode"] === "Fixed Exposition") {
+                    await fetch('http://10.0.30.175:8000/captureFrame', { method: 'POST' });
+                }*/}
+
+                let colorFrameUrl = 'http://10.0.30.175:8000/getFrame/color';
+                let colorToDepthFrameUrl = 'http://10.0.30.175:8000/getFrame/colorToDepth';
+                let depthFrameUrl = 'http://10.0.30.175:8000/getFrame/depth';
+                if (modeData["Exposition Mode"] === "HDR") {
+                    let resp = await fetch('http://10.0.30.175:8000/getFrame/HDRcolor');
+                    if (resp.status === 204) {
+                        resp = await fetch(colorFrameUrl);
+                    }
+                    const blob = await resp.blob();
+                    document.getElementById("camera-img").src = URL.createObjectURL(blob);
+                } else {
+                    const resp = await fetch(colorFrameUrl);
+                    const blob = await resp.blob();
+                    document.getElementById("camera-img").src = URL.createObjectURL(blob);
+                }
+
+                if (modeData["Exposition Mode"] === "HDR") {
+                    let resp = await fetch('http://10.0.30.175:8000/getFrame/HDRcolorToDepth');
+                    if (resp.status === 204) {
+                        resp = await fetch(colorToDepthFrameUrl);
+                    }
+                    const blob = await resp.blob();
+                    document.getElementById("volume-colorToDepthimg").src = URL.createObjectURL(blob);
+                } else {
+                    const resp = await fetch(colorToDepthFrameUrl);
+                    const blob = await resp.blob();
+                    document.getElementById("volume-colorToDepthimg").src = URL.createObjectURL(blob);
+                }
+
+                if (modeData["Exposition Mode"] === "HDR") {
+                    let resp = await fetch('http://10.0.30.175:8000/getFrame/HDRdepth');
+                    if (resp.status === 204) {
+                        resp = await fetch(depthFrameUrl);
+                    }
+                    const blob = await resp.blob();
+                    document.getElementById("volume-depthimg").src = URL.createObjectURL(blob);
+                } else {
+                    const resp = await fetch(depthFrameUrl);
+                    const blob = await resp.blob();
+                    document.getElementById("volume-depthimg").src = URL.createObjectURL(blob);
+                }
+
                 await fetch('http://10.0.30.175:8000/volumeBundle', { method: 'POST' });
 
                 const response = await fetch('http://10.0.30.175:8000/getObjectsOutOfLine');
@@ -1072,6 +1141,55 @@
                 const oldDropdown = document.getElementById("objOption_menu");
                 if (oldDropdown) {
                     oldDropdown.remove();
+                }
+
+                const modeResponse = await fetch('http://10.0.30.175:8000/expositionMode');
+                const modeData = await modeResponse.json();
+                
+                {/*if (modeData["Exposition Mode"] === "Fixed Exposition") {
+                    await fetch('http://10.0.30.175:8000/captureFrame', { method: 'POST' });
+                }*/}
+
+                let colorFrameUrl = 'http://10.0.30.175:8000/getFrame/color';
+                let colorToDepthFrameUrl = 'http://10.0.30.175:8000/getFrame/colorToDepth';
+                let depthFrameUrl = 'http://10.0.30.175:8000/getFrame/depth';
+                if (modeData["Exposition Mode"] === "HDR") {
+                    let resp = await fetch('http://10.0.30.175:8000/getFrame/HDRcolor');
+                    if (resp.status === 204) {
+                        resp = await fetch(colorFrameUrl);
+                    }
+                    const blob = await resp.blob();
+                    document.getElementById("camera-img").src = URL.createObjectURL(blob);
+                } else {
+                    const resp = await fetch(colorFrameUrl);
+                    const blob = await resp.blob();
+                    document.getElementById("camera-img").src = URL.createObjectURL(blob);
+                }
+
+                if (modeData["Exposition Mode"] === "HDR") {
+                    let resp = await fetch('http://10.0.30.175:8000/getFrame/HDRcolorToDepth');
+                    if (resp.status === 204) {
+                        resp = await fetch(colorToDepthFrameUrl);
+                    }
+                    const blob = await resp.blob();
+                    document.getElementById("volume-colorToDepthimg").src = URL.createObjectURL(blob);
+                } else {
+                    const resp = await fetch(colorToDepthFrameUrl);
+                    const blob = await resp.blob();
+                    document.getElementById("volume-colorToDepthimg").src = URL.createObjectURL(blob);
+                }
+
+                if (modeData["Exposition Mode"] === "HDR") {
+                    let resp = await fetch('http://10.0.30.175:8000/getFrame/HDRdepth');
+                    if (resp.status === 204) {
+                        resp = await fetch(depthFrameUrl);
+                    }
+                    const blob = await resp.blob();
+                    document.getElementById("volume-depthimg").src = URL.createObjectURL(blob);
+                } else {
+                    const resp = await fetch(depthFrameUrl);
+                    const blob = await resp.blob();
+                    document.getElementById("volume-depthimg").src = URL.createObjectURL(blob);
                 }
 
                 await fetch('http://10.0.30.175:8000/volumeReal', { method: 'POST' });
@@ -1171,13 +1289,19 @@
         }
 
         async function updateCameraFeed() {
+            if (currentMenu !== "camera-menu" && 
+                currentMenu !== "volume-menu" && 
+                currentMenu !== "calibration-menu") {
+                return;
+            }
+            
             try{
                 const modeResponse = await fetch('http://10.0.30.175:8000/expositionMode');
                 const modeData = await modeResponse.json();
                 
-                if (modeData["Exposition Mode"] === "Fixed Exposition") {
+                {/*if (modeData["Exposition Mode"] === "Fixed Exposition") {
                     await fetch('http://10.0.30.175:8000/captureFrame', { method: 'POST' });
-                }
+                }*/}
 
                 let colorFrameUrl = 'http://10.0.30.175:8000/getFrame/color';
                 let colorToDepthFrameUrl = 'http://10.0.30.175:8000/getFrame/colorToDepth';
@@ -1195,7 +1319,7 @@
                     document.getElementById("camera-img").src = URL.createObjectURL(blob);
                 }
 
-                if (modeData["Exposition Mode"] === "HDR") {
+                {/*if (modeData["Exposition Mode"] === "HDR") {
                     let resp = await fetch('http://10.0.30.175:8000/getFrame/HDRcolorToDepth');
                     if (resp.status === 204) {
                         resp = await fetch(colorToDepthFrameUrl);
@@ -1219,27 +1343,8 @@
                     const resp = await fetch(depthFrameUrl);
                     const blob = await resp.blob();
                     document.getElementById("volume-depthimg").src = URL.createObjectURL(blob);
-                }
-
-                if (currentMenu === "calibration-menu") {
-                    r = await fetch("http://10.0.30.175:8000/calibrate/mode");
-                    let calibData = await r.json();
-                    if (calibData["Calibrate Mode"] === "Automatic") {
-                        applyMask();
-                    } else if (calibData["Calibrate Mode"] === "Manual") {
-                        applyManualWSDraw();
-                    }
-                    // Color frame
-                    const colorResp = await fetch("http://10.0.30.175:8000/getFrame/colorToDepthCopy");
-                    const colorToDepthBlob = await colorResp.blob();
-                    document.getElementById("calibration-colorToDepthimg").src = URL.createObjectURL(colorToDepthBlob);
-
-                    // Mask frame
-                    const maskResp = await fetch("http://10.0.30.175:8000/getFrame/result");
-                    const maskBlob = await maskResp.blob();
-                    document.getElementById("calibration-mask").src = URL.createObjectURL(maskBlob);
-
-                }    
+                }*/}
+                
             }catch (error) {
                 console.error("Camera error:", error);
             }
@@ -1249,10 +1354,11 @@
             if (cameraLoopInterval) return;
 
             cameraLoopInterval = setInterval(() => {
-                if (currentMenu === "camera-menu" || currentMenu === "volume-menu" || currentMenu === "calibration-menu") {
+                {/*if (currentMenu === "camera-menu" || currentMenu === "volume-menu" || currentMenu === "calibration-menu") {*/}
+                if (currentMenu === "camera-menu") {
                     updateCameraFeed();
                 }
-            }, 500);
+            }, 300);
         }
         
         async function ExpHDR_toggle() {
@@ -1382,7 +1488,7 @@
 
             // só continua a atualizar se estiveres no config menu
             if (currentMenu === "config-menu" || currentMenu === "calibration-menu") {
-                setTimeout(refreshToggles, 100);
+                setTimeout(refreshToggles, 500);
             }
         }
 
@@ -1414,7 +1520,7 @@
             }
 
             if (currentMenu === "calibration-menu") {
-                setTimeout(refreshSliders, 100);
+                setTimeout(refreshSliders, 500);
             }
         }
 
@@ -1469,7 +1575,7 @@
         async function screenClick() {
             if (colorClickInitialized) return;
 
-            const img = document.getElementById("colorToDepthCopy-img");
+            const img = document.getElementById("calibration-colorToDepthimg");
             img.addEventListener("click", async (event) => {
 
                 try {
@@ -1545,7 +1651,7 @@
                     let data = await r.json();
                     detection_area = data["Detection Area"]; // [x1, y1, x2, y2]
 
-                    const img = document.getElementById("colorToDepthCopy-img");
+                    const img = document.getElementById("calibration-colorToDepthimg");
                     const maxX = img.naturalWidth;
                     const maxY = img.naturalHeight;
 
@@ -1574,6 +1680,30 @@
                 console.warn("Erro key_pressed:", err);
             }
         });
+
+        async function startCalibration_click() {
+            try{
+                r = await fetch("http://10.0.30.175:8000/calibrate/mode");
+                let calibData = await r.json();
+                if (calibData["Calibrate Mode"] === "Automatic") {
+                    applyMask();
+                } else if (calibData["Calibrate Mode"] === "Manual") {
+                    applyManualWSDraw();
+                }
+                // Color frame
+                const colorResp = await fetch("http://10.0.30.175:8000/getFrame/colorToDepthCopy");
+                const colorToDepthBlob = await colorResp.blob();
+                document.getElementById("calibration-colorToDepthimg").src = URL.createObjectURL(colorToDepthBlob);
+
+                // Mask frame
+                const maskResp = await fetch("http://10.0.30.175:8000/getFrame/result");
+                const maskBlob = await maskResp.blob();
+                document.getElementById("calibration-mask").src = URL.createObjectURL(maskBlob);
+            }
+            catch (error) {
+                console.error(error);
+            }
+        }
 
         async function calibrate_click() {
             const calibrateLabel = document.getElementById("calibrateLabel");

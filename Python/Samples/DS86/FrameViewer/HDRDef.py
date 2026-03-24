@@ -279,7 +279,7 @@ def hdrAPI():
 
             if DTC_can and D_can:
                 exposureTimeArray.append(exposureTime / 1e6)
-                exposureTime += 950
+                exposureTime += 475
             
             DTC_can = False
             D_can = False

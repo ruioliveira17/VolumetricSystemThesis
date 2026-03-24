@@ -6,7 +6,7 @@ sys.path.append(os.path.join(BASE_DIR, "Python"))
 
 from API.VzenseDS_api import *
 
-from CameraState import camState
+#from CameraState import camState
 from FrameState import frameState
 
 #import cv2
