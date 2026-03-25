@@ -5,6 +5,7 @@ sys.path.append('C:/Tese/Python')
 from API.VzenseDS_api import *
 import cv2
 import time
+import numpy
 
 from GetFrame import getFrame
 from CameraState import camState

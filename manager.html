@@ -172,7 +172,7 @@
         .boxInfo {
             font-size:1.6vw;
             text-align: left;
-            width: 9vw;
+            width: 10vw;
         }
 
         .under-text {
@@ -505,7 +505,7 @@
             <div class="menu-title">Camera</div>
         </div>
 
-        <img id="camera-img" class="camera-img" src="" alt="Color Img">
+        <img id="camera-img" class="camera-img" alt="Color Img">
     </div>
 
     <!-- Barcode Panel -->
@@ -1000,8 +1000,10 @@
             document.getElementById(menuID).style.display = "block";    
             currentMenu = menuID; 
 
-            if (menuID === "camera-menu" || menuID === "volume-menu" || menuID === "calibration-menu") {
-                updateCameraFeedLoop();
+            if (menuID === "camera-menu") {
+                document.getElementById("camera-menu").style.display = "block";
+                const img = document.getElementById("camera-img");
+                img.src = "http://10.0.30.175:8000/rgb";
             } else {
                 if (cameraLoopInterval){
                     clearInterval(cameraLoopInterval);
@@ -1022,6 +1024,12 @@
             if (menuStack.length === 0) return;
 
             document.getElementById(currentMenu).style.display = "none";
+            if (currentMenu === "camera-menu"){
+                document.getElementById("camera-menu").style.display = "none";
+
+                const img = document.getElementById("camera-img");
+                img.src = ""; // 🔥 MUITO IMPORTANTE (fecha o stream)
+            }
             currentMenu = menuStack.pop();
             document.getElementById(currentMenu).style.display = "block";
         }
@@ -1288,7 +1296,7 @@
             }
         }
 
-        async function updateCameraFeed() {
+        {/*async function updateCameraFeed() {
             if (currentMenu !== "camera-menu" && 
                 currentMenu !== "volume-menu" && 
                 currentMenu !== "calibration-menu") {
@@ -1299,9 +1307,9 @@
                 const modeResponse = await fetch('http://10.0.30.175:8000/expositionMode');
                 const modeData = await modeResponse.json();
                 
-                {/*if (modeData["Exposition Mode"] === "Fixed Exposition") {
+                if (modeData["Exposition Mode"] === "Fixed Exposition") {
                     await fetch('http://10.0.30.175:8000/captureFrame', { method: 'POST' });
-                }*/}
+                }
 
                 let colorFrameUrl = 'http://10.0.30.175:8000/getFrame/color';
                 let colorToDepthFrameUrl = 'http://10.0.30.175:8000/getFrame/colorToDepth';
@@ -1319,7 +1327,7 @@
                     document.getElementById("camera-img").src = URL.createObjectURL(blob);
                 }
 
-                {/*if (modeData["Exposition Mode"] === "HDR") {
+                if (modeData["Exposition Mode"] === "HDR") {
                     let resp = await fetch('http://10.0.30.175:8000/getFrame/HDRcolorToDepth');
                     if (resp.status === 204) {
                         resp = await fetch(colorToDepthFrameUrl);
@@ -1343,7 +1351,7 @@
                     const resp = await fetch(depthFrameUrl);
                     const blob = await resp.blob();
                     document.getElementById("volume-depthimg").src = URL.createObjectURL(blob);
-                }*/}
+                }
                 
             }catch (error) {
                 console.error("Camera error:", error);
@@ -1354,12 +1362,11 @@
             if (cameraLoopInterval) return;
 
             cameraLoopInterval = setInterval(() => {
-                {/*if (currentMenu === "camera-menu" || currentMenu === "volume-menu" || currentMenu === "calibration-menu") {*/}
                 if (currentMenu === "camera-menu") {
                     updateCameraFeed();
                 }
             }, 300);
-        }
+        }*/}
         
         async function ExpHDR_toggle() {
             const checked = document.getElementById("ExpHDR_switch").checked;

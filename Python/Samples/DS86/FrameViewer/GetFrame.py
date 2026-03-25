@@ -10,6 +10,7 @@ from API.VzenseDS_api import *
 from FrameState import frameState
 
 #import cv2
+import numpy
 
 def getFrame(camera):
     colorToDepthFrame = None

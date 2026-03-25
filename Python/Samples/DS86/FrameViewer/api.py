@@ -7,12 +7,12 @@ from pydantic import BaseModel
 from API.VzenseDS_api import *
 from Bundle2 import bundleIdentifier, objIdentifier
 from CalibrationDefTkinter import calibrateAPI, maskAPI, manualWorkspaceDraw
-from CameraOptions import openCamera, closeCamera, statusCamera
+from CameraOptions import openCamera, closeCamera, statusCamera, startCamera, stopCamera, getRGB, getDepth, captureLoop
 from GetFrame import getFrame
 from HDRDef import hdrAPI
 from MinDepth2 import MinDepthAPI
 from VolumeTkinter import volumeBundleAPI, volumeRealAPI
-#from CameraState import camState
+from CameraState import camState
 from color_presets import COLOR_PRESETS
 from DepthState import depthState
 from FrameState import frameState
@@ -31,7 +31,6 @@ import os
 from PIL import Image
 import threading
 import time
-import uvicorn
 
 USER_FILE = "auth/users.json"
 
@@ -39,8 +38,6 @@ stop_event = threading.Event()
 pause_event = threading.Event()
 pause_event.set()
 hdr_threadObj = None
-cam = None
-
 #----------------------------------------------------   Base Models    ----------------------------------------------------
 
 class HSVValue(BaseModel):
@@ -74,329 +71,6 @@ class RGBPoint(BaseModel):
     r : int
     g : int
     b : int
-
-class camState:
-    def __init__(self):
-        self.camera = None
-        #self.target_fps = fps
-        #self._frame_interval = 1.0 / fps
-
-        self._lock = threading.Lock()
-
-        self._running = False
-        self._thread = None
-
-        self.colorSlope = 4100
-        self.exposureTime = 700
-        self.cx_d = 0
-        self.cy_d = 0
-        self.fx_d = 0
-        self.fy_d = 0
-        self.cx_rgb = 0
-        self.cy_rgb = 0
-        self.fx_rgb = 0
-        self.fy_rgb = 0
-
-    def start(self):
-        if self.camera is not None:
-            print("Camera is already opened!")
-            return{"message": "Nothing to Open"}
-        else:
-            print("Opening Camera!")
-            self.camera = VzenseTofCam()
-
-        camera_count = self.camera.VZ_GetDeviceCount()
-        retry_count = 100
-        while camera_count==0 and retry_count > 0:
-            retry_count = retry_count-1
-            camera_count = self.camera.VZ_GetDeviceCount()
-            time.sleep(1)
-            print("scaning......   ",retry_count)
-
-        device_info=VzDeviceInfo()
-
-        if camera_count > 1:
-            ret,device_infolist=self.camera.VZ_GetDeviceInfoList(camera_count)
-            if ret==0:
-                device_info = device_infolist[0]
-                for info in device_infolist: 
-                    print('cam uri:  ' + str(info.uri))
-            else:
-                print(' failed:' , ret)  
-                raise RuntimeError("Nenhuma câmera encontrada!")  
-        elif camera_count == 1:
-            ret,device_info=self.camera.VZ_GetDeviceInfo()
-            if ret==0:
-                print('cam uri:' + str(device_info.uri))
-            else:
-                print(' failed:', ret)   
-                raise RuntimeError("Nenhuma câmera encontrada!") 
-        else: 
-            print("there are no camera found")
-            return {"message": "No camera detected"}
-
-        retry = 20
-        while retry > 0:
-            if  VzConnectStatus.Connected.value == device_info.status:
-                print("uri: "+str(device_info.uri))
-                print("alias: "+str(device_info.alias))
-                print("ip: "+str(device_info.ip))
-                print("connectStatus: "+str(device_info.status))
-                break
-            retry -= 1
-            time.sleep(1)
-            ret,device_info=self.camera.VZ_GetDeviceInfo()
-        else:
-            print("connect status:",device_info.status)  
-            print("Call VZ_OpenDeviceByIP with connect status :",VzConnectStatus.Connected.value)
-            raise RuntimeError("Connected Status Error!") 
-
-        ret = self.camera.VZ_OpenDeviceByIP(device_info.ip)
-        print("VZ_OpenDeviceByIP ret =", ret)
-        if  ret != 0:
-            return{"message": "Failed"}
-        else:
-            ret = self.camera.VZ_StartStream()
-            if  ret == 0:
-                print("start stream successful")
-            else:
-                print("VZ_StartStream failed:",ret)
-
-            ret,params = self.camera.VZ_GetTimeFilterParams()
-            if  ret == 0:
-                print("The default TimeFilter switch is " + str(params.enable))
-            else:
-                print("VZ_GetTimeFilterParams failed:"+ str(ret))   
-
-            params.enable = True
-            ret = self.camera.VZ_SetTimeFilterParams(params)
-            if  ret == 0:
-                print("Set TimeFilter switch to "+ str(params.enable) + " is Ok")   
-            else:
-                print("VZ_SetTimeFilterParams failed:"+ str(ret))   
-
-            self.camera.VZ_SetExposureControlMode(VzSensorType.VzToFSensor, VzExposureControlMode.VzExposureControlMode_Manual)
-            self.camera.VZ_SetExposureTime(VzSensorType.VzToFSensor, c_int32(self.exposureTime))
-
-            ret_code, exposureStruct = self.camera.VZ_GetExposureTime(VzSensorType.VzToFSensor)
-            print('Exposure Time:', exposureStruct.exposureTime)
-
-            ret = self.camera.VZ_SetFrameRate(5)
-            if  ret == 0:
-                print("Set frame rate 5 is ok")   
-            else:
-                print("VZ_SetFrameRate failed:"+ str(ret)) 
-
-            ret,frameRate = self.camera.VZ_GetFrameRate()
-            if  ret == 0:
-                print("Get default frame rate:"+ str(frameRate))   
-            else:
-                print("VZ_GetFrameRate failed:"+ str(ret))  
-
-            # set Mapper
-            ret = self.camera.VZ_SetTransformColorImgToDepthSensorEnabled(c_bool(True))
-
-            if  ret == 0:
-                print("VZ_SetTransformColorImgToDepthSensorEnabled ok")
-            else:
-                print("VZ_SetTransformColorImgToDepthSensorEnabled failed:",ret)    
-
-            ret,params = self.camera.VZ_GetFlyingPixelFilterParams()
-            if  ret == 0:
-                print("The default FlyingPixelFilter switch is " + str(params.enable))
-            else:
-                print("VZ_GetFlyingPixelFilterParams failed:"+ str(ret))   
-
-            params.enable = True
-            ret = self.camera.VZ_SetFlyingPixelFilterParams(params)
-            if  ret == 0:
-                print("Set FlyingPixelFilter switch to "+ str(params.enable) + " is Ok")   
-            else:
-                print("VZ_SetFlyingPixelFilterParams failed:"+ str(ret))   
-
-            ret,enable = self.camera.VZ_GetFillHoleFilterEnabled()
-            if  ret == 0:
-                print("The default FillHoleFilter switch is " + str(enable))
-            else:
-                print("VZ_GetFillHoleFilterEnabled failed:"+ str(ret))   
-
-            enable = True
-            ret = self.camera.VZ_SetFillHoleFilterEnabled(enable)
-            if  ret == 0:
-                print("Set FillHoleFilter switch to "+ str(enable) + " is Ok")   
-            else:
-                print("VZ_SetFillHoleFilterEnabled failed:"+ str(ret))   
-
-            ret,enable = self.camera.VZ_GetSpatialFilterEnabled()
-            if  ret == 0:
-                print("The default SpatialFilter switch is " + str(enable))
-            else:
-                print("VZ_GetSpatialFilterEnabled failed:"+ str(ret))   
-
-            enable = True
-            ret = self.camera.VZ_SetSpatialFilterEnabled(enable)
-            if  ret == 0:
-                print("Set SpatialFilter switch to "+ str(enable) + " is Ok")   
-            else:
-                print("VZ_SetSpatialFilterEnabled failed:"+ str(ret))
-
-            ret,params = self.camera.VZ_GetConfidenceFilterParams()
-            if  ret == 0:
-                print("The default ConfidenceFilter switch is " + str(params.enable))
-            else:
-                print("VZ_GetConfidenceFilterParams failed:"+ str(ret))
-
-            params.enable = False
-            ret = self.camera.VZ_SetConfidenceFilterParams(params)
-            if  ret == 0:
-                print("Set ConfidenceFilter switch to "+ str(params.enable) + " is Ok")   
-            else:
-                print("VZ_SetConfidenceFilterParams failed:"+ str(ret))
-        
-            ret, intrParam = self.camera.VZ_GetSensorIntrinsicParameters(VzSensorType.VzToFSensor)
-            if ret != 0:
-                raise RuntimeError("Error obtaining intrinsic parameters!")
-            
-            self.fx_d = intrParam.fx
-            self.fy_d = intrParam.fy
-            self.cx_d = intrParam.cx
-            self.cy_d = intrParam.cy
-
-            print("Cx Depth:", self.cx_d)
-            print("Cy Depth:", self.cy_d)
-            print("fx Depth:", self.fx_d)
-            print("fy Depth:", self.fy_d)
-
-            ret, intrParam = self.camera.VZ_GetSensorIntrinsicParameters(VzSensorType.VzColorSensor)
-            if ret != 0:
-                raise RuntimeError("Error obtaining intrinsic parameters!")
-
-            self.fx_rgb = intrParam.fx
-            self.fy_rgb = intrParam.fy
-            self.cx_rgb = intrParam.cx
-            self.cy_rgb = intrParam.cy
-
-            print("Cx RGB:", self.cx_rgb)
-            print("Cy RGB:", self.cy_rgb)
-            print("fx RGB:", self.fx_rgb)
-            print("fy RGB:", self.fy_rgb)
-
-            print("Camera ready")
-
-            #ret, extrParam = camState.camera.VZ_GetSensorExtrinsicParameters()
-            #if ret != 0:
-            #    raise RuntimeError("Error obtaining intrinsic parameters!")
-            
-            #print("Translation:", list(extrParam.translation))
-            #print("Rotation:", list(extrParam.rotation))
-
-        self._running = True
-        self._thread = threading.Thread(target=self._capture_loop, daemon=True)
-        self._thread.start()
-        #print(f"[CameraStream] A capturar a {self.target_fps} FPS")
-
-    def stop(self):
-        self._running = False
-        if self._thread:
-            self._thread.join(timeout=3)
-        if self.camera is None:
-            return{"message": "Nothing to Close"}
-        else:
-            ret = self.camera.VZ_StopStream()       
-            if  ret == 0:
-                print("stop stream successful")
-            else:
-                print('VZ_StopStream failed: ' + str(ret))  
-
-            ret = self.camera.VZ_CloseDevice()  
-            if  ret == 0:
-                self.camera = None
-                print("[CameraStream] Câmara fechada.")
-                return{"message": "Success"}
-            else:
-                return{"message": "Failed"}
-        
-    #def set_fps(self, fps):
-    #    self.target_fps = fps
-    #    self._frame_interval = 1.0 / fps
-    #    if self.camera:
-    #        ret = self.camera.VZ_SetFrameRate(fps)
-    #        if ret != 0:
-    #            print("VZ_SetFrameRate failed:", ret)
-
-    def get_rgb(self):
-        with self._lock:
-            return frameState.colorFrame.copy() if self._rgb_frame is not None else None
-
-    def get_depth(self):
-        with self._lock:
-            return frameState.colorToDepthFrame.copy() if self._depth_frame is not None else None
-
-    def _capture_loop(self):
-        while self._running:
-            t_start = time.monotonic()
-
-            ret, frameready = self.camera.VZ_GetFrameReady(c_uint16(33))
-            if ret != 0:
-                #print("VZ_GetFrameReady failed:",ret)
-                continue
-            else:
-                hasColorToDepth =0
-                hasDepth = 0
-                hasColor = 0
-
-                if  frameready.color:      
-                    ret,rgbframe = self.camera.VZ_GetFrame(VzFrameType.VzTransformColorImgToDepthSensorFrame)
-                    if  ret == 0:
-                        hasColorToDepth = 1   
-                    else:
-                        print("get color frame failed:",ret)
-
-                if  frameready.depth:      
-                    ret,depthframe = self.camera.VZ_GetFrame(VzFrameType.VzDepthFrame)
-                    if  ret == 0:
-                        hasDepth = 1
-                    else:
-                        print("get depth frame failed:",ret)
-
-                if frameready.color:
-                    ret,colorframe = self.camera.VZ_GetFrame(VzFrameType.VzColorFrame)
-                    if ret == 0:
-                        hasColor = 1
-                    else:
-                        print("get Color frame failed:", ret)
-
-                if hasColorToDepth == 1:
-                    frametmp = numpy.empty((0, 0, 3), dtype=numpy.uint8)
-                    frametmp = numpy.ctypeslib.as_array(rgbframe.pFrameData, (1, rgbframe.width * rgbframe.height * 3))
-                    frametmp.dtype = numpy.uint8
-                    frametmp.shape = (rgbframe.height, rgbframe.width,3)
-                    colorToDepthFrame = frametmp.copy()
-
-                if hasDepth == 1:
-                    frametmp = numpy.empty((0, 0, 3), dtype=numpy.uint8)
-                    frametmp = numpy.ctypeslib.as_array(depthframe.pFrameData, (1, depthframe.width * depthframe.height * 2))
-                    frametmp.dtype = numpy.uint16
-                    frametmp.shape = (depthframe.height, depthframe.width)
-                    depthFrame = frametmp.copy()
-
-                if hasColor == 1:
-                    frametmp = numpy.ctypeslib.as_array(colorframe.pFrameData, (1, colorframe.width * colorframe.height * 3))
-                    frametmp.dtype = numpy.uint8
-                    frametmp.shape = (colorframe.height, colorframe.width,3)
-                    colorFrame = frametmp.copy()
-                    #colorFrame = cv2.resize(colorFrame, (640, 480))
-                    #cv2.circle(colorFrame, (int(800/2.5), int(608/2.5)), radius=3, color=(255, 0, 0), thickness=1)
-
-                if hasColorToDepth == 1 and hasDepth == 1 and hasColor == 1:
-                    frameState.colorToDepthFrame = colorToDepthFrame
-                    frameState.depthFrame = depthFrame
-                    frameState.colorFrame = colorFrame
-
-            elapsed = time.monotonic() - t_start
-            sleep_time = (1/5) - elapsed
-            if sleep_time > 0:
-                time.sleep(sleep_time)
 #--------------------------------------------------------------------------------------------------------------------------
 
 def load_users():
@@ -423,8 +97,8 @@ def save_WS_calibration():
         "vmin": int(maskState.vmin),
         "vmax": int(maskState.vmax),
         "color": maskState.color,
-        "colorSlope": float(cam.colorSlope),
-        "exposureTime": float(cam.exposureTime),
+        "colorSlope": float(camState.colorSlope),
+        "exposureTime": float(camState.exposureTime),
         "calibrationColorFrame_path": "config/calibrationColorFrame.png"
     }
 
@@ -453,7 +127,7 @@ def hdr_thread(stop_event, pause_event):
                 break
             print("Erro na thread:", repr(e))
 
-def generate_rgb_stream(cam):
+def generateRGB_Stream():
     while True:
         frame = frameState.colorFrame
         if frame is not None:
@@ -464,12 +138,12 @@ def generate_rgb_stream(cam):
                    b'Content-Type: image/jpeg\r\n\r\n' + jpeg.tobytes() + b'\r\n')
         time.sleep(0.05)
 
-def generate_depth_stream(cam):
+def generateDepth_Stream():
     while True:
         depth = frameState.depthFrame
         if depth is not None:
             img = numpy.int32(depth)
-            img = img * 255 / cam.colorSlope
+            img = img * 255 / camState.colorSlope
             img = numpy.clip(img, 0, 255).astype(numpy.uint8)
             depth_vis = cv2.applyColorMap(img, cv2.COLORMAP_RAINBOW)
             _, jpeg = cv2.imencode('.jpg', depth_vis)
@@ -480,13 +154,11 @@ def generate_depth_stream(cam):
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global cam
     # STARTUP
     path = "config/workspace_calibration.json"
 
     #openCamera()
-    cam = camState()
-    cam.start()
+    startCamera()
 
     if os.path.exists(path):
         try:
@@ -502,8 +174,8 @@ async def lifespan(app: FastAPI):
             maskState.vmin = calib["vmin"]
             maskState.vmax = calib["vmax"]
             maskState.color = calib["color"]
-            cam.colorSlope = calib["colorSlope"]
-            cam.exposureTime = calib["exposureTime"]
+            camState.colorSlope = calib["colorSlope"]
+            camState.exposureTime = calib["exposureTime"]
             frameState.calibrationColorFrame = cv2.imread(calib["calibrationColorFrame_path"])
 
             print("Calibração carregada!")
@@ -524,7 +196,7 @@ async def lifespan(app: FastAPI):
         hdr_threadObj.join()
 
     #closeCamera()
-    cam.stop()
+    stopCamera()
 
 #----------------------------------------------------   Criar App   -------------------------------------------------------
 
@@ -579,44 +251,42 @@ def camStatus():
 @app.get("/camera/exposureTime")
 def get_exposure_Time():
     return {
-            "Exposure Time": cam.exposureTime,
+            "Exposure Time": camState.exposureTime,
         }
 
 @app.get("/camera/colorSlope")
 def get_color_Slope():
     return {
-            "colorSlope": cam.colorSlope,
+            "colorSlope": camState.colorSlope,
         }
 
 @app.post("/camera/setExposureTime")
 def set_exposureTime(data: CamValues):
-    cam.exposureTime = data.exposureTime
-    cam.camera.VZ_SetExposureTime(VzSensorType.VzToFSensor, c_int32(cam.exposureTime))
+    camState.exposureTime = data.exposureTime
+    camState.camera.VZ_SetExposureTime(VzSensorType.VzToFSensor, c_int32(camState.exposureTime))
     return{
-        "Exposure Time": cam.exposureTime
+        "Exposure Time": camState.exposureTime
     }
 
 @app.post("/camera/setColorSlope")
 def set_color_slope(data: CamValues):
-    cam.colorSlope = data.colorSlope
+    camState.colorSlope = data.colorSlope
     return{
-        "colorSlope": cam.colorSlope
+        "colorSlope": camState.colorSlope
     }
 
 #-------------------------------------------------------   Frame   -------------------------------------------------------
 @app.get('/rgb')
 def rgb_feed(request: Request):
-    global cam
-    return StreamingResponse(generate_rgb_stream(cam), media_type='multipart/x-mixed-replace; boundary=frame')
+    return StreamingResponse(generateRGB_Stream(), media_type='multipart/x-mixed-replace; boundary=frame')
 
 @app.get('/depth')
 def depth_feed(request: Request):
-    global cam
-    return StreamingResponse(generate_depth_stream(cam), media_type='multipart/x-mixed-replace; boundary=frame')
+    return StreamingResponse(generateDepth_Stream(), media_type='multipart/x-mixed-replace; boundary=frame')
 
 @app.post("/captureFrame")
 def capture_frame():
-    getFrame(cam.camera)
+    getFrame(camState.camera)
     return {"message:": "Frame successfully achieved"}
 
 @app.get("/getFrame/color")
@@ -666,7 +336,7 @@ def get_Depth_Frame():
     depthFrame = frameState.depthFrame
     if depthFrame is None:
         return {"error": "No depth frame available"}
-    colorSlope = cam.colorSlope
+    colorSlope = camState.colorSlope
 
     img = numpy.int32(depthFrame)
     img = img * 255 / colorSlope
@@ -817,7 +487,7 @@ def get_Depth_HDRFrame():
     if depthFrameHDR is None:
         return Response(status_code=204)
 
-    colorSlope = cam.colorSlope
+    colorSlope = camState.colorSlope
 
     img = numpy.int32(depthFrameHDR)
     img = img * 255 / colorSlope
@@ -976,7 +646,7 @@ def apply_mask(data: HSVValue):
     else:
         depthFrame = frameState.depthFrameHDR
 
-    result, colorToDepthFrame_copy, depthFrame_copy, detection_area = maskAPI(colorToDepthFrame, depthFrame, lower, upper, maskState.color, cam.colorSlope, int(cam.cx_d), int(cam.cy_d))
+    result, colorToDepthFrame_copy, depthFrame_copy, detection_area = maskAPI(colorToDepthFrame, depthFrame, lower, upper, maskState.color, camState.colorSlope, int(camState.cx_d), int(camState.cy_d))
 
     if result is None or colorToDepthFrame_copy is None or depthFrame_copy is None:
         return{"message:": "Mask application failed!"}
@@ -1003,7 +673,7 @@ def apply_manualWS(data: ManualWorkspace):
 
     detection_area = data.detection_area
 
-    colorToDepthFrame_copy, depthFrame_copy, detection_area = manualWorkspaceDraw(colorToDepthFrame, depthFrame, detection_area, cam.colorSlope, int(cam.cx_d), int(cam.cy_d))
+    colorToDepthFrame_copy, depthFrame_copy, detection_area = manualWorkspaceDraw(colorToDepthFrame, depthFrame, detection_area, camState.colorSlope, int(camState.cx_d), int(camState.cy_d))
 
     frameState.colorToDepthFrameCopy = colorToDepthFrame_copy
     frameState.depthFrameCopy = depthFrame_copy
@@ -1031,7 +701,7 @@ def calibrate(data: HSVValue):
     else:
         depthFrame = frameState.depthFrameHDR
 
-    detection_area, workspace_depth, center_aligned, workspace_clear, frameState.calibrationColorFrame = calibrateAPI(colorToDepthFrame, depthFrame, colorFrame, workspaceState.detection_area, lower, upper, cam.colorSlope, int(cam.cx_d), int(cam.cy_d), modeState.calibrationMode)
+    detection_area, workspace_depth, center_aligned, workspace_clear, frameState.calibrationColorFrame = calibrateAPI(colorToDepthFrame, depthFrame, colorFrame, workspaceState.detection_area, lower, upper, camState.colorSlope, int(camState.cx_d), int(camState.cy_d), modeState.calibrationMode)
 
     if detection_area is None or workspace_depth is None:
         workspaceState.center_aligned = center_aligned
@@ -1144,7 +814,7 @@ def volume_Bundle():
     else:
         depthFrame = frameState.depthFrameHDR
 
-    depthState.not_set, depthState.objects_info = MinDepthAPI(depthFrame, workspaceState.detection_area, workspaceState.workspace_depth, depthState.threshold, depthState.not_set, cam.cx_d, cam.cy_d, cam.fx_d, cam.fy_d)
+    depthState.not_set, depthState.objects_info = MinDepthAPI(depthFrame, workspaceState.detection_area, workspaceState.workspace_depth, depthState.threshold, depthState.not_set, camState.cx_d, camState.cy_d, camState.fx_d, camState.fy_d)
 
     if depthState.objects_info is not None and len(depthState.objects_info) != 0:
         depthState.minimum_depth = depthState.objects_info[0]["depth"]
@@ -1153,9 +823,9 @@ def volume_Bundle():
         print("New Min Value", depthState.minimum_value)
 
     if depthState.not_set == 0:
-        depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine = bundleIdentifier(colorFrame, colorToDepthFrame, depthFrame, frameState.calibrationColorFrame, depthState.objects_info, workspaceState.workspace_depth, depthState.threshold, cam.colorSlope, cam.cx_d, cam.cy_d, cam.cx_rgb, cam.cy_rgb)
+        depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine = bundleIdentifier(colorFrame, colorToDepthFrame, depthFrame, frameState.calibrationColorFrame, depthState.objects_info, workspaceState.workspace_depth, depthState.threshold, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb)
         if volumeState.box_limits is not None and len(volumeState.box_limits) > 0:
-            volumeState.volume, volumeState.width_meters, volumeState.height_meters = volumeBundleAPI(workspaceState.workspace_depth, depthState.minimum_depth, volumeState.box_limits, volumeState.depths, cam.fx_d, cam.fy_d, cam.cx_d, cam.cy_d)
+            volumeState.volume, volumeState.width_meters, volumeState.height_meters = volumeBundleAPI(depthFrame, workspaceState.workspace_depth, depthState.minimum_depth, volumeState.box_limits, volumeState.depths, camState.fx_d, camState.fy_d, camState.cx_d, camState.cy_d)
         else:
             volumeState.volume = 0
             volumeState.width_meters = 0
@@ -1216,7 +886,7 @@ def volume_Real():
     else:
         depthFrame = frameState.depthFrameHDR
 
-    depthState.not_set, depthState.objects_info = MinDepthAPI(depthFrame, workspaceState.detection_area, workspaceState.workspace_depth, depthState.threshold, depthState.not_set, cam.cx_d, cam.cy_d, cam.fx_d, cam.fy_d)
+    depthState.not_set, depthState.objects_info = MinDepthAPI(depthFrame, workspaceState.detection_area, workspaceState.workspace_depth, depthState.threshold, depthState.not_set, camState.cx_d, camState.cy_d, camState.fx_d, camState.fy_d)
 
     if depthState.objects_info is not None and len(depthState.objects_info) != 0:
         depthState.minimum_depth = depthState.objects_info[0]["depth"]
@@ -1225,9 +895,9 @@ def volume_Real():
         print("New Min Value", depthState.minimum_value)
 
     if depthState.not_set == 0:
-        depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine = objIdentifier(colorFrame, colorToDepthFrame, depthFrame, frameState.calibrationColorFrame, depthState.objects_info, workspaceState.workspace_depth, depthState.threshold, cam.colorSlope, cam.cx_d, cam.cy_d, cam.cx_rgb, cam.cy_rgb)
+        depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine = objIdentifier(colorFrame, colorToDepthFrame, depthFrame, frameState.calibrationColorFrame, depthState.objects_info, workspaceState.workspace_depth, depthState.threshold, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb)
         if volumeState.box_limits is not None and len(volumeState.box_limits) > 0:
-            volumeState.volume, volumeState.width_meters, volumeState.height_meters = volumeRealAPI(workspaceState.workspace_depth, volumeState.box_limits, volumeState.depths, cam.fx_d, cam.fy_d, cam.cx_d, cam.cy_d)
+            volumeState.volume, volumeState.width_meters, volumeState.height_meters = volumeRealAPI(depthFrame, workspaceState.workspace_depth, volumeState.box_limits, volumeState.depths, camState.fx_d, camState.fy_d, camState.cx_d, camState.cy_d)
         else:
             volumeState.volume = 0
             volumeState.width_meters = 0

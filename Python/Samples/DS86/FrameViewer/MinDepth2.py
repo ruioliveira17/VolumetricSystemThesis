@@ -151,31 +151,45 @@ def MinDepthAPI(depthFrame, detection_area, workspace_depth, threshold, not_set,
         print("Workspace Height:", workspace_height_m)
 
         while True:
-            valid_values = depth_copy[(depth_copy > 150) & (depth_copy < (workspace_depth))]
+            mask = numpy.zeros(depth_copy.shape, dtype = numpy.uint8)
+            box = numpy.array(detection_area, dtype=numpy.int32)
+            cv2.fillPoly(mask, [box], 255)
+            
+
+            valid_values = depth_copy[(depth_copy > 150) & (depth_copy < workspace_depth) & (mask > 0)]
             if valid_values.size  == 0:
                 break
 
             else:
                 min_value = numpy.min(valid_values) # minimo da profundidade
+                #print("MinValue:", min_value)
 
-                index = numpy.where(depth_copy == min_value)
+                index = numpy.where((depth_copy == min_value) & (mask > 0))
                 min_idx = (index[0][0], index[1][0])
                 y, x = min_idx
 
                 for y, x in zip(index[0], index[1]):
                     x = int(x)
                     y = int(y)
-                    neighbors = depth_copy[max(0, y-7):y+8, max(0, x-7):x+8]
+                    #neighbors = depth_copy[max(0, y-7):y+8, max(0, x-7):x+8]
+                    neighbors = depth_copy[max(0, y-1):y+2, max(0, x-1):x+2]
 
                     object_depth = min_value
 
-                    #if ((x >= detection_area[0]) and (x <= detection_area[2])) and ((y >= detection_area[1]) and (y <= detection_area[3])):
                     detection_area_poly = numpy.array(detection_area, dtype = numpy.int32)
                     if cv2.pointPolygonTest(detection_area_poly, (x, y), False) >= 0:
+                        #if (2705 - threshold <= min_value <= 2705 + threshold):
+                        #    print("Inside!")
                         valid_count = numpy.sum(numpy.abs(neighbors - min_value) <= threshold)
                         total_count = neighbors.size
+                        #if (2705 - threshold <= min_value <= 2705 + threshold):
+                        #    print("Valid:", valid_count)
+                        #    print("Total:", total_count)
+                        #    print("%:", valid_count / total_count)
 
-                        if valid_count / total_count >= 0.9:
+                        if valid_count / total_count >= 0.9 and not (min_value - threshold <= workspace_depth <= min_value + threshold):
+                            #if (2705 - threshold <= min_value <= 2705 + threshold):
+                            #    print("90%")
                             neighbors = neighbors[(neighbors > (min_value - threshold)) & (neighbors < (min_value + threshold))]
                             #min_value = numpy.mean(neighbors)
                             min_value = round(numpy.median(neighbors), 1)
@@ -185,13 +199,6 @@ def MinDepthAPI(depthFrame, detection_area, workspace_depth, threshold, not_set,
                                 print("Profundidade:", min_value)
                                 workspace_limits = []
                                 workspace_warning = []
-                                #half_width_px = (workspace_width_m / 2) * fx_d / (object_depth / 1000.0)
-                                #half_height_px = (workspace_height_m / 2) * fy_d / (object_depth / 1000.0)
-                                #warning_half_width_px = ((workspace_width_m - workspace_width_m / 10) / 2) * fx_d / (object_depth / 1000.0)
-                                #warning_half_height_px = ((workspace_height_m - workspace_width_m / 10) / 2) * fy_d / (object_depth / 1000.0)
-
-                                #workspace_limits = int(cx_d - half_width_px), int(cy_d - half_height_px), int(cx_d + half_width_px), int(cy_d + half_height_px)
-                                #workspace_warning = int(cx_d - warning_half_width_px), int(cy_d - warning_half_height_px), int(cx_d + warning_half_width_px), int(cy_d + warning_half_height_px)
                                 
                                 pts_pixels = detection_area
                                 
@@ -218,17 +225,17 @@ def MinDepthAPI(depthFrame, detection_area, workspace_depth, threshold, not_set,
 
                                     workspace_warning.append([int(X_warning), int(Y_warning)])
                                 
-                                    pts = numpy.array(workspace_limits, dtype=numpy.int32)
-                                    pts = pts.reshape((-1, 1, 2))
+                                    #pts = numpy.array(workspace_limits, dtype=numpy.int32)
+                                    #pts = pts.reshape((-1, 1, 2))
 
-                                    cv2.polylines(frameState.colorToDepthFrame, [pts], isClosed=True, color=(0, 255, 0), thickness=2)
+                                    #cv2.polylines(frameState.colorToDepthFrame, [pts], isClosed=True, color=(0, 255, 0), thickness=2)
 
-                                    pts_warn = numpy.array(workspace_warning, dtype=numpy.int32)
-                                    pts_warn = pts_warn.reshape((-1, 1, 2))
+                                    #pts_warn = numpy.array(workspace_warning, dtype=numpy.int32)
+                                    #pts_warn = pts_warn.reshape((-1, 1, 2))
 
-                                    cv2.polylines(frameState.colorToDepthFrame, [pts_warn], isClosed=True, color=(0, 0, 255), thickness=2)
+                                    #cv2.polylines(frameState.colorToDepthFrame, [pts_warn], isClosed=True, color=(0, 0, 255), thickness=2)
 
-                                    cv2.imwrite("Z2.png", frameState.colorToDepthFrame)
+                                    #cv2.imwrite("Z2.png", frameState.colorToDepthFrame)
 
                                 #print("Width:", half_width_px)
                                 #print("Height:", half_height_px)
@@ -239,7 +246,7 @@ def MinDepthAPI(depthFrame, detection_area, workspace_depth, threshold, not_set,
                                             "workspace_warning": workspace_warning
                                         })
 
-                            depth_copy[max(0, y-8):y+9, max(0, x-8):x+9] = 9999
+                            depth_copy[max(0, y-1):y+2, max(0, x-1):x+2] = 9999
 
                         else:
                             depth_copy[y, x] = 9999
