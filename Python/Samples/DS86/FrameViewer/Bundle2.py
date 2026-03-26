@@ -83,8 +83,13 @@ def is_valid_area(c, min_area = 150):
 def comparisonCaliImageCurrImage(colorFrame, calibrationColorFrame, box_scaled):
     mask = numpy.zeros(colorFrame.shape[:2], dtype=numpy.uint8)
 
+    print("box_scaled:", box_scaled)
+    print("box_scaled shape:", box_scaled.shape)
+    print("colorFrame shape:", colorFrame.shape)
+
     cv2.fillPoly(mask, [box_scaled], 255)
     total_pixels = numpy.count_nonzero(mask)
+    print("Mask nonzero pixels:", numpy.count_nonzero(mask))
 
     current = cv2.bitwise_and(colorFrame, colorFrame, mask=mask)
     cali = cv2.bitwise_and(calibrationColorFrame, calibrationColorFrame, mask=mask)

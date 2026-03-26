@@ -24,7 +24,7 @@ color_shape = (1200, 1600, 3)
 colorToDepth_shape   = (480, 640, 3)
 depth_shape = (480, 640)
 
-def maskAPI(colorToDepthFrame, depthFrame, lower, upper, color, colorSlope, cx_d, cy_d):
+def maskAPI(colorToDepthFrame, lower, upper, color, cx_d, cy_d):
     detection_area = None
     #x_area = None
     #y_area = None
@@ -76,63 +76,28 @@ def maskAPI(colorToDepthFrame, depthFrame, lower, upper, color, colorSlope, cx_d
         # PONTO CENTRAL
         
         cv2.circle(colorToDepthFrame_copy, (cx_d, cy_d), radius=3, color=(255, 255, 255), thickness=1)
-
-        """####
-        depthFrame = cv2.resize(depthFrame, (640, 480))
-       
-        img = numpy.int32(depthFrame)
-        img = img*255/colorSlope
-        img = numpy.clip(img, 0, 255)
-        img = numpy.uint8(img)
-        depthFrame = cv2.applyColorMap(img, cv2.COLORMAP_RAINBOW)
-
-        depthFrame_copy = depthFrame.copy()
-        if x_area is not None and y_area is not None and x_area_plus_width is not None and y_area_plus_height is not None:
-            cv2.rectangle(depthFrame_copy, (x_area, y_area), (x_area_plus_width, y_area_plus_height), (255, 0, 0), 2)
-            cv2.rectangle(depthFrame_copy, (x_area + 3, y_area + 3), (x_area_plus_width - 3, y_area_plus_height - 3), (0, 0, 255), 2)
-        ####"""
-
-        key = cv2.waitKey(1)
         
         #return result, colorToDepthFrame_copy, depthFrame_copy, detection_area
-        return result, colorToDepthFrame_copy, depthFrame, detection_area  
+        return result, colorToDepthFrame_copy, detection_area  
                 
     except Exception as e :
         print(e)
     finally :
         print('end')
 
-def manualWorkspaceDraw(colorToDepthFrame, depthFrame, detection_area, colorSlope, cx_d, cy_d):
-    x_area, y_area, x_area_plus_width, y_area_plus_height = detection_area
-
+def manualWorkspaceDraw(colorToDepthFrame, detection_area, cx_d, cy_d):
     try:
         colorToDepthFrame = cv2.resize(colorToDepthFrame, (640, 480))
 
         colorToDepthFrame_copy = colorToDepthFrame.copy()
         
-        cv2.rectangle(colorToDepthFrame_copy, (x_area, y_area), (x_area_plus_width, y_area_plus_height), (255, 0, 0), 2)
-        detection_area =  (x_area, y_area, x_area_plus_width, y_area_plus_height)       
+        cv2.drawContours(colorToDepthFrame_copy, [detection_area], 0, (255, 0, 0), 2)
 
         # PONTO CENTRAL
         
         cv2.circle(colorToDepthFrame_copy, (cx_d, cy_d), radius=3, color=(255, 255, 255), thickness=-1)
-
-        depthFrame = cv2.resize(depthFrame, (640, 480))
-       
-        img = numpy.int32(depthFrame)
-        img = img*255/colorSlope
-        img = numpy.clip(img, 0, 255)
-        img = numpy.uint8(img)
-        depthFrame = cv2.applyColorMap(img, cv2.COLORMAP_RAINBOW)
-
-        depthFrame_copy = depthFrame.copy()
-        if x_area is not None and y_area is not None and x_area_plus_width is not None and y_area_plus_height is not None:
-            cv2.rectangle(depthFrame_copy, (x_area, y_area), (x_area_plus_width, y_area_plus_height), (255, 0, 0), 2)
-            cv2.rectangle(depthFrame_copy, (x_area + 3, y_area + 3), (x_area_plus_width - 3, y_area_plus_height - 3), (0, 0, 255), 2)
-
-        key = cv2.waitKey(1)
         
-        return colorToDepthFrame_copy, depthFrame_copy, detection_area  
+        return colorToDepthFrame_copy, detection_area
                 
     except Exception as e :
         print(e)
@@ -161,7 +126,7 @@ def calibrateAPI(colorToDepthFrame, depthFrame, colorFrame, detection_area, lowe
         h_max, s_max, v_max = upper
 
         # VERIFICAÇÃO ÁREA WORKSPACE DETETÁVEL NÃO INTERROMPIDA
-
+        detection_area = numpy.array(detection_area, dtype=numpy.int32).reshape((-1, 1, 2))
         mask = numpy.zeros((480, 640), dtype = numpy.uint8)
         cv2.fillPoly(mask, [detection_area], 255)
 
@@ -277,7 +242,7 @@ def calibrateAPI(colorToDepthFrame, depthFrame, colorFrame, detection_area, lowe
         if centerDepth_valid_values.size > 0:
             workspace_depth = numpy.mean(centerDepth_valid_values)
         
-        valid_values = workspace_region[(workspace_region >= 150) & (workspace_region <= colorSlope)]
+        valid_values = workspace_region[(workspace_region >= 15) & (workspace_region <= colorSlope)]
         
         if valid_values.size > 0:
             avg_depth = numpy.mean(valid_values) # média da profundidade
@@ -287,10 +252,10 @@ def calibrateAPI(colorToDepthFrame, depthFrame, colorFrame, detection_area, lowe
             count = numpy.sum(numpy.abs(valid_values - workspace_depth) <= 50)
             print("Count:", count)
             print("Size:", valid_values.size)
-            proportion_valid = count / valid_values.size
+            proportion_valid = round(count / valid_values.size, 2)
             print("Proporção Profundidade:", proportion_valid)
 
-            if proportion_valid >= 0.9:
+            if proportion_valid >= 0.98:
                 workspace_free = True
                 workspace_depth = avg_depth
             else:

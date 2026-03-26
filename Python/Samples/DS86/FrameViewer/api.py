@@ -7,9 +7,7 @@ from pydantic import BaseModel
 from API.VzenseDS_api import *
 from Bundle2 import bundleIdentifier, objIdentifier
 from CalibrationDefTkinter import calibrateAPI, maskAPI, manualWorkspaceDraw
-from CameraOptions import openCamera, closeCamera, statusCamera, startCamera, stopCamera, getRGB, getDepth, captureLoop
-from GetFrame import getFrame
-from HDRDef import hdrAPI
+from CameraOptions import startCamera, stopCamera
 from MinDepth2 import MinDepthAPI
 from VolumeTkinter import volumeBundleAPI, volumeRealAPI
 from CameraState import camState
@@ -23,21 +21,14 @@ from WorkspaceState import workspaceState
 
 from contextlib import asynccontextmanager
 import cv2
-import asyncio
 import io
 import json
 import numpy
 import os
 from PIL import Image
-import threading
 import time
 
 USER_FILE = "auth/users.json"
-
-stop_event = threading.Event()
-pause_event = threading.Event()
-pause_event.set()
-hdr_threadObj = None
 #----------------------------------------------------   Base Models    ----------------------------------------------------
 
 class HSVValue(BaseModel):
@@ -55,7 +46,7 @@ class CamValues(BaseModel):
     exposureTime: Optional[int] = 700
 
 class ManualWorkspace(BaseModel):
-    detection_area: List[int] = None
+    detection_area: List[List[float]] = None
 
 class LoginData(BaseModel):
     username: str
@@ -67,10 +58,9 @@ class RegisterData(BaseModel):
     role: str
     code: Optional[str] = None
 
-class RGBPoint(BaseModel):
-    r : int
-    g : int
-    b : int
+class ColorCoords(BaseModel):
+    x : int
+    y : int
 #--------------------------------------------------------------------------------------------------------------------------
 
 def load_users():
@@ -88,7 +78,7 @@ def save_WS_calibration():
     cv2.imwrite("config/calibrationColorFrame.png", frameState.calibrationColorFrame)
 
     data = {
-        "detection_area": workspaceState.detection_area.tolist(),
+        "detection_area": workspaceState.detection_area.tolist() if isinstance(workspaceState.detection_area, numpy.ndarray) else workspaceState.detection_area,
         "workspace_depth": float(workspaceState.workspace_depth),
         "hmin": int(maskState.hmin),
         "hmax": int(maskState.hmax),
@@ -97,8 +87,8 @@ def save_WS_calibration():
         "vmin": int(maskState.vmin),
         "vmax": int(maskState.vmax),
         "color": maskState.color,
-        "colorSlope": float(camState.colorSlope),
-        "exposureTime": float(camState.exposureTime),
+        "colorSlope": int(camState.colorSlope),
+        "exposureTime": int(camState.exposureTime),
         "calibrationColorFrame_path": "config/calibrationColorFrame.png"
     }
 
@@ -111,21 +101,6 @@ def rgb_to_hsv(r, g, b):
     rgb = numpy.uint8([[[r, g, b]]])
     hsv = cv2.cvtColor(rgb, cv2.COLOR_RGB2HSV)
     return hsv[0][0].tolist()
-
-def hdr_thread(stop_event, pause_event):
-    while not stop_event.is_set():
-        if not pause_event.wait(timeout  = 0.1):
-            continue
-
-        if stop_event.is_set():
-            break
-
-        try:
-            hdrAPI()
-        except Exception as e:
-            if stop_event.is_set():
-                break
-            print("Erro na thread:", repr(e))
 
 def generateRGB_Stream():
     while True:
@@ -140,7 +115,10 @@ def generateRGB_Stream():
 
 def generateDepth_Stream():
     while True:
-        depth = frameState.depthFrame
+        if camState.hdrEnabled and frameState.depthFrameHDR is not None:
+            depth = frameState.depthFrameHDR
+        elif not camState.hdrEnabled:
+            depth = frameState.depthFrame
         if depth is not None:
             img = numpy.int32(depth)
             img = img * 255 / camState.colorSlope
@@ -150,15 +128,34 @@ def generateDepth_Stream():
             yield (b'--frame\r\n'
                    b'Content-Type: image/jpeg\r\n\r\n' + jpeg.tobytes() + b'\r\n')
         time.sleep(0.05)
+
+def generateCalibrationCTD_Stream():
+    while True:
+        frame = frameState.colorToDepthFrameCopy
+        if frame is not None:
+            if frame.dtype != numpy.uint8:
+                frame = (numpy.clip(frame, 0, 1) * 255).astype(numpy.uint8)
+            _, jpeg = cv2.imencode('.jpg', frame)
+            yield (b'--frame\r\n'
+                   b'Content-Type: image/jpeg\r\n\r\n' + jpeg.tobytes() + b'\r\n')
+        time.sleep(0.05)
+
+def generateCalibrationMask_Stream():
+    while True:
+        frame = frameState.res
+        if frame is not None:
+            if frame.dtype != numpy.uint8:
+                frame = (numpy.clip(frame, 0, 1) * 255).astype(numpy.uint8)
+            _, jpeg = cv2.imencode('.jpg', frame)
+            yield (b'--frame\r\n'
+                   b'Content-Type: image/jpeg\r\n\r\n' + jpeg.tobytes() + b'\r\n')
+        time.sleep(0.05)
 #-----------------------------------------------------   Lifespan   -------------------------------------------------------
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # STARTUP
     path = "config/workspace_calibration.json"
-
-    #openCamera()
-    startCamera()
 
     if os.path.exists(path):
         try:
@@ -186,16 +183,13 @@ async def lifespan(app: FastAPI):
     else:
         print("É necessário realizar calibração!")
 
+    startCamera()
+
     yield
 
     #SHUTDOWN
     print("API a desligar")
-    stop_event.set()
 
-    if hdr_threadObj and hdr_threadObj.is_alive():
-        hdr_threadObj.join()
-
-    #closeCamera()
     stopCamera()
 
 #----------------------------------------------------   Criar App   -------------------------------------------------------
@@ -243,7 +237,7 @@ def register(register_data: RegisterData):
     return {"message": "Utilizador criado com sucesso!"}
 
 #-------------------------------------------------------   Camera   -------------------------------------------------------
-
+"""
 @app.get("/camera/status")
 def camStatus():
     return statusCamera()
@@ -259,7 +253,7 @@ def get_color_Slope():
     return {
             "colorSlope": camState.colorSlope,
         }
-
+"""
 @app.post("/camera/setExposureTime")
 def set_exposureTime(data: CamValues):
     camState.exposureTime = data.exposureTime
@@ -280,15 +274,23 @@ def set_color_slope(data: CamValues):
 def rgb_feed(request: Request):
     return StreamingResponse(generateRGB_Stream(), media_type='multipart/x-mixed-replace; boundary=frame')
 
+@app.get('/calibrationCTD')
+def calibrationCTD_feed(request: Request):
+    return StreamingResponse(generateCalibrationCTD_Stream(), media_type='multipart/x-mixed-replace; boundary=frame')
+
+@app.get('/calibrationMask')
+def calibrationMask_feed(request: Request):
+    return StreamingResponse(generateCalibrationMask_Stream(), media_type='multipart/x-mixed-replace; boundary=frame')
+
 @app.get('/depth')
 def depth_feed(request: Request):
     return StreamingResponse(generateDepth_Stream(), media_type='multipart/x-mixed-replace; boundary=frame')
-
+"""
 @app.post("/captureFrame")
 def capture_frame():
     getFrame(camState.camera)
     return {"message:": "Frame successfully achieved"}
-
+"""
 @app.get("/getFrame/color")
 def get_Color_Frame():
     colorFrame = frameState.colorFrame 
@@ -388,9 +390,9 @@ def get_ColorToDepth_Frame_Copy():
     return Response(content=buf.read(), media_type="image/png")
     #return Response(content=frameState.colorToDepthFrameCopy.tobytes(), media_type="application/octet-stream")
 
-@app.get("/getFrame/depthCopy")
-def get_Depth_Frame_Copy():
-    return Response(content=frameState.depthFrameCopy.tobytes(), media_type="application/octet-stream")
+#@app.get("/getFrame/depthCopy")
+#def get_Depth_Frame_Copy():
+#    return Response(content=frameState.depthFrameCopy.tobytes(), media_type="application/octet-stream")
 
 @app.get("/getFrame/result")
 def get_Result():
@@ -515,66 +517,20 @@ def get_Depth_HDRFrame():
     #return Response(content=frameState.depthFrameHDR.tobytes(), media_type="application/octet-stream")
 
 #-------------------------------------------------------   Mask    -------------------------------------------------------
-
-@app.post("/mask/hmin")
-def set_h_min(data: HSVValue):
-    if data.hmin > maskState.hmax:
-        maskState.hmin = maskState.hmax
-    else:
-        maskState.hmin = data.hmin
-    return{"hmin": maskState.hmin}
-
-@app.post("/mask/smin")
-def set_s_min(data: HSVValue):
-    if data.smin > maskState.smax:
-        maskState.smin = maskState.smax
-    else:
-        maskState.smin = data.smin
-    return{"smin": maskState.smin}
-
-@app.post("/mask/vmin")
-def set_v_min(data: HSVValue):
-    if data.vmin > maskState.vmax:
-        maskState.vmin = maskState.vmax
-    else:
-        maskState.vmin = data.vmin
-    return{"vmin": maskState.vmin}
-
-@app.post("/mask/hmax")
-def set_h_max(data: HSVValue):
-    if data.hmax < maskState.hmin:
-        maskState.hmax = maskState.hmin
-    else:
-        maskState.hmax = data.hmax
-    return{"hmax": maskState.hmax}
-
-@app.post("/mask/smax")
-def set_s_max(data: HSVValue):
-    if data.smax < maskState.smin:
-        maskState.smax = maskState.smin
-    else:
-        maskState.smax = data.smax
-    return{"smax": maskState.smax}
-
-@app.post("/mask/vmax")
-def set_v_max(data: HSVValue):
-    if data.vmax < maskState.vmin:
-        maskState.vmax = maskState.vmin
-    else:
-        maskState.vmax = data.vmax
-    return{"vmax": maskState.vmax}
-
 @app.post("/mask/color")
 def set_maskColor(data: HSVValue):
     maskState.color = data.color
     return{"color": maskState.color}
 
 @app.post("/mask/colorClick")
-def clickSet_maskColor(data: RGBPoint):
+def clickSet_maskColor(data: ColorCoords):
+    x, y = data.x, data.y
+    b, g, r = frameState.colorToDepthFrame[y, x]
+
     color_ack = False
     preset = COLOR_PRESETS
 
-    hsv = rgb_to_hsv(data.r, data.g, data.b)
+    hsv = rgb_to_hsv(r, g, b)
 
     for color_name, vals in preset.items():
         lower = vals["lower"]
@@ -646,14 +602,13 @@ def apply_mask(data: HSVValue):
     else:
         depthFrame = frameState.depthFrameHDR
 
-    result, colorToDepthFrame_copy, depthFrame_copy, detection_area = maskAPI(colorToDepthFrame, depthFrame, lower, upper, maskState.color, camState.colorSlope, int(camState.cx_d), int(camState.cy_d))
+    result, colorToDepthFrame_copy, detection_area = maskAPI(colorToDepthFrame, lower, upper, maskState.color, int(camState.cx_d), int(camState.cy_d))
 
-    if result is None or colorToDepthFrame_copy is None or depthFrame_copy is None:
+    if result is None or colorToDepthFrame_copy is None:
         return{"message:": "Mask application failed!"}
 
     frameState.res = result
     frameState.colorToDepthFrameCopy = colorToDepthFrame_copy
-    frameState.depthFrameCopy = depthFrame_copy
     workspaceState.detection_area = detection_area
     
     return{"message:": "Mask applied with success"}
@@ -666,19 +621,12 @@ def apply_manualWS(data: ManualWorkspace):
     else:
         colorToDepthFrame = frameState.colorToDepthFrameHDR
 
-    if frameState.depthFrameHDR is None or modeState.expositionMode == "Fixed Exposition":
-        depthFrame = frameState.depthFrame
-    else:
-        depthFrame = frameState.depthFrameHDR
+    detection_area = numpy.array(data.detection_area, dtype=int).reshape((-1, 2))
 
-    detection_area = data.detection_area
-
-    colorToDepthFrame_copy, depthFrame_copy, detection_area = manualWorkspaceDraw(colorToDepthFrame, depthFrame, detection_area, camState.colorSlope, int(camState.cx_d), int(camState.cy_d))
+    colorToDepthFrame_copy, detection_area = manualWorkspaceDraw(colorToDepthFrame, detection_area, int(camState.cx_d), int(camState.cy_d))
 
     frameState.colorToDepthFrameCopy = colorToDepthFrame_copy
-    frameState.depthFrameCopy = depthFrame_copy
-    workspaceState.detection_area = detection_area
-
+    workspaceState.detection_area = detection_area.tolist() 
 #------------------------------------------------------- Calibrate -------------------------------------------------------
 
 @app.post("/calibrate")
@@ -721,7 +669,9 @@ def calibrate(data: HSVValue):
 @app.get("/calibrate/params")
 def get_calibration_parameters():
     return {
-        "Detection Area": workspaceState.detection_area,
+        "Detection Area": [
+            [int(x), int(y)] for x, y in workspaceState.detection_area
+        ],
         "Workspace Depth": workspaceState.workspace_depth,
     }
 
@@ -777,21 +727,15 @@ def get_expMode():
 @app.post("/expositionMode/fixed")
 def fixedExp():
     modeState.expositionMode = "Fixed Exposition"
-    pause_event.clear()
+    camState.hdrEnabled = False
+    camState.camera.VZ_SetExposureTime(VzSensorType.VzToFSensor, c_int32(camState.exposureTime))
     return {"Exposition Mode:": modeState.expositionMode}
 
 @app.post("/expositionMode/hdr")
 def hdrExp():
-    global hdr_threadObj
-
     modeState.expositionMode = "HDR"
     
-    if hdr_threadObj and hdr_threadObj.is_alive():
-        pause_event.set()
-    else:
-        stop_event.clear()
-        hdr_threadObj = threading.Thread(target=hdr_thread, args=(stop_event, pause_event), daemon=True)
-        hdr_threadObj.start()
+    camState.hdrEnabled = True
 
     return {"Exposition Mode:": modeState.expositionMode}
 
