@@ -200,8 +200,6 @@ def calibrateAPI(colorToDepthFrame, depthFrame, colorFrame, detection_area, lowe
             debug[border == 255] = (0, 0, 255)  # vermelho sobre a fita
             cv2.imwrite("ZED.png", debug)
 
-            print("Sum Mask Color:", numpy.sum(mask_color))
-            print("BorderPixels:", border_pixels.shape[0])
             print("Proporção Cor:", proportionColor_valid)
 
             if proportionColor_valid >= 0.95:
@@ -257,7 +255,7 @@ def calibrateAPI(colorToDepthFrame, depthFrame, colorFrame, detection_area, lowe
 
             if proportion_valid >= 0.98:
                 workspace_free = True
-                workspace_depth = avg_depth
+                #workspace_depth = avg_depth
             else:
                 workspace_free = False
                 

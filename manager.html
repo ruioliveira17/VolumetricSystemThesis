@@ -572,13 +572,13 @@
         </div>
 
         <div  class="boxInfo-row">
-            <div class="boxInfo">X:</div>
-            <div id="x_length_value_label" class="boxInfo"></div>
+            <div class="boxInfo">Width:</div>
+            <div id="width_value_label" class="boxInfo"></div>
         </div>
         
         <div  class="boxInfo-row">
-            <div class="boxInfo">Y:</div>
-            <div id="y_length_value_label" class="boxInfo"></div>
+            <div class="boxInfo">Length:</div>
+            <div id="length_value_label" class="boxInfo"></div>
         </div>
 
         <div  class="boxInfo-row">
@@ -1053,8 +1053,8 @@
             try {
                 document.getElementById("volume_value_label").textContent = "";
                 document.getElementById("volume_value_cm_label").textContent = "";
-                document.getElementById("x_length_value_label").textContent = "";
-                document.getElementById("y_length_value_label").textContent = "";
+                document.getElementById("width_value_label").textContent = "";
+                document.getElementById("length_value_label").textContent = "";
                 document.getElementById("height_value_label").textContent = "";
 
                 const dropdown = document.getElementById("objOption_menu");
@@ -1124,8 +1124,8 @@
 
                     document.getElementById("volume_value_label").innerText = volumeData.Bundle.volume_m.toFixed(6) + " m³";
                     document.getElementById("volume_value_cm_label").innerText = volumeData.Bundle.volume_cm.toFixed(2) + " cm³";
-                    document.getElementById("x_length_value_label").innerText = volumeData.Bundle.x.toFixed(1) + " cm";
-                    document.getElementById("y_length_value_label").innerText = volumeData.Bundle.y.toFixed(1) + " cm";
+                    document.getElementById("width_value_label").innerText = volumeData.Bundle.x.toFixed(1) + " cm";
+                    document.getElementById("length_value_label").innerText = volumeData.Bundle.y.toFixed(1) + " cm";
                     document.getElementById("height_value_label").innerText = volumeData.Bundle.z.toFixed(1) + " cm";
                 }
 
@@ -1138,8 +1138,8 @@
             } catch (error) {
                 document.getElementById("volume_value_label").innerText = TextError;
                 document.getElementById("volume_value_cm_label").innerText = TextError;
-                document.getElementById("x_length_value_label").innerText = TextError;
-                document.getElementById("y_length_value_label").innerText = TextError;
+                document.getElementById("width_value_label").innerText = TextError;
+                document.getElementById("length_value_label").innerText = TextError;
                 document.getElementById("height_value_label").innerText = TextError;
                 document.getElementById("objOutOfLine_label").innerText = TextError;
 
@@ -1154,8 +1154,8 @@
             try {
                 document.getElementById("volume_value_label").textContent = "";
                 document.getElementById("volume_value_cm_label").textContent = "";
-                document.getElementById("x_length_value_label").textContent = "";
-                document.getElementById("y_length_value_label").textContent = "";
+                document.getElementById("width_value_label").textContent = "";
+                document.getElementById("length_value_label").textContent = "";
                 document.getElementById("height_value_label").textContent = "";
 
                 const oldDropdown = document.getElementById("objOption_menu");
@@ -1239,8 +1239,8 @@
                     const objData = volumeData[objIdentified[0]];
                     document.getElementById("volume_value_label").innerText = objData.volume_m.toFixed(6) + " m³";
                     document.getElementById("volume_value_cm_label").innerText = objData.volume_cm.toFixed(2) + " cm³";
-                    document.getElementById("x_length_value_label").innerText = objData.x.toFixed(1) + " cm";
-                    document.getElementById("y_length_value_label").innerText = objData.y.toFixed(1) + " cm";
+                    document.getElementById("width_value_label").innerText = objData.x.toFixed(1) + " cm";
+                    document.getElementById("length_value_label").innerText = objData.y.toFixed(1) + " cm";
                     document.getElementById("height_value_label").innerText = objData.z.toFixed(1) + " cm";
                 } else if (objIdentified.length > 1) {
                     const select = document.createElement("select");
@@ -1276,8 +1276,8 @@
                     select.addEventListener("change", (event) => {
                         document.getElementById("volume_value_label").textContent = "";
                         document.getElementById("volume_value_cm_label").textContent = "";
-                        document.getElementById("x_length_value_label").textContent = "";
-                        document.getElementById("y_length_value_label").textContent = "";
+                        document.getElementById("width_value_label").textContent = "";
+                        document.getElementById("length_value_label").textContent = "";
                         document.getElementById("height_value_label").textContent = "";
 
                         const selected = event.target.value;
@@ -1288,8 +1288,8 @@
 
                         document.getElementById("volume_value_label").innerText = objData.volume_m.toFixed(6) + " m³";
                         document.getElementById("volume_value_cm_label").innerText = objData.volume_cm.toFixed(2) + " cm³";
-                        document.getElementById("x_length_value_label").innerText = objData.x.toFixed(1) + " cm";
-                        document.getElementById("y_length_value_label").innerText = objData.y.toFixed(1) + " cm";
+                        document.getElementById("width_value_label").innerText = objData.x.toFixed(1) + " cm";
+                        document.getElementById("length_value_label").innerText = objData.y.toFixed(1) + " cm";
                         document.getElementById("height_value_label").innerText = objData.z.toFixed(1) + " cm";
                     });
 
@@ -1299,8 +1299,8 @@
             } catch (error) {
                 document.getElementById("volume_value_label").innerText = TextError;
                 document.getElementById("volume_value_cm_label").innerText = TextError;
-                document.getElementById("x_length_value_label").innerText = TextError;
-                document.getElementById("y_length_value_label").innerText = TextError;
+                document.getElementById("width_value_label").innerText = TextError;
+                document.getElementById("length_value_label").innerText = TextError;
                 document.getElementById("height_value_label").innerText = TextError;
                 document.getElementById("objOutOfLine_label").innerText = TextError;
 

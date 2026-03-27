@@ -597,11 +597,6 @@ def apply_mask(data: HSVValue):
     else:
         colorToDepthFrame = frameState.colorToDepthFrameHDR
 
-    if frameState.depthFrameHDR is None or modeState.expositionMode == "Fixed Exposition":
-        depthFrame = frameState.depthFrame
-    else:
-        depthFrame = frameState.depthFrameHDR
-
     result, colorToDepthFrame_copy, detection_area = maskAPI(colorToDepthFrame, lower, upper, maskState.color, int(camState.cx_d), int(camState.cy_d))
 
     if result is None or colorToDepthFrame_copy is None:
@@ -609,7 +604,7 @@ def apply_mask(data: HSVValue):
 
     frameState.res = result
     frameState.colorToDepthFrameCopy = colorToDepthFrame_copy
-    workspaceState.detection_area = detection_area
+    workspaceState.detection_area = detection_area.reshape((-1, 2)).tolist() if isinstance(detection_area, numpy.ndarray) else detection_area
     
     return{"message:": "Mask applied with success"}
 
@@ -656,7 +651,7 @@ def calibrate(data: HSVValue):
         workspaceState.workspace_clear = workspace_clear
         return{"message:": "Calibration failed!"}
 
-    workspaceState.detection_area = detection_area
+    workspaceState.detection_area = detection_area.reshape((-1, 2)).tolist() if isinstance(detection_area, numpy.ndarray) else detection_area
     workspaceState.workspace_depth = workspace_depth
     workspaceState.center_aligned = center_aligned
     workspaceState.workspace_clear = workspace_clear

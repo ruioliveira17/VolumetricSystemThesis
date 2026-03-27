@@ -7,6 +7,7 @@ sys.path.append(os.path.join(BASE_DIR, "Python"))
 from API.VzenseDS_api import *
 import cv2
 import numpy
+from FrameState import frameState
 
 def volumeBundleAPI(depthFrame, workspace_depth, minimum_depth, box_limits, depths, fx_d, fy_d, cx_d, cy_d): 
     volume = 0
@@ -18,12 +19,20 @@ def volumeBundleAPI(depthFrame, workspace_depth, minimum_depth, box_limits, dept
 
     for i in range((len(depths))):
         pts_flat = box_limits[i].reshape(-1,2)
+        rect_px = cv2.minAreaRect(pts_flat.astype(numpy.float32))
+        box_px = cv2.boxPoints(rect_px)
         #Z = (depths[i] / 1000)
+        cv2.drawContours(frameState.colorToDepthFrame, [numpy.int32(box_px)], 0, (0, 255, 0), 2)
+        cv2.imwrite(f"colorToDepthFrame{i}.png", frameState.colorToDepthFrame)
 
         for (u,v) in pts_flat:
             Z = depthFrame[int(v), int(u)] / 1000
-            X = (u - cx_d) * Z / fx_d
-            Y = (v - cy_d) * Z / fy_d
+            if Z <= 0 or Z >= workspace_depth:  # ignora píxeis sem profundidade válida
+                X = 0
+                Y = 0
+            else:
+                X = (u - cx_d) * Z / fx_d
+                Y = (v - cy_d) * Z / fy_d
 
             pts_m.append([X, Y])
 
@@ -71,21 +80,40 @@ def volumeRealAPI(depthFrame, workspace_depth, box_limits, depths, fx_d, fy_d, c
 
     for i in range((len(depths))):
         pts_flat = box_limits[i].reshape(-1,2)
+        rect_px = cv2.minAreaRect(pts_flat.astype(numpy.float32))
+        box_px = cv2.boxPoints(rect_px)
         #Z = (depths[i] / 1000)
+        cv2.drawContours(frameState.colorToDepthFrame, [numpy.int32(box_px)], 0, (0, 255, 0), 2)
+        cv2.imwrite(f"colorToDepthFrame{i}.png", frameState.colorToDepthFrame)
 
         for (u,v) in pts_flat:
-            Z = depthFrame[int(v), int(u)] / 1000
-            X = (u - cx_d) * Z / fx_d
-            Y = (v - cy_d) * Z / fy_d
+            #dists = numpy.sqrt((pts_flat[:, 0] - u) ** 2 + (pts_flat[:, 1] - v) ** 2)
+            #closest = pts_flat[numpy.argmin(dists)]
 
-            obj_pts_m.append([X, Y])
+            #Z = depthFrame[int(closest[1]), int(closest[0])] / 1000
+            Z = depthFrame[int(v), int(u)] / 1000
+            #print("Objeto:", i)
+            #print("Z:", Z)
+            if Z <= 0 or Z >= workspace_depth:  # ignora píxeis sem profundidade válida
+                X = 0
+                Y = 0
+            #print(f"  Canto ({u:.1f}, {v:.1f}) → closest {closest} → Z={Z:.4f}m")
+            else:
+                X = (u - cx_d) * Z / fx_d
+                Y = (v - cy_d) * Z / fy_d
+                obj_pts_m.append([X, Y])
+
         allObj_pts_m.append(obj_pts_m)
         obj_pts_m = []
 
     for idx, obj in enumerate(allObj_pts_m):
         allObj_pts_m[idx] = numpy.array(obj, dtype=numpy.float32)
+        #print(f"Objeto {idx} — pontos em metros: {allObj_pts_m[idx]}")
         rect_m = cv2.minAreaRect(allObj_pts_m[idx])
         width_meters, height_meters = rect_m[1]
+        #print(f"Width: {width_meters:.4f}m ({width_meters*100:.2f}cm)")
+        #print(f"Height: {height_meters:.4f}m ({height_meters*100:.2f}cm)")
+        #print(f"Z usado (depths[{idx}]): {depths[idx]}mm")
 
         #if width_meters < height_meters:
         #    width_meters, height_meters = height_meters, width_meters
