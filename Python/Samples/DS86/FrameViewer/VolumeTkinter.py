@@ -26,11 +26,14 @@ def volumeBundleAPI(depthFrame, workspace_depth, minimum_depth, box_limits, dept
         cv2.imwrite(f"colorToDepthFrame{i}.png", frameState.colorToDepthFrame)
 
         for (u,v) in pts_flat:
+            #Z_radial = depthFrame[int(v), int(u)] / 1000
             Z = depthFrame[int(v), int(u)] / 1000
-            if Z <= 0 or Z >= workspace_depth:  # ignora píxeis sem profundidade válida
+            #if Z_radial <= 0 or Z_radial >= workspace_depth:  # ignora píxeis sem profundidade válida
+            if Z <= 0 or Z >= workspace_depth:
                 X = 0
                 Y = 0
             else:
+                #Z = Z_radial / numpy.sqrt(1 + ((u - cx_d) / fx_d)**2 + ((v - cy_d) / fy_d)**2)
                 X = (u - cx_d) * Z / fx_d
                 Y = (v - cy_d) * Z / fy_d
 
@@ -82,23 +85,17 @@ def volumeRealAPI(depthFrame, workspace_depth, box_limits, depths, fx_d, fy_d, c
         pts_flat = box_limits[i].reshape(-1,2)
         rect_px = cv2.minAreaRect(pts_flat.astype(numpy.float32))
         box_px = cv2.boxPoints(rect_px)
-        #Z = (depths[i] / 1000)
         cv2.drawContours(frameState.colorToDepthFrame, [numpy.int32(box_px)], 0, (0, 255, 0), 2)
         cv2.imwrite(f"colorToDepthFrame{i}.png", frameState.colorToDepthFrame)
 
         for (u,v) in pts_flat:
-            #dists = numpy.sqrt((pts_flat[:, 0] - u) ** 2 + (pts_flat[:, 1] - v) ** 2)
-            #closest = pts_flat[numpy.argmin(dists)]
-
-            #Z = depthFrame[int(closest[1]), int(closest[0])] / 1000
-            Z = depthFrame[int(v), int(u)] / 1000
-            #print("Objeto:", i)
-            #print("Z:", Z)
-            if Z <= 0 or Z >= workspace_depth:  # ignora píxeis sem profundidade válida
+            Z_radial = depthFrame[int(v), int(u)] / 1000
+            if Z_radial <= 0 or Z_radial >= workspace_depth:
                 X = 0
                 Y = 0
-            #print(f"  Canto ({u:.1f}, {v:.1f}) → closest {closest} → Z={Z:.4f}m")
             else:
+                Z = Z_radial / numpy.sqrt(1 + ((u - cx_d) / fx_d)**2 + ((v - cy_d) / fy_d)**2)
+
                 X = (u - cx_d) * Z / fx_d
                 Y = (v - cy_d) * Z / fy_d
                 obj_pts_m.append([X, Y])

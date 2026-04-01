@@ -1,34 +1,49 @@
-from fastapi import FastAPI, Path, Query, HTTPException, status, Response, Request
-from fastapi.encoders import jsonable_encoder
-from fastapi.responses import JSONResponse, StreamingResponse
+#------------------------------------------------------   Imports    -------------------------------------------------------
+from contextlib import asynccontextmanager
+from fastapi import FastAPI, HTTPException, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
-from typing import Optional, List
-from pydantic import BaseModel
-from API.VzenseDS_api import *
-from Bundle2 import bundleIdentifier, objIdentifier
-from CalibrationDefTkinter import calibrateAPI, maskAPI, manualWorkspaceDraw
-from CameraOptions import startCamera, stopCamera
-from MinDepth2 import MinDepthAPI
-from VolumeTkinter import volumeBundleAPI, volumeRealAPI
+from fastapi.responses import StreamingResponse
+from PIL import Image
+from pydantic import BaseModel, Field, StrictBool
+from typing import List, Literal, Optional
+
+import cv2
+import io
+import json
+import numpy
+import os
+
+#------------------------------------------------------   Classes    -------------------------------------------------------
+
 from CameraState import camState
-from color_presets import COLOR_PRESETS
 from DepthState import depthState
+from FilterState import filterState
 from FrameState import frameState
 from MaskState import maskState
 from ModeState import modeState
 from VolumeState import volumeState
 from WorkspaceState import workspaceState
 
-from contextlib import asynccontextmanager
-import cv2
-import io
-import json
-import numpy
-import os
-from PIL import Image
-import time
+#------------------------------------------------------   Preset    --------------------------------------------------------
 
-USER_FILE = "auth/users.json"
+from color_presets import COLOR_PRESETS
+
+#-----------------------------------------------------   Functions    ------------------------------------------------------
+
+from API.VzenseDS_api import *
+from Bundle2 import bundleIdentifier, objIdentifier
+from CalibrationDefTkinter import calibrateAPI, maskAPI, manualWorkspaceDraw
+from CameraOptions import startCamera, stopCamera, setFPS, setFlyingPixelFilter, setFillHoleFilter, setSpatialFilter, setConfidenceFilter
+from MinDepth2 import MinDepthAPI
+from VolumeTkinter import volumeBundleAPI, volumeRealAPI
+
+#------------------------------------------------------   Services    ------------------------------------------------------
+
+from services.saveCalibration import save_WS_calibration
+from services.stream import generateRGB_Stream, generateDepth_Stream, generateCalibrationCTD_Stream, generateCalibrationMask_Stream
+from services.utils import rgb_to_hsv
+from services.users import load_users, save_users
+
 #----------------------------------------------------   Base Models    ----------------------------------------------------
 
 class HSVValue(BaseModel):
@@ -42,8 +57,8 @@ class HSVValue(BaseModel):
     optionSelected: Optional[str] = None
 
 class CamValues(BaseModel):
-    colorSlope: Optional[int] = 1500
-    exposureTime: Optional[int] = 700
+    colorSlope: Optional[int] = Field(1500, ge=100, le=4000)
+    exposureTime: Optional[int] = Field(700, ge=100, le=4000)
 
 class ManualWorkspace(BaseModel):
     detection_area: List[List[float]] = None
@@ -61,95 +76,22 @@ class RegisterData(BaseModel):
 class ColorCoords(BaseModel):
     x : int
     y : int
+
+class SystemUpdate(BaseModel):
+    exposureTime: Optional[int] = Field(100, ge=100, le=4000)
+    colorSlope: Optional[int] = Field(150, ge=150, le=5000)
+    workingMode: Optional[Literal["Static", "Dynamic"]] = None
+    expositionMode: Optional[Literal["Fixed Exposition", "HDR"]] = None
+    debugMode: Optional[Literal["On", "Off"]] = None
+    flyingPixelFilter: Optional[StrictBool] = None
+    fillHoleFilter: Optional[StrictBool] = None
+    spatialFilter: Optional[StrictBool] = None
+    confidenceFilter: Optional[StrictBool] = None 
+    fps: Optional[int] = Field(None, ge=1, le=15)
 #--------------------------------------------------------------------------------------------------------------------------
 
-def load_users():
-    if not os.path.exists(USER_FILE):
-        with open(USER_FILE, "w") as f:
-            json.dump({}, f)
-    with open(USER_FILE, "r") as f:
-        return json.load(f)
-    
-def save_users(users):
-    with open(USER_FILE, "w") as f:
-        json.dump(users, f, indent=4)
 
-def save_WS_calibration():
-    cv2.imwrite("config/calibrationColorFrame.png", frameState.calibrationColorFrame)
 
-    data = {
-        "detection_area": workspaceState.detection_area.tolist() if isinstance(workspaceState.detection_area, numpy.ndarray) else workspaceState.detection_area,
-        "workspace_depth": float(workspaceState.workspace_depth),
-        "hmin": int(maskState.hmin),
-        "hmax": int(maskState.hmax),
-        "smin": int(maskState.smin),
-        "smax": int(maskState.smax),
-        "vmin": int(maskState.vmin),
-        "vmax": int(maskState.vmax),
-        "color": maskState.color,
-        "colorSlope": int(camState.colorSlope),
-        "exposureTime": int(camState.exposureTime),
-        "calibrationColorFrame_path": "config/calibrationColorFrame.png"
-    }
-
-    os.makedirs("config", exist_ok=True)
-
-    with open("config/workspace_calibration.json", "w") as f:
-        json.dump(data, f, indent=4)
-
-def rgb_to_hsv(r, g, b):
-    rgb = numpy.uint8([[[r, g, b]]])
-    hsv = cv2.cvtColor(rgb, cv2.COLOR_RGB2HSV)
-    return hsv[0][0].tolist()
-
-def generateRGB_Stream():
-    while True:
-        frame = frameState.colorFrame
-        if frame is not None:
-            if frame.dtype != numpy.uint8:
-                frame = (numpy.clip(frame, 0, 1) * 255).astype(numpy.uint8)
-            _, jpeg = cv2.imencode('.jpg', frame)
-            yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + jpeg.tobytes() + b'\r\n')
-        time.sleep(0.05)
-
-def generateDepth_Stream():
-    while True:
-        if camState.hdrEnabled and frameState.depthFrameHDR is not None:
-            depth = frameState.depthFrameHDR
-        elif not camState.hdrEnabled:
-            depth = frameState.depthFrame
-        if depth is not None:
-            img = numpy.int32(depth)
-            img = img * 255 / camState.colorSlope
-            img = numpy.clip(img, 0, 255).astype(numpy.uint8)
-            depth_vis = cv2.applyColorMap(img, cv2.COLORMAP_RAINBOW)
-            _, jpeg = cv2.imencode('.jpg', depth_vis)
-            yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + jpeg.tobytes() + b'\r\n')
-        time.sleep(0.05)
-
-def generateCalibrationCTD_Stream():
-    while True:
-        frame = frameState.colorToDepthFrameCopy
-        if frame is not None:
-            if frame.dtype != numpy.uint8:
-                frame = (numpy.clip(frame, 0, 1) * 255).astype(numpy.uint8)
-            _, jpeg = cv2.imencode('.jpg', frame)
-            yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + jpeg.tobytes() + b'\r\n')
-        time.sleep(0.05)
-
-def generateCalibrationMask_Stream():
-    while True:
-        frame = frameState.res
-        if frame is not None:
-            if frame.dtype != numpy.uint8:
-                frame = (numpy.clip(frame, 0, 1) * 255).astype(numpy.uint8)
-            _, jpeg = cv2.imencode('.jpg', frame)
-            yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + jpeg.tobytes() + b'\r\n')
-        time.sleep(0.05)
 #-----------------------------------------------------   Lifespan   -------------------------------------------------------
 
 @asynccontextmanager
@@ -206,16 +148,35 @@ app.add_middleware(
 
 #-------------------------------------------------------   Login   --------------------------------------------------------
 
-@app.post("/login")
+@app.post("/login", summary="Login Request",
+         description="""
+         Authenticates a user with the provided username and password. Returns the user's role if the credentials are valid. Otherwise, it returns an error message indicating invalid username or password.
+         
+         Restrictions:
+         - All fields must be filled. If any field is missing, an error message will be returned.
+         """,
+         tags=["User"])
 def login(login_data: LoginData):
     users = load_users()
+
+    if not login_data.username or not login_data.password:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Please fill all fields!")
 
     if login_data.username in users and users[login_data.username]["password"] == login_data.password:
         return {"role": users[login_data.username]["role"]}
     
     raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid username or password.")
 
-@app.post("/register")
+@app.post("/register", summary="Register Request",
+         description="""
+         Creates a new user account with the provided username and password. Returns a message indicating that the process was successful.
+
+         Restrictions:
+         - All fields must be filled. If any field is missing, an error message will be returned.
+         - Username must be unique. If the provided username already exists, an error message will be returned
+         - To create an admin user, a valid admin code must be provided. If the code is invalid, an error message will be returned.
+         """,
+         tags=["User"])
 def register(register_data: RegisterData):
     users = load_users()
 
@@ -237,60 +198,54 @@ def register(register_data: RegisterData):
     return {"message": "Utilizador criado com sucesso!"}
 
 #-------------------------------------------------------   Camera   -------------------------------------------------------
-"""
-@app.get("/camera/status")
-def camStatus():
-    return statusCamera()
 
-@app.get("/camera/exposureTime")
-def get_exposure_Time():
+@app.post("/camera/setValues", summary="Set Camera Values",
+          description="""
+          Updates the camera's exposure time and color slope based on the values provided.
+
+          All parameters are optional, allowing partial updates.
+
+          Restrictions:
+          - Exposure Time must be between 100 and 4000.
+          - Color Slope must be between 150 and 5000.
+          """,
+          tags=["Camera"])
+def set_camera_values(data: CamValues):
+    if data.exposureTime is not None:
+        camState.exposureTime = data.exposureTime
+        camState.camera.VZ_SetExposureTime(VzSensorType.VzToFSensor, c_int32(camState.exposureTime))
+    if data.colorSlope is not None:
+        camState.colorSlope = data.colorSlope
+
     return {
-            "Exposure Time": camState.exposureTime,
-        }
-
-@app.get("/camera/colorSlope")
-def get_color_Slope():
-    return {
-            "colorSlope": camState.colorSlope,
-        }
-"""
-@app.post("/camera/setExposureTime")
-def set_exposureTime(data: CamValues):
-    camState.exposureTime = data.exposureTime
-    camState.camera.VZ_SetExposureTime(VzSensorType.VzToFSensor, c_int32(camState.exposureTime))
-    return{
-        "Exposure Time": camState.exposureTime
-    }
-
-@app.post("/camera/setColorSlope")
-def set_color_slope(data: CamValues):
-    camState.colorSlope = data.colorSlope
-    return{
-        "colorSlope": camState.colorSlope
+        "Status": "Successful"
     }
 
 #-------------------------------------------------------   Frame   -------------------------------------------------------
-@app.get('/rgb')
+@app.get('/rgb', summary="RGB Stream",
+          description="""
+          Starts streaming the RGB feed from the camera. The RGB stream is a video capture of the scene by the RGB camera.
+          """,
+          tags=["Stream"])
 def rgb_feed(request: Request):
     return StreamingResponse(generateRGB_Stream(), media_type='multipart/x-mixed-replace; boundary=frame')
 
-@app.get('/calibrationCTD')
+@app.get('/calibrationCTD', summary="ColorToDepth Stream",
+          description="""
+          Starts streaming the ColorToDepth feed from the camera. The ColorToDepth stream is a video capture of the scene by the depth camera and transformed into color by the software. The image shows a rectangle that represents the workspace detection area defined by the color mask.
+          """,
+          tags=["Stream"])
 def calibrationCTD_feed(request: Request):
     return StreamingResponse(generateCalibrationCTD_Stream(), media_type='multipart/x-mixed-replace; boundary=frame')
 
-@app.get('/calibrationMask')
+@app.get('/calibrationMask', summary="Color Mask Stream",
+          description="""
+          Starts streaming the Color Mask feed from the camera. The Color Mask stream is a video capture of the scene by the depth camera and transformed into color by the software. The image has a mask applied to only show a range of the HSV space selected by the user.
+          """,
+          tags=["Stream"])
 def calibrationMask_feed(request: Request):
     return StreamingResponse(generateCalibrationMask_Stream(), media_type='multipart/x-mixed-replace; boundary=frame')
 
-@app.get('/depth')
-def depth_feed(request: Request):
-    return StreamingResponse(generateDepth_Stream(), media_type='multipart/x-mixed-replace; boundary=frame')
-"""
-@app.post("/captureFrame")
-def capture_frame():
-    getFrame(camState.camera)
-    return {"message:": "Frame successfully achieved"}
-"""
 @app.get("/getFrame/color")
 def get_Color_Frame():
     colorFrame = frameState.colorFrame 
@@ -914,3 +869,75 @@ def debugOff():
 def debugOn():
     modeState.debugMode = "On"
     return {"Debug Mode:": modeState.debugMode}
+
+#--------------------------------------------------------------------------------------------------------------------------
+
+@app.get("/systemInfo", summary="Obtain Sytem Information",
+         description="Returns the value of the system parameters, such as camera settings, working mode, exposition mode, debug mode and filter states.",
+         tags=["System"])
+def systemInfo():
+    return {
+        "Exposure Time": camState.exposureTime,
+        "Color Slope": camState.colorSlope,
+        "Working Mode": modeState.mode,
+        "Exposition Mode": modeState.expositionMode,
+        "Debug Mode": modeState.debugMode,
+        "Flying Pixel Filter": filterState.flyingPixelFilter,
+        "Fill Hole Filter": filterState.fillHoleFilter,
+        "Spatial Filter": filterState.spatialFilter,
+        "Confidence Filter": filterState.confidenceFilter,
+        "FPS": camState.fps
+    }
+
+@app.post("/update_systemInfo", summary="Update System Information", 
+          description="""
+          Updates the system parameters based on the provided values.
+          
+          All parameters are optional, allowing for partial updates. 
+          
+          Restrictions: 
+          - Exposure Time must be between 100 and 4000.
+          - Color Slope must be between 150 and 5000.
+          - FPS must be between 1 and 15.
+          - Working Mode must be either 'Static' or 'Dynamic'.
+          - Exposition Mode must be either 'Fixed Exposition' or 'HDR'.
+          - Debug Mode must be either 'On' or 'Off'.
+          - Filter states must be boolean values (true or false).
+
+          Note: Any string value must be sent with the exact same format as specified, including capitalization and spacing. For example, to set the working mode to 'Static', the value must be exactly 'Static' and not 'static' or 'STATIC'.
+          """,
+          tags=["System"])
+def update_systemInfo(info: SystemUpdate):
+    if info.exposureTime is not None:
+        camState.exposureTime = info.exposureTime
+        camState.camera.VZ_SetExposureTime(VzSensorType.VzToFSensor, c_int32(camState.exposureTime))
+
+    if info.colorSlope is not None:
+        camState.colorSlope = info.colorSlope
+
+    if info.workingMode is not None:
+        modeState.mode = info.workingMode
+
+    if info.expositionMode is not None:
+        modeState.expositionMode = info.expositionMode
+
+    if info.debugMode is not None:
+        modeState.debugMode = info.debugMode
+
+    if info.flyingPixelFilter is not None:
+        setFlyingPixelFilter(info.flyingPixelFilter)
+
+    if info.fillHoleFilter is not None:
+        setFillHoleFilter(info.fillHoleFilter)
+
+    if info.spatialFilter is not None:
+        setSpatialFilter(info.spatialFilter)
+
+    if info.confidenceFilter is not None:
+        setConfidenceFilter(info.confidenceFilter)
+
+    if info.fps is not None:
+        camState.fps = info.fps
+        setFPS(info.fps)
+
+    return {"status": "updated"}

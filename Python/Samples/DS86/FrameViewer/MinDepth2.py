@@ -22,7 +22,6 @@ def MinDepthAPI(depthFrame, detection_area, workspace_depth, threshold, not_set,
     pts_m = []
 
     try:
-
         pts_pixels = detection_area
 
         # Converte para NumPy
@@ -84,7 +83,8 @@ def MinDepthAPI(depthFrame, detection_area, workspace_depth, threshold, not_set,
                     x = int(x)
                     y = int(y)
                     #neighbors = depth_copy[max(0, y-7):y+8, max(0, x-7):x+8]
-                    neighbors = depth_copy[max(0, y-1):y+2, max(0, x-1):x+2]
+                    #neighbors = depth_copy[max(0, y-1):y+2, max(0, x-1):x+2]
+                    neighbors = depth_copy[max(0, y-2):y+3, max(0, x-2):x+3]
 
                     object_depth = min_value
 

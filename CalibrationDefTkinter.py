@@ -96,6 +96,9 @@ def manualWorkspaceDraw(colorToDepthFrame, detection_area, cx_d, cy_d):
         # PONTO CENTRAL
         
         cv2.circle(colorToDepthFrame_copy, (cx_d, cy_d), radius=3, color=(255, 255, 255), thickness=-1)
+
+        for cx, cy in detection_area:
+            cv2.circle(colorToDepthFrame_copy, (cx, cy), radius=5, color=(255, 255, 255), thickness=-1)
         
         return colorToDepthFrame_copy, detection_area
                 

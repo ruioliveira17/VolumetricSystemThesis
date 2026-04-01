@@ -835,7 +835,7 @@
         let cameraLoopInterval = null;
         let colorClickInitialized = false;
         let selected_point = null;
-        let step = 10;
+        let step = 2;
         let thresh = 10;
         let detection_area = [0, 0, 0, 0];
 
@@ -1433,7 +1433,7 @@
             }
 
             try {
-                await fetch("http://10.0.30.175:8000/camera/setExposureTime", {
+                await fetch("http://10.0.30.175:8000/camera/setValues", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"
@@ -1458,7 +1458,7 @@
             }
 
             try {
-                await fetch("http://10.0.30.175:8000/camera/setColorSlope", {
+                await fetch("http://10.0.30.175:8000/camera/setValues", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"

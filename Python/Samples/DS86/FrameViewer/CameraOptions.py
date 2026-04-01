@@ -7,6 +7,7 @@ from API.VzenseDS_api import *
 import time
 
 from CameraState import camState
+from FilterState import filterState
 from FrameState import frameState
 import threading
 import numpy
@@ -108,9 +109,8 @@ def startCamera():
         ret_code, exposureStruct = camState.camera.VZ_GetExposureTime(VzSensorType.VzToFSensor)
         print('Exposure Time:', exposureStruct.exposureTime)
 
-        set_fps()
+        setFPS()
 
-        # set Mapper
         ret = camState.camera.VZ_SetTransformColorImgToDepthSensorEnabled(c_bool(True))
 
         if  ret == 0:
@@ -118,57 +118,13 @@ def startCamera():
         else:
             print("VZ_SetTransformColorImgToDepthSensorEnabled failed:",ret)    
 
-        ret,params = camState.camera.VZ_GetFlyingPixelFilterParams()
-        if  ret == 0:
-            print("The default FlyingPixelFilter switch is " + str(params.enable))
-        else:
-            print("VZ_GetFlyingPixelFilterParams failed:"+ str(ret))   
+        setFlyingPixelFilter(value = True) 
 
-        params.enable = True
-        ret = camState.camera.VZ_SetFlyingPixelFilterParams(params)
-        if  ret == 0:
-            print("Set FlyingPixelFilter switch to "+ str(params.enable) + " is Ok")   
-        else:
-            print("VZ_SetFlyingPixelFilterParams failed:"+ str(ret))   
+        setFillHoleFilter(value = True)
 
-        ret,enable = camState.camera.VZ_GetFillHoleFilterEnabled()
-        if  ret == 0:
-            print("The default FillHoleFilter switch is " + str(enable))
-        else:
-            print("VZ_GetFillHoleFilterEnabled failed:"+ str(ret))   
+        setSpatialFilter(value = True)
 
-        enable = True
-        ret = camState.camera.VZ_SetFillHoleFilterEnabled(enable)
-        if  ret == 0:
-            print("Set FillHoleFilter switch to "+ str(enable) + " is Ok")   
-        else:
-            print("VZ_SetFillHoleFilterEnabled failed:"+ str(ret))   
-
-        ret,enable = camState.camera.VZ_GetSpatialFilterEnabled()
-        if  ret == 0:
-            print("The default SpatialFilter switch is " + str(enable))
-        else:
-            print("VZ_GetSpatialFilterEnabled failed:"+ str(ret))   
-
-        enable = True
-        ret = camState.camera.VZ_SetSpatialFilterEnabled(enable)
-        if  ret == 0:
-            print("Set SpatialFilter switch to "+ str(enable) + " is Ok")   
-        else:
-            print("VZ_SetSpatialFilterEnabled failed:"+ str(ret))
-
-        ret,params = camState.camera.VZ_GetConfidenceFilterParams()
-        if  ret == 0:
-            print("The default ConfidenceFilter switch is " + str(params.enable))
-        else:
-            print("VZ_GetConfidenceFilterParams failed:"+ str(ret))
-
-        params.enable = False
-        ret = camState.camera.VZ_SetConfidenceFilterParams(params)
-        if  ret == 0:
-            print("Set ConfidenceFilter switch to "+ str(params.enable) + " is Ok")   
-        else:
-            print("VZ_SetConfidenceFilterParams failed:"+ str(ret))
+        setConfidenceFilter(value = False)  
     
         ret, intrParam = camState.camera.VZ_GetSensorIntrinsicParameters(VzSensorType.VzToFSensor)
         if ret != 0:
@@ -233,7 +189,7 @@ def stopCamera():
         else:
             return{"message": "Failed"}
     
-def set_fps():
+def setFPS():
     ret = camState.camera.VZ_SetFrameRate(camState.fps)
     if  ret == 0:
         print("Set frame rate is ok")   
@@ -299,8 +255,6 @@ def captureLoop():
                 frametmp.dtype = numpy.uint8
                 frametmp.shape = (colorframe.height, colorframe.width,3)
                 colorFrame = frametmp.copy()
-                #colorFrame = cv2.resize(colorFrame, (640, 480))
-                #cv2.circle(colorFrame, (int(800/2.5), int(608/2.5)), radius=3, color=(255, 0, 0), thickness=1)
 
             if hasColorToDepth == 1 and hasDepth == 1 and hasColor == 1:
                 frameState.colorToDepthFrame = colorToDepthFrame
@@ -338,41 +292,15 @@ def processHDR(colorToDepthFrame, depthFrame, colorFrame):
             stacked[~mask] = 0
             count = mask.sum(axis=0).clip(min=1)
             hdrColor = (stacked.sum(axis=0) / count).astype(numpy.uint8)
-            #stacked[~mask] = numpy.nan
-            #stacked_sorted = numpy.sort(stacked, axis=0)
-
-            #n = stacked_sorted.shape[0]
-            #if n % 2 == 1:
-            #    hdrColor = stacked_sorted[n // 2]
-            #else:
-            #    hdrColor = numpy.nanmean(stacked_sorted[n//2 - 1 : n//2 + 1], axis=0)
-
-            #hdrColor = numpy.nan_to_num(hdrColor, nan=0)
 
             frameState.colorToDepthFrameHDR = hdrColor
 
             # HDR DEPTH
             stacked_d = numpy.stack(depthArray, axis=0).astype(numpy.float32)
             mask_d = (stacked_d > 150) & (stacked_d <= 5000)
-            #stacked_d[~mask_d] = 0
-            #count_d = mask_d.sum(axis=0).clip(min=1)
-            #hdrDepth = (stacked_d.sum(axis=0) / count_d)
             stacked_d[~mask_d] = numpy.nan
-            #stacked_sorted = numpy.sort(stacked_d, axis=0)
-
-            #n = stacked_sorted.shape[0]
-            #if n % 2 == 1:
-            #    hdrDepth = stacked_sorted[n // 2]
-            #else:
-            #    hdrDepth = numpy.nanmean(stacked_sorted[n//2 - 1 : n//2 + 1], axis=0)
             hdrDepth = numpy.nanmedian(stacked_d, axis=0)
             hdrDepth = numpy.nan_to_num(hdrDepth, nan=0).astype(numpy.uint16)
-            
-            #stacked_sorted = numpy.sort(stacked_d, axis=0)
-            #trimmed = stacked_sorted[1:-1]
-            #count = numpy.sum(~numpy.isnan(trimmed), axis=0).clip(min=1)
-            #trimmed = numpy.nan_to_num(trimmed, nan=0)
-            #hdrDepth = (trimmed.sum(axis=0) / count).astype(numpy.uint16)
 
             frameState.depthFrameHDR = hdrDepth
 
@@ -381,3 +309,67 @@ def processHDR(colorToDepthFrame, depthFrame, colorFrame):
             camState.hdrIndex = 0
             colorArray = []
             depthArray = []
+
+def setFlyingPixelFilter(value: bool):
+    ret,params = camState.camera.VZ_GetFlyingPixelFilterParams()
+    if  ret == 0:
+        print("The default FlyingPixelFilter switch is " + str(params.enable))
+    else:
+        print("VZ_GetFlyingPixelFilterParams failed:"+ str(ret))   
+
+    params.enable = bool(value)
+
+    ret = camState.camera.VZ_SetFlyingPixelFilterParams(params)
+    if  ret == 0:
+        filterState.flyingPixelFilter = params.enable
+        print("Set FlyingPixelFilter switch to "+ str(params.enable) + " is Ok")   
+    else:
+        print("VZ_SetFlyingPixelFilterParams failed:"+ str(ret))
+
+def setFillHoleFilter(value: bool):
+    ret,enable = camState.camera.VZ_GetFillHoleFilterEnabled()
+    if  ret == 0:
+        print("The default FillHoleFilter switch is " + str(enable))
+    else:
+        print("VZ_GetFillHoleFilterEnabled failed:"+ str(ret))   
+
+    enable = bool(value)
+
+    ret = camState.camera.VZ_SetFillHoleFilterEnabled(enable)
+    if  ret == 0:
+        filterState.fillHoleFilter = enable
+        print("Set FillHoleFilter switch to "+ str(enable) + " is Ok")   
+    else:
+        print("VZ_SetFillHoleFilterEnabled failed:"+ str(ret)) 
+
+def setSpatialFilter(value: bool):
+    ret,enable = camState.camera.VZ_GetSpatialFilterEnabled()
+    if  ret == 0:
+        print("The default SpatialFilter switch is " + str(enable))
+    else:
+        print("VZ_GetSpatialFilterEnabled failed:"+ str(ret))   
+
+    enable = bool(value)
+    
+    ret = camState.camera.VZ_SetSpatialFilterEnabled(enable)
+    if  ret == 0:
+        filterState.spatialFilter = enable
+        print("Set SpatialFilter switch to "+ str(enable) + " is Ok")   
+    else:
+        print("VZ_SetSpatialFilterEnabled failed:"+ str(ret))
+
+def setConfidenceFilter(value: bool):
+    ret,params = camState.camera.VZ_GetConfidenceFilterParams()
+    if  ret == 0:
+        print("The default ConfidenceFilter switch is " + str(params.enable))
+    else:
+        print("VZ_GetConfidenceFilterParams failed:"+ str(ret))
+
+    params.enable = bool(value)
+
+    ret = camState.camera.VZ_SetConfidenceFilterParams(params)
+    if  ret == 0:
+        filterState.confidenceFilter = params.enable
+        print("Set ConfidenceFilter switch to "+ str(params.enable) + " is Ok")   
+    else:
+        print("VZ_SetConfidenceFilterParams failed:"+ str(ret))
