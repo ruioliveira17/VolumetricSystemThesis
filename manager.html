@@ -1129,7 +1129,7 @@
                     document.getElementById("height_value_label").innerText = volumeData.Bundle.z.toFixed(1) + " cm";
                 }
 
-                const imgResp = await fetch("http://10.0.30.175:8000/getFrame/colorToDepthObject");
+                const imgResp = await fetch("http://10.0.30.175:8000/getFrame/detectedObjectsFrame");
                 if (imgResp.status === 404) throw new Error("Frame not Available");
 
                 const blob = await imgResp.blob();
@@ -1226,7 +1226,7 @@
                 const dataResponse = await fetch('http://10.0.30.175:8000/getVolumeReal');
                 const volumeData = await dataResponse.json();
 
-                const imgResp = await fetch("http://10.0.30.175:8000/getFrame/colorToDepthObject");
+                const imgResp = await fetch("http://10.0.30.175:8000/getFrame/detectedObjectsFrame");
                 if (imgResp.status === 404) throw new Error("Frame not Available");
 
                 const blob = await imgResp.blob();
@@ -1433,7 +1433,7 @@
             }
 
             try {
-                await fetch("http://10.0.30.175:8000/camera/setValues", {
+                await fetch("http://10.0.30.175:8000/update_systemInfo", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"
@@ -1458,7 +1458,7 @@
             }
 
             try {
-                await fetch("http://10.0.30.175:8000/camera/setValues", {
+                await fetch("http://10.0.30.175:8000/update_systemInfo", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"
@@ -1739,12 +1739,12 @@
                     applyManualWSDraw();
                 }
                 // Color frame
-                const colorResp = await fetch("http://10.0.30.175:8000/getFrame/colorToDepthCopy");
+                const colorResp = await fetch("http://10.0.30.175:8000/getFrame/workspaceDetectedFrame");
                 const colorToDepthBlob = await colorResp.blob();
                 document.getElementById("calibration-colorToDepthimg").src = URL.createObjectURL(colorToDepthBlob);
 
                 // Mask frame
-                const maskResp = await fetch("http://10.0.30.175:8000/getFrame/result");
+                const maskResp = await fetch("http://10.0.30.175:8000/getFrame/maskFrame");
                 const maskBlob = await maskResp.blob();
                 document.getElementById("calibration-mask").src = URL.createObjectURL(maskBlob);
             }

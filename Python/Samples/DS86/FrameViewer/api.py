@@ -1,4 +1,5 @@
 #------------------------------------------------------   Imports    -------------------------------------------------------
+
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -78,8 +79,8 @@ class ColorCoords(BaseModel):
     y : int
 
 class SystemUpdate(BaseModel):
-    exposureTime: Optional[int] = Field(100, ge=100, le=4000)
-    colorSlope: Optional[int] = Field(150, ge=150, le=5000)
+    exposureTime: Optional[int] = Field(None, ge=100, le=4000)
+    colorSlope: Optional[int] = Field(None, ge=150, le=5000)
     workingMode: Optional[Literal["Static", "Dynamic"]] = None
     expositionMode: Optional[Literal["Fixed Exposition", "HDR"]] = None
     debugMode: Optional[Literal["On", "Off"]] = None
@@ -88,9 +89,6 @@ class SystemUpdate(BaseModel):
     spatialFilter: Optional[StrictBool] = None
     confidenceFilter: Optional[StrictBool] = None 
     fps: Optional[int] = Field(None, ge=1, le=15)
-#--------------------------------------------------------------------------------------------------------------------------
-
-
 
 #-----------------------------------------------------   Lifespan   -------------------------------------------------------
 
@@ -116,12 +114,12 @@ async def lifespan(app: FastAPI):
             camState.colorSlope = calib["colorSlope"]
             camState.exposureTime = calib["exposureTime"]
             frameState.calibrationColorFrame = cv2.imread(calib["calibrationColorFrame_path"])
-
+            
             print("Calibração carregada!")
+
         except Exception as e:
             print("Error loading calibration:", e)
             calib = None
-
     else:
         print("É necessário realizar calibração!")
 
@@ -131,7 +129,6 @@ async def lifespan(app: FastAPI):
 
     #SHUTDOWN
     print("API a desligar")
-
     stopCamera()
 
 #----------------------------------------------------   Criar App   -------------------------------------------------------
@@ -197,31 +194,8 @@ def register(register_data: RegisterData):
 
     return {"message": "Utilizador criado com sucesso!"}
 
-#-------------------------------------------------------   Camera   -------------------------------------------------------
+#-------------------------------------------------------   Stream   -------------------------------------------------------
 
-@app.post("/camera/setValues", summary="Set Camera Values",
-          description="""
-          Updates the camera's exposure time and color slope based on the values provided.
-
-          All parameters are optional, allowing partial updates.
-
-          Restrictions:
-          - Exposure Time must be between 100 and 4000.
-          - Color Slope must be between 150 and 5000.
-          """,
-          tags=["Camera"])
-def set_camera_values(data: CamValues):
-    if data.exposureTime is not None:
-        camState.exposureTime = data.exposureTime
-        camState.camera.VZ_SetExposureTime(VzSensorType.VzToFSensor, c_int32(camState.exposureTime))
-    if data.colorSlope is not None:
-        camState.colorSlope = data.colorSlope
-
-    return {
-        "Status": "Successful"
-    }
-
-#-------------------------------------------------------   Frame   -------------------------------------------------------
 @app.get('/rgb', summary="RGB Stream",
           description="""
           Starts streaming the RGB feed from the camera. The RGB stream is a video capture of the scene by the RGB camera.
@@ -232,7 +206,7 @@ def rgb_feed(request: Request):
 
 @app.get('/calibrationCTD', summary="ColorToDepth Stream",
           description="""
-          Starts streaming the ColorToDepth feed from the camera. The ColorToDepth stream is a video capture of the scene by the depth camera and transformed into color by the software. The image shows a rectangle that represents the workspace detection area defined by the color mask.
+          Starts streaming the ColorToDepth feed from the camera. The ColorToDepth stream is a video capture of the scene by the Depth camera and transformed into color by the software. The image shows a rectangle that represents the workspace detection area defined by the color mask.
           """,
           tags=["Stream"])
 def calibrationCTD_feed(request: Request):
@@ -240,14 +214,20 @@ def calibrationCTD_feed(request: Request):
 
 @app.get('/calibrationMask', summary="Color Mask Stream",
           description="""
-          Starts streaming the Color Mask feed from the camera. The Color Mask stream is a video capture of the scene by the depth camera and transformed into color by the software. The image has a mask applied to only show a range of the HSV space selected by the user.
+          Starts streaming the Color Mask feed from the camera. The Color Mask stream is a video capture of the scene by the Depth camera and transformed into color by the software. The image has a mask applied to only show a range of the HSV space selected by the user.
           """,
           tags=["Stream"])
 def calibrationMask_feed(request: Request):
     return StreamingResponse(generateCalibrationMask_Stream(), media_type='multipart/x-mixed-replace; boundary=frame')
 
-@app.get("/getFrame/color")
-def get_Color_Frame():
+#-------------------------------------------------------   Frame   -------------------------------------------------------
+
+@app.get("/getFrame/color", summary="Get Color Frame",
+         description="""
+         Grabs the latest color frame captured by the camera and returns it as a PNG image. If no frame is available, it returns an error message.
+         """,
+         tags=["Frame"])
+def getColorFrame():
     colorFrame = frameState.colorFrame 
     if colorFrame is None:
         return {"error": "No color frame available"}
@@ -267,8 +247,12 @@ def get_Color_Frame():
     return Response(content=buf.read(), media_type="image/png")
     #return Response(content=frameState.colorFrame.tobytes(), media_type="application/octet-stream")
 
-@app.get("/getFrame/colorToDepth")
-def get_ColorToDepth_Frame():
+@app.get("/getFrame/colorToDepth", summary="Get ColorToDepth Frame",
+         description="""
+         Grabs the latest depth frame converted to color captured by the camera and returns it as a PNG image. If no frame is available, it returns an error message.
+         """,
+         tags=["Frame"])
+def getColorToDepthFrame():
     colorToDepthFrame = frameState.colorToDepthFrame
     if colorToDepthFrame is None:
         return {"error": "No colorToDepth frame available"}
@@ -288,8 +272,12 @@ def get_ColorToDepth_Frame():
     return Response(content=buf.read(), media_type="image/png")
     #return Response(content=frameState.colorToDepthFrame.tobytes(), media_type="application/octet-stream")
 
-@app.get("/getFrame/depth")
-def get_Depth_Frame():
+@app.get("/getFrame/depth", summary="Get Depth Frame",
+         description="""
+         Grabs the latest depth frame captured by the camera and returns it as a PNG image. If no frame is available, it returns an error message.
+         """,
+         tags=["Frame"])
+def getDepthFrame():
     depthFrame = frameState.depthFrame
     if depthFrame is None:
         return {"error": "No depth frame available"}
@@ -319,22 +307,26 @@ def get_Depth_Frame():
     return Response(buf.read(), media_type="image/png")
     #return Response(content=frameState.depthFrame.tobytes(), media_type="application/octet-stream")
 
-@app.get("/getFrame/colorToDepthCopy")
-def get_ColorToDepth_Frame_Copy():
-    colorToDepthFrameCopy = frameState.colorToDepthFrameCopy
+@app.get("/getFrame/workspaceDetectedFrame", summary="Get Workspace Detected Frame",
+         description="""
+         Grabs the latest color to depth frame captured by the camera and applies an algorithm that makes the workspace visible to the user and returns it as a PNG image. If no frame is available, it returns an error message.
+         """,
+         tags=["Frame"])
+def getWorkspaceDetectedFrame():
+    workspaceDetectedFrame = frameState.workspaceDetectedFrame
 
-    if colorToDepthFrameCopy is None:
-        colorToDepthFrameCopy = frameState.colorToDepthFrame
-        if colorToDepthFrameCopy.dtype != numpy.uint8:
+    if workspaceDetectedFrame is None:
+        workspaceDetectedFrame = frameState.colorToDepthFrame
+        if workspaceDetectedFrame.dtype != numpy.uint8:
             # Normaliza caso não seja uint8
-            colorToDepthFrameCopy = (numpy.clip(colorToDepthFrameCopy, 0, 1) * 255).astype(numpy.uint8)
+            workspaceDetectedFrame = (numpy.clip(workspaceDetectedFrame, 0, 1) * 255).astype(numpy.uint8)
     else:
-        if colorToDepthFrameCopy.dtype != numpy.uint8:
+        if workspaceDetectedFrame.dtype != numpy.uint8:
             # Normaliza caso não seja uint8
-            colorToDepthFrameCopy = (numpy.clip(colorToDepthFrameCopy, 0, 1) * 255).astype(numpy.uint8)
+            workspaceDetectedFrame = (numpy.clip(workspaceDetectedFrame, 0, 1) * 255).astype(numpy.uint8)
     
     # Converte BGR -> RGB
-    img_rgb = colorToDepthFrameCopy[:, :, ::-1]
+    img_rgb = workspaceDetectedFrame[:, :, ::-1]
     pil_img = Image.fromarray(img_rgb)
 
     # Salva em PNG na memória
@@ -343,24 +335,24 @@ def get_ColorToDepth_Frame_Copy():
     buf.seek(0)
 
     return Response(content=buf.read(), media_type="image/png")
-    #return Response(content=frameState.colorToDepthFrameCopy.tobytes(), media_type="application/octet-stream")
+    #return Response(content=frameState.workspaceDetectedFrame.tobytes(), media_type="application/octet-stream")
 
-#@app.get("/getFrame/depthCopy")
-#def get_Depth_Frame_Copy():
-#    return Response(content=frameState.depthFrameCopy.tobytes(), media_type="application/octet-stream")
-
-@app.get("/getFrame/result")
-def get_Result():
-    result = frameState.res
-    if result is None:
-        result = numpy.zeros((480, 640, 3), dtype=numpy.uint8)
+@app.get("/getFrame/maskFrame", summary="Get Mask Frame",
+         description="""
+         Grabs the latest color to depth frame captured by the camera and applies a mask that makes a color space visible to the user and returns it as a PNG image. If no frame is available, it returns an error message.
+         """,
+         tags=["Frame"])
+def getMaskFrame():
+    maskFrame = frameState.maskFrame
+    if maskFrame is None:
+        maskFrame = numpy.zeros((480, 640, 3), dtype=numpy.uint8)
     
-    if result.dtype != numpy.uint8:
+    if maskFrame.dtype != numpy.uint8:
         # Normaliza caso não seja uint8
-        result = (numpy.clip(result, 0, 1) * 255).astype(numpy.uint8)
+        maskFrame = (numpy.clip(maskFrame, 0, 1) * 255).astype(numpy.uint8)
     
     # Converte BGR -> RGB
-    img_rgb = result[:, :, ::-1]
+    img_rgb = maskFrame[:, :, ::-1]
     pil_img = Image.fromarray(img_rgb)
 
     # Salva em PNG na memória
@@ -370,20 +362,24 @@ def get_Result():
 
     return Response(content=buf.read(), media_type="image/png")
 
-    #return Response(content=frameState.result.tobytes(), media_type="application/octet-stream")
+    #return Response(content=frameState.maskFrame.tobytes(), media_type="application/octet-stream")
 
-@app.get("/getFrame/colorToDepthObject")
-def get_ColorToDepth_Frame_Object():
-    colorToDepthFrameObject = frameState.colorToDepthFrameObject
-    if colorToDepthFrameObject is None:
+@app.get("/getFrame/detectedObjectsFrame", summary="Get Detected Objects Frame",
+         description="""
+         Grabs the latest color frame captured by the camera and applies an algorithm that makes the detected objects visible to the user and returns it as a PNG image. If no frame is available, it returns an error message.
+         """,
+         tags=["Frame"])
+def getDetectedObjectsFrame():
+    detectedObjectsFrame = frameState.detectedObjectsFrame
+    if detectedObjectsFrame is None:
         raise HTTPException(status_code=404, detail="Frame not available")
     
-    if colorToDepthFrameObject.dtype != numpy.uint8:
+    if detectedObjectsFrame.dtype != numpy.uint8:
         # Normaliza caso não seja uint8
-        colorToDepthFrameObject = (numpy.clip(colorToDepthFrameObject, 0, 1) * 255).astype(numpy.uint8)
+        detectedObjectsFrame = (numpy.clip(detectedObjectsFrame, 0, 1) * 255).astype(numpy.uint8)
     
     # Converte BGR -> RGB
-    img_rgb = colorToDepthFrameObject[:, :, ::-1]
+    img_rgb = detectedObjectsFrame[:, :, ::-1]
     pil_img = Image.fromarray(img_rgb)
 
     # Salva em PNG na memória
@@ -392,9 +388,13 @@ def get_ColorToDepth_Frame_Object():
     buf.seek(0)
 
     return Response(content=buf.read(), media_type="image/png")
-    #return Response(content=frameState.colorToDepthFrameObject.tobytes(), media_type="application/octet-stream")
+    #return Response(content=frameState.detectedObjectsFrame.tobytes(), media_type="application/octet-stream")
 
-@app.get("/getFrame/HDRcolor")
+@app.get("/getFrame/HDRcolor", summary="Get HDR Color Frame",
+         description="""
+         Grabs the HDR color frame provided by an algorithm that captures multiple exposures and returns it as a PNG image. If no frame is available, it returns an error message.
+         """,
+         tags=["Frame"])
 def get_Color_HDRFrame():
     colorFrameHDR = frameState.colorFrameHDR
     if colorFrameHDR is None:
@@ -416,7 +416,11 @@ def get_Color_HDRFrame():
     return Response(content=buf.read(), media_type="image/png")
     #return Response(content=frameState.colorFrameHDR.tobytes(), media_type="application/octet-stream")
 
-@app.get("/getFrame/HDRcolorToDepth")
+@app.get("/getFrame/HDRcolorToDepth", summary="Get HDR ColorToDepth Frame",
+         description="""
+         Grabs the HDR depth frame provided by an algorithm that captures multiple exposures converted to color and returns it as a PNG image. If no frame is available, it returns an error message.
+         """,
+         tags=["Frame"])
 def get_ColorToDepth_HDRFrame():
     colorToDepthFrameHDR = frameState.colorToDepthFrameHDR
     if colorToDepthFrameHDR is None:
@@ -438,7 +442,11 @@ def get_ColorToDepth_HDRFrame():
     return Response(content=buf.read(), media_type="image/png")
     #return Response(content=frameState.colorToDepthFrameHDR.tobytes(), media_type="application/octet-stream")
 
-@app.get("/getFrame/HDRdepth")
+@app.get("/getFrame/HDRdepth", summary="Get HDR Depth Frame",
+         description="""
+         Grabs the HDR depth frame provided by an algorithm that captures multiple exposures and returns it as a PNG image. If no frame is available, it returns an error message.
+         """,
+         tags=["Frame"])
 def get_Depth_HDRFrame():
     depthFrameHDR = frameState.depthFrameHDR
     if depthFrameHDR is None:
@@ -472,12 +480,29 @@ def get_Depth_HDRFrame():
     #return Response(content=frameState.depthFrameHDR.tobytes(), media_type="application/octet-stream")
 
 #-------------------------------------------------------   Mask    -------------------------------------------------------
-@app.post("/mask/color")
+@app.post("/mask/color", summary="Set Mask Color",
+         description="""
+         Sets the color for the mask. This color can only be one of the predefined colors in the dropdown menu.
+         """,
+         tags=["Mask"])
 def set_maskColor(data: HSVValue):
     maskState.color = data.color
     return{"color": maskState.color}
 
-@app.post("/mask/colorClick")
+@app.post("/mask/optionSelected", summary="Set Mask Option",
+         description="""
+         Sets the option for the color of the mask. This option can only be one of the predefined ones in the dropdown menu. If it is set to "Select a Point", the user can click on the image to detect the color of the point. If it is set to any other option, that color will be used for the mask.
+         """,
+         tags=["Mask"])
+def set_maskOption(data: HSVValue):
+    maskState.optionSelected = data.optionSelected
+    return{"color": maskState.optionSelected}
+
+@app.post("/mask/colorClick", summary="Set Mask Color Through a Click",
+         description="""
+         Sets the color for the mask through a click on the image. This only works if the option "Select a Point" is selected.
+         """,
+         tags=["Mask"])
 def clickSet_maskColor(data: ColorCoords):
     x, y = data.x, data.y
     b, g, r = frameState.colorToDepthFrame[y, x]
@@ -516,12 +541,11 @@ def clickSet_maskColor(data: ColorCoords):
         maskState.color = closest_color
     return{"color": maskState.color}
 
-@app.post("/mask/optionSelected")
-def set_maskColor(data: HSVValue):
-    maskState.optionSelected = data.optionSelected
-    return{"color": maskState.optionSelected}
-
-@app.get("/mask")
+@app.get("/mask", summary="Get Mask Parameters",
+         description="""
+         Retrieves the HSV color space parameters for the selected color.
+         """,
+         tags=["Mask"])
 def get_mask():
     if maskState.color != "Select a Point":
         preset = COLOR_PRESETS[maskState.color]
@@ -542,7 +566,11 @@ def get_mask():
         "optionSelected": maskState.optionSelected
     }
 
-@app.post("/applyMask")
+@app.post("/applyMask", summary="Apply Mask",
+         description="""
+         It uses the HSV color space defined previously to apply a mask to the latest color to depth frame. An algorithm makes the changes necessary to the image to show correctly the workspaceDetectedFrame and the maskFrame to the user. If the mask application is successful, it returns a success message. Otherwise, it returns an error message.
+         """,
+         tags=["Mask"])
 def apply_mask(data: HSVValue):
     lower = (data.hmin, data.smin, data.vmin)
     upper = (data.hmax, data.smax, data.vmax)
@@ -552,19 +580,24 @@ def apply_mask(data: HSVValue):
     else:
         colorToDepthFrame = frameState.colorToDepthFrameHDR
 
-    result, colorToDepthFrame_copy, detection_area = maskAPI(colorToDepthFrame, lower, upper, maskState.color, int(camState.cx_d), int(camState.cy_d))
+    maskFrame, workspaceDetectedFrame, detection_area = maskAPI(colorToDepthFrame, lower, upper, maskState.color, int(camState.cx_d), int(camState.cy_d))
 
-    if result is None or colorToDepthFrame_copy is None:
+    if maskFrame is None or workspaceDetectedFrame is None:
         return{"message:": "Mask application failed!"}
 
-    frameState.res = result
-    frameState.colorToDepthFrameCopy = colorToDepthFrame_copy
+    frameState.maskFrame = maskFrame
+    frameState.workspaceDetectedFrame = workspaceDetectedFrame
     workspaceState.detection_area = detection_area.reshape((-1, 2)).tolist() if isinstance(detection_area, numpy.ndarray) else detection_area
     
     return{"message:": "Mask applied with success"}
 
 #------------------------------------------------------- Manual WS -------------------------------------------------------
-@app.post("/applyManualWorkspace")
+
+@app.post("/applyManualWorkspace", summary="Applies Manual Workspace",
+         description="""
+         Allows the user to change the workspace detection area manually by providing a list of coordinates that represent the vertices of a polygon. An algorithm makes the changes necessary to the image to show correctly the workspaceDetectedFrame to the user with the new workspace defined. If the workspace application is successful, it returns a success message. Otherwise, it returns an error message.
+         """,
+         tags=["Mask"])
 def apply_manualWS(data: ManualWorkspace):
     if frameState.colorToDepthFrameHDR is None or modeState.expositionMode == "Fixed Exposition":
         colorToDepthFrame = frameState.colorToDepthFrame
@@ -573,13 +606,23 @@ def apply_manualWS(data: ManualWorkspace):
 
     detection_area = numpy.array(data.detection_area, dtype=int).reshape((-1, 2))
 
-    colorToDepthFrame_copy, detection_area = manualWorkspaceDraw(colorToDepthFrame, detection_area, int(camState.cx_d), int(camState.cy_d))
+    workspaceDetectedFrame, detection_area = manualWorkspaceDraw(colorToDepthFrame, detection_area, int(camState.cx_d), int(camState.cy_d))
 
-    frameState.colorToDepthFrameCopy = colorToDepthFrame_copy
-    workspaceState.detection_area = detection_area.tolist() 
+    if workspaceDetectedFrame is None:
+        return{"message:": "Mask application failed!"}
+
+    frameState.workspaceDetectedFrame = workspaceDetectedFrame
+    workspaceState.detection_area = detection_area.tolist()
+
+    return{"message:": "Mask applied with success"}
+
 #------------------------------------------------------- Calibrate -------------------------------------------------------
 
-@app.post("/calibrate")
+@app.post("/calibrate", summary="Calibrates the Workspace",
+         description="""
+         Calibrates the workspace using the mask obtained previously. If all the conditions are met, the workspace parameters are saved and can be used in the future without the need of recalibration. If the calibration is successful, it returns a success message. Otherwise, it returns an error message.
+         """,
+         tags=["Calibration"])
 def calibrate(data: HSVValue):
     lower = (data.hmin, data.smin, data.vmin)
     upper = (data.hmax, data.smax, data.vmax)
@@ -616,8 +659,12 @@ def calibrate(data: HSVValue):
 
     return {"message:": "Calibration sucessfully done"}
 
-@app.get("/calibrate/params")
-def get_calibration_parameters():
+@app.get("/calibrate/params", summary="Gets the Calibration Parameters",
+         description="""
+         Retrieves the calibration parameters for the workspace. These parameters define the characteristics of the calibrated workspace.
+         """,
+         tags=["Calibration"])
+def getCalibrationParameters():
     return {
         "Detection Area": [
             [int(x), int(y)] for x, y in workspaceState.detection_area
@@ -625,63 +672,105 @@ def get_calibration_parameters():
         "Workspace Depth": workspaceState.workspace_depth,
     }
 
-@app.get("/calibrate/flags")
-def get_calibration_flags():
+@app.get("/calibrate/flags", summary="Gets the Calibration Flags",
+         description="""
+         Retrieves the calibration flags for the workspace. These flags indicate the status of the calibration. This information is useful to understand what failed during calibration - wether the workspace is not centered or if there are objects in the workspace during calibration, for example.
+         """,
+         tags=["Calibration"])
+def getCalibrationFlags():
     return {
         "Center Aligned": workspaceState.center_aligned,
         "Workspace Clear": workspaceState.workspace_clear,
     }
 
-@app.get("/calibrate/mode")
-def get_calMode():
+#--------------------------------------------------- Calibration Mode --------------------------------------------------
+
+@app.get("/calibrate/mode", summary="Gets the Calibration Mode",
+         description="""
+         Retrieves the current calibration mode. The calibration mode can be either "Automatic" or "Manual". The "Automatic" mode performs the calibration using an algorithm that detects the workspace and calibrates it without user intervention. The "Manual" mode allows the user to define the workspace detection area manually by providing a list of coordinates that represent the vertices of a polygon.
+         """,
+         tags=["Using Modes"])
+def getCalibrationMode():
     return{
         "Calibrate Mode": modeState.calibrationMode,
     }
 
-@app.post("/calibrate/mode/automatic")
+@app.post("/calibrate/mode/automatic", summary="Sets the Calibration Mode to Automatic",
+         description="""
+         Sets the calibration mode to "Automatic".
+         """,
+         tags=["Using Modes"])
 def automaticCalibration():
     modeState.calibrationMode = "Automatic"
     return {"mode:": modeState.calibrationMode}
 
-@app.post("/calibrate/mode/manual")
+@app.post("/calibrate/mode/manual", summary="Sets the Calibration Mode to Manual",
+         description="""
+         Sets the calibration mode to "Manual".
+         """,
+         tags=["Using Modes"])
 def manualCalibration():
     modeState.calibrationMode = "Manual"
     return {"mode:": modeState.calibrationMode}
 
 #---------------------------------------------------- Working Mode -----------------------------------------------------
 
-@app.get("/mode")
+@app.get("/mode", summary="Gets the Working Mode",
+         description="""
+         Retrieves the current working mode. The working mode can be either "Static" or "Dynamic".
+         """,
+         tags=["Using Modes"])
 def get_mode():
     return{
         "Mode": modeState.mode,
     }
 
-@app.post("/mode/static")
+@app.post("/mode/static", summary="Sets the Working Mode to Static",
+         description="""
+         Sets the working mode to "Static".
+         """,
+         tags=["Using Modes"])
 def static():
     modeState.mode = "Static"
     return {"mode:": modeState.mode}
 
-@app.post("/mode/dynamic")
+@app.post("/mode/dynamic", summary="Sets the Working Mode to Dynamic",
+         description="""
+         Sets the working mode to "Dynamic".
+         """,
+         tags=["Using Modes"])
 def dynamic():
     modeState.mode = "Dynamic"
     return {"mode:": modeState.mode}
 
 #--------------------------------------------------- Exposition Mode --------------------------------------------------
 
-@app.get("/expositionMode")
+@app.get("/expositionMode", summary="Gets the Exposition Mode",
+         description="""
+         Retrieves the current exposition mode. The exposition mode can be either "Fixed Exposition" or "HDR". The "Fixed Exposition" mode captures frames with a fixed exposure time defined by the user. The "HDR" mode captures multiple frames with different exposure times and combines them to create a single frame with a higher dynamic range.
+         """,
+         tags=["Using Modes"])
 def get_expMode():
     return{
         "Exposition Mode": modeState.expositionMode,
     }
 
-@app.post("/expositionMode/fixed")
+@app.post("/expositionMode/fixed", summary="Sets the Exposition Mode to Fixed Exposition",
+         description="""
+         Sets the exposition mode to "Fixed Exposition".
+         """,
+         tags=["Using Modes"])
 def fixedExp():
     modeState.expositionMode = "Fixed Exposition"
     camState.hdrEnabled = False
     camState.camera.VZ_SetExposureTime(VzSensorType.VzToFSensor, c_int32(camState.exposureTime))
     return {"Exposition Mode:": modeState.expositionMode}
 
-@app.post("/expositionMode/hdr")
+@app.post("/expositionMode/hdr", summary="Sets the Exposition Mode to HDR",
+         description="""
+         Sets the exposition mode to "HDR".
+         """,
+         tags=["Using Modes"])
 def hdrExp():
     modeState.expositionMode = "HDR"
     
@@ -854,18 +943,30 @@ def get_Objects_OutOfLine():
 
 #------------------------------------------------------- Debug -------------------------------------------------------
 
-@app.get("/debugMode")
+@app.get("/debugMode", summary="Gets the Debug Mode",
+         description="""
+         Retrieves the current debug mode. The debug mode can be either "On" or "Off". When the debug mode is "On", additional information about the system's operation is provided, which can be useful for troubleshooting and understanding the internal workings of the system. When the debug mode is "Off", only essential information is provided, which can help to improve performance and reduce clutter in the output.
+         """,
+         tags=["Using Modes"])
 def get_debugMode():
     return{
         "Debug Mode": modeState.debugMode,
     }
 
-@app.post("/debugMode/off")
+@app.post("/debugMode/off", summary="Sets the Debug Mode to Off",
+         description="""
+         Sets the debug mode to "Off".
+         """,
+         tags=["Using Modes"])
 def debugOff():
     modeState.debugMode = "Off"
     return {"Debug Mode:": modeState.debugMode}
 
-@app.post("/debugMode/on")
+@app.post("/debugMode/on", summary="Sets the Debug Mode to On",
+         description="""
+         Sets the debug mode to "On".
+         """,
+         tags=["Using Modes"])
 def debugOn():
     modeState.debugMode = "On"
     return {"Debug Mode:": modeState.debugMode}

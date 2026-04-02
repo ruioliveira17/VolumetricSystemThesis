@@ -34,7 +34,7 @@ def generateDepth_Stream():
 
 def generateCalibrationCTD_Stream():
     while True:
-        frame = frameState.colorToDepthFrameCopy
+        frame = frameState.workspaceDetectedFrame
         if frame is not None:
             if frame.dtype != numpy.uint8:
                 frame = (numpy.clip(frame, 0, 1) * 255).astype(numpy.uint8)
@@ -45,7 +45,7 @@ def generateCalibrationCTD_Stream():
 
 def generateCalibrationMask_Stream():
     while True:
-        frame = frameState.res
+        frame = frameState.maskFrame
         if frame is not None:
             if frame.dtype != numpy.uint8:
                 frame = (numpy.clip(frame, 0, 1) * 255).astype(numpy.uint8)

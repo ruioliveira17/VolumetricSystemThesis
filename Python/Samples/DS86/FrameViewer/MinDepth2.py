@@ -21,6 +21,9 @@ def MinDepthAPI(depthFrame, detection_area, workspace_depth, threshold, not_set,
 
     pts_m = []
 
+    prev_lower = 5000
+    flag = False
+
     try:
         pts_pixels = detection_area
 
@@ -85,6 +88,10 @@ def MinDepthAPI(depthFrame, detection_area, workspace_depth, threshold, not_set,
                     #neighbors = depth_copy[max(0, y-7):y+8, max(0, x-7):x+8]
                     #neighbors = depth_copy[max(0, y-1):y+2, max(0, x-1):x+2]
                     neighbors = depth_copy[max(0, y-2):y+3, max(0, x-2):x+3]
+                    #neighbors = depth_copy[max(0, y-4):y+5, max(0, x-4):x+5]
+
+                    if min_value + threshold > prev_lower:
+                        flag = True
 
                     object_depth = min_value
 
@@ -92,7 +99,12 @@ def MinDepthAPI(depthFrame, detection_area, workspace_depth, threshold, not_set,
                     if cv2.pointPolygonTest(detection_area_poly, (x, y), False) >= 0:
                         #if (2705 - threshold <= min_value <= 2705 + threshold):
                         #    print("Inside!")
-                        valid_count = numpy.sum(numpy.abs(neighbors - min_value) <= threshold)
+                        if flag:
+                            valid_mask = (neighbors >= min_value - threshold) & (neighbors <= min_value + threshold)
+                        else:
+                            valid_mask = (neighbors >= min_value - threshold) & (neighbors <= prev_lower)
+                        #valid_count = numpy.sum(numpy.abs(neighbors - min_value) <= threshold)
+                        valid_count = numpy.sum(valid_mask)
                         total_count = neighbors.size
                         #if (2705 - threshold <= min_value <= 2705 + threshold):
                         #    print("Valid:", valid_count)
@@ -111,6 +123,8 @@ def MinDepthAPI(depthFrame, detection_area, workspace_depth, threshold, not_set,
                                 print("Profundidade:", min_value)
                                 workspace_limits = []
                                 workspace_warning = []
+
+                                prev_lower = min_value - threshold
                                 
                                 pts_pixels = detection_area
                                 

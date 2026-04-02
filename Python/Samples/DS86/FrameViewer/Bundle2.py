@@ -134,7 +134,15 @@ def bundleIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColor
 
             workspace_area2 = cv2.bitwise_and(depthFrame, depthFrame, mask=mask)
 
-            mask = (workspace_area2 >= (obj["depth"] - threshold)) & (workspace_area2 <= (obj["depth"] + threshold))
+            if i == 0:
+                mask = (workspace_area2 >= (obj["depth"] - threshold)) & (workspace_area2 <= (obj["depth"] + threshold))
+            else:
+                if (obj["depth"] - threshold) < (objects_info[i-1]["depth"] + threshold):
+                    print("Limite Inferior")
+                    mask = (workspace_area2 >= (objects_info[i-1]["depth"] + threshold)) & (workspace_area2 <= (obj["depth"] + threshold))
+                else:
+                    print("É igual")
+                    mask = (workspace_area2 >= (obj["depth"] - threshold)) & (workspace_area2 <= (obj["depth"] + threshold))
 
             #depth_filtered = numpy.where(mask, workspace_area2, 0).astype(numpy.uint16)
 
@@ -279,7 +287,7 @@ def bundleIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColor
         #cv2.drawContours(colorToDepth_copy, [box], 0,  (0, 255, 0), 2)
     
     colorToDepth_copy2 = cv2.resize(colorToDepth_copy2, (640, 480))
-    frameState.colorToDepthFrameObject = colorToDepth_copy2
+    frameState.detectedObjectsFrame = colorToDepth_copy2
     #cv2.imwrite("Bundle.png", colorToDepth_copy2)
     print("Número Objetos:", len(box_limits))
     print("OutOfLine", object_outOfLine)
@@ -323,19 +331,17 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
 
             workspace_area2 = cv2.bitwise_and(depthFrame, depthFrame, mask=mask)
 
-            mask = (workspace_area2 >= (obj["depth"] - threshold)) & (workspace_area2 <= (obj["depth"] + threshold))
-
-            #depth_filtered = numpy.where(mask, workspace_area2, 0).astype(numpy.uint16)
-
-            #depth_img = depthImg(depth_filtered, colorSlope)
-
-            #gray = cv2.cvtColor(depth_img, cv2.COLOR_BGR2GRAY)
-        
-            #blur = cv2.GaussianBlur(gray, (5,5), 0)
+            if i == 0:
+                mask = (workspace_area2 >= (obj["depth"] - threshold)) & (workspace_area2 <= (obj["depth"] + threshold))
+            else:
+                if (obj["depth"] - threshold) < (objects_info[i-1]["depth"] + threshold):
+                    print("Limite Inferior")
+                    mask = (workspace_area2 >= (objects_info[i-1]["depth"] + threshold)) & (workspace_area2 <= (obj["depth"] + threshold))
+                else:
+                    print("É igual")
+                    mask = (workspace_area2 >= (obj["depth"] - threshold)) & (workspace_area2 <= (obj["depth"] + threshold))
             
             binary = mask.astype(numpy.uint8) * 255
-            #_, binary = cv2.threshold(blur, 90, 255, cv2.THRESH_BINARY)
-            #_, binary = cv2.threshold(blur, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
 
             # Remove ruído pequeno
             element_open = numpy.ones((3, 3), numpy.uint8)
@@ -345,22 +351,8 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
             element_close = numpy.ones((7, 7), numpy.uint8)
             binary = cv2.morphologyEx(binary, cv2.MORPH_CLOSE, element_close)
 
-            #element_erode = numpy.ones((3, 3), numpy.uint8)
-            #binary = cv2.erode(binary, element_erode, iterations=1)
-
-            #binary = cv2.medianBlur(binary, 5)
-
-            #invBinary = cv2.bitwise_not(binary)
-
-            #element = numpy.ones((3, 3), numpy.uint8)
-            #morf = cv2.morphologyEx(invBinary, cv2.MORPH_GRADIENT, element)
-
             contour, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-            #contour, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
-            #shifted_contours = [c + numpy.array([[[x1, y1]]], dtype=numpy.int32) for c in contour]
             
-            #shifted_contours_sorted = sorted(shifted_contours, key=lambda x: len(x), reverse=True)
             shifted_contours_sorted = sorted(contour, key=lambda x: len(x), reverse=True)
 
             #cv2.imwrite(f"debug_morf{i}.png", morf)
@@ -387,6 +379,7 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
             print("-------------------------------------------------------------------")
 
             for c in shifted_contours_sorted:
+                belongs_to_previous = False
                 rect = cv2.minAreaRect(c)
                 box = cv2.boxPoints(rect)
                 print("Box :", box)
@@ -422,7 +415,7 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
                             print("Too Close")
                             break
                         print("Não pertence")
-                        belongs_to_previous = False
+                        
                     if belongs_to_previous:
                         break
                 if not belongs_to_previous:
@@ -436,10 +429,7 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
                         if cv2.pointPolygonTest(ws_poly, (x, y), False) < 0:
                             value = True
                             break
-                    #if ((bbox_c[0] < workspace_warning[0]) or (bbox_c[1] > workspace_warning[2]) or (bbox_c[2] < workspace_warning[1]) or (bbox_c[3] > workspace_warning[3])):
-                    #    value = True
-                    #else:
-                    #    value = False
+
                     if not value:
                         correct_shifted_contours = []
                         correct_shifted_contours.append(c)
@@ -449,21 +439,23 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
                         contours.append([all_shifted_contours])
                         box_ws.append(obj["workspace_limits"])
 
-                        #mask = numpy.zeros(depthFrame.shape, dtype=numpy.uint8)
-                        #cv2.drawContours(mask, [c], contourIdx=-1, color=1, thickness=-1)
-                        #valid_mask = (
-                        #    (mask == 1) &
-                        #    (depthFrame > 0 + threshold) &
-                        #    (depthFrame < workspace_depth - threshold)
-                        #)
+                        mask = numpy.zeros(depthFrame.shape, dtype=numpy.uint8)
+                        kernel = numpy.ones((10, 10), dtype=numpy.uint8)
+                        mask = cv2.erode(mask, kernel, iterations=1)
+                        cv2.drawContours(mask, [c], contourIdx=-1, color=1, thickness=-1)
+                        valid_mask = (
+                            (mask == 1) &
+                            (depthFrame > 150) &
+                            (depthFrame < workspace_depth - threshold)
+                        )
 
-                        #depth_values = depthFrame[valid_mask]
+                        depth_values = depthFrame[valid_mask]
                         #print("Depth Values:", depth_values)
-                        #mean_depth = numpy.mean(depth_values)
-                        #print("Mean Depth:", mean_depth)
+                        mean_depth = numpy.mean(depth_values)
+                        print("Mean Depth:", mean_depth)
 
-                        #depths.append(mean_depth)
-                        depths.append(obj["depth"])
+                        depths.append(mean_depth)
+                        #depths.append(obj["depth"])
 
                     object_outOfLine.append(value)
 
@@ -478,8 +470,6 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
             box_scaled[:,1] = (box[:,1] - cy_d) * Sy + cy_rgb #+ (offset_y_959mm_depth * or_depth_offset)/workspace_depth
             box_scaled = numpy.round(box_scaled).astype(numpy.int32)
             
-            #cv2.drawContours(colorToDepth_copy2, [box_scaled + [int(abs((cx_rgb) - cx_d*2.5)), int(abs((cy_rgb) - cy_d*2.5))]], 0, (0, 0, 0), 16)
-            #cv2.drawContours(colorToDepth_copy2, [box_scaled + [int(abs((cx_rgb) - cx_d*2.5)), int(abs((cy_rgb) - cy_d*2.5))]], 0, (255, 255, 0), 8)
             cv2.drawContours(colorToDepth_copy2, [box_scaled], 0, (0, 0, 0), 16)
             cv2.drawContours(colorToDepth_copy2, [box_scaled], 0, (255, 255, 0), 8)
 
@@ -487,17 +477,15 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
             cv2.drawContours(colorToDepth_copy3, [box], 0, (0, 0, 0), 2)
             cv2.drawContours(colorToDepth_copy3, [box], 0, (255, 255, 0), 1)
             
-            #idx_y = numpy.argmin(box_scaled[:,1])
             idx_x = numpy.argmax(box_scaled[:,0])
             x, y = box_scaled[idx_x]
-            #x2, y2 = box_scaled[idx_y]
             
             cv2.putText(colorToDepth_copy2, str(obj_id), (x + 15, y + 40), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 0), 14, cv2.LINE_AA)
             cv2.putText(colorToDepth_copy2, str(obj_id), (x + 15, y + 40), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (255, 255, 255), 7, cv2.LINE_AA)
             
 
     colorToDepth_copy2 = cv2.resize(colorToDepth_copy2, (640, 480))
-    frameState.colorToDepthFrameObject = colorToDepth_copy2
+    frameState.detectedObjectsFrame = colorToDepth_copy2
     cv2.imwrite("Objects.png", colorToDepth_copy3)
     box_limits = [c for contour_list in contours for c in contour_list if c.size > 0]
     print("Número Objetos:", len(box_limits))
