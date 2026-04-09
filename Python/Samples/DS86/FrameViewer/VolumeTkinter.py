@@ -88,6 +88,8 @@ def volumeRealAPI(depthFrame, workspace_depth, box_limits, depths, fx_d, fy_d, c
         cv2.drawContours(frameState.colorToDepthFrame, [numpy.int32(box_px)], 0, (0, 255, 0), 2)
         cv2.imwrite(f"colorToDepthFrame{i}.png", frameState.colorToDepthFrame)
 
+        #Z_mean = depths[i] / 1000
+
         for (u,v) in pts_flat:
             Z_radial = depthFrame[int(v), int(u)] / 1000
             if Z_radial <= 0 or Z_radial >= workspace_depth:

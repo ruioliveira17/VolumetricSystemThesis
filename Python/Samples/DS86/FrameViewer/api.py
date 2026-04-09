@@ -1,9 +1,13 @@
 #------------------------------------------------------   Imports    -------------------------------------------------------
 
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, HTTPException, Request, Response, status
+from datetime import timedelta
+from dotenv import load_dotenv
+from fastapi import Depends, FastAPI, HTTPException, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
+from fastapi.security import OAuth2PasswordBearer
+from jose import jwt
 from PIL import Image
 from pydantic import BaseModel, Field, StrictBool
 from typing import List, Literal, Optional
@@ -32,6 +36,7 @@ from color_presets import COLOR_PRESETS
 #-----------------------------------------------------   Functions    ------------------------------------------------------
 
 from API.VzenseDS_api import *
+from auth import create_access_token, create_refresh_token, get_password_hash, verify_password, verify_token
 from Bundle2 import bundleIdentifier, objIdentifier
 from CalibrationDefTkinter import calibrateAPI, maskAPI, manualWorkspaceDraw
 from CameraOptions import startCamera, stopCamera, setFPS, setFlyingPixelFilter, setFillHoleFilter, setSpatialFilter, setConfidenceFilter
@@ -41,11 +46,46 @@ from VolumeTkinter import volumeBundleAPI, volumeRealAPI
 #------------------------------------------------------   Services    ------------------------------------------------------
 
 from services.saveCalibration import save_WS_calibration
-from services.stream import generateRGB_Stream, generateDepth_Stream, generateCalibrationCTD_Stream, generateCalibrationMask_Stream
+from services.stream import generateRGB_Stream, generateCalibrationCTD_Stream, generateCalibrationMask_Stream
 from services.utils import rgb_to_hsv
 from services.users import load_users, save_users
 
+#----------------------------------------------------      OAuth2      ----------------------------------------------------
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+
+def get_current_user(token: str = Depends(oauth2_scheme)):
+    """
+    Retrieves user token.
+    """
+    try:
+        payload = verify_token(token)
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token has expired.")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token.")
+    
+    if payload["type"] != "access":
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token type.")
+    
+    return {"username": payload["sub"], "role": payload["role"]}
+
+def require_admin(user: dict = Depends(get_current_user)):
+    """
+    Dependency that checks if the current user has admin role. If not, it raises an HTTPException with status code 403.
+    """
+    if user["role"] != "admin":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin privileges required.")
+    return user
 #----------------------------------------------------   Base Models    ----------------------------------------------------
+
+class CamValues(BaseModel):
+    colorSlope: Optional[int] = Field(1500, ge=100, le=4000)
+    exposureTime: Optional[int] = Field(700, ge=100, le=4000)
+
+class ColorCoords(BaseModel):
+    x : int
+    y : int
 
 class HSVValue(BaseModel):
     hmin: Optional[int] = None
@@ -57,26 +97,21 @@ class HSVValue(BaseModel):
     color: Optional[str] = None
     optionSelected: Optional[str] = None
 
-class CamValues(BaseModel):
-    colorSlope: Optional[int] = Field(1500, ge=100, le=4000)
-    exposureTime: Optional[int] = Field(700, ge=100, le=4000)
+class LoginData(BaseModel):
+    username: str
+    password: str
 
 class ManualWorkspace(BaseModel):
     detection_area: List[List[float]] = None
 
-class LoginData(BaseModel):
-    username: str
-    password: str
+class RefreshData(BaseModel):
+    refresh_token: str
 
 class RegisterData(BaseModel):
     username: str
     password: str
     role: str
     code: Optional[str] = None
-
-class ColorCoords(BaseModel):
-    x : int
-    y : int
 
 class SystemUpdate(BaseModel):
     exposureTime: Optional[int] = Field(None, ge=100, le=4000)
@@ -89,6 +124,9 @@ class SystemUpdate(BaseModel):
     spatialFilter: Optional[StrictBool] = None
     confidenceFilter: Optional[StrictBool] = None 
     fps: Optional[int] = Field(None, ge=1, le=15)
+
+load_dotenv()
+ADMIN_REGISTER_CODE = os.environ.get("ADMIN_REGISTER_CODE")
 
 #-----------------------------------------------------   Lifespan   -------------------------------------------------------
 
@@ -156,13 +194,15 @@ app.add_middleware(
 def login(login_data: LoginData):
     users = load_users()
 
-    if not login_data.username or not login_data.password:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Please fill all fields!")
+    user = users.get(login_data.username)
 
-    if login_data.username in users and users[login_data.username]["password"] == login_data.password:
-        return {"role": users[login_data.username]["role"]}
+    if not user or not verify_password(login_data.password, user["password"]):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid username or password.")
     
-    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid username or password.")
+    access_token = create_access_token({"sub": login_data.username, "role": user["role"]})
+    refresh_token = create_refresh_token({"sub": login_data.username, "role": user["role"]})
+
+    return {"role": user["role"], "access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"}
 
 @app.post("/register", summary="Register Request",
          description="""
@@ -185,14 +225,43 @@ def register(register_data: RegisterData):
     
     given_role = "user"
     if register_data.role == "admin":
-        if register_data.code != "ADMBM":
+        if register_data.code != ADMIN_REGISTER_CODE:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid admin code! Please provide a valid admin code to create an admin user.")
         given_role = "admin"
 
-    users[register_data.username] = {"password": register_data.password, "role": given_role}
+    password_hash = get_password_hash(register_data.password)
+
+    users[register_data.username] = {"password": password_hash, "role": given_role}
     save_users(users)
 
     return {"message": "Utilizador criado com sucesso!"}
+
+@app.post("/refresh", summary="Access Token Refresh",
+         description="""
+         Creates a new access token if the user is active during the expiration time of the refresh token. Returns the new access token if the refresh token is valid. Otherwise, it returns an error message indicating that the token is invalid, expired or revoked.
+         """,
+         tags=["User"])
+def refresh(data: RefreshData):
+    try:
+        payload = verify_token(data.refresh_token)
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Invalid token. Login again.")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=401, detail="Invalid token.")
+
+    if payload.get("type") != "refresh":
+        raise HTTPException(status_code=401, detail="Invalid token.")
+
+    username = payload["sub"]
+    users = load_users()
+
+    if username not in users:
+        raise HTTPException(status_code=401, detail="User not found.")
+
+    new_access_token = create_access_token({"sub": username, "role": users[username]["role"]})
+    new_refresh_token = create_refresh_token({"sub": username, "role": users[username]["role"]})
+
+    return {"access_token": new_access_token, "refresh_token": new_refresh_token}
 
 #-------------------------------------------------------   Stream   -------------------------------------------------------
 
@@ -587,7 +656,7 @@ def apply_mask(data: HSVValue):
 
     frameState.maskFrame = maskFrame
     frameState.workspaceDetectedFrame = workspaceDetectedFrame
-    workspaceState.detection_area = detection_area.reshape((-1, 2)).tolist() if isinstance(detection_area, numpy.ndarray) else detection_area
+    workspaceState.detected_area = detection_area.reshape((-1, 2)).tolist() if isinstance(detection_area, numpy.ndarray) else detection_area
     
     return{"message:": "Mask applied with success"}
 
@@ -612,7 +681,7 @@ def apply_manualWS(data: ManualWorkspace):
         return{"message:": "Mask application failed!"}
 
     frameState.workspaceDetectedFrame = workspaceDetectedFrame
-    workspaceState.detection_area = detection_area.tolist()
+    workspaceState.detected_area = detection_area.tolist()
 
     return{"message:": "Mask applied with success"}
 
@@ -642,7 +711,7 @@ def calibrate(data: HSVValue):
     else:
         depthFrame = frameState.depthFrameHDR
 
-    detection_area, workspace_depth, center_aligned, workspace_clear, frameState.calibrationColorFrame = calibrateAPI(colorToDepthFrame, depthFrame, colorFrame, workspaceState.detection_area, lower, upper, camState.colorSlope, int(camState.cx_d), int(camState.cy_d), modeState.calibrationMode)
+    detection_area, workspace_depth, center_aligned, workspace_clear, frameState.calibrationColorFrame = calibrateAPI(colorToDepthFrame, depthFrame, colorFrame, workspaceState.detected_area, lower, upper, camState.colorSlope, int(camState.cx_d), int(camState.cy_d), modeState.calibrationMode)
 
     if detection_area is None or workspace_depth is None:
         workspaceState.center_aligned = center_aligned
@@ -668,6 +737,9 @@ def getCalibrationParameters():
     return {
         "Detection Area": [
             [int(x), int(y)] for x, y in workspaceState.detection_area
+        ],
+        "Detected Area": [
+            [int(x), int(y)] for x, y in workspaceState.detected_area
         ],
         "Workspace Depth": workspaceState.workspace_depth,
     }
@@ -715,7 +787,7 @@ def manualCalibration():
 
 #---------------------------------------------------- Working Mode -----------------------------------------------------
 
-@app.get("/mode", summary="Gets the Working Mode",
+@app.get("/working/mode", summary="Gets the Working Mode",
          description="""
          Retrieves the current working mode. The working mode can be either "Static" or "Dynamic".
          """,
@@ -725,7 +797,7 @@ def get_mode():
         "Mode": modeState.mode,
     }
 
-@app.post("/mode/static", summary="Sets the Working Mode to Static",
+@app.post("/working/mode/static", summary="Sets the Working Mode to Static",
          description="""
          Sets the working mode to "Static".
          """,
@@ -734,7 +806,7 @@ def static():
     modeState.mode = "Static"
     return {"mode:": modeState.mode}
 
-@app.post("/mode/dynamic", summary="Sets the Working Mode to Dynamic",
+@app.post("/working/mode/dynamic", summary="Sets the Working Mode to Dynamic",
          description="""
          Sets the working mode to "Dynamic".
          """,
@@ -745,7 +817,7 @@ def dynamic():
 
 #--------------------------------------------------- Exposition Mode --------------------------------------------------
 
-@app.get("/expositionMode", summary="Gets the Exposition Mode",
+@app.get("/exposition/mode", summary="Gets the Exposition Mode",
          description="""
          Retrieves the current exposition mode. The exposition mode can be either "Fixed Exposition" or "HDR". The "Fixed Exposition" mode captures frames with a fixed exposure time defined by the user. The "HDR" mode captures multiple frames with different exposure times and combines them to create a single frame with a higher dynamic range.
          """,
@@ -755,7 +827,7 @@ def get_expMode():
         "Exposition Mode": modeState.expositionMode,
     }
 
-@app.post("/expositionMode/fixed", summary="Sets the Exposition Mode to Fixed Exposition",
+@app.post("/exposition/mode/fixed", summary="Sets the Exposition Mode to Fixed Exposition",
          description="""
          Sets the exposition mode to "Fixed Exposition".
          """,
@@ -766,7 +838,7 @@ def fixedExp():
     camState.camera.VZ_SetExposureTime(VzSensorType.VzToFSensor, c_int32(camState.exposureTime))
     return {"Exposition Mode:": modeState.expositionMode}
 
-@app.post("/expositionMode/hdr", summary="Sets the Exposition Mode to HDR",
+@app.post("/exposition/mode/hdr", summary="Sets the Exposition Mode to HDR",
          description="""
          Sets the exposition mode to "HDR".
          """,
@@ -778,9 +850,43 @@ def hdrExp():
 
     return {"Exposition Mode:": modeState.expositionMode}
 
+#------------------------------------------------------- Debug -------------------------------------------------------
+
+@app.get("/debug/mode", summary="Gets the Debug Mode",
+         description="""
+         Retrieves the current debug mode. The debug mode can be either "On" or "Off". When the debug mode is "On", additional information about the system's operation is provided, which can be useful for troubleshooting and understanding the internal workings of the system. When the debug mode is "Off", only essential information is provided, which can help to improve performance and reduce clutter in the output.
+         """,
+         tags=["Using Modes"])
+def get_debugMode():
+    return{
+        "Debug Mode": modeState.debugMode,
+    }
+
+@app.post("/debug/mode/off", summary="Sets the Debug Mode to Off",
+         description="""
+         Sets the debug mode to "Off".
+         """,
+         tags=["Using Modes"])
+def debugOff(current_user: dict = Depends(get_current_user)):
+    modeState.debugMode = "Off"
+    return {"Debug Mode:": modeState.debugMode}
+
+@app.post("/debug/mode/on", summary="Sets the Debug Mode to On",
+         description="""
+         Sets the debug mode to "On".
+         """,
+         tags=["Using Modes"])
+def debugOn(current_user: dict = Depends(require_admin)):
+    modeState.debugMode = "On"
+    return {"Debug Mode:": modeState.debugMode}
+
 #------------------------------------------------------- Volume -------------------------------------------------------
 
-@app.post("/volumeBundle")
+@app.post("/volume/bundle", summary="Starts the Bundle Volume Algorithm",
+         description="""
+         Starts the bundle volume algorithm.
+         """,
+         tags=["Volume"])
 def volume_Bundle():
     if frameState.colorToDepthFrameHDR is None or modeState.expositionMode == "Fixed Exposition":
         colorFrame = frameState.colorFrame
@@ -838,7 +944,11 @@ def volume_Bundle():
         "ws_depth": workspaceState.workspace_depth / 10
     }
 
-@app.get("/getVolumeBundle")
+@app.get("/volume/bundle/results", summary="Gets the Bundle Volume Algorithm Results",
+         description="""
+         Gets the results of the bundle volume algorithm.
+         """,
+         tags=["Volume"])
 def get_Volume_Bundle():
     response = {}
 
@@ -852,7 +962,11 @@ def get_Volume_Bundle():
     
     return response
 
-@app.post("/volumeReal")
+@app.post("/volume/real", summary="Starts the Real Volume Algorithm",
+         description="""
+         Starts the real volume algorithm.
+         """,
+         tags=["Volume"])
 def volume_Real():
     if frameState.colorToDepthFrameHDR is None or modeState.expositionMode == "Fixed Exposition":
         colorFrame = frameState.colorFrame
@@ -910,7 +1024,11 @@ def volume_Real():
         "ws_depth": workspaceState.workspace_depth / 10
     }
 
-@app.get("/getVolumeReal")
+@app.get("/volume/real/results", summary="Gets the Real Volume Algorithm Results",
+         description="""
+         Gets the results of the real volume algorithm.
+         """,
+         tags=["Volume"])
 def get_Volume_Real():
     response = {}
 
@@ -937,39 +1055,13 @@ def get_Volume_Real():
     
     return response
 
-@app.get("/getObjectsOutOfLine")
+@app.get("/getObjectsOutOfLine", summary="Gets the array of objects that are inside or outside the workspace area",
+         description="""
+         If the array says "true", it means the object is outside the workspace area. If it says "false", it means the object is inside the workspace area. This information is useful to understand if the detected objects are correctly placed inside the workspace or if they are outside of it, which can affect the accuracy of the volume calculation. So the objects that are outside the workspace area are discarded, wich means they are not considered for the volume calculation. 
+         """,
+         tags=["Volume"])
 def get_Objects_OutOfLine():
     return {"objects_outOfLine": volumeState.objects_outOfLine}
-
-#------------------------------------------------------- Debug -------------------------------------------------------
-
-@app.get("/debugMode", summary="Gets the Debug Mode",
-         description="""
-         Retrieves the current debug mode. The debug mode can be either "On" or "Off". When the debug mode is "On", additional information about the system's operation is provided, which can be useful for troubleshooting and understanding the internal workings of the system. When the debug mode is "Off", only essential information is provided, which can help to improve performance and reduce clutter in the output.
-         """,
-         tags=["Using Modes"])
-def get_debugMode():
-    return{
-        "Debug Mode": modeState.debugMode,
-    }
-
-@app.post("/debugMode/off", summary="Sets the Debug Mode to Off",
-         description="""
-         Sets the debug mode to "Off".
-         """,
-         tags=["Using Modes"])
-def debugOff():
-    modeState.debugMode = "Off"
-    return {"Debug Mode:": modeState.debugMode}
-
-@app.post("/debugMode/on", summary="Sets the Debug Mode to On",
-         description="""
-         Sets the debug mode to "On".
-         """,
-         tags=["Using Modes"])
-def debugOn():
-    modeState.debugMode = "On"
-    return {"Debug Mode:": modeState.debugMode}
 
 #--------------------------------------------------------------------------------------------------------------------------
 

@@ -1,10 +1,10 @@
 {
     "BM_Admin": {
-        "password": "BM1967",
+        "password": "$2b$12$y6wCDkLLO4o3BLJc7zg1Ve2WZBGv9cYRWplt0hvdmMtsWSJ8fUyKm",
         "role": "admin"
     },
-    "BM_User": {
-        "password": "1234",
+    "Rui": {
+        "password": "$2b$12$zT.vBqKSykb.nDcQ3CUhgu/xW3mrMiFvZzMDrodCNrN/ytw6CCJuO",
         "role": "user"
     }
 }

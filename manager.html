@@ -329,23 +329,6 @@
             height: 5vh;
             border: 0.2vh solid black;
         }
-
-        .startCalibrationButton {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin: 5vh auto 0 auto;
-            width:20vw;
-            font-size:1.2vw;
-            border: 0.2vh solid black;
-            position: absolute;
-            left:47vw;
-            top:73vh;
-        }
-        
-        .startCalibrationButton:hover {
-            transform: scale(1.05);
-        }
         
         .calibrateButton {
             display: flex;
@@ -363,8 +346,6 @@
         .calibrateButton:hover {
             transform: scale(1.05);
         }
-
-        
 
         .readonly-slider {
             display: flex;
@@ -763,7 +744,6 @@
             <span>Manual</span>
         </div>
         
-        <button onclick="startCalibration_click()" class="startCalibrationButton">Start Calibration</button>
         <button onclick="calibrate_click()" class="calibrateButton">Calibrate</button>
 
          <!-- Imagens -->
@@ -838,6 +818,7 @@
         let step = 2;
         let thresh = 10;
         let detection_area = [0, 0, 0, 0];
+        let tokenCheckInterval = null;
 
         function showLoginScreen() {
             document.getElementById("register-screen").style.display = "none";
@@ -881,7 +862,11 @@
                     const data = await response.json();
                     const role = data.role;
 
+                    startTokenCheck();
+
                     localStorage.setItem("current_user", JSON.stringify({ username: user, role: role }));
+                    localStorage.setItem("access_token", data.access_token);
+                    localStorage.setItem("refresh_token", data.refresh_token);
 
                     document.getElementById("login-screen").style.display = "none";
                     currentMenu = "main-menu";
@@ -953,6 +938,8 @@
         }
 
         function UserInfo(button) {
+            refreshAccessToken();
+
             const panel = button.querySelector(".user-panel");
             const currentUser = JSON.parse(localStorage.getItem("current_user"));
 
@@ -976,7 +963,14 @@
         });
 
         function logout() {
+            if (tokenCheckInterval) {
+                clearInterval(tokenCheckInterval);
+                tokenCheckInterval = null;
+            }
+
             localStorage.removeItem("current_user");
+            localStorage.removeItem("access_token");
+            localStorage.removeItem("refresh_token");
             cameraLoopInterval = null;
             document.getElementById(currentMenu).style.display = "none";
             document.querySelectorAll(".login .user-panel").forEach(panel => {
@@ -993,6 +987,8 @@
         }
 
         function goTo(menuID) {
+            refreshAccessToken();
+
             if(currentMenu) {
                 menuStack.push(currentMenu);
                 document.getElementById(currentMenu).style.display = "none";
@@ -1027,6 +1023,8 @@
         }
 
         function goBack() {
+            refreshAccessToken();
+
             if (menuStack.length === 0) return;
 
             document.getElementById(currentMenu).style.display = "none";
@@ -1051,6 +1049,8 @@
             const TextError = "Error";
 
             try {
+                refreshAccessToken();
+
                 document.getElementById("volume_value_label").textContent = "";
                 document.getElementById("volume_value_cm_label").textContent = "";
                 document.getElementById("width_value_label").textContent = "";
@@ -1060,7 +1060,7 @@
                 const dropdown = document.getElementById("objOption_menu");
                 if (dropdown) dropdown.remove();
 
-                const modeResponse = await fetch('http://10.0.30.175:8000/expositionMode');
+                const modeResponse = await fetch('http://10.0.30.175:8000/exposition/mode');
                 const modeData = await modeResponse.json();
                 
                 {/*if (modeData["Exposition Mode"] === "Fixed Exposition") {
@@ -1109,7 +1109,7 @@
                     document.getElementById("volume-depthimg").src = URL.createObjectURL(blob);
                 }
 
-                await fetch('http://10.0.30.175:8000/volumeBundle', { method: 'POST' });
+                await fetch('http://10.0.30.175:8000/volume/bundle', { method: 'POST' });
 
                 const response = await fetch('http://10.0.30.175:8000/getObjectsOutOfLine');
                 const data = await response.json();
@@ -1119,7 +1119,7 @@
                 } else {
                     document.getElementById("objOutOfLine_label").textContent = "";
 
-                    const dataResponse = await fetch('http://10.0.30.175:8000/getVolumeBundle');
+                    const dataResponse = await fetch('http://10.0.30.175:8000/volume/bundle/results');
                     const volumeData = await dataResponse.json();
 
                     document.getElementById("volume_value_label").innerText = volumeData.Bundle.volume_m.toFixed(6) + " m³";
@@ -1152,6 +1152,8 @@
             const TextError = "Error";
 
             try {
+                refreshAccessToken();
+
                 document.getElementById("volume_value_label").textContent = "";
                 document.getElementById("volume_value_cm_label").textContent = "";
                 document.getElementById("width_value_label").textContent = "";
@@ -1163,7 +1165,7 @@
                     oldDropdown.remove();
                 }
 
-                const modeResponse = await fetch('http://10.0.30.175:8000/expositionMode');
+                const modeResponse = await fetch('http://10.0.30.175:8000/exposition/mode');
                 const modeData = await modeResponse.json();
                 
                 {/*if (modeData["Exposition Mode"] === "Fixed Exposition") {
@@ -1212,7 +1214,7 @@
                     document.getElementById("volume-depthimg").src = URL.createObjectURL(blob);
                 }
 
-                await fetch('http://10.0.30.175:8000/volumeReal', { method: 'POST' });
+                await fetch('http://10.0.30.175:8000/volume/real', { method: 'POST' });
 
                 const response = await fetch('http://10.0.30.175:8000/getObjectsOutOfLine');
                 const data = await response.json();
@@ -1223,7 +1225,7 @@
                     document.getElementById("objOutOfLine_label").textContent = "";
                 }
 
-                const dataResponse = await fetch('http://10.0.30.175:8000/getVolumeReal');
+                const dataResponse = await fetch('http://10.0.30.175:8000/volume/real/results');
                 const volumeData = await dataResponse.json();
 
                 const imgResp = await fetch("http://10.0.30.175:8000/getFrame/detectedObjectsFrame");
@@ -1307,107 +1309,44 @@
                 console.error(error);
             }
         }
-
-        {/*async function updateCameraFeed() {
-            if (currentMenu !== "camera-menu" && 
-                currentMenu !== "volume-menu" && 
-                currentMenu !== "calibration-menu") {
-                return;
-            }
-            
-            try{
-                const modeResponse = await fetch('http://10.0.30.175:8000/expositionMode');
-                const modeData = await modeResponse.json();
-                
-                if (modeData["Exposition Mode"] === "Fixed Exposition") {
-                    await fetch('http://10.0.30.175:8000/captureFrame', { method: 'POST' });
-                }
-
-                let colorFrameUrl = 'http://10.0.30.175:8000/getFrame/color';
-                let colorToDepthFrameUrl = 'http://10.0.30.175:8000/getFrame/colorToDepth';
-                let depthFrameUrl = 'http://10.0.30.175:8000/getFrame/depth';
-                if (modeData["Exposition Mode"] === "HDR") {
-                    let resp = await fetch('http://10.0.30.175:8000/getFrame/HDRcolor');
-                    if (resp.status === 204) {
-                        resp = await fetch(colorFrameUrl);
-                    }
-                    const blob = await resp.blob();
-                    document.getElementById("camera-img").src = URL.createObjectURL(blob);
-                } else {
-                    const resp = await fetch(colorFrameUrl);
-                    const blob = await resp.blob();
-                    document.getElementById("camera-img").src = URL.createObjectURL(blob);
-                }
-
-                if (modeData["Exposition Mode"] === "HDR") {
-                    let resp = await fetch('http://10.0.30.175:8000/getFrame/HDRcolorToDepth');
-                    if (resp.status === 204) {
-                        resp = await fetch(colorToDepthFrameUrl);
-                    }
-                    const blob = await resp.blob();
-                    document.getElementById("volume-colorToDepthimg").src = URL.createObjectURL(blob);
-                } else {
-                    const resp = await fetch(colorToDepthFrameUrl);
-                    const blob = await resp.blob();
-                    document.getElementById("volume-colorToDepthimg").src = URL.createObjectURL(blob);
-                }
-
-                if (modeData["Exposition Mode"] === "HDR") {
-                    let resp = await fetch('http://10.0.30.175:8000/getFrame/HDRdepth');
-                    if (resp.status === 204) {
-                        resp = await fetch(depthFrameUrl);
-                    }
-                    const blob = await resp.blob();
-                    document.getElementById("volume-depthimg").src = URL.createObjectURL(blob);
-                } else {
-                    const resp = await fetch(depthFrameUrl);
-                    const blob = await resp.blob();
-                    document.getElementById("volume-depthimg").src = URL.createObjectURL(blob);
-                }
-                
-            }catch (error) {
-                console.error("Camera error:", error);
-            }
-        }
-
-        function updateCameraFeedLoop() {
-            if (cameraLoopInterval) return;
-
-            cameraLoopInterval = setInterval(() => {
-                if (currentMenu === "camera-menu") {
-                    updateCameraFeed();
-                }
-            }, 300);
-        }*/}
         
         async function ExpHDR_toggle() {
+            refreshAccessToken();
+
             const checked = document.getElementById("ExpHDR_switch").checked;
             if (checked) {
-                await fetch("http://10.0.30.175:8000/expositionMode/hdr", { method: "POST" });
+                await fetch("http://10.0.30.175:8000/exposition/mode/hdr", { method: "POST" });
             } else {
-                await fetch("http://10.0.30.175:8000/expositionMode/fixed", { method: "POST" });
+                await fetch("http://10.0.30.175:8000/exposition/mode/fixed", { method: "POST" });
             }
         }
 
         async function StaticDynamic_toggle() {
+            refreshAccessToken();
+
             const checked = document.getElementById("StaticDynamic_switch").checked;
             if (checked) {
-                await fetch("http://10.0.30.175:8000/mode/dynamic", { method: "POST" });
+                await fetch("http://10.0.30.175:8000/working/mode/dynamic", { method: "POST" });
             } else {
-                await fetch("http://10.0.30.175:8000/mode/static", { method: "POST" });
+                await fetch("http://10.0.30.175:8000/working/mode/static", { method: "POST" });
             }
         }
 
         async function DebugMode_toggle() {
+            refreshAccessToken();
+
             const checked = document.getElementById("DebugMode_switch").checked;
+            const access_token = localStorage.getItem("access_token");
             if (checked) {
-                await fetch("http://10.0.30.175:8000/debugMode/on", { method: "POST" });
+                await fetch("http://10.0.30.175:8000/debug/mode/on", { method: "POST", headers: { "Authorization": `Bearer ${access_token}` } });
             } else {
-                await fetch("http://10.0.30.175:8000/debugMode/off", { method: "POST" });
+                await fetch("http://10.0.30.175:8000/debug/mode/off", { method: "POST", headers: { "Authorization": `Bearer ${access_token}` } });
             }
         }
 
         async function AutoManual_toggle() {
+            refreshAccessToken();
+
             const checked = document.getElementById("AutoManual_switch").checked;
             if (checked) {
                 await fetch("http://10.0.30.175:8000/calibrate/mode/manual", { method: "POST" });
@@ -1433,6 +1372,8 @@
             }
 
             try {
+                refreshAccessToken();
+
                 await fetch("http://10.0.30.175:8000/update_systemInfo", {
                     method: "POST",
                     headers: {
@@ -1458,6 +1399,8 @@
             }
 
             try {
+                refreshAccessToken();
+
                 await fetch("http://10.0.30.175:8000/update_systemInfo", {
                     method: "POST",
                     headers: {
@@ -1474,21 +1417,21 @@
             try {
                 if(currentMenu === "config-menu") {
                     // MODE (Static / Dynamic)
-                    let r = await fetch("http://10.0.30.175:8000/mode");
+                    let r = await fetch("http://10.0.30.175:8000/working/mode");
                     let modeData = await r.json();
 
                     document.getElementById("StaticDynamic_switch").checked =
                         (modeData["Mode"] === "Dynamic");
 
                     // EXPOSITION MODE
-                    r = await fetch("http://10.0.30.175:8000/expositionMode");
+                    r = await fetch("http://10.0.30.175:8000/exposition/mode");
                     let expData = await r.json();
 
                     document.getElementById("ExpHDR_switch").checked =
                         (expData["Exposition Mode"] === "HDR");
 
                     // DEBUG MODE
-                    r = await fetch("http://10.0.30.175:8000/debugMode");
+                    r = await fetch("http://10.0.30.175:8000/debug/mode");
                     let debugData = await r.json();
 
                     document.getElementById("DebugMode_switch").checked =
@@ -1560,7 +1503,7 @@
             try {
                 if (selected_point === null) {
                     const r = await fetch("http://10.0.30.175:8000/calibrate/params");
-                    detection_area = (await r.json())["Detection Area"];
+                    detection_area = (await r.json())["Detected Area"];
                 }
                 await fetch("http://10.0.30.175:8000/applyManualWorkspace", {
                     method: 'POST',
@@ -1588,6 +1531,8 @@
 
         async function colorDropdown_change() {
             try {
+                refreshAccessToken();
+
                 const color = document.getElementById("colorDropdown").value;
                 await fetch("http://10.0.30.175:8000/mask/color", {
                     method: 'POST',
@@ -1614,6 +1559,8 @@
             img.addEventListener("click", async (event) => {
 
                 try {
+                    refreshAccessToken();
+
                     if (currentMenu === "calibration-menu"){
                         const r = await fetch("http://10.0.30.175:8000/calibrate/mode");
                         let calibData = await r.json();
@@ -1637,7 +1584,7 @@
                         } else if (calibData["Calibrate Mode"] === "Manual") {
                             const r = await fetch("http://10.0.30.175:8000/calibrate/params");
                             const response = await r.json();
-                            let points = response["Detection Area"];
+                            let points = response["Detected Area"];
 
                             const rect = img.getBoundingClientRect();
                             const x = (event.clientX - rect.left) * (img.naturalWidth / rect.width);
@@ -1645,18 +1592,6 @@
 
                             let minDist = Infinity;
                             let closestPoint = null;
-
-                            {/*if (x1 - thresh <= x && x <= x1 + thresh && y1 - thresh <= y && y <= y2 + thresh) {
-                                selected_bar = "left";
-                            } else if (x2 - thresh <= x && x <= x2 + thresh && y1 - thresh <= y && y <= y2 + thresh) {
-                                selected_bar = "right";
-                            } else if (y1 - thresh <= y && y <= y1 + thresh && x1 - thresh <= x && x <= x2 + thresh) {
-                                selected_bar = "top";
-                            } else if (y2 - thresh <= y && y <= y2 + thresh && x1 - thresh <= x && x <= x2 + thresh) {
-                                selected_bar = "bottom";
-                            } else {
-                                selected_bar = null;
-                            }*/}
 
                             points.forEach((point, index) => {
                                 const dist = Math.sqrt((point[0] - x) ** 2 + (point[1] - y) **2);
@@ -1683,7 +1618,9 @@
 
         document.addEventListener("keydown", async (event) => {
             try {
-                 if (currentMenu === "calibration-menu") {
+                refreshAccessToken();
+
+                if (currentMenu === "calibration-menu") {
                     const r_mode = await fetch("http://10.0.30.175:8000/calibrate/mode");
                     const calibData = await r_mode.json();
 
@@ -1692,7 +1629,7 @@
                     // Pegar detection_area do servidor
                     const r = await fetch("http://10.0.30.175:8000/calibrate/params");
                     let data = await r.json();
-                    detection_area = data["Detection Area"]; // [x1, y1, x2, y2]
+                    detection_area = data["Detected Area"]; // [x1, y1, x2, y2]
 
                     const img = document.getElementById("calibration-colorToDepthimg");
                     const maxX = img.naturalWidth;
@@ -1701,23 +1638,15 @@
                     let point = detection_area[selected_point];
 
                     if (event.key === "ArrowLeft") {
-                        //if (selected_bar === "left") x1 = Math.max(0, x1 - step);
-                        //else if (selected_bar === "right") x2 = Math.max(0, x2 - step);
                         point[0] = Math.max(0, point[0] - step);
 
                     } else if (event.key === "ArrowRight") {
-                        //if (selected_bar === "left") x1 = Math.min(maxX, x1 + step);
-                        //else if (selected_bar === "right") x2 = Math.min(maxX, x2 + step);
                         point[0] = Math.min(maxX, point[0] + step);
 
                     } else if (event.key === "ArrowUp") {
-                        //if (selected_bar === "top") y1 = Math.max(0, y1 - step);
-                        //else if (selected_bar === "bottom") y2 = Math.max(0, y2 - step);
                         point[1] = Math.max(0, point[1] - step);
 
                     } else if (event.key === "ArrowDown") {
-                        //if (selected_bar === "top") y1 = Math.min(maxY, y1 + step);
-                        //else if (selected_bar === "bottom") y2 = Math.min(maxY, y2 + step);
                         point[1] = Math.min(maxY, point[1] + step);
 
                     }
@@ -1728,30 +1657,6 @@
                 console.warn("Erro key_pressed:", err);
             }
         });
-
-        async function startCalibration_click() {
-            try{
-                r = await fetch("http://10.0.30.175:8000/calibrate/mode");
-                let calibData = await r.json();
-                if (calibData["Calibrate Mode"] === "Automatic") {
-                    applyMask();
-                } else if (calibData["Calibrate Mode"] === "Manual") {
-                    applyManualWSDraw();
-                }
-                // Color frame
-                const colorResp = await fetch("http://10.0.30.175:8000/getFrame/workspaceDetectedFrame");
-                const colorToDepthBlob = await colorResp.blob();
-                document.getElementById("calibration-colorToDepthimg").src = URL.createObjectURL(colorToDepthBlob);
-
-                // Mask frame
-                const maskResp = await fetch("http://10.0.30.175:8000/getFrame/maskFrame");
-                const maskBlob = await maskResp.blob();
-                document.getElementById("calibration-mask").src = URL.createObjectURL(maskBlob);
-            }
-            catch (error) {
-                console.error(error);
-            }
-        }
 
         async function calibrate_click() {
             const calibrateLabel = document.getElementById("calibrateLabel");
@@ -1766,6 +1671,8 @@
             const TextClear = "";
 
             try {
+                refreshAccessToken();
+
                 const maskResponse = await fetch("http://10.0.30.175:8000/mask");
                 if (!maskResponse.ok) throw new Error("Mask request failed");
                 const maskValues = await maskResponse.json();
@@ -1810,6 +1717,53 @@
                 caliErrorLabel.innerText = TextError;
                 console.error(error);
             }
+        }
+
+        function startTokenCheck() {
+            timer = 0.25 * 60 * 1000; // 5 minutos (300000ms)
+            
+            tokenCheckInterval = setInterval(async () => {
+                const access_token = localStorage.getItem("access_token");
+                if (!access_token) {
+                    logout();
+                }
+
+                const refresh_token = localStorage.getItem("refresh_token");
+                try{
+                    const payloadBase64 = refresh_token.split('.')[1];
+                    const payload = JSON.parse(atob(payloadBase64));
+                    const exp = payload.exp;
+                    const currentTime = Math.floor(Date.now() / 1000);
+
+                    if(currentTime >= exp){
+                        logout();
+                    }
+                } catch (e) {
+                }
+
+            }, timer); // 5 minutos
+        }
+
+        async function refreshAccessToken() {
+            const refreshToken = localStorage.getItem("refresh_token");
+            if (!refreshToken) return false;
+
+            try {
+                const response = await fetch('http://10.0.30.175:8000/refresh', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ refresh_token: refreshToken })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    localStorage.setItem("access_token", data.access_token);
+                    localStorage.setItem("refresh_token", data.refresh_token);
+                    return true;
+                }
+            } catch (e) {}
+
+            return false;
         }
 
     </script>

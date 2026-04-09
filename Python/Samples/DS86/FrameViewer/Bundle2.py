@@ -256,13 +256,23 @@ def bundleIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColor
                         contours.append([all_shifted_contours])
                         box_ws.append(obj["workspace_limits"])
 
-                        mask = numpy.zeros(depthFrame.shape, dtype=numpy.uint8)
-                        cv2.drawContours(mask, [c], contourIdx=-1, color=1, thickness=-1)
-                        depth_values = depthFrame[mask == 1]
-                        mean_depth = numpy.mean(depth_values)
+                        #mask = numpy.zeros(depthFrame.shape, dtype=numpy.uint8)
+                        #kernel = numpy.ones((10, 10), dtype=numpy.uint8)
+                        #mask = cv2.erode(mask, kernel, iterations=1)
+                        #cv2.drawContours(mask, [c], contourIdx=-1, color=1, thickness=-1)
+                        #valid_mask = (
+                        #    (mask == 1) &
+                        #    (depthFrame > 150) &
+                        #    (depthFrame < workspace_depth - threshold)
+                        #)
 
-                        #depths.append(obj["depth"])
-                        depths.append(mean_depth)
+                        #depth_values = depthFrame[valid_mask]
+                        #print("Depth Values:", depth_values)
+                        #mean_depth = numpy.mean(depth_values)
+                        #print("Mean Depth:", mean_depth)
+
+                        #depths.append(mean_depth)
+                        depths.append(obj["depth"])
                         print("Número de Objetos no contours", len(contours))
 
                     object_outOfLine.append(value)
@@ -450,7 +460,7 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
                         )
 
                         depth_values = depthFrame[valid_mask]
-                        #print("Depth Values:", depth_values)
+                        print("Depth Values:", depth_values)
                         mean_depth = numpy.mean(depth_values)
                         print("Mean Depth:", mean_depth)
 
