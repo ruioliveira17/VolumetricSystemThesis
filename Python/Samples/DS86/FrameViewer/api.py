@@ -52,7 +52,9 @@ from services.users import load_users, save_users
 
 #----------------------------------------------------      OAuth2      ----------------------------------------------------
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login",
+    scheme_name="OAuth2PasswordBearer",
+    auto_error=True)
 
 def get_current_user(token: str = Depends(oauth2_scheme)):
     """
@@ -171,7 +173,11 @@ async def lifespan(app: FastAPI):
 
 #----------------------------------------------------   Criar App   -------------------------------------------------------
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(lifespan=lifespan, swagger_ui_init_oauth={
+        "clientId": "",
+        "clientSecret": "",
+        "usePkceWithAuthorizationCodeGrant": False,
+    })
 
 app.add_middleware(
     CORSMiddleware,
@@ -296,7 +302,7 @@ def calibrationMask_feed(request: Request):
          Grabs the latest color frame captured by the camera and returns it as a PNG image. If no frame is available, it returns an error message.
          """,
          tags=["Frame"])
-def getColorFrame():
+def getColorFrame(current_user: dict = Depends(get_current_user)):
     colorFrame = frameState.colorFrame 
     if colorFrame is None:
         return {"error": "No color frame available"}
@@ -321,7 +327,7 @@ def getColorFrame():
          Grabs the latest depth frame converted to color captured by the camera and returns it as a PNG image. If no frame is available, it returns an error message.
          """,
          tags=["Frame"])
-def getColorToDepthFrame():
+def getColorToDepthFrame(current_user: dict = Depends(get_current_user)):
     colorToDepthFrame = frameState.colorToDepthFrame
     if colorToDepthFrame is None:
         return {"error": "No colorToDepth frame available"}
@@ -346,7 +352,7 @@ def getColorToDepthFrame():
          Grabs the latest depth frame captured by the camera and returns it as a PNG image. If no frame is available, it returns an error message.
          """,
          tags=["Frame"])
-def getDepthFrame():
+def getDepthFrame(current_user: dict = Depends(get_current_user)):
     depthFrame = frameState.depthFrame
     if depthFrame is None:
         return {"error": "No depth frame available"}
@@ -381,7 +387,7 @@ def getDepthFrame():
          Grabs the latest color to depth frame captured by the camera and applies an algorithm that makes the workspace visible to the user and returns it as a PNG image. If no frame is available, it returns an error message.
          """,
          tags=["Frame"])
-def getWorkspaceDetectedFrame():
+def getWorkspaceDetectedFrame(current_user: dict = Depends(get_current_user)):
     workspaceDetectedFrame = frameState.workspaceDetectedFrame
 
     if workspaceDetectedFrame is None:
@@ -411,7 +417,7 @@ def getWorkspaceDetectedFrame():
          Grabs the latest color to depth frame captured by the camera and applies a mask that makes a color space visible to the user and returns it as a PNG image. If no frame is available, it returns an error message.
          """,
          tags=["Frame"])
-def getMaskFrame():
+def getMaskFrame(current_user: dict = Depends(get_current_user)):
     maskFrame = frameState.maskFrame
     if maskFrame is None:
         maskFrame = numpy.zeros((480, 640, 3), dtype=numpy.uint8)
@@ -438,7 +444,7 @@ def getMaskFrame():
          Grabs the latest color frame captured by the camera and applies an algorithm that makes the detected objects visible to the user and returns it as a PNG image. If no frame is available, it returns an error message.
          """,
          tags=["Frame"])
-def getDetectedObjectsFrame():
+def getDetectedObjectsFrame(current_user: dict = Depends(get_current_user)):
     detectedObjectsFrame = frameState.detectedObjectsFrame
     if detectedObjectsFrame is None:
         raise HTTPException(status_code=404, detail="Frame not available")
@@ -464,7 +470,7 @@ def getDetectedObjectsFrame():
          Grabs the HDR color frame provided by an algorithm that captures multiple exposures and returns it as a PNG image. If no frame is available, it returns an error message.
          """,
          tags=["Frame"])
-def get_Color_HDRFrame():
+def get_Color_HDRFrame(current_user: dict = Depends(get_current_user)):
     colorFrameHDR = frameState.colorFrameHDR
     if colorFrameHDR is None:
         return Response(status_code=204)
@@ -490,7 +496,7 @@ def get_Color_HDRFrame():
          Grabs the HDR depth frame provided by an algorithm that captures multiple exposures converted to color and returns it as a PNG image. If no frame is available, it returns an error message.
          """,
          tags=["Frame"])
-def get_ColorToDepth_HDRFrame():
+def get_ColorToDepth_HDRFrame(current_user: dict = Depends(get_current_user)):
     colorToDepthFrameHDR = frameState.colorToDepthFrameHDR
     if colorToDepthFrameHDR is None:
         return Response(status_code=204)
@@ -516,7 +522,7 @@ def get_ColorToDepth_HDRFrame():
          Grabs the HDR depth frame provided by an algorithm that captures multiple exposures and returns it as a PNG image. If no frame is available, it returns an error message.
          """,
          tags=["Frame"])
-def get_Depth_HDRFrame():
+def get_Depth_HDRFrame(current_user: dict = Depends(get_current_user)):
     depthFrameHDR = frameState.depthFrameHDR
     if depthFrameHDR is None:
         return Response(status_code=204)
@@ -554,7 +560,7 @@ def get_Depth_HDRFrame():
          Sets the color for the mask. This color can only be one of the predefined colors in the dropdown menu.
          """,
          tags=["Mask"])
-def set_maskColor(data: HSVValue):
+def set_maskColor(data: HSVValue, current_user: dict = Depends(get_current_user)):
     maskState.color = data.color
     return{"color": maskState.color}
 
@@ -563,7 +569,7 @@ def set_maskColor(data: HSVValue):
          Sets the option for the color of the mask. This option can only be one of the predefined ones in the dropdown menu. If it is set to "Select a Point", the user can click on the image to detect the color of the point. If it is set to any other option, that color will be used for the mask.
          """,
          tags=["Mask"])
-def set_maskOption(data: HSVValue):
+def set_maskOption(data: HSVValue, current_user: dict = Depends(get_current_user)):
     maskState.optionSelected = data.optionSelected
     return{"color": maskState.optionSelected}
 
@@ -572,7 +578,7 @@ def set_maskOption(data: HSVValue):
          Sets the color for the mask through a click on the image. This only works if the option "Select a Point" is selected.
          """,
          tags=["Mask"])
-def clickSet_maskColor(data: ColorCoords):
+def clickSet_maskColor(data: ColorCoords, current_user: dict = Depends(get_current_user)):
     x, y = data.x, data.y
     b, g, r = frameState.colorToDepthFrame[y, x]
 
@@ -615,7 +621,7 @@ def clickSet_maskColor(data: ColorCoords):
          Retrieves the HSV color space parameters for the selected color.
          """,
          tags=["Mask"])
-def get_mask():
+def get_mask(current_user: dict = Depends(get_current_user)):
     if maskState.color != "Select a Point":
         preset = COLOR_PRESETS[maskState.color]
         lower = numpy.array(preset["lower"])
@@ -640,7 +646,7 @@ def get_mask():
          It uses the HSV color space defined previously to apply a mask to the latest color to depth frame. An algorithm makes the changes necessary to the image to show correctly the workspaceDetectedFrame and the maskFrame to the user. If the mask application is successful, it returns a success message. Otherwise, it returns an error message.
          """,
          tags=["Mask"])
-def apply_mask(data: HSVValue):
+def apply_mask(data: HSVValue, current_user: dict = Depends(get_current_user)):
     lower = (data.hmin, data.smin, data.vmin)
     upper = (data.hmax, data.smax, data.vmax)
 
@@ -667,7 +673,7 @@ def apply_mask(data: HSVValue):
          Allows the user to change the workspace detection area manually by providing a list of coordinates that represent the vertices of a polygon. An algorithm makes the changes necessary to the image to show correctly the workspaceDetectedFrame to the user with the new workspace defined. If the workspace application is successful, it returns a success message. Otherwise, it returns an error message.
          """,
          tags=["Mask"])
-def apply_manualWS(data: ManualWorkspace):
+def apply_manualWS(data: ManualWorkspace, current_user: dict = Depends(get_current_user)):
     if frameState.colorToDepthFrameHDR is None or modeState.expositionMode == "Fixed Exposition":
         colorToDepthFrame = frameState.colorToDepthFrame
     else:
@@ -692,7 +698,7 @@ def apply_manualWS(data: ManualWorkspace):
          Calibrates the workspace using the mask obtained previously. If all the conditions are met, the workspace parameters are saved and can be used in the future without the need of recalibration. If the calibration is successful, it returns a success message. Otherwise, it returns an error message.
          """,
          tags=["Calibration"])
-def calibrate(data: HSVValue):
+def calibrate(data: HSVValue, current_user: dict = Depends(get_current_user)):
     lower = (data.hmin, data.smin, data.vmin)
     upper = (data.hmax, data.smax, data.vmax)
 
@@ -733,7 +739,7 @@ def calibrate(data: HSVValue):
          Retrieves the calibration parameters for the workspace. These parameters define the characteristics of the calibrated workspace.
          """,
          tags=["Calibration"])
-def getCalibrationParameters():
+def getCalibrationParameters(current_user: dict = Depends(get_current_user)):
     return {
         "Detection Area": [
             [int(x), int(y)] for x, y in workspaceState.detection_area
@@ -749,7 +755,7 @@ def getCalibrationParameters():
          Retrieves the calibration flags for the workspace. These flags indicate the status of the calibration. This information is useful to understand what failed during calibration - wether the workspace is not centered or if there are objects in the workspace during calibration, for example.
          """,
          tags=["Calibration"])
-def getCalibrationFlags():
+def getCalibrationFlags(current_user: dict = Depends(get_current_user)):
     return {
         "Center Aligned": workspaceState.center_aligned,
         "Workspace Clear": workspaceState.workspace_clear,
@@ -762,7 +768,7 @@ def getCalibrationFlags():
          Retrieves the current calibration mode. The calibration mode can be either "Automatic" or "Manual". The "Automatic" mode performs the calibration using an algorithm that detects the workspace and calibrates it without user intervention. The "Manual" mode allows the user to define the workspace detection area manually by providing a list of coordinates that represent the vertices of a polygon.
          """,
          tags=["Using Modes"])
-def getCalibrationMode():
+def getCalibrationMode(current_user: dict = Depends(get_current_user)):
     return{
         "Calibrate Mode": modeState.calibrationMode,
     }
@@ -772,7 +778,7 @@ def getCalibrationMode():
          Sets the calibration mode to "Automatic".
          """,
          tags=["Using Modes"])
-def automaticCalibration():
+def automaticCalibration(current_user: dict = Depends(get_current_user)):
     modeState.calibrationMode = "Automatic"
     return {"mode:": modeState.calibrationMode}
 
@@ -781,7 +787,7 @@ def automaticCalibration():
          Sets the calibration mode to "Manual".
          """,
          tags=["Using Modes"])
-def manualCalibration():
+def manualCalibration(current_user: dict = Depends(get_current_user)):
     modeState.calibrationMode = "Manual"
     return {"mode:": modeState.calibrationMode}
 
@@ -792,7 +798,7 @@ def manualCalibration():
          Retrieves the current working mode. The working mode can be either "Static" or "Dynamic".
          """,
          tags=["Using Modes"])
-def get_mode():
+def get_mode(current_user: dict = Depends(get_current_user)):
     return{
         "Mode": modeState.mode,
     }
@@ -802,7 +808,7 @@ def get_mode():
          Sets the working mode to "Static".
          """,
          tags=["Using Modes"])
-def static():
+def static(current_user: dict = Depends(require_admin)):
     modeState.mode = "Static"
     return {"mode:": modeState.mode}
 
@@ -811,7 +817,7 @@ def static():
          Sets the working mode to "Dynamic".
          """,
          tags=["Using Modes"])
-def dynamic():
+def dynamic(current_user: dict = Depends(require_admin)):
     modeState.mode = "Dynamic"
     return {"mode:": modeState.mode}
 
@@ -822,7 +828,7 @@ def dynamic():
          Retrieves the current exposition mode. The exposition mode can be either "Fixed Exposition" or "HDR". The "Fixed Exposition" mode captures frames with a fixed exposure time defined by the user. The "HDR" mode captures multiple frames with different exposure times and combines them to create a single frame with a higher dynamic range.
          """,
          tags=["Using Modes"])
-def get_expMode():
+def get_expMode(current_user: dict = Depends(get_current_user)):
     return{
         "Exposition Mode": modeState.expositionMode,
     }
@@ -832,7 +838,7 @@ def get_expMode():
          Sets the exposition mode to "Fixed Exposition".
          """,
          tags=["Using Modes"])
-def fixedExp():
+def fixedExp(current_user: dict = Depends(require_admin)):
     modeState.expositionMode = "Fixed Exposition"
     camState.hdrEnabled = False
     camState.camera.VZ_SetExposureTime(VzSensorType.VzToFSensor, c_int32(camState.exposureTime))
@@ -843,7 +849,7 @@ def fixedExp():
          Sets the exposition mode to "HDR".
          """,
          tags=["Using Modes"])
-def hdrExp():
+def hdrExp(current_user: dict = Depends(require_admin)):
     modeState.expositionMode = "HDR"
     
     camState.hdrEnabled = True
@@ -857,7 +863,7 @@ def hdrExp():
          Retrieves the current debug mode. The debug mode can be either "On" or "Off". When the debug mode is "On", additional information about the system's operation is provided, which can be useful for troubleshooting and understanding the internal workings of the system. When the debug mode is "Off", only essential information is provided, which can help to improve performance and reduce clutter in the output.
          """,
          tags=["Using Modes"])
-def get_debugMode():
+def get_debugMode(current_user: dict = Depends(get_current_user)):
     return{
         "Debug Mode": modeState.debugMode,
     }
@@ -867,7 +873,7 @@ def get_debugMode():
          Sets the debug mode to "Off".
          """,
          tags=["Using Modes"])
-def debugOff(current_user: dict = Depends(get_current_user)):
+def debugOff(current_user: dict = Depends(require_admin)):
     modeState.debugMode = "Off"
     return {"Debug Mode:": modeState.debugMode}
 
@@ -887,7 +893,7 @@ def debugOn(current_user: dict = Depends(require_admin)):
          Starts the bundle volume algorithm.
          """,
          tags=["Volume"])
-def volume_Bundle():
+def volume_Bundle(current_user: dict = Depends(get_current_user)):
     if frameState.colorToDepthFrameHDR is None or modeState.expositionMode == "Fixed Exposition":
         colorFrame = frameState.colorFrame
     else:
@@ -949,7 +955,7 @@ def volume_Bundle():
          Gets the results of the bundle volume algorithm.
          """,
          tags=["Volume"])
-def get_Volume_Bundle():
+def get_Volume_Bundle(current_user: dict = Depends(get_current_user)):
     response = {}
 
     response["Bundle"] = {
@@ -967,7 +973,7 @@ def get_Volume_Bundle():
          Starts the real volume algorithm.
          """,
          tags=["Volume"])
-def volume_Real():
+def volume_Real(current_user: dict = Depends(get_current_user)):
     if frameState.colorToDepthFrameHDR is None or modeState.expositionMode == "Fixed Exposition":
         colorFrame = frameState.colorFrame
     else:
@@ -1029,7 +1035,7 @@ def volume_Real():
          Gets the results of the real volume algorithm.
          """,
          tags=["Volume"])
-def get_Volume_Real():
+def get_Volume_Real(current_user: dict = Depends(get_current_user)):
     response = {}
 
     volumes = volumeState.volume if isinstance(volumeState.volume, list) else [volumeState.volume]
@@ -1060,7 +1066,7 @@ def get_Volume_Real():
          If the array says "true", it means the object is outside the workspace area. If it says "false", it means the object is inside the workspace area. This information is useful to understand if the detected objects are correctly placed inside the workspace or if they are outside of it, which can affect the accuracy of the volume calculation. So the objects that are outside the workspace area are discarded, wich means they are not considered for the volume calculation. 
          """,
          tags=["Volume"])
-def get_Objects_OutOfLine():
+def get_Objects_OutOfLine(current_user: dict = Depends(get_current_user)):
     return {"objects_outOfLine": volumeState.objects_outOfLine}
 
 #--------------------------------------------------------------------------------------------------------------------------
@@ -1068,7 +1074,7 @@ def get_Objects_OutOfLine():
 @app.get("/systemInfo", summary="Obtain Sytem Information",
          description="Returns the value of the system parameters, such as camera settings, working mode, exposition mode, debug mode and filter states.",
          tags=["System"])
-def systemInfo():
+def systemInfo(current_user: dict = Depends(require_admin)):
     return {
         "Exposure Time": camState.exposureTime,
         "Color Slope": camState.colorSlope,
@@ -1100,7 +1106,7 @@ def systemInfo():
           Note: Any string value must be sent with the exact same format as specified, including capitalization and spacing. For example, to set the working mode to 'Static', the value must be exactly 'Static' and not 'static' or 'STATIC'.
           """,
           tags=["System"])
-def update_systemInfo(info: SystemUpdate):
+def update_systemInfo(info: SystemUpdate, current_user: dict = Depends(require_admin)):
     if info.exposureTime is not None:
         camState.exposureTime = info.exposureTime
         camState.camera.VZ_SetExposureTime(VzSensorType.VzToFSensor, c_int32(camState.exposureTime))

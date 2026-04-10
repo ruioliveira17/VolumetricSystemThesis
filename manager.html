@@ -1050,6 +1050,7 @@
 
             try {
                 refreshAccessToken();
+                const access_token = localStorage.getItem("access_token");
 
                 document.getElementById("volume_value_label").textContent = "";
                 document.getElementById("volume_value_cm_label").textContent = "";
@@ -1060,7 +1061,7 @@
                 const dropdown = document.getElementById("objOption_menu");
                 if (dropdown) dropdown.remove();
 
-                const modeResponse = await fetch('http://10.0.30.175:8000/exposition/mode');
+                const modeResponse = await fetch('http://10.0.30.175:8000/exposition/mode', {headers: { "Authorization": `Bearer ${access_token}`}});
                 const modeData = await modeResponse.json();
                 
                 {/*if (modeData["Exposition Mode"] === "Fixed Exposition") {
@@ -1073,12 +1074,12 @@
                 if (modeData["Exposition Mode"] === "HDR") {
                     let resp = await fetch('http://10.0.30.175:8000/getFrame/HDRcolor');
                     if (resp.status === 204) {
-                        resp = await fetch(colorFrameUrl);
+                        resp = await fetch(colorFrameUrl, {headers: { "Authorization": `Bearer ${access_token}` }});
                     }
                     const blob = await resp.blob();
                     document.getElementById("camera-img").src = URL.createObjectURL(blob);
                 } else {
-                    const resp = await fetch(colorFrameUrl);
+                    const resp = await fetch(colorFrameUrl, {headers: { "Authorization": `Bearer ${access_token}` }});
                     const blob = await resp.blob();
                     document.getElementById("camera-img").src = URL.createObjectURL(blob);
                 }
@@ -1086,12 +1087,12 @@
                 if (modeData["Exposition Mode"] === "HDR") {
                     let resp = await fetch('http://10.0.30.175:8000/getFrame/HDRcolorToDepth');
                     if (resp.status === 204) {
-                        resp = await fetch(colorToDepthFrameUrl);
+                        resp = await fetch(colorToDepthFrameUrl, {headers: { "Authorization": `Bearer ${access_token}` }});
                     }
                     const blob = await resp.blob();
                     document.getElementById("volume-colorToDepthimg").src = URL.createObjectURL(blob);
                 } else {
-                    const resp = await fetch(colorToDepthFrameUrl);
+                    const resp = await fetch(colorToDepthFrameUrl, {headers: { "Authorization": `Bearer ${access_token}` }});
                     const blob = await resp.blob();
                     document.getElementById("volume-colorToDepthimg").src = URL.createObjectURL(blob);
                 }
@@ -1099,19 +1100,19 @@
                 if (modeData["Exposition Mode"] === "HDR") {
                     let resp = await fetch('http://10.0.30.175:8000/getFrame/HDRdepth');
                     if (resp.status === 204) {
-                        resp = await fetch(depthFrameUrl);
+                        resp = await fetch(depthFrameUrl, {headers: { "Authorization": `Bearer ${access_token}` }});
                     }
                     const blob = await resp.blob();
                     document.getElementById("volume-depthimg").src = URL.createObjectURL(blob);
                 } else {
-                    const resp = await fetch(depthFrameUrl);
+                    const resp = await fetch(depthFrameUrl, {headers: { "Authorization": `Bearer ${access_token}` }});
                     const blob = await resp.blob();
                     document.getElementById("volume-depthimg").src = URL.createObjectURL(blob);
                 }
 
-                await fetch('http://10.0.30.175:8000/volume/bundle', { method: 'POST' });
+                await fetch('http://10.0.30.175:8000/volume/bundle', { method: 'POST', headers: { "Authorization": `Bearer ${access_token}` } });
 
-                const response = await fetch('http://10.0.30.175:8000/getObjectsOutOfLine');
+                const response = await fetch('http://10.0.30.175:8000/getObjectsOutOfLine', {headers: { "Authorization": `Bearer ${access_token}`}});
                 const data = await response.json();
                 const objectsOutOfLine = data.objects_outOfLine.map((val, i) => val ? i + 1 : null).filter(v => v !== null);
                 if (objectsOutOfLine.length > 0) {
@@ -1119,7 +1120,7 @@
                 } else {
                     document.getElementById("objOutOfLine_label").textContent = "";
 
-                    const dataResponse = await fetch('http://10.0.30.175:8000/volume/bundle/results');
+                    const dataResponse = await fetch('http://10.0.30.175:8000/volume/bundle/results', {headers: { "Authorization": `Bearer ${access_token}`}});
                     const volumeData = await dataResponse.json();
 
                     document.getElementById("volume_value_label").innerText = volumeData.Bundle.volume_m.toFixed(6) + " m³";
@@ -1129,7 +1130,7 @@
                     document.getElementById("height_value_label").innerText = volumeData.Bundle.z.toFixed(1) + " cm";
                 }
 
-                const imgResp = await fetch("http://10.0.30.175:8000/getFrame/detectedObjectsFrame");
+                const imgResp = await fetch("http://10.0.30.175:8000/getFrame/detectedObjectsFrame", {headers: { "Authorization": `Bearer ${access_token}` }});
                 if (imgResp.status === 404) throw new Error("Frame not Available");
 
                 const blob = await imgResp.blob();
@@ -1153,6 +1154,7 @@
 
             try {
                 refreshAccessToken();
+                const access_token = localStorage.getItem("access_token");
 
                 document.getElementById("volume_value_label").textContent = "";
                 document.getElementById("volume_value_cm_label").textContent = "";
@@ -1165,12 +1167,8 @@
                     oldDropdown.remove();
                 }
 
-                const modeResponse = await fetch('http://10.0.30.175:8000/exposition/mode');
+                const modeResponse = await fetch('http://10.0.30.175:8000/exposition/mode', {headers: { "Authorization": `Bearer ${access_token}`}});
                 const modeData = await modeResponse.json();
-                
-                {/*if (modeData["Exposition Mode"] === "Fixed Exposition") {
-                    await fetch('http://10.0.30.175:8000/captureFrame', { method: 'POST' });
-                }*/}
 
                 let colorFrameUrl = 'http://10.0.30.175:8000/getFrame/color';
                 let colorToDepthFrameUrl = 'http://10.0.30.175:8000/getFrame/colorToDepth';
@@ -1178,12 +1176,12 @@
                 if (modeData["Exposition Mode"] === "HDR") {
                     let resp = await fetch('http://10.0.30.175:8000/getFrame/HDRcolor');
                     if (resp.status === 204) {
-                        resp = await fetch(colorFrameUrl);
+                        resp = await fetch(colorFrameUrl, {headers: { "Authorization": `Bearer ${access_token}` }});
                     }
                     const blob = await resp.blob();
                     document.getElementById("camera-img").src = URL.createObjectURL(blob);
                 } else {
-                    const resp = await fetch(colorFrameUrl);
+                    const resp = await fetch(colorFrameUrl, {headers: { "Authorization": `Bearer ${access_token}` }});
                     const blob = await resp.blob();
                     document.getElementById("camera-img").src = URL.createObjectURL(blob);
                 }
@@ -1191,12 +1189,12 @@
                 if (modeData["Exposition Mode"] === "HDR") {
                     let resp = await fetch('http://10.0.30.175:8000/getFrame/HDRcolorToDepth');
                     if (resp.status === 204) {
-                        resp = await fetch(colorToDepthFrameUrl);
+                        resp = await fetch(colorToDepthFrameUrl, {headers: { "Authorization": `Bearer ${access_token}` }});
                     }
                     const blob = await resp.blob();
                     document.getElementById("volume-colorToDepthimg").src = URL.createObjectURL(blob);
                 } else {
-                    const resp = await fetch(colorToDepthFrameUrl);
+                    const resp = await fetch(colorToDepthFrameUrl, {headers: { "Authorization": `Bearer ${access_token}` }});
                     const blob = await resp.blob();
                     document.getElementById("volume-colorToDepthimg").src = URL.createObjectURL(blob);
                 }
@@ -1204,19 +1202,19 @@
                 if (modeData["Exposition Mode"] === "HDR") {
                     let resp = await fetch('http://10.0.30.175:8000/getFrame/HDRdepth');
                     if (resp.status === 204) {
-                        resp = await fetch(depthFrameUrl);
+                        resp = await fetch(depthFrameUrl, {headers: { "Authorization": `Bearer ${access_token}` }});
                     }
                     const blob = await resp.blob();
                     document.getElementById("volume-depthimg").src = URL.createObjectURL(blob);
                 } else {
-                    const resp = await fetch(depthFrameUrl);
+                    const resp = await fetch(depthFrameUrl, {headers: { "Authorization": `Bearer ${access_token}` }});
                     const blob = await resp.blob();
                     document.getElementById("volume-depthimg").src = URL.createObjectURL(blob);
                 }
 
-                await fetch('http://10.0.30.175:8000/volume/real', { method: 'POST' });
+                await fetch('http://10.0.30.175:8000/volume/real', { method: 'POST', headers: { "Authorization": `Bearer ${access_token}` } });
 
-                const response = await fetch('http://10.0.30.175:8000/getObjectsOutOfLine');
+                const response = await fetch('http://10.0.30.175:8000/getObjectsOutOfLine', {headers: { "Authorization": `Bearer ${access_token}`}});
                 const data = await response.json();
                 const objectsOutOfLine = data.objects_outOfLine.map((val, i) => val ? i + 1 : null).filter(v => v !== null);
                 if (objectsOutOfLine.length > 0) {
@@ -1225,10 +1223,10 @@
                     document.getElementById("objOutOfLine_label").textContent = "";
                 }
 
-                const dataResponse = await fetch('http://10.0.30.175:8000/volume/real/results');
+                const dataResponse = await fetch('http://10.0.30.175:8000/volume/real/results', {headers: { "Authorization": `Bearer ${access_token}`}});
                 const volumeData = await dataResponse.json();
 
-                const imgResp = await fetch("http://10.0.30.175:8000/getFrame/detectedObjectsFrame");
+                const imgResp = await fetch("http://10.0.30.175:8000/getFrame/detectedObjectsFrame", {headers: { "Authorization": `Bearer ${access_token}` }});
                 if (imgResp.status === 404) throw new Error("Frame not Available");
 
                 const blob = await imgResp.blob();
@@ -1312,31 +1310,33 @@
         
         async function ExpHDR_toggle() {
             refreshAccessToken();
+            const access_token = localStorage.getItem("access_token");
 
             const checked = document.getElementById("ExpHDR_switch").checked;
             if (checked) {
-                await fetch("http://10.0.30.175:8000/exposition/mode/hdr", { method: "POST" });
+                await fetch("http://10.0.30.175:8000/exposition/mode/hdr", { method: "POST", headers: { "Authorization": `Bearer ${access_token}`} });
             } else {
-                await fetch("http://10.0.30.175:8000/exposition/mode/fixed", { method: "POST" });
+                await fetch("http://10.0.30.175:8000/exposition/mode/fixed", { method: "POST", headers: { "Authorization": `Bearer ${access_token}`} });
             }
         }
 
         async function StaticDynamic_toggle() {
             refreshAccessToken();
+            const access_token = localStorage.getItem("access_token");
 
             const checked = document.getElementById("StaticDynamic_switch").checked;
             if (checked) {
-                await fetch("http://10.0.30.175:8000/working/mode/dynamic", { method: "POST" });
+                await fetch("http://10.0.30.175:8000/working/mode/dynamic", { method: "POST", headers: { "Authorization": `Bearer ${access_token}`} });
             } else {
-                await fetch("http://10.0.30.175:8000/working/mode/static", { method: "POST" });
+                await fetch("http://10.0.30.175:8000/working/mode/static", { method: "POST", headers: { "Authorization": `Bearer ${access_token}`} });
             }
         }
 
         async function DebugMode_toggle() {
             refreshAccessToken();
+            const access_token = localStorage.getItem("access_token");
 
             const checked = document.getElementById("DebugMode_switch").checked;
-            const access_token = localStorage.getItem("access_token");
             if (checked) {
                 await fetch("http://10.0.30.175:8000/debug/mode/on", { method: "POST", headers: { "Authorization": `Bearer ${access_token}` } });
             } else {
@@ -1346,13 +1346,14 @@
 
         async function AutoManual_toggle() {
             refreshAccessToken();
+            const access_token = localStorage.getItem("access_token");
 
             const checked = document.getElementById("AutoManual_switch").checked;
             if (checked) {
-                await fetch("http://10.0.30.175:8000/calibrate/mode/manual", { method: "POST" });
+                await fetch("http://10.0.30.175:8000/calibrate/mode/manual", { method: "POST", headers: { "Authorization": `Bearer ${access_token}` }});
                 selected_point = null;
             } else {
-                await fetch("http://10.0.30.175:8000/calibrate/mode/automatic", { method: "POST" });
+                await fetch("http://10.0.30.175:8000/calibrate/mode/automatic", { method: "POST", headers: { "Authorization": `Bearer ${access_token}` }});
             }
 
             setColorDropdownState(checked);
@@ -1373,11 +1374,12 @@
 
             try {
                 refreshAccessToken();
+                const access_token = localStorage.getItem("access_token");
 
                 await fetch("http://10.0.30.175:8000/update_systemInfo", {
                     method: "POST",
                     headers: {
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json", "Authorization": `Bearer ${access_token}`
                     },
                     body: JSON.stringify({ exposureTime: value })
                 });
@@ -1400,11 +1402,12 @@
 
             try {
                 refreshAccessToken();
+                const access_token = localStorage.getItem("access_token");
 
                 await fetch("http://10.0.30.175:8000/update_systemInfo", {
                     method: "POST",
                     headers: {
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json", "Authorization": `Bearer ${access_token}`
                     },
                     body: JSON.stringify({ colorSlope: value })
                 });
@@ -1417,28 +1420,28 @@
             try {
                 if(currentMenu === "config-menu") {
                     // MODE (Static / Dynamic)
-                    let r = await fetch("http://10.0.30.175:8000/working/mode");
+                    let r = await fetch("http://10.0.30.175:8000/working/mode", {headers: { "Authorization": `Bearer ${access_token}`}});
                     let modeData = await r.json();
 
                     document.getElementById("StaticDynamic_switch").checked =
                         (modeData["Mode"] === "Dynamic");
 
                     // EXPOSITION MODE
-                    r = await fetch("http://10.0.30.175:8000/exposition/mode");
+                    r = await fetch("http://10.0.30.175:8000/exposition/mode", {headers: { "Authorization": `Bearer ${access_token}`}});
                     let expData = await r.json();
 
                     document.getElementById("ExpHDR_switch").checked =
                         (expData["Exposition Mode"] === "HDR");
 
                     // DEBUG MODE
-                    r = await fetch("http://10.0.30.175:8000/debug/mode");
+                    r = await fetch("http://10.0.30.175:8000/debug/mode", {headers: { "Authorization": `Bearer ${access_token}`}});
                     let debugData = await r.json();
 
                     document.getElementById("DebugMode_switch").checked =
                         (debugData["Debug Mode"] === "On");
                 } else if (currentMenu === "calibration-menu") {
                     // CALIBRATION MODE
-                    r = await fetch("http://10.0.30.175:8000/calibrate/mode");
+                    r = await fetch("http://10.0.30.175:8000/calibrate/mode", {headers: { "Authorization": `Bearer ${access_token}`}});
                     let calibData = await r.json();
 
                     document.getElementById("AutoManual_switch").checked =
@@ -1456,7 +1459,8 @@
 
         async function refreshSliders() {
             try {
-                const resp = await fetch("http://10.0.30.175:8000/mask", { method: 'GET' });
+                const access_token = localStorage.getItem("access_token");
+                const resp = await fetch("http://10.0.30.175:8000/mask", { headers: { "Authorization": `Bearer ${access_token}`}});
                 const data = await resp.json();
 
                 document.getElementById("hminSlider").value = data.hmin;
@@ -1486,28 +1490,28 @@
             }
         }
 
-        async function applyMask() {
+        async function applyMask(access_token) {
             try {
                 if (currentMenu !== "calibration-menu") return;
-                const r = await fetch("http://10.0.30.175:8000/mask");
+                const r = await fetch("http://10.0.30.175:8000/mask", {headers: { "Authorization": `Bearer ${access_token}`}});
                 const maskValues = await r.json();
                 await fetch("http://10.0.30.175:8000/applyMask", {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', "Authorization": `Bearer ${access_token}` },
                     body: JSON.stringify(maskValues)
                 });
             } catch (err) { console.warn("Erro applyMask:", err); }
         }
 
-        async function applyManualWSDraw() {
+        async function applyManualWSDraw(access_token) {
             try {
                 if (selected_point === null) {
-                    const r = await fetch("http://10.0.30.175:8000/calibrate/params");
+                    const r = await fetch("http://10.0.30.175:8000/calibrate/params", { headers: { "Authorization": `Bearer ${access_token}` } });
                     detection_area = (await r.json())["Detected Area"];
                 }
                 await fetch("http://10.0.30.175:8000/applyManualWorkspace", {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', "Authorization": `Bearer ${access_token}` },
                     body: JSON.stringify({ detection_area })
                 });
             } catch (err) { console.warn("Erro applyManualWSDraw:", err); }
@@ -1515,12 +1519,13 @@
 
         async function workspaceDrawing(){
             try{
-                r = await fetch("http://10.0.30.175:8000/calibrate/mode");
+                const access_token = localStorage.getItem("access_token");
+                r = await fetch("http://10.0.30.175:8000/calibrate/mode", {headers: { "Authorization": `Bearer ${access_token}`}});
                 let calibData = await r.json();
                 if (calibData["Calibrate Mode"] === "Automatic") {
-                    applyMask();
+                    applyMask(access_token);
                 } else if (calibData["Calibrate Mode"] === "Manual") {
-                    applyManualWSDraw();
+                    applyManualWSDraw(access_token);
                 }
             } catch (err) { console.warn("Erro drawing Workspace:", err); }
             
@@ -1532,16 +1537,17 @@
         async function colorDropdown_change() {
             try {
                 refreshAccessToken();
+                const access_token = localStorage.getItem("access_token");
 
                 const color = document.getElementById("colorDropdown").value;
                 await fetch("http://10.0.30.175:8000/mask/color", {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${access_token}` },
                     body: JSON.stringify({ color })
                 });
                 await fetch("http://10.0.30.175:8000/mask/optionSelected", {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${access_token}` },
                     body: JSON.stringify({ optionSelected: color })
                 });
             } catch (err) { console.warn("Erro a mudar cor:", err); }
@@ -1560,13 +1566,14 @@
 
                 try {
                     refreshAccessToken();
+                    const access_token = localStorage.getItem("access_token");
 
                     if (currentMenu === "calibration-menu"){
-                        const r = await fetch("http://10.0.30.175:8000/calibrate/mode");
+                        const r = await fetch("http://10.0.30.175:8000/calibrate/mode", {headers: { "Authorization": `Bearer ${access_token}`}});
                         let calibData = await r.json();
 
                         if (calibData["Calibrate Mode"] === "Automatic") {
-                            const r = await fetch("http://10.0.30.175:8000/mask");
+                            const r = await fetch("http://10.0.30.175:8000/mask", {headers: { "Authorization": `Bearer ${access_token}`}});
                             const maskValues = await r.json();
                             let optionSelected = maskValues.optionSelected;
 
@@ -1577,12 +1584,12 @@
 
                                 await fetch("http://10.0.30.175:8000/mask/colorClick", {
                                     method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
+                                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${access_token}` },
                                     body: JSON.stringify({x, y})
                                 });
                             }
                         } else if (calibData["Calibrate Mode"] === "Manual") {
-                            const r = await fetch("http://10.0.30.175:8000/calibrate/params");
+                            const r = await fetch("http://10.0.30.175:8000/calibrate/params", { headers: { "Authorization": `Bearer ${access_token}` } });
                             const response = await r.json();
                             let points = response["Detected Area"];
 
@@ -1619,15 +1626,16 @@
         document.addEventListener("keydown", async (event) => {
             try {
                 refreshAccessToken();
+                const access_token = localStorage.getItem("access_token");
 
                 if (currentMenu === "calibration-menu") {
-                    const r_mode = await fetch("http://10.0.30.175:8000/calibrate/mode");
+                    const r_mode = await fetch("http://10.0.30.175:8000/calibrate/mode", {headers: { "Authorization": `Bearer ${access_token}`}});
                     const calibData = await r_mode.json();
 
                     if (calibData["Calibrate Mode"] !== "Manual") return;
 
                     // Pegar detection_area do servidor
-                    const r = await fetch("http://10.0.30.175:8000/calibrate/params");
+                    const r = await fetch("http://10.0.30.175:8000/calibrate/params", {headers: { "Authorization": `Bearer ${access_token}`}});
                     let data = await r.json();
                     detection_area = data["Detected Area"]; // [x1, y1, x2, y2]
 
@@ -1672,22 +1680,23 @@
 
             try {
                 refreshAccessToken();
+                const access_token = localStorage.getItem("access_token");
 
-                const maskResponse = await fetch("http://10.0.30.175:8000/mask");
+                const maskResponse = await fetch("http://10.0.30.175:8000/mask", {headers: { "Authorization": `Bearer ${access_token}`}});
                 if (!maskResponse.ok) throw new Error("Mask request failed");
                 const maskValues = await maskResponse.json();
 
                 const calibrateResponse = await fetch("http://10.0.30.175:8000/calibrate", {
                     method: "POST",
                     headers: {
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json", "Authorization": `Bearer ${access_token}`
                     },
                     body: JSON.stringify(maskValues)
                 });
 
                 if (!calibrateResponse.ok) throw new Error("Calibrate request failed");
 
-                const flagsResponse = await fetch("http://10.0.30.175:8000/calibrate/flags");
+                const flagsResponse = await fetch("http://10.0.30.175:8000/calibrate/flags", { headers: { "Authorization": `Bearer ${access_token}` } });
                 if (!flagsResponse.ok) throw new Error("Flags request failed");
 
                 const data = await flagsResponse.json();
