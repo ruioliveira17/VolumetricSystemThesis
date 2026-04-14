@@ -141,7 +141,7 @@
             width: 60%;
         }
 
-        .camera-img {
+        #camera-video {
             width: 55vw;
             height: auto;
             object-fit: contain;
@@ -486,7 +486,8 @@
             <div class="menu-title">Camera</div>
         </div>
 
-        <img id="camera-img" class="camera-img" alt="Color Img">
+        <video id="camera-video" autoplay playsinline>
+        </video>
     </div>
 
     <!-- Barcode Panel -->
@@ -819,6 +820,7 @@
         let thresh = 10;
         let detection_area = [0, 0, 0, 0];
         let tokenCheckInterval = null;
+        let pc = null;
 
         function showLoginScreen() {
             document.getElementById("register-screen").style.display = "none";
@@ -997,8 +999,7 @@
             currentMenu = menuID; 
 
             if (menuID === "camera-menu") {
-                const img = document.getElementById("camera-img");
-                img.src = "http://10.0.30.175:8000/rgb";
+                startWebRTC();
             } else if (menuID === "calibration-menu"){
                 workspaceDrawing();
                 const img = document.getElementById("calibration-colorToDepthimg");
@@ -1029,8 +1030,7 @@
 
             document.getElementById(currentMenu).style.display = "none";
             if (currentMenu === "camera-menu"){
-                const img = document.getElementById("camera-img");
-                img.src = "";
+                stopWebRTC();
             }
 
             if (currentMenu === "calibration-menu"){
@@ -1729,7 +1729,7 @@
         }
 
         function startTokenCheck() {
-            timer = 0.25 * 60 * 1000; // 5 minutos (300000ms)
+            timer = 5 * 60 * 1000; // 5 minutos (300000ms)
             
             tokenCheckInterval = setInterval(async () => {
                 const access_token = localStorage.getItem("access_token");
@@ -1773,6 +1773,52 @@
             } catch (e) {}
 
             return false;
+        }
+
+        async function startWebRTC() {
+            const access_token = localStorage.getItem("access_token");
+
+            pc = new RTCPeerConnection();
+
+            pc.addTransceiver('video', { direction: 'recvonly' });
+
+            pc.ontrack = (event) => {
+                const video = document.getElementById("camera-video");
+                video.srcObject = event.streams[0];
+            };
+
+            const offer = await pc.createOffer();
+            await pc.setLocalDescription(offer);
+
+            const response = await fetch("http://10.0.30.175:8000/offer", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${access_token}`
+                },
+                body: JSON.stringify({
+                    sdp: pc.localDescription.sdp,
+                    type: pc.localDescription.type
+                })
+            });
+
+            const answer = await response.json();
+
+            await pc.setRemoteDescription(answer);
+        }
+
+        function stopWebRTC() {
+            if (pc) {
+                pc.close();
+                pc = null;
+            }
+
+            const video = document.getElementById("camera-video");
+
+            if (video.srcObject) {
+                video.srcObject.getTracks().forEach(track => track.stop());
+                video.srcObject = null;
+            }
         }
 
     </script>

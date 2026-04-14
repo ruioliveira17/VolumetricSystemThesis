@@ -1,5 +1,6 @@
 #------------------------------------------------------   Imports    -------------------------------------------------------
 
+from aiortc import RTCPeerConnection, RTCSessionDescription
 from contextlib import asynccontextmanager
 from datetime import timedelta
 from dotenv import load_dotenv
@@ -8,6 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from fastapi.security import OAuth2PasswordBearer
 from jose import jwt
+from jose.exceptions import JWTError, ExpiredSignatureError
 from PIL import Image
 from pydantic import BaseModel, Field, StrictBool
 from typing import List, Literal, Optional
@@ -46,7 +48,7 @@ from VolumeTkinter import volumeBundleAPI, volumeRealAPI
 #------------------------------------------------------   Services    ------------------------------------------------------
 
 from services.saveCalibration import save_WS_calibration
-from services.stream import generateRGB_Stream, generateCalibrationCTD_Stream, generateCalibrationMask_Stream
+from services.stream import generateRGB_Stream, generateCalibrationCTD_Stream, generateCalibrationMask_Stream, CameraTrack
 from services.utils import rgb_to_hsv
 from services.users import load_users, save_users
 
@@ -62,9 +64,9 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
     """
     try:
         payload = verify_token(token)
-    except jwt.ExpiredSignatureError:
+    except ExpiredSignatureError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token has expired.")
-    except jwt.InvalidTokenError:
+    except JWTError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token.")
     
     if payload["type"] != "access":
@@ -250,9 +252,9 @@ def register(register_data: RegisterData):
 def refresh(data: RefreshData):
     try:
         payload = verify_token(data.refresh_token)
-    except jwt.ExpiredSignatureError:
+    except ExpiredSignatureError:
         raise HTTPException(status_code=401, detail="Invalid token. Login again.")
-    except jwt.InvalidTokenError:
+    except JWTError:
         raise HTTPException(status_code=401, detail="Invalid token.")
 
     if payload.get("type") != "refresh":
@@ -270,6 +272,24 @@ def refresh(data: RefreshData):
     return {"access_token": new_access_token, "refresh_token": new_refresh_token}
 
 #-------------------------------------------------------   Stream   -------------------------------------------------------
+
+@app.post("/offer")
+async def offer(request: Request, current_user: dict = Depends(get_current_user)): 
+    params = await request.json() 
+    offer = RTCSessionDescription(sdp=params["sdp"], type=params["type"]) 
+    
+    pc = RTCPeerConnection() 
+    
+    await pc.setRemoteDescription(offer)
+    pc.addTrack(CameraTrack())
+    
+    answer = await pc.createAnswer()
+    await pc.setLocalDescription(answer) 
+    
+    return { 
+        "sdp": pc.localDescription.sdp, 
+        "type": pc.localDescription.type
+    }
 
 @app.get('/rgb', summary="RGB Stream",
           description="""

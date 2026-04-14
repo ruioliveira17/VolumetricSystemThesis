@@ -1,9 +1,25 @@
+import asyncio
 import numpy
 import time
 import cv2
 
+from aiortc import VideoStreamTrack
+from av import VideoFrame
+
 from FrameState import frameState
 from CameraState import camState
+
+class CameraTrack(VideoStreamTrack):
+    async def recv(self):
+        frame = frameState.colorFrame
+        if frame is None:
+            await asyncio.sleep(0.05)
+            return await self.recv()
+        else:
+            if frame.dtype != numpy.uint8:
+                frame = (numpy.clip(frame, 0, 1) * 255).astype(numpy.uint8)
+
+        return VideoFrame.from_ndarray(frame, format='bgr24')
 
 def generateRGB_Stream():
     while True:
