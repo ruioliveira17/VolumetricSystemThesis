@@ -6,7 +6,7 @@ from datetime import timedelta
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, HTTPException, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.security import OAuth2PasswordBearer
 from jose import jwt
 from jose.exceptions import JWTError, ExpiredSignatureError
@@ -99,7 +99,6 @@ class HSVValue(BaseModel):
     vmin: Optional[int] = None
     vmax: Optional[int] = None
     color: Optional[str] = None
-    optionSelected: Optional[str] = None
 
 class LoginData(BaseModel):
     username: str
@@ -188,6 +187,12 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+#-------------------------------------------------------   HTML    --------------------------------------------------------
+
+@app.get("/index")
+def serve_manager():
+    return FileResponse("html/manager.html")
 
 #-------------------------------------------------------   Login   --------------------------------------------------------
 
@@ -584,15 +589,6 @@ def set_maskColor(data: HSVValue, current_user: dict = Depends(get_current_user)
     maskState.color = data.color
     return{"color": maskState.color}
 
-@app.post("/mask/optionSelected", summary="Set Mask Option",
-         description="""
-         Sets the option for the color of the mask. This option can only be one of the predefined ones in the dropdown menu. If it is set to "Select a Point", the user can click on the image to detect the color of the point. If it is set to any other option, that color will be used for the mask.
-         """,
-         tags=["Mask"])
-def set_maskOption(data: HSVValue, current_user: dict = Depends(get_current_user)):
-    maskState.optionSelected = data.optionSelected
-    return{"color": maskState.optionSelected}
-
 @app.post("/mask/colorClick", summary="Set Mask Color Through a Click",
          description="""
          Sets the color for the mask through a click on the image. This only works if the option "Select a Point" is selected.
@@ -657,8 +653,7 @@ def get_mask(current_user: dict = Depends(get_current_user)):
         "smax": maskState.smax,
         "vmin": maskState.vmin,
         "vmax": maskState.vmax,
-        "color": maskState.color,
-        "optionSelected": maskState.optionSelected
+        "color": maskState.color
     }
 
 @app.post("/applyMask", summary="Apply Mask",

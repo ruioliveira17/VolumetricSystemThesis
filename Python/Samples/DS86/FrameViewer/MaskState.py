@@ -7,6 +7,5 @@ class MaskState:
         self.vmin = 0
         self.vmax = 255
         self.color = "Select a Point"
-        self.optionSelected = "Select a Point"
 
 maskState = MaskState()

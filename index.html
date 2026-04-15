@@ -60,7 +60,7 @@
             top: 2vh;
             right: 2vw;
             background-color: white;
-            border:  0.2vh solid black;
+            border:  none;
             z-index: 10;
             transition: 0.3s;
        }
@@ -73,21 +73,6 @@
 
         .login img:hover {
             transform: scale(1.05);
-        }
-
-        .user-panel {
-            display: none; 
-            position: absolute; 
-            right: 110%; 
-            margin-right: 0.5vw;
-            background-color: lightblue; 
-            border: 0.2vh solid black; 
-            padding: 1.8vh;
-            min-width: 9vw;
-            max-width: 14vw; 
-            height: auto;
-            z-index: 10;
-            font-size: 1vw;
         }
 
         .type1 {background-color: turquoise; border: 0.2vh solid black;}
@@ -142,7 +127,11 @@
         }
 
         #camera-video {
-            width: 55vw;
+            position: absolute;
+            left: 25vw;
+            top: 65vh;
+            transform: translate(-50%, -50%);
+            width: 45vw;
             height: auto;
             object-fit: contain;
             margin-top: -8vh;
@@ -156,11 +145,16 @@
             margin-top: -8vh;
         }
 
+        .boxInfo-container {
+            margin-top: 27vh;
+        }
+
         .boxInfo-row {
             display: flex;
             justify-content: center;
             align-items: flex-start;
             margin-top: 10vh;
+            margin-left: 30vw;
         }
 
         .boxInfo-column {
@@ -172,11 +166,17 @@
         .boxInfo {
             font-size:1.6vw;
             text-align: left;
-            width: 10vw;
+            width: 11vw;
         }
 
         .under-text {
             margin-top: 2vh;
+        }
+
+        .volumeButtonPos {
+            position: absolute;
+            top: 16.8vh;
+            left: 54vw;
         }
 
         .volumeButton {
@@ -193,41 +193,33 @@
             transform: scale(1.05);
         }
 
-        #volume-depthimg {
-            position: absolute;
-            left: 25vw;
-            top: 37vh;
-            transform: translate(-50%, -50%);
-            width: 24vw;
-            object-fit: contain;
-        } 
-
-        #volume-colorToDepthimg {
-            position: absolute;
-            left: 25vw;
-            top: 77vh;
-            transform: translate(-50%, -50%);
-            width: 24vw;
-            object-fit: contain;
-        }
-
         #object-img{
             position: absolute;
-            left: 78vw;
-            top: 57vh;
+            left: 25vw;
+            top: 65vh;
             transform: translate(-50%, -50%);
-            width: 33vw; 
+            width: 45vw; 
             object-fit: contain;
+            margin-top: -8vh;
         }
 
         #calibration-colorToDepthimg {
             position: absolute;
             left: 25vw;
-            top: 37vh;
+            top: 65vh;
             transform: translate(-50%, -50%);
-            width: 24vw;
+            width: 45vw; 
             object-fit: contain;
+            margin-top: -8vh;
         } 
+
+        #calibration-colorToDepthimg:hover {
+            cursor: url('eyedropper.svg'), auto;
+        }
+
+        #calibration-colorToDepthimg:active {
+            cursor: url('eyedropper-click.svg'), auto;
+        }
 
         #calibration-mask {
             position: absolute;
@@ -313,23 +305,13 @@
             cursor: pointer;
             border: 0.2vh solid black;
         }
-
-        .calibButton button {
-            position: absolute;
-            cursor: pointer;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            top: 20vh;
-            left: 10vw;
-            color: white;
-            font-size: 1vw;
-            padding: 0.5vh 1vw;
-            width: 80vw;
-            height: 5vh;
-            border: 0.2vh solid black;
-        }
         
+        .calibrateButtonPos {
+            position: absolute;
+            top: 66.8vh;
+            left: 54vw;
+        }
+
         .calibrateButton {
             display: flex;
             justify-content: center;
@@ -338,9 +320,6 @@
             width:20vw;
             font-size:1.2vw;
             border: 0.2vh solid black;
-            position: absolute;
-            left:47vw;
-            top:78vh;
         }
         
         .calibrateButton:hover {
@@ -358,14 +337,12 @@
             width: 26vw;
         }
 
-        /* Track - a barra por baixo */
         input[type="range"]::-webkit-slider-runnable-track {
             height: 1.9vh;          /* grossura da barra */
             background: #ccc;      /* cor da barra */
             border-radius: 0.5vw;
         }
 
-        /* Thumb - a bolinha que mexe */
         input[type="range"]::-webkit-slider-thumb {
             -webkit-appearance: none;
             height: 3.2vh;           /* altura da bolinha */
@@ -376,10 +353,117 @@
             margin-top: -0.6vh;      /* para centralizar a bolinha na barra */
         }
 
+        .menuSideNav {
+            height: 100%;
+            width: 0;
+            position: fixed;
+            z-index: 20;
+            top: 0;
+            left: 0;
+            background-color: #f72121;
+            overflow-x: hidden;
+            transition: 0.5s; /
+        }
+
+        .menuSideNav .closebtn {
+            position: absolute;
+            top: 0;
+            right: 1vw;
+            font-size: 4vh;
+            color: #ffffff;
+        }
+
+        .userSideNav {
+            height: 100%;
+            width: 0;
+            position: fixed;
+            z-index: 20;
+            top: 0;
+            right: 0;
+            background-color: #f72121;
+            overflow-x: hidden;
+            transition: 0.5s;
+
+            display: flex;
+            flex-direction: column;
+        }
+
+        .userSideNav .closebtn {
+            position: absolute;
+            top: 0;
+            right: 1vw;
+            font-size: 4vh;
+            color: #ffffff;
+        }
+
+        .nav-item {
+            position: relative; 
+            top: 7vh;
+            cursor: pointer;
+            font-size: 2vh;
+            margin-bottom: 1vh;
+            color: white;
+        }
+
+        .nav-item:hover {
+            background-color: rgba(255,255,255,0.1);
+            transform: scale(1.10);
+            transition: 0.3s;
+        }
+
+        .navUser-item {
+            position: relative; 
+            top: 7vh;
+            cursor: pointer;
+            font-size: 2vh;
+            margin-bottom: 1vh;
+            color: white;
+        }
+
+        .navUser-item:hover {
+            background-color: rgba(255,255,255,0.1);
+        }
+
+        .logout {
+            margin-top: auto;
+            margin-bottom: 10vh;
+        }
+
+        #color-preview {
+            position: absolute;
+            left: 54vw;
+            top: 40vh;
+            width: 8vh;
+            height: 8vh;
+            border-radius: 50%;
+            border: 2px solid black;
+            z-index: 9999;
+        }
+
     </style>
 </head>
 
 <body>
+    <!-- Menu Side Nav -->
+    <div id="menuSideNav" class="menuSideNav">
+        <a href="javascript:void(0)" class="closebtn" onclick="closeMenuNav()">&times;</a>
+        <div class="nav-item" onclick="goTo('volume-menu')">Volume</div>
+        <div class="nav-item" onclick="goTo('calibration-menu')">Calibration</div>
+        <div class="nav-item" onclick="goTo('config-menu')">Configurations</div>
+        <div class="nav-item">About</div>
+    </div>
+
+    <!-- User Side Nav -->
+    <div id="userSideNav" class="userSideNav">
+        <a href="javascript:void(0)" class="closebtn" onclick="closeUserNav()">&times;</a>
+        <div class="navUser-item" id="user-name">User:</div>
+        <div class="navUser-item" id="user-role">Role:</div>
+
+        <div class="nav-item logout" onclick="logout()">
+            Logout
+        </div>
+    </div>
+
     <!-- Login Screen Panel -->
     <div id="login-screen" class="menu">
         <h2>Login</h2>
@@ -423,117 +507,16 @@
 
     </div>
 
-    <!-- Main Menu Panel -->
-    <div id="main-menu" class="menu" style="display: none;">
-        <!-- Logo -->
-        <button class="logo" onclick="goBack()">
-            <img src="BM_Logo.png" alt="BM Logo">
-        </button>
-
-        <!-- Login -->
-        <button class="login" onclick="UserInfo(this)">
-            <img src="user.png" alt="User">
-            <!-- User Panel -->
-            <div class="user-panel">
-                <p id="user-name" style="margin: 0; text-align: left;">User:</p>
-                <p id="user-role" style="margin: 0; text-align: left;">Role:</p>
-                <div style="display: flex; justify-content: flex-end; margin-top: 0px;">
-                    <span id="logout-text" onclick="logout()" style="color: black; cursor: pointer; text-decoration: underline;">Logout</span>
-                </div>
-            </div>
-        </button>
-
-        <!-- Menu Title -->
-        <div class="title-container">
-            <div class="menu-title">Menu</div>
-        </div>
-
-        <!-- Botões -->
-        <div class="menu-grid-container">
-            <div class="menu-grid">
-                <button class="type1" onclick="goTo('camera-menu')"><img src="cam_icon.png" alt="Cam Icon"></button>
-                <button class="type2" onclick="goTo('barcode-menu')"><img src="barcode.png" alt="Barcode Icon"></button>
-                <button class="type1" onclick="goTo('volume-menu')"><img src="boxvol.png" alt="Volume Icon"></button>
-                <button class="type2" onclick="goTo('storage-menu')"><img src="storage.png" alt="Storage Icon"></button>
-                <button class="type1" onclick="goTo('stacking-menu')"><img src="stacking.png" alt="Stacking Icon"></button>
-                <button class="type2" onclick="goTo('config-menu')"><img src="conf_icon.png" alt="Config Icon"></button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Camera Panel -->
-    <div id="camera-menu" class="menu" style="display: none;">
-        <!-- Logo -->
-        <button class="logo" onclick="goBack()">
-            <img src="BM_Logo.png" alt="BM Logo">
-        </button>
-
-        <!-- Login -->
-        <button class="login" onclick="UserInfo(this)">
-            <img src="user.png" alt="User">
-            <!-- User Panel -->
-            <div class="user-panel">
-                <p id="user-name" style="margin: 0; text-align: left;">User:</p>
-                <p id="user-role" style="margin: 0; text-align: left;">Role:</p>
-                <div style="display: flex; justify-content: flex-end; margin-top: 0px;">
-                    <span id="logout-text" onclick="logout()" style="color: black; cursor: pointer; text-decoration: underline;">Logout</span>
-                </div>
-            </div>
-        </button>
-
-        <!-- Menu Title -->
-        <div class="title-container">
-            <div class="menu-title">Camera</div>
-        </div>
-
-        <video id="camera-video" autoplay playsinline>
-        </video>
-    </div>
-
-    <!-- Barcode Panel -->
-    <div id="barcode-menu" class="menu" style="display: none;">
-        <!-- Logo -->
-        <button class="logo" onclick="goBack()">
-            <img src="BM_Logo.png" alt="BM Logo">
-        </button>
-
-        <!-- Login -->
-        <button class="login" onclick="UserInfo(this)">
-            <img src="user.png" alt="User">
-            <!-- User Panel -->
-            <div class="user-panel">
-                <p id="user-name" style="margin: 0; text-align: left;">User:</p>
-                <p id="user-role" style="margin: 0; text-align: left;">Role:</p>
-                <div style="display: flex; justify-content: flex-end; margin-top: 0px;">
-                    <span id="logout-text" onclick="logout()" style="color: black; cursor: pointer; text-decoration: underline;">Logout</span>
-                </div>
-            </div>
-        </button>
-
-        <!-- Menu Title -->
-        <div class="title-container">
-            <div class="menu-title">Barcode</div>
-        </div>
-    </div>
-
     <!-- Volume Panel -->
     <div id="volume-menu" class="menu" style="display: none;">
         <!-- Logo -->
-        <button class="logo" onclick="goBack()">
+        <button class="logo" onclick="openMenuNav()">
             <img src="BM_Logo.png" alt="BM Logo">
         </button>
 
         <!-- Login -->
-        <button class="login" onclick="UserInfo(this)">
+        <button class="login" onclick="openUserNav()">
             <img src="user.png" alt="User">
-            <!-- User Panel -->
-            <div class="user-panel">
-                <p id="user-name" style="margin: 0; text-align: left;">User:</p>
-                <p id="user-role" style="margin: 0; text-align: left;">Role:</p>
-                <div style="display: flex; justify-content: flex-end; margin-top: 0px;">
-                    <span id="logout-text" onclick="logout()" style="color: black; cursor: pointer; text-decoration: underline;">Logout</span>
-                </div>
-            </div>
         </button>
 
         <!-- Menu Title -->
@@ -545,111 +528,53 @@
         <div id="objOutOfLine_label" class="warning"></div>
 
         <!-- Labels -->
-        <div  class="boxInfo-row">
-            <div class="boxInfo">Volume:</div>
-            <div class="boxInfo-column">
-                <div id="volume_value_label" class="boxInfo"></div>
-                <div id="volume_value_cm_label" class="boxInfo under-text"></div>
+        <div class="boxInfo-container">
+            <div  class="boxInfo-row">
+                <div class="boxInfo">Volume:</div>
+                <div class="boxInfo-column">
+                    <div id="volume_value_label" class="boxInfo"></div>
+                    <div id="volume_value_cm_label" class="boxInfo under-text"></div>
+                </div>
             </div>
-        </div>
 
-        <div  class="boxInfo-row">
-            <div class="boxInfo">Width:</div>
-            <div id="width_value_label" class="boxInfo"></div>
-        </div>
-        
-        <div  class="boxInfo-row">
-            <div class="boxInfo">Length:</div>
-            <div id="length_value_label" class="boxInfo"></div>
-        </div>
+            <div  class="boxInfo-row">
+                <div class="boxInfo">Width:</div>
+                <div id="width_value_label" class="boxInfo"></div>
+            </div>
+            
+            <div  class="boxInfo-row">
+                <div class="boxInfo">Length:</div>
+                <div id="length_value_label" class="boxInfo"></div>
+            </div>
 
-        <div  class="boxInfo-row">
-            <div class="boxInfo">Height:</div>
-            <div id="height_value_label" class="boxInfo"></div>
+            <div  class="boxInfo-row">
+                <div class="boxInfo">Height:</div>
+                <div id="height_value_label" class="boxInfo"></div>
+            </div>
         </div>
 
         <!-- Botões -->
-        <button onclick="volumeReal_click()" class="volumeButton">Get Real Volume</button>
+        <div class="volumeButtonPos">
+            <button onclick="volumeReal_click()" class="volumeButton">Get Real Volume</button>
 
-        <button onclick="volumeBundle_click()" class="volumeButton">Get Bundle Volume</button>
+            <button onclick="volumeBundle_click()" class="volumeButton">Get Bundle Volume</button>
+        </div>
 
         <!-- Imagens -->
-        <img id="volume-depthimg" alt="Depth Img">
-        <img id="volume-colorToDepthimg" alt="ColorToDepth Img">
-        <img id="object-img" alt="Objects Image">
-    </div>
-
-    <!-- Storage Panel -->
-    <div id="storage-menu" class="menu" style="display: none;">
-        <!-- Logo -->
-        <button class="logo" onclick="goBack()">
-            <img src="BM_Logo.png" alt="BM Logo">
-        </button>
-
-        <!-- Login -->
-        <button class="login" onclick="UserInfo(this)">
-            <img src="user.png" alt="User">
-            <!-- User Panel -->
-            <div class="user-panel">
-                <p id="user-name" style="margin: 0; text-align: left;">User:</p>
-                <p id="user-role" style="margin: 0; text-align: left;">Role:</p>
-                <div style="display: flex; justify-content: flex-end; margin-top: 0px;">
-                    <span id="logout-text" onclick="logout()" style="color: black; cursor: pointer; text-decoration: underline;">Logout</span>
-                </div>
-            </div>
-        </button>
-
-        <!-- Menu Title -->
-        <div class="title-container">
-            <div class="menu-title">Storage</div>
-        </div>
-    </div>
-
-    <!-- Stacking Panel -->
-    <div id="stacking-menu" class="menu" style="display: none;"">
-        <!-- Logo -->
-        <button class="logo" onclick="goBack()">
-            <img src="BM_Logo.png" alt="BM Logo">
-        </button>
-
-        <!-- Login -->
-        <button class="login" onclick="UserInfo(this)">
-            <img src="user.png" alt="User">
-            <!-- User Panel -->
-            <div class="user-panel">
-                <p id="user-name" style="margin: 0; text-align: left;">User:</p>
-                <p id="user-role" style="margin: 0; text-align: left;">Role:</p>
-                <div style="display: flex; justify-content: flex-end; margin-top: 0px;">
-                    <span id="logout-text" onclick="logout()" style="color: black; cursor: pointer; text-decoration: underline;">Logout</span>
-                </div>
-            </div>
-        </button>
-
-
-        <!-- Menu Title -->
-        <div class="title-container">
-            <div class="menu-title">Stacking</div>
-        </div>
+        <video id="camera-video" autoplay playsinline></video>
+        <img id="object-img" alt="Objects Image" hidden>
     </div>
 
     <!-- Configuration Panel -->
     <div id="config-menu" class="menu" style="display: none;">
         <!-- Logo -->
-        <button class="logo" onclick="goBack()">
+        <button class="logo" onclick="openMenuNav()">
             <img src="BM_Logo.png" alt="BM Logo">
         </button>
 
         <!-- Login -->
-        <button class="login" onclick="UserInfo(this)">
+        <button class="login" onclick="openUserNav()">
             <img src="user.png" alt="User">
-            <!-- User Panel -->
-            <div class="user-panel">
-                <p id="user-name" style="margin: 0; text-align: left;">User:</p>
-                <p id="user-role" style="margin: 0; text-align: left;">Role:</p>
-                <div style="display: flex; justify-content: flex-end; margin-top: 0px;">
-                    <span id="logout-text" onclick="logout()" style="color: black; cursor: pointer; text-decoration: underline;">Logout</span>
-                </div>
-            </div>
         </button>
 
         <!-- Menu Title -->
@@ -704,30 +629,18 @@
             <input type="text" id="colorSlope" />
             <button onclick="colorSlopeSet_click()">Set</button>
         </div>
-
-        <div class="calibButton">
-            <button class="type3" onclick="goTo('calibration-menu')">Calibração</button>
-        </div>
     </div>
 
     <!-- Calibration Panel -->
     <div id="calibration-menu" class="menu" style="display: none;">
         <!-- Logo -->
-        <button class="logo" onclick="goBack()">
+        <button class="logo" onclick="openMenuNav()">
             <img src="BM_Logo.png" alt="BM Logo">
         </button>
 
         <!-- Login -->
-        <button class="login" onclick="UserInfo(this)">
+        <button class="login" onclick="openUserNav()">
             <img src="user.png" alt="User">
-            <!-- User Panel -->
-            <div class="user-panel">
-                <p id="user-name" style="margin: 0; text-align: left;">User:</p>
-                <p id="user-role" style="margin: 0; text-align: left;">Role:</p>
-                <div style="display: flex; justify-content: flex-end; margin-top: 0px;">
-                    <span id="logout-text" onclick="logout()" style="color: black; cursor: pointer; text-decoration: underline;">Logout</span>
-                </div>
-            </div>
         </button>
 
         <!-- Menu Title -->
@@ -735,78 +648,19 @@
             <div class="menu-title">Calibration</div>
         </div>
         
-        <!-- Automatic / Manual -->
-        <div class="switch-row" style="position: absolute; top: 26vh; left: 47vw;">
-            <span>Automatic</span>
-            <label class="switch">
-                <input type="checkbox" id="AutoManual_switch" onchange="AutoManual_toggle()">
-                <span class="slider round"></span>
-            </label>
-            <span>Manual</span>
+        <div class="calibrateButtonPos">
+            <button onclick="calibrate_click()" class="calibrateButton">Calibrate</button>
         </div>
-        
-        <button onclick="calibrate_click()" class="calibrateButton">Calibrate</button>
 
          <!-- Imagens -->
         <img id="calibration-colorToDepthimg" alt="Workspace Detected">
-        <img id="calibration-mask" alt="Detection Mask">
-
-
-        <!-- Color Dropdown -->
-        <div style="position: absolute; top: 32vh; left: 47vw; display: flex; align-items: center;">
-            <label for="colorDropdown" style="font-size: 0.8vw; margin-right: 1vw;">Select Color:</label>
-            <select id="colorDropdown" onchange="colorDropdown_change()" style="width: 10vw; height: 4vh; font-size: 0.8vw; border: 0.2vh solid black; text-align: center;">
-                <option value="Select a Point" selected=true>Select a Point</option>
-                <option value="Black">Black</option>
-                <option value="White">White</option>
-                <option value="Grey">Grey</option>
-                <option value="Red">Red</option>
-                <option value="Pink">Pink</option>
-                <option value="Orange">Orange</option>
-                <option value="Brown">Brown</option>
-                <option value="Yellow">Yellow</option>
-                <option value="Green">Green</option>
-                <option value="Blue-Green">Blue-Green</option>
-                <option value="Blue">Blue</option>
-                <option value="Purple">Purple</option>
-                <option value="Light Purple">Light Purple</option>
-            </select>
-        </div> 
 
         <!-- Avisos -->
         <div id="calibrateLabel" class="warning"></div>
 
         <div id="caliErrorLabel" class="warning" style="margin-top: 1.4vh;"></div>
 
-        <div class="readonly-slider" style="position: absolute; top: 38vh; left: 47vw;">
-            <input type="range" id="hminSlider" min="0" max="179" value="0">
-            <label style="margin-left: 0.8vw; font-size: 1vw;">Minimum Hue: <span id="hminValue">0</span></label>
-        </div>
-
-        <div class="readonly-slider" style="position: absolute; top: 44vh; left: 47vw;">
-            <input type="range" id="hmaxSlider" min="0" max="179" value="179">
-            <label style="margin-left: 0.8vw; font-size: 1vw;">Maximum Hue: <span id="hmaxValue">179</span></label>
-        </div>
-
-        <div class="readonly-slider" style="position: absolute; top: 50vh; left: 47vw;">
-            <input type="range" id="sminSlider" min="0" max="255" value="0">
-            <label style="margin-left: 0.8vw; font-size: 1vw;">Minimum Saturation: <span id="sminValue">0</span></label>
-        </div>
-
-        <div class="readonly-slider" style="position: absolute; top: 56vh; left: 47vw;">
-            <input type="range" id="smaxSlider" min="0" max="255" value="255">
-            <label style="margin-left: 0.8vw; font-size: 1vw;">Maximum Saturation: <span id="smaxValue">255</span></label>
-        </div>
-
-        <div class="readonly-slider" style="position: absolute; top: 62vh; left: 47vw;">
-            <input type="range" id="vminSlider" min="0" max="255" value="0">
-            <label style="margin-left: 0.8vw; font-size: 1vw;">Minimum Value: <span id="vminValue">0</span></label>
-        </div>
-
-        <div class="readonly-slider" style="position: absolute; top: 68vh; left: 47vw;">
-            <input type="range" id="vmaxSlider" min="0" max="255" value="255">
-            <label style="margin-left: 0.8vw; font-size: 1vw;">Maximum Value: <span id="vmaxValue">255</span></label>
-        </div>
+        <div id="color-preview"></div>
 
     </div>
 
@@ -836,8 +690,9 @@
             const savedUser = JSON.parse(localStorage.getItem("current_user"));
             if(savedUser) {
                 document.getElementById("login-screen").style.display = "none";
-                currentMenu = "main-menu";
+                currentMenu = "volume-menu";
                 document.getElementById(currentMenu).style.display = "block";
+                startWebRTC();
             }
         });
 
@@ -871,8 +726,9 @@
                     localStorage.setItem("refresh_token", data.refresh_token);
 
                     document.getElementById("login-screen").style.display = "none";
-                    currentMenu = "main-menu";
+                    currentMenu = "volume-menu";
                     document.getElementById(currentMenu).style.display = "block";
+                    startWebRTC();
                 } else {
                     const data = await response.json();
                     errorLabel.textContent =  data.detail;
@@ -939,32 +795,8 @@
             }
         }
 
-        function UserInfo(button) {
-            refreshAccessToken();
-
-            const panel = button.querySelector(".user-panel");
-            const currentUser = JSON.parse(localStorage.getItem("current_user"));
-
-            if (!currentUser) return;
-
-            panel.querySelector("#user-name").textContent = "User: " + currentUser.username;
-            panel.querySelector("#user-role").textContent = "Role: " + currentUser.role;
-
-            panel.style.display = (panel.style.display === "block") ? "none" : "block";
-        }
-
-        document.addEventListener("click", function(event) {
-            const clickedLoginButton = event.target.closest(".login");
-            
-            // fecha todos os painéis que estão abertos, exceto o do login clicado
-            document.querySelectorAll(".login .user-panel").forEach(panel => {
-                if (panel.style.display === "block" && (!clickedLoginButton || !clickedLoginButton.contains(panel))) {
-                    panel.style.display = "none";
-                }
-            });
-        });
-
         function logout() {
+            closeUserNav()
             if (tokenCheckInterval) {
                 clearInterval(tokenCheckInterval);
                 tokenCheckInterval = null;
@@ -975,9 +807,6 @@
             localStorage.removeItem("refresh_token");
             cameraLoopInterval = null;
             document.getElementById(currentMenu).style.display = "none";
-            document.querySelectorAll(".login .user-panel").forEach(panel => {
-                panel.style.display = "none";
-            });
             
             showLoginScreen();
 
@@ -989,6 +818,7 @@
         }
 
         function goTo(menuID) {
+            closeMenuNav();
             refreshAccessToken();
 
             if(currentMenu) {
@@ -998,14 +828,17 @@
             document.getElementById(menuID).style.display = "block";    
             currentMenu = menuID; 
 
-            if (menuID === "camera-menu") {
+            if (menuID === "volume-menu") {
                 startWebRTC();
-            } else if (menuID === "calibration-menu"){
+            } else {
+                stopWebRTC();
+            }
+
+            if (menuID === "calibration-menu"){
                 workspaceDrawing();
                 const img = document.getElementById("calibration-colorToDepthimg");
+                img.crossOrigin = "anonymous";
                 img.src = "http://10.0.30.175:8000/calibrationCTD";
-                const imgMask = document.getElementById("calibration-mask");
-                imgMask.src = "http://10.0.30.175:8000/calibrationMask";
             } else {
                 if (cameraLoopInterval){
                     clearInterval(cameraLoopInterval);
@@ -1018,30 +851,8 @@
             }
 
             if (menuID === "calibration-menu") {
-                refreshSliders();
                 screenClick();  
-            } 
-        }
-
-        function goBack() {
-            refreshAccessToken();
-
-            if (menuStack.length === 0) return;
-
-            document.getElementById(currentMenu).style.display = "none";
-            if (currentMenu === "camera-menu"){
-                stopWebRTC();
             }
-
-            if (currentMenu === "calibration-menu"){
-                const img = document.getElementById("calibration-colorToDepthimg");
-                img.src = "";
-                const imgMask = document.getElementById("calibration-mask");
-                imgMask.src = "";
-            }
-
-            currentMenu = menuStack.pop();
-            document.getElementById(currentMenu).style.display = "block";
         }
 
         async function volumeBundle_click() {
@@ -1060,43 +871,6 @@
 
                 const dropdown = document.getElementById("objOption_menu");
                 if (dropdown) dropdown.remove();
-
-                const modeResponse = await fetch('http://10.0.30.175:8000/exposition/mode', {headers: { "Authorization": `Bearer ${access_token}`}});
-                const modeData = await modeResponse.json();
-                
-                {/*if (modeData["Exposition Mode"] === "Fixed Exposition") {
-                    await fetch('http://10.0.30.175:8000/captureFrame', { method: 'POST' });
-                }*/}
-
-                let colorFrameUrl = 'http://10.0.30.175:8000/getFrame/color';
-                let colorToDepthFrameUrl = 'http://10.0.30.175:8000/getFrame/colorToDepth';
-                let depthFrameUrl = 'http://10.0.30.175:8000/getFrame/depth';
-
-                if (modeData["Exposition Mode"] === "HDR") {
-                    let resp = await fetch('http://10.0.30.175:8000/getFrame/HDRcolorToDepth');
-                    if (resp.status === 204) {
-                        resp = await fetch(colorToDepthFrameUrl, {headers: { "Authorization": `Bearer ${access_token}` }});
-                    }
-                    const blob = await resp.blob();
-                    document.getElementById("volume-colorToDepthimg").src = URL.createObjectURL(blob);
-                } else {
-                    const resp = await fetch(colorToDepthFrameUrl, {headers: { "Authorization": `Bearer ${access_token}` }});
-                    const blob = await resp.blob();
-                    document.getElementById("volume-colorToDepthimg").src = URL.createObjectURL(blob);
-                }
-
-                if (modeData["Exposition Mode"] === "HDR") {
-                    let resp = await fetch('http://10.0.30.175:8000/getFrame/HDRdepth');
-                    if (resp.status === 204) {
-                        resp = await fetch(depthFrameUrl, {headers: { "Authorization": `Bearer ${access_token}` }});
-                    }
-                    const blob = await resp.blob();
-                    document.getElementById("volume-depthimg").src = URL.createObjectURL(blob);
-                } else {
-                    const resp = await fetch(depthFrameUrl, {headers: { "Authorization": `Bearer ${access_token}` }});
-                    const blob = await resp.blob();
-                    document.getElementById("volume-depthimg").src = URL.createObjectURL(blob);
-                }
 
                 await fetch('http://10.0.30.175:8000/volume/bundle', { method: 'POST', headers: { "Authorization": `Bearer ${access_token}` } });
 
@@ -1123,6 +897,7 @@
 
                 const blob = await imgResp.blob();
                 document.getElementById("object-img").src = URL.createObjectURL(blob);
+                document.getElementById("object-img").removeAttribute("hidden");
 
             } catch (error) {
                 document.getElementById("volume_value_label").innerText = TextError;
@@ -1155,39 +930,6 @@
                     oldDropdown.remove();
                 }
 
-                const modeResponse = await fetch('http://10.0.30.175:8000/exposition/mode', {headers: { "Authorization": `Bearer ${access_token}`}});
-                const modeData = await modeResponse.json();
-
-                let colorFrameUrl = 'http://10.0.30.175:8000/getFrame/color';
-                let colorToDepthFrameUrl = 'http://10.0.30.175:8000/getFrame/colorToDepth';
-                let depthFrameUrl = 'http://10.0.30.175:8000/getFrame/depth';
-
-                if (modeData["Exposition Mode"] === "HDR") {
-                    let resp = await fetch('http://10.0.30.175:8000/getFrame/HDRcolorToDepth');
-                    if (resp.status === 204) {
-                        resp = await fetch(colorToDepthFrameUrl, {headers: { "Authorization": `Bearer ${access_token}` }});
-                    }
-                    const blob = await resp.blob();
-                    document.getElementById("volume-colorToDepthimg").src = URL.createObjectURL(blob);
-                } else {
-                    const resp = await fetch(colorToDepthFrameUrl, {headers: { "Authorization": `Bearer ${access_token}` }});
-                    const blob = await resp.blob();
-                    document.getElementById("volume-colorToDepthimg").src = URL.createObjectURL(blob);
-                }
-
-                if (modeData["Exposition Mode"] === "HDR") {
-                    let resp = await fetch('http://10.0.30.175:8000/getFrame/HDRdepth');
-                    if (resp.status === 204) {
-                        resp = await fetch(depthFrameUrl, {headers: { "Authorization": `Bearer ${access_token}` }});
-                    }
-                    const blob = await resp.blob();
-                    document.getElementById("volume-depthimg").src = URL.createObjectURL(blob);
-                } else {
-                    const resp = await fetch(depthFrameUrl, {headers: { "Authorization": `Bearer ${access_token}` }});
-                    const blob = await resp.blob();
-                    document.getElementById("volume-depthimg").src = URL.createObjectURL(blob);
-                }
-
                 await fetch('http://10.0.30.175:8000/volume/real', { method: 'POST', headers: { "Authorization": `Bearer ${access_token}` } });
 
                 const response = await fetch('http://10.0.30.175:8000/getObjectsOutOfLine', {headers: { "Authorization": `Bearer ${access_token}`}});
@@ -1207,6 +949,7 @@
 
                 const blob = await imgResp.blob();
                 document.getElementById("object-img").src = URL.createObjectURL(blob);
+                document.getElementById("object-img").removeAttribute("hidden");
 
                 const objIdentified = Object.keys(volumeData).filter(key => key !== "Total");
                 const objTotal = volumeData["Total"]
@@ -1221,12 +964,12 @@
                 } else if (objIdentified.length > 1) {
                     const select = document.createElement("select");
                     select.id = "objOption_menu";
-                    select.style.width = "16vw";
+                    select.style.width = "20vw";
                     select.style.fontSize = "1vw";
                     select.style.position = "absolute";
-                    select.style.left = "50%";
+                    select.style.left = "64%";
                     select.style.transform = "translateX(-50%)"
-                    select.style.top = "18%";
+                    select.style.top = "32%";
                     select.style.border = "0.2vh solid black";
                     select.style.textAlign = "center";
 
@@ -1433,39 +1176,6 @@
             }
         }
 
-        async function refreshSliders() {
-            try {
-                const access_token = localStorage.getItem("access_token");
-                const resp = await fetch("http://10.0.30.175:8000/mask", { headers: { "Authorization": `Bearer ${access_token}`}});
-                const data = await resp.json();
-
-                document.getElementById("hminSlider").value = data.hmin;
-                document.getElementById("hminValue").textContent = data.hmin;
-
-                document.getElementById("hmaxSlider").value = data.hmax;
-                document.getElementById("hmaxValue").textContent = data.hmax;
-
-                document.getElementById("sminSlider").value = data.smin;
-                document.getElementById("sminValue").textContent = data.smin;
-
-                document.getElementById("smaxSlider").value = data.smax;
-                document.getElementById("smaxValue").textContent = data.smax;
-
-                document.getElementById("vminSlider").value = data.vmin;
-                document.getElementById("vminValue").textContent = data.vmin;
-
-                document.getElementById("vmaxSlider").value = data.vmax;
-                document.getElementById("vmaxValue").textContent = data.vmax;
-
-            } catch (err) {
-                console.warn("Não foi possível atualizar sliders:", err);
-            }
-
-            if (currentMenu === "calibration-menu") {
-                setTimeout(refreshSliders, 500);
-            }
-        }
-
         async function applyMask(access_token) {
             try {
                 if (currentMenu !== "calibration-menu") return;
@@ -1510,30 +1220,6 @@
             }
         }
 
-        async function colorDropdown_change() {
-            try {
-                refreshAccessToken();
-                const access_token = localStorage.getItem("access_token");
-
-                const color = document.getElementById("colorDropdown").value;
-                await fetch("http://10.0.30.175:8000/mask/color", {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${access_token}` },
-                    body: JSON.stringify({ color })
-                });
-                await fetch("http://10.0.30.175:8000/mask/optionSelected", {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${access_token}` },
-                    body: JSON.stringify({ optionSelected: color })
-                });
-            } catch (err) { console.warn("Erro a mudar cor:", err); }
-        }
-
-        function setColorDropdownState(calibrationMode) {
-            const dropdown = document.getElementById("colorDropdown");
-            dropdown.disabled = calibrationMode;
-        }
-
         async function screenClick() {
             if (colorClickInitialized) return;
 
@@ -1553,17 +1239,32 @@
                             const maskValues = await r.json();
                             let optionSelected = maskValues.optionSelected;
 
-                            if (optionSelected === "Select a Point") {
-                                const rect = img.getBoundingClientRect();
-                                const x = Math.round((event.clientX - rect.left) * (img.naturalWidth / rect.width));
-                                const y = Math.round((event.clientY - rect.top) * (img.naturalHeight / rect.height));
+                            const rect = img.getBoundingClientRect();
+                            const x = Math.round((event.clientX - rect.left) * (img.naturalWidth / rect.width));
+                            const y = Math.round((event.clientY - rect.top) * (img.naturalHeight / rect.height));
 
-                                await fetch("http://10.0.30.175:8000/mask/colorClick", {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${access_token}` },
-                                    body: JSON.stringify({x, y})
-                                });
-                            }
+                            await fetch("http://10.0.30.175:8000/mask/colorClick", {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${access_token}` },
+                                body: JSON.stringify({x, y})
+                            });
+
+                            const canvas = document.createElement("canvas");
+                            const ctx = canvas.getContext("2d");
+
+                            canvas.width = img.naturalWidth;
+                            canvas.height = img.naturalHeight;
+                            ctx.drawImage(img, 0, 0);
+
+                            const preview = document.getElementById("color-preview");
+
+                            const pixel = ctx.getImageData(x, y, 1, 1).data;
+                            const r_color = pixel[0];
+                            const g_color = pixel[1];
+                            const b_color = pixel[2];
+
+                            preview.style.backgroundColor = `rgb(${r_color}, ${g_color}, ${b_color})`;
+
                         } else if (calibData["Calibrate Mode"] === "Manual") {
                             const r = await fetch("http://10.0.30.175:8000/calibrate/params", { headers: { "Authorization": `Bearer ${access_token}` } });
                             const response = await r.json();
@@ -1795,6 +1496,34 @@
                 video.srcObject.getTracks().forEach(track => track.stop());
                 video.srcObject = null;
             }
+        }
+
+        function openMenuNav() {
+            closeUserNav()
+            document.getElementById("menuSideNav").style.width = "12%";
+        }
+
+        function closeMenuNav() {
+            document.getElementById("menuSideNav").style.width = "0";
+        }
+
+        function openUserNav() {
+            closeMenuNav()
+
+            refreshAccessToken();
+
+            const currentUser = JSON.parse(localStorage.getItem("current_user"));
+
+            if (!currentUser) return;
+
+            document.getElementById("user-name").textContent = "User: " + currentUser.username;
+            document.getElementById("user-role").textContent = "Role: " + currentUser.role;
+
+            document.getElementById("userSideNav").style.width = "12%";
+        }
+
+        function closeUserNav() {
+            document.getElementById("userSideNav").style.width = "0";
         }
 
     </script>

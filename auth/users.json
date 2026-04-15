@@ -1,10 +1,10 @@
 {
-    "BM_Admin": {
-        "password": "$2b$12$y6wCDkLLO4o3BLJc7zg1Ve2WZBGv9cYRWplt0hvdmMtsWSJ8fUyKm",
+    "admin": {
+        "password": "$2b$12$Yzsf1kQ9dJdFZ3EmyuHGa.shIZiiUIre/4mApmErE3vlXHlJeK1A.",
         "role": "admin"
     },
-    "Rui": {
-        "password": "$2b$12$zT.vBqKSykb.nDcQ3CUhgu/xW3mrMiFvZzMDrodCNrN/ytw6CCJuO",
+    "user": {
+        "password": "$2b$12$J3JD.wY9kwUW4EmLoJzI5OXpwKEHCTXo3e78OLHA8KiyMmukVXG4q",
         "role": "user"
     }
 }
