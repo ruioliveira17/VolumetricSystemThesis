@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, HTTPException, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, StreamingResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi.security import OAuth2PasswordBearer
 from jose import jwt
 from jose.exceptions import JWTError, ExpiredSignatureError
@@ -188,11 +189,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.mount("/static", StaticFiles(directory="/home/marques/Tese/html"), name="static")
+
 #-------------------------------------------------------   HTML    --------------------------------------------------------
 
 @app.get("/index")
 def serve_manager():
-    return FileResponse("html/manager.html")
+    return FileResponse("html/index.html")
 
 #-------------------------------------------------------   Login   --------------------------------------------------------
 
@@ -732,7 +735,7 @@ def calibrate(data: HSVValue, current_user: dict = Depends(get_current_user)):
     else:
         depthFrame = frameState.depthFrameHDR
 
-    detection_area, workspace_depth, center_aligned, workspace_clear, frameState.calibrationColorFrame = calibrateAPI(colorToDepthFrame, depthFrame, colorFrame, workspaceState.detected_area, lower, upper, camState.colorSlope, int(camState.cx_d), int(camState.cy_d), modeState.calibrationMode)
+    detection_area, workspace_depth, center_aligned, workspace_clear, calibrationColorFrame = calibrateAPI(colorToDepthFrame, depthFrame, colorFrame, workspaceState.detected_area, lower, upper, camState.colorSlope, int(camState.cx_d), int(camState.cy_d), modeState.calibrationMode)
 
     if detection_area is None or workspace_depth is None:
         workspaceState.center_aligned = center_aligned
@@ -743,6 +746,7 @@ def calibrate(data: HSVValue, current_user: dict = Depends(get_current_user)):
     workspaceState.workspace_depth = workspace_depth
     workspaceState.center_aligned = center_aligned
     workspaceState.workspace_clear = workspace_clear
+    frameState.calibrationColorFrame = calibrationColorFrame
 
     if center_aligned is True and workspace_clear is True:
         save_WS_calibration()
@@ -870,6 +874,36 @@ def hdrExp(current_user: dict = Depends(require_admin)):
     camState.hdrEnabled = True
 
     return {"Exposition Mode:": modeState.expositionMode}
+
+#---------------------------------------------------- Volume Mode -----------------------------------------------------
+
+@app.get("/volume/mode", summary="Gets the Volume Mode",
+         description="""
+         Retrieves the current volume mode. The volume mode can be either "Static" or "Real".
+         """,
+         tags=["Using Modes"])
+def get_mode(current_user: dict = Depends(get_current_user)):
+    return{
+        "Volume Mode": modeState.volumeMode,
+    }
+
+@app.post("/volume/mode/bundle", summary="Sets the Volume Mode to Bundle",
+         description="""
+         Sets the volume mode to "Bundle".
+         """,
+         tags=["Using Modes"])
+def bundle(current_user: dict = Depends(require_admin)):
+    modeState.volumeMode = "Bundle"
+    return {"mode:": modeState.volumeMode}
+
+@app.post("/volume/mode/real", summary="Sets the Volume Mode to Real",
+         description="""
+         Sets the volume mode to "Real".
+         """,
+         tags=["Using Modes"])
+def real(current_user: dict = Depends(require_admin)):
+    modeState.volumeMode = "Real"
+    return {"mode:": modeState.volumeMode}
 
 #------------------------------------------------------- Debug -------------------------------------------------------
 

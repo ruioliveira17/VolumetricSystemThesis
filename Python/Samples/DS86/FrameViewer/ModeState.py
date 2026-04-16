@@ -2,6 +2,7 @@ class ModeState:
     def __init__(self):
         self.mode = "Static"
         self.expositionMode = "Fixed Exposition"
+        self.volumeMode = "Bundle"
         self.calibrationMode = "Automatic"
         self.debugMode = "Off"
 
