@@ -453,8 +453,16 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
                         kernel = numpy.ones((10, 10), dtype=numpy.uint8)
                         mask = cv2.erode(mask, kernel, iterations=1)
                         cv2.drawContours(mask, [c], contourIdx=-1, color=1, thickness=-1)
+
+                        previous_mask = numpy.zeros(depthFrame.shape, dtype=numpy.uint8)
+
+                        for prev_list in contours[:-1]:
+                            for prev_c in prev_list:
+                                cv2.drawContours(previous_mask, [prev_c], contourIdx=-1, color=1, thickness=-1)
+
                         valid_mask = (
                             (mask == 1) &
+                            (previous_mask == 0) &
                             (depthFrame > 150) &
                             (depthFrame < workspace_depth - threshold)
                         )

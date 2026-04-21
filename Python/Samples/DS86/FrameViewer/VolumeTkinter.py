@@ -12,7 +12,7 @@ from FrameState import frameState
 def volumeBundleAPI(depthFrame, workspace_depth, minimum_depth, box_limits, depths, fx_d, fy_d, cx_d, cy_d): 
     volume = 0
     width_meters = 0
-    height_meters = 0
+    length_meters = 0
     i = 0
 
     pts_m = []
@@ -42,10 +42,11 @@ def volumeBundleAPI(depthFrame, workspace_depth, minimum_depth, box_limits, dept
     pts_m = numpy.array(pts_m, dtype=numpy.float32)
 
     rect_m = cv2.minAreaRect(pts_m)
-    width_meters, height_meters = rect_m[1]
+    width_meters, length_meters = rect_m[1]
+    height_meters = (workspace_depth - minimum_depth) / 1000
 
-    #if width_meters < height_meters:
-    #    width_meters, height_meters = height_meters, width_meters
+    #if width_meters < length_meters:
+    #    width_meters, length_meters = length_meters, width_meters
 
     #xmin = pts_m[:,0].min()
     #xmax = pts_m[:,0].max()
@@ -62,15 +63,16 @@ def volumeBundleAPI(depthFrame, workspace_depth, minimum_depth, box_limits, dept
     #    hei = ymax - abs(ymin)
 
     #if hei > wid:
-    #    height_meters, width_meters = width_meters, height_meters
+    #    length_meters, width_meters = width_meters, length_meters
 
-    volume = width_meters * height_meters * ((workspace_depth - minimum_depth) / 1000)
+    volume = width_meters * length_meters * height_meters
 
-    return volume, width_meters, height_meters
+    return volume, width_meters, length_meters, height_meters
 
 def volumeRealAPI(depthFrame, workspace_depth, box_limits, depths, fx_d, fy_d, cx_d, cy_d): 
     volume = 0
     width_meters = 0
+    length_meters = 0
     height_meters = 0
     i = 0
 
@@ -78,6 +80,7 @@ def volumeRealAPI(depthFrame, workspace_depth, box_limits, depths, fx_d, fy_d, c
     allObj_pts_m = []
     bolume = []
     uidth = []
+    ength = []
     eight = []
     totalVolume = 0
 
@@ -87,8 +90,6 @@ def volumeRealAPI(depthFrame, workspace_depth, box_limits, depths, fx_d, fy_d, c
         box_px = cv2.boxPoints(rect_px)
         cv2.drawContours(frameState.colorToDepthFrame, [numpy.int32(box_px)], 0, (0, 255, 0), 2)
         cv2.imwrite(f"colorToDepthFrame{i}.png", frameState.colorToDepthFrame)
-
-        #Z_mean = depths[i] / 1000
 
         for (u,v) in pts_flat:
             Z_radial = depthFrame[int(v), int(u)] / 1000
@@ -107,43 +108,49 @@ def volumeRealAPI(depthFrame, workspace_depth, box_limits, depths, fx_d, fy_d, c
 
     for idx, obj in enumerate(allObj_pts_m):
         allObj_pts_m[idx] = numpy.array(obj, dtype=numpy.float32)
-        #print(f"Objeto {idx} — pontos em metros: {allObj_pts_m[idx]}")
         rect_m = cv2.minAreaRect(allObj_pts_m[idx])
-        width_meters, height_meters = rect_m[1]
-        #print(f"Width: {width_meters:.4f}m ({width_meters*100:.2f}cm)")
-        #print(f"Height: {height_meters:.4f}m ({height_meters*100:.2f}cm)")
-        #print(f"Z usado (depths[{idx}]): {depths[idx]}mm")
+        width_meters, length_meters = rect_m[1]
+        height_meters = (workspace_depth - depths[idx]) / 1000
 
-        #if width_meters < height_meters:
-        #    width_meters, height_meters = height_meters, width_meters
+        print("Verifying object ")
+        for j in range(idx + 1, len(allObj_pts_m)):
+            if isInside(box_limits[idx], box_limits[j]):
+                print("Inside")
+                height_meters = (depths[j] - depths[idx]) / 1000
+                break
 
-        #xmin = allObj_pts_m[idx][:,0].min()
-        #xmax = allObj_pts_m[idx][:,0].max()
-        #ymin = allObj_pts_m[idx][:,1].min()
-        #ymax = allObj_pts_m[idx][:,1].max()
-
-        #if xmin < 0:
-        #    wid = xmax + abs(xmin)
-        #else:
-        #    wid = xmax - abs(xmin)
-        #if ymin < 0:
-        #    hei = ymax + abs(ymin)
-        #else:
-        #    hei = ymax - abs(ymin)
-
-        #if hei > wid:
-        #    height_meters, width_meters = width_meters, height_meters
-
-        volume = width_meters * height_meters * ((workspace_depth - depths[idx]) / 1000)
+        volume = width_meters * length_meters * height_meters
         uidth.append(width_meters)
+        ength.append(length_meters)
         eight.append(height_meters)
         bolume.append(volume)
-        #if realVolumeMode == "On":
         totalVolume += volume
 
     bolume.append(totalVolume)
     volume = bolume
     width_meters = uidth
+    length_meters = ength
     height_meters = eight
 
-    return volume, width_meters, height_meters
+    return volume, width_meters, length_meters, height_meters
+
+def isInside(box1, box2):
+    box1 = box1.reshape(-1, 2).astype(numpy.float32)
+    box2 = to_hull(box2)
+    inside = 0
+
+    for (u, v) in box1:
+        if cv2.pointPolygonTest(box2, (u, v), False) >= 0:
+            inside += 1
+
+    result = inside / len(box1)
+    
+    if result > 0.05:
+        return True
+    else:
+        return False
+    
+def to_hull(points):
+    points = numpy.array(points, dtype=numpy.float32)
+    hull = cv2.convexHull(points)
+    return hull

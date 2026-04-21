@@ -969,16 +969,17 @@ def volume_Bundle(current_user: dict = Depends(get_current_user)):
     if depthState.not_set == 0:
         depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine = bundleIdentifier(colorFrame, colorToDepthFrame, depthFrame, frameState.calibrationColorFrame, depthState.objects_info, workspaceState.workspace_depth, depthState.threshold, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb)
         if volumeState.box_limits is not None and len(volumeState.box_limits) > 0:
-            volumeState.volume, volumeState.width_meters, volumeState.height_meters = volumeBundleAPI(depthFrame, workspaceState.workspace_depth, depthState.minimum_depth, volumeState.box_limits, volumeState.depths, camState.fx_d, camState.fy_d, camState.cx_d, camState.cy_d)
+            volumeState.volume, volumeState.width_meters, volumeState.length_meters, volumeState.height_meters = volumeBundleAPI(depthFrame, workspaceState.workspace_depth, depthState.minimum_depth, volumeState.box_limits, volumeState.depths, camState.fx_d, camState.fy_d, camState.cx_d, camState.cy_d)
         else:
             volumeState.volume = 0
             volumeState.width_meters = 0
+            volumeState.length_meters = 0
             volumeState.height_meters = 0
             depthState.minimum_depth = workspaceState.workspace_depth
     else:
         volumeState.volume = 0
         volumeState.width_meters = 0
-        volumeState.height_meters = 0
+        volumeState.length_meters = 0
         depthState.minimum_depth = workspaceState.workspace_depth
 
     if isinstance(volumeState.width_meters, list):
@@ -986,14 +987,20 @@ def volume_Bundle(current_user: dict = Depends(get_current_user)):
     else:
         volumeState.width_meters = volumeState.width_meters * 100
 
+    if isinstance(volumeState.length_meters, list):
+        volumeState.length_meters = [w * 100 for w in volumeState.length_meters]
+    else:
+        volumeState.length_meters = volumeState.length_meters * 100
+
     if isinstance(volumeState.height_meters, list):
-        volumeState.height_meters = [w * 100 for w in volumeState.height_meters]
+        volumeState.height_meters = [h * 100 for h in volumeState.height_meters]
     else:
         volumeState.height_meters = volumeState.height_meters * 100
 
     return{
         "volume": volumeState.volume,
         "width": volumeState.width_meters,
+        "length": volumeState.length_meters,
         "height": volumeState.height_meters,
         "depth": depthState.minimum_depth / 10,
         "ws_depth": workspaceState.workspace_depth / 10
@@ -1011,8 +1018,8 @@ def get_Volume_Bundle(current_user: dict = Depends(get_current_user)):
             "volume_m": round(float(volumeState.volume), 6),
             "volume_cm": round(float(volumeState.volume * 1000000), 2),
             "x": round(float(volumeState.width_meters), 1),
-            "y": round(float(volumeState.height_meters), 1),
-            "z": round(float(workspaceState.workspace_depth/10 - depthState.minimum_depth/10), 1)
+            "y": round(float(volumeState.length_meters), 1),
+            "z": round(float(volumeState.height_meters), 1)
         }
     
     return response
@@ -1049,16 +1056,17 @@ def volume_Real(current_user: dict = Depends(get_current_user)):
     if depthState.not_set == 0:
         depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine = objIdentifier(colorFrame, colorToDepthFrame, depthFrame, frameState.calibrationColorFrame, depthState.objects_info, workspaceState.workspace_depth, depthState.threshold, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb)
         if volumeState.box_limits is not None and len(volumeState.box_limits) > 0:
-            volumeState.volume, volumeState.width_meters, volumeState.height_meters = volumeRealAPI(depthFrame, workspaceState.workspace_depth, volumeState.box_limits, volumeState.depths, camState.fx_d, camState.fy_d, camState.cx_d, camState.cy_d)
+            volumeState.volume, volumeState.width_meters, volumeState.length_meters, volumeState.height_meters = volumeRealAPI(depthFrame, workspaceState.workspace_depth, volumeState.box_limits, volumeState.depths, camState.fx_d, camState.fy_d, camState.cx_d, camState.cy_d)
         else:
             volumeState.volume = 0
             volumeState.width_meters = 0
+            volumeState.length_meters = 0
             volumeState.height_meters = 0
             depthState.minimum_depth = workspaceState.workspace_depth
     else:
         volumeState.volume = 0
         volumeState.width_meters = 0
-        volumeState.height_meters = 0
+        volumeState.length_meters = 0
         depthState.minimum_depth = workspaceState.workspace_depth
 
     if isinstance(volumeState.width_meters, list):
@@ -1066,14 +1074,20 @@ def volume_Real(current_user: dict = Depends(get_current_user)):
     else:
         volumeState.width_meters = volumeState.width_meters * 100
 
+    if isinstance(volumeState.length_meters, list):
+        volumeState.length_meters = [w * 100 for w in volumeState.length_meters]
+    else:
+        volumeState.length_meters = volumeState.length_meters * 100
+
     if isinstance(volumeState.height_meters, list):
-        volumeState.height_meters = [w * 100 for w in volumeState.height_meters]
+        volumeState.height_meters = [h * 100 for h in volumeState.height_meters]
     else:
         volumeState.height_meters = volumeState.height_meters * 100
 
     return{
         "volume": volumeState.volume,
         "width": volumeState.width_meters,
+        "length": volumeState.length_meters,
         "height": volumeState.height_meters,
         "depth": depthState.minimum_depth / 10,
         "ws_depth": workspaceState.workspace_depth / 10
@@ -1089,6 +1103,7 @@ def get_Volume_Real(current_user: dict = Depends(get_current_user)):
 
     volumes = volumeState.volume if isinstance(volumeState.volume, list) else [volumeState.volume]
     widths = volumeState.width_meters if isinstance(volumeState.width_meters, list) else [volumeState.width_meters]
+    lengths = volumeState.length_meters if isinstance(volumeState.length_meters, list) else [volumeState.length_meters]
     heights = volumeState.height_meters if isinstance(volumeState.height_meters, list) else [volumeState.height_meters]
     depths = volumeState.depths if isinstance(volumeState.depths, list) else [volumeState.depths]
 
@@ -1099,8 +1114,8 @@ def get_Volume_Real(current_user: dict = Depends(get_current_user)):
             "volume_m": round(float(volumes[i]), 6),
             "volume_cm": round(float(volumes[i] * 1000000), 2),
             "x": round(float(widths[i]), 1),
-            "y": round(float(heights[i]), 1),
-            "z": round(float(workspaceState.workspace_depth/10 - depths[i]/10), 1)
+            "y": round(float(lengths[i]), 1),
+            "z": round(float(heights[i]), 1)
         }
 
     response["Total"] = {
