@@ -5,21 +5,48 @@ import heroImg from './assets/hero.png'
 import './App.css'
 
 function App() {
+  // Errors and Info
+  const TextLoginWelcome = "Welcome!"
+  const TextLoginCredentials = "Please insert your login credentials.";
+
+  const TextClear = "";
+  const TextError = "Error";
+  const TextServerConnection = "Server connection error";
+  
+  const TextFillAllFields = "Please fill in all fields";
+  const TextRegistrationError = "Registration failed";
+  const TextRegistrationSuccessfull = "Registration successful";
+
+  const TextCalibrated = "System Calibrated";
+  const TextNotCalibrated = "System was not Calibrated";
+  const TextCenterNotAligned = "Center Point isn't Aligned";
+  const TextWsNotEmpty = "Workspace isn't Empty";
+  const TextWsNotEmptyAndCenterNotAligned = "Center Point isn't Aligned and Workspace isn't Empty";
+  
+  const TextOutOfLine = "There are objects outside the yellow stripes. To detect them, make sure they are inside the stripes.";
+
+  const TextColorSlopeCaracters = "Only integer values are allowed for color slope";
+  const TextColorSlopeValues = "Color Slope value must be between 150 and 5000";
+  const TextColorSlopeUpdateSuccessfull = "Color Slope updated successfully";
+
+  const TextExposureCaracters = "Only integer values are allowed for exposure time";
+  const TextExposureValues = "Exposure Time value must be between 100 and 4000";
+  const TextExposureUpdateSuccessfull = "Exposure Time updated successfully";
+
   const [currentMenu, setCurrentMenu] = useState("login");
 
   const [calibrationPending, setCalibrationPending] = useState(false);
-  const [detectionArea, setDetectionArea] = useState([0, 0, 0, 0]);
-  const [selectedPoint, setSelectedPoint] = useState(null);
+  const detectionArea = useRef([0, 0, 0, 0]);
+  const selectedPoint = useRef(null);
 
   const cameraLoopInterval = useRef(null);
-  const colorClickInitialized = useRef(false);
   const tokenCheckInterval = useRef(null);
   
   const step = 2;
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [error, setError] = useState([TextLoginWelcome, TextLoginCredentials]);
 
   const [regUsername, setRegUsername] = useState("");
   const [regPassword, setRegPassword] = useState("");
@@ -36,9 +63,6 @@ function App() {
 
   const [volInfo, setVolInfo] = useState(null);
   const [objectImage, setObjectImage] = useState(null);
-
-  const TextOutOfLine = "There are objects outside the yellow stripes. To detect them, make sure they are inside the stripes.";
-  const TextError = "Error";
 
   const [objectList, setObjectList] = useState([]);
   const [selectedObject, setSelectedObject] = useState("");
@@ -58,6 +82,8 @@ function App() {
 
   const [rgb, setRgb] = useState({ r: 0, g: 0, b: 0 });
 
+  const [calibrationModalOpen, setCalibrationModalOpen] = useState(false);
+
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("current_user"));
 
@@ -70,7 +96,7 @@ function App() {
   function showLoginScreen() {
       setCurrentMenu("login");
 
-      setError("");
+      setError([TextClear]);
       setRegUsername("");
       setRegPassword("");
       setRegRole("user");
@@ -79,7 +105,7 @@ function App() {
 
   async function login() {
     if (!username || !password) {
-      setError("Please fill in all fields.");
+      setError([TextFillAllFields]);
       return;
     }
 
@@ -109,28 +135,28 @@ function App() {
 
         setCurrentMenu("volume-menu");
 
-        setError("");
+        setError([TextClear]);
 
       } else {
         const data = await response.json();
-        setError(data.detail);
+        setError([data.detail]);
       }
 
     } catch (error) {
-      setError("Server connection error.");
+      setError([TextServerConnection]);
     }
   }
 
   function showRegisterScreen() {
       setCurrentMenu("register");
-      setError("");
+      setError([TextClear]);
       setUsername("");
       setPassword("");
   }
 
   async function register() {
       if (!regUsername || !regPassword || (regRole === "admin" && !regCode)) {
-          setError("Please fill in all fields.");
+          setError([TextFillAllFields]);
           return;
       }
 
@@ -146,16 +172,16 @@ function App() {
           const data = await response.json();
 
           if (!response.ok) {
-            setError(data.detail || "Registration failed.");
+            setError([data.detail || TextRegistrationError]);
             return;
           }
 
       } catch (error) {
-          setError("Server connection error.");
+          setError([TextServerConnection]);
           return;
       }
 
-      setError("Registration successful!");
+      setError([TextRegistrationSuccessfull]);
       showLoginScreen();
   }
 
@@ -182,11 +208,17 @@ function App() {
       setSavedUser(null);
   }
 
+  // Change Menu Functions
   useEffect(() => {
+    if (currentMenu === "login") {
+      setError([TextLoginWelcome, TextLoginCredentials]);
+    }
+
     if (currentMenu === "login" || currentMenu === "register") return;
 
     closeMenuNav();
     refreshAccessToken();
+    setError([TextClear]);
 
     if (currentMenu === "calibration-menu") {
       workspaceDrawing();
@@ -240,9 +272,9 @@ function App() {
       const data = await response.json();
       const objectsOutOfLine = data.objects_outOfLine.map((val, i) => val ? i + 1 : null).filter(v => v !== null);
       if (objectsOutOfLine.length > 0) {
-          setError(TextOutOfLine);
+          setError([TextOutOfLine]);
       } else {
-          setError("");
+          setError([TextClear]);
 
           const dataResponse = await fetch('http://10.0.30.175:8000/volume/bundle/results', {headers: { "Authorization": `Bearer ${access_token}`}});
           const volumeData = await dataResponse.json();
@@ -266,11 +298,12 @@ function App() {
 
     } catch (error) {
       setVolInfo(null);
-      setError(TextError);
+      setError([TextError]);
       console.error(error);
     }
   }
 
+  // Show Volume Depending of the selected object
   useEffect(() => {
     if (!selectedObject || !realVolumeData) return;
 
@@ -309,9 +342,9 @@ function App() {
         const data = await response.json();
         const objectsOutOfLine = data.objects_outOfLine.map((val, i) => val ? i + 1 : null).filter(v => v !== null);
         if (objectsOutOfLine.length > 0) {
-            setError(TextOutOfLine);
+            setError([TextOutOfLine]);
         } else {
-            setError("");
+            setError([TextClear]);
         }
 
         const dataResponse = await fetch('http://10.0.30.175:8000/volume/real/results', {headers: { "Authorization": `Bearer ${access_token}`}});
@@ -345,7 +378,7 @@ function App() {
         }
       } catch (error) {
         setVolInfo(null);
-        setError(TextError);
+        setError([TextError]);
         console.error(error);
       }
   }
@@ -410,12 +443,12 @@ function App() {
     const value = Number(exposureTime);
     
     if (!Number.isInteger(value)) {
-        setError("Only integer values are allowed for exposure time.");
+        setError([TextExposureCaracters]);
         return;
     }
 
     if (value < 100 || value > 4000) {
-        setError("Exposure Time value must be between 100 and 4000.");
+        setError([TextExposureValues]);
         return;
     }
 
@@ -431,7 +464,7 @@ function App() {
             body: JSON.stringify({ exposureTime: value })
         });
 
-        setError("Exposure Time updated successfully.");
+        setError([TextExposureUpdateSuccessfull]);
     } catch (error) {
         console.error("Exposure set error:", error);
     }
@@ -440,12 +473,12 @@ function App() {
   async function colorSlopeSet_click() {
     const value = Number(colorSlope);
     if (!Number.isInteger(value)) {
-        setError("Only integer values are allowed for color slope.");
+        setError([TextColorSlopeCaracters]);
         return;
     }
 
     if (value < 150 || value > 5000) {
-        setError("Color Slope value must be between 150 and 5000.");
+        setError([TextColorSlopeValues]);
         return;
     }
 
@@ -461,12 +494,13 @@ function App() {
             body: JSON.stringify({ colorSlope: value })
         });
 
-        setError("Color Slope updated successfully.");
+        setError([TextColorSlopeUpdateSuccessfull]);
     } catch (error) {
         console.error("Color slope set error:", error);
     }
   }
 
+  // Repeat Toggle Status every 500ms
   useEffect(() => {
     if (currentMenu !== "config-menu" && currentMenu !== "calibration-menu") {
       return;
@@ -528,21 +562,20 @@ function App() {
   }
 
   async function applyManualWSDraw(access_token) {
-    const detection_area = detectionArea;
     try {
-      if (selectedPoint === null) {
+      if (selectedPoint.current === null) {
           const r = await fetch("http://10.0.30.175:8000/calibrate/params", { headers: { "Authorization": `Bearer ${access_token}` } });
-          detection_area = (await r.json())["Detected Area"];
-          setDetectionArea(detection_area);
+          detectionArea.current = (await r.json())["Detected Area"];
       }
       await fetch("http://10.0.30.175:8000/applyManualWorkspace", {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', "Authorization": `Bearer ${access_token}` },
-          body: JSON.stringify({ detection_area })
+          body: JSON.stringify({ detection_area: detectionArea.current })
       });
     } catch (err) { console.warn("Erro applyManualWSDraw:", err); }
   }
 
+  // Workspace Drawing Loop
   useEffect(() => {
     if(currentMenu !== "calibration-menu") return;
 
@@ -664,10 +697,10 @@ function App() {
           });
 
           if (minDist <= 10) {
-            setSelectedPoint(closestPoint);
+            selectedPoint.current = closestPoint;
             console.log("Selected point:", closestPoint);
           } else {
-            setSelectedPoint(null);
+            selectedPoint.current = null;
             console.log("None of the points were selected");
           }
         }
@@ -685,143 +718,162 @@ function App() {
 
   }, [currentMenu]);
 
-              document.addEventListener("keydown", async (event) => {
-                  try {
-                      if (currentMenu === "calibration-menu") {
-                        refreshAccessToken();
-                        const access_token = localStorage.getItem("access_token");
+  // Key Press for Manual Workspace Adjustment
+  useEffect(() => {
+    if (currentMenu !== "calibration-menu") return;
 
-                          const r_mode = await fetch("http://10.0.30.175:8000/calibrate/mode", {headers: { "Authorization": `Bearer ${access_token}`}});
-                          const calibData = await r_mode.json();
+    const access_token = localStorage.getItem("access_token");
 
-                          if (calibData["Calibrate Mode"] !== "Manual") return;
+    let active = true;
 
-                          // Pegar detection_area do servidor
-                          const r = await fetch("http://10.0.30.175:8000/calibrate/params", {headers: { "Authorization": `Bearer ${access_token}`}});
-                          let data = await r.json();
-                          detectionArea = data["Detected Area"]; // [x1, y1, x2, y2]
+    const init = async () => {
+      if (!active) return;
 
-                          const img = calibrationImage.current;
-                          const maxX = img.naturalWidth;
-                          const maxY = img.naturalHeight;
+      console.log("detectionAreaKey:", detectionArea.current);
+      console.log("selectedPointKey:", selectedPoint.current);
+      console.log("pointKey:", detectionArea.current[selectedPoint.current]);
 
-                          let point = detectionArea[selectedPoint];
-                          if (event.key === "ArrowLeft") {
-                              point[0] = Math.max(0, point[0] - step);
+      const handleKeyDown = async (event) => {
+        try{
+          const r_mode = await fetch("http://10.0.30.175:8000/calibrate/mode", {headers: { "Authorization": `Bearer ${access_token}`}});
+          const calibData = await r_mode.json();
 
-                          } else if (event.key === "ArrowRight") {
-                              point[0] = Math.min(maxX, point[0] + step);
+          if (calibData["Calibrate Mode"] !== "Manual") return;
 
-                          } else if (event.key === "ArrowUp") {
-                              point[1] = Math.max(0, point[1] - step);
+          if (selectedPoint.current === null) return;
 
-                          } else if (event.key === "ArrowDown") {
-                              point[1] = Math.min(maxY, point[1] + step);
+          refreshAccessToken();
 
-                          }
+          //const r = await fetch("http://10.0.30.175:8000/calibrate/params", {headers: { "Authorization": `Bearer ${access_token}`}});
+          //let data = await r.json();
+          //let detection_area = data["Detected Area"]; // [x1, y1, x2, y2]
 
-                          detection_area[selected_point] = point;
-                      }
-                  } catch (err) {
-                      console.warn("Erro key_pressed:", err);
-                  }
-              });
+          const img = calibrationImage.current;
+          const maxX = img.naturalWidth;
+          const maxY = img.naturalHeight;
 
-              function startCalibration(){
-                  if (calibrationPending === false){
-                      document.getElementById("calibrationModal").style.display = "flex";
-                  } else {
-                      const img = calibrationImage.current;
-                      img.dataset.manual = "false";
-                      calibrationPending = false;
-                      calibrate_click();
-                  }
-              }
+          let point = detectionArea.current[selectedPoint.current];
+          if (event.key === "ArrowLeft") {
+            point[0] = Math.max(0, point[0] - step);
+
+          } else if (event.key === "ArrowRight") {
+            point[0] = Math.min(maxX, point[0] + step);
+
+          } else if (event.key === "ArrowUp") {
+            point[1] = Math.max(0, point[1] - step);
+
+          } else if (event.key === "ArrowDown") {
+            point[1] = Math.min(maxY, point[1] + step);
+
+          }
+
+          detectionArea.current[selectedPoint.current] = point;
+          console.log("detectionAreaKey:", detectionArea.current);
+          console.log("selectedPointKey:", selectedPoint.current);
+          console.log("pointKey:", detectionArea.current[selectedPoint.current]);
+        } catch (error) {
+          console.warn("Erro key_pressed:", error);
+        }
+     };
+
+      document.addEventListener("keydown", handleKeyDown);
+
+      return () => {
+        document.removeEventListener("keydown", handleKeyDown);
+      };
+    };
+
+    let cleanup;
+
+    init().then((fn) => {
+      cleanup = fn;
+    });
+
+    return () => {
+      active = false;
+      if (cleanup) cleanup();
+    };
+    
+  }, [currentMenu, selectedPoint]);
+
+  function startCalibration(){
+    if (calibrationPending === false){
+      setCalibrationModalOpen(true);
+    } else {
+      const img = calibrationImage.current;
+      img.dataset.manual = "false";
+      setCalibrationPending(false);
+      calibrate_click();
+    }
+  }
 
   async function setCalibrationMode(Manual){
       refreshAccessToken();
       const access_token = localStorage.getItem("access_token");
 
-      document.getElementById("calibrationModal").style.display = "none";
+      setCalibrationModalOpen(false);
+
       if (Manual){
-          const img = calibrationImage.current;
-          img.dataset.manual = "true";
-          calibrationPending = true;
-          await fetch("http://10.0.30.175:8000/calibrate/mode/manual", { method: "POST", headers: { "Authorization": `Bearer ${access_token}` }});
+        setCalibrationPending(true);
+        await fetch("http://10.0.30.175:8000/calibrate/mode/manual", { method: "POST", headers: { "Authorization": `Bearer ${access_token}` }});
       } else{
-          calibrate_click();
+        calibrate_click();
       }
   }
 
-              async function calibrate_click() {
-                  const calibrateLabel = document.getElementById("calibrateLabel");
-                  const caliErrorLabel = document.getElementById("caliErrorLabel");
+  async function calibrate_click() {
+    try {
+      refreshAccessToken();
+      const access_token = localStorage.getItem("access_token");
 
-                  const TextCalibrated = "System Calibrated";
-                  const TextNotCalibrated = "System was not Calibrated";
-                  const TextError = "Error";
-                  const TextWsNotEmpty = "Workspace isn't Empty";
-                  const TextCenterNotAligned = "Center Point isn't Aligned";
-                  const TextWsNotEmptyAndCenterNotAligned = "Center Point isn't Aligned and Workspace isn't Empty";
-                  const TextClear = "";
+      const maskResponse = await fetch("http://10.0.30.175:8000/mask", {headers: { "Authorization": `Bearer ${access_token}`}});
+      if (!maskResponse.ok) throw new Error("Mask request failed");
+      const maskValues = await maskResponse.json();
 
-                  try {
-                      refreshAccessToken();
-                      const access_token = localStorage.getItem("access_token");
+      const calibrateResponse = await fetch("http://10.0.30.175:8000/calibrate", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json", "Authorization": `Bearer ${access_token}`
+        },
+        body: JSON.stringify(maskValues)
+      });
 
-                      const maskResponse = await fetch("http://10.0.30.175:8000/mask", {headers: { "Authorization": `Bearer ${access_token}`}});
-                      if (!maskResponse.ok) throw new Error("Mask request failed");
-                      const maskValues = await maskResponse.json();
+      if (!calibrateResponse.ok) throw new Error("Calibrate request failed");
 
-                      const calibrateResponse = await fetch("http://10.0.30.175:8000/calibrate", {
-                          method: "POST",
-                          headers: {
-                              "Content-Type": "application/json", "Authorization": `Bearer ${access_token}`
-                          },
-                          body: JSON.stringify(maskValues)
-                      });
+      const flagsResponse = await fetch("http://10.0.30.175:8000/calibrate/flags", { headers: { "Authorization": `Bearer ${access_token}` } });
+      if (!flagsResponse.ok) throw new Error("Flags request failed");
 
-                      if (!calibrateResponse.ok) throw new Error("Calibrate request failed");
+      const data = await flagsResponse.json();
 
-                      const flagsResponse = await fetch("http://10.0.30.175:8000/calibrate/flags", { headers: { "Authorization": `Bearer ${access_token}` } });
-                      if (!flagsResponse.ok) throw new Error("Flags request failed");
+      const center_aligned = data["Center Aligned"];
+      const ws_clear = data["Workspace Clear"];
 
-                      const data = await flagsResponse.json();
+      if (center_aligned && ws_clear) {
+        setError([TextCalibrated, TextClear]);
+      }
+      else if (center_aligned && !ws_clear) {
+        setError([TextNotCalibrated, TextWsNotEmpty]);
+      }
+      else if (!center_aligned && ws_clear) {
+        setError([TextNotCalibrated, TextCenterNotAligned]);
+      }
+      else {
+        setError([TextNotCalibrated, TextWsNotEmptyAndCenterNotAligned]);
+      }
 
-                      const center_aligned = data["Center Aligned"];
-                      const ws_clear = data["Workspace Clear"];
+      const r = await fetch("http://10.0.30.175:8000/calibrate/mode", {headers: { "Authorization": `Bearer ${access_token}`}});
+      let calibData = await r.json();
+      if (calibData["Calibrate Mode"] === "Manual") {
+        await fetch("http://10.0.30.175:8000/calibrate/mode/automatic", { method: "POST", headers: { "Authorization": `Bearer ${access_token}` }});
+      }
 
-                      if (center_aligned && ws_clear) {
-                          calibrateLabel.innerText = TextCalibrated;
-                          caliErrorLabel.innerText = TextClear;
-                      }
-                      else if (center_aligned && !ws_clear) {
-                          calibrateLabel.innerText = TextNotCalibrated;
-                          caliErrorLabel.innerText = TextWsNotEmpty;
-                      }
-                      else if (!center_aligned && ws_clear) {
-                          calibrateLabel.innerText = TextNotCalibrated;
-                          caliErrorLabel.innerText = TextCenterNotAligned;
-                      }
-                      else {
-                          calibrateLabel.innerText = TextNotCalibrated;
-                          caliErrorLabel.innerText = TextWsNotEmptyAndCenterNotAligned;
-                      }
+      selectedPoint.current = null;
 
-                      r = await fetch("http://10.0.30.175:8000/calibrate/mode", {headers: { "Authorization": `Bearer ${access_token}`}});
-                      let calibData = await r.json();
-                      if (calibData["Calibrate Mode"] === "Manual") {
-                          await fetch("http://10.0.30.175:8000/calibrate/mode/automatic", { method: "POST", headers: { "Authorization": `Bearer ${access_token}` }});
-                      }
-
-                      selected_point = null;
-
-                  } catch (error) {
-                      calibrateLabel.innerText = TextError;
-                      caliErrorLabel.innerText = TextError;
-                      console.error(error);
-                  }
-              }
+    } catch (error) {
+      setError([TextError]);
+      console.error(error);
+    }
+  }
  
   // Start Token Check Loop
   useEffect(() => {
@@ -884,13 +936,13 @@ function App() {
       }
   }
 
-useEffect(() => {
-  if (currentMenu === "volume-menu") {
-    startWebRTC();
-  } else {
-    stopWebRTC();
-  }
-}, [currentMenu]);
+  useEffect(() => {
+    if (currentMenu === "volume-menu") {
+      startWebRTC();
+    } else {
+      stopWebRTC();
+    }
+  }, [currentMenu]);
 
   async function startWebRTC() {
     const access_token = localStorage.getItem("access_token");
@@ -1015,48 +1067,59 @@ useEffect(() => {
 
       {/* Login Screen Panel */}
       {currentMenu === "login" && (
-        <div className="menu">
-          <h2>Login</h2>
+        <div>
+          <img src="/Qubic.svg" className="qubic-logo" alt="Qubic Logo"/> 
 
-          <form onSubmit={(e) => { e.preventDefault(); login(); }}>
-            <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="Username"
-            />
-            <br />
-            <br />
+          <div className="login-panel">
+            <div className="login-panel-title">Login</div>
 
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Password"
-            />
-            <br />
-            <br />
+            <div className="login-panel-error-or-info">
+              {error.map((err, i) => (<p key={i}>{err}</p>))}
+            </div>
 
-            <button type="submit">
-              Login
-            </button>
-          </form>
+            <form className="login-form" onSubmit={(e) => { e.preventDefault(); login(); }}>
+              <input
+                className="login-input username"
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Username"
+              />
 
-          <p style={{ marginTop: "15px" }}>
-            Don't have an account?{" "}
-            <span
-              onClick={showRegisterScreen}
-              style={{
-                color: "black",
-                cursor: "pointer",
-                textDecoration: "underline"
-              }}
-            >
-              Register
-            </span>
-          </p>
+              <input
+                className="login-input password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Password"
+              />
 
-          <p style={{ color: "red" }}>{error}</p>
+              <button className="login-button" type="submit">
+                <div className="background"></div>
+                <span className="text">Login</span>
+              </button>
+            </form>
+
+            {/*<p style={{ marginTop: "15px" }}>
+              Don't have an account?{" "}
+              <span
+                onClick={showRegisterScreen}
+                style={{
+                  color: "black",
+                  cursor: "pointer",
+                  textDecoration: "underline"
+                }}
+              >
+                Register
+              </span>
+            </p>*/}
+
+          </div>
+
+          <div className="powered-by-panel">
+              <div className="powered-by-text">Powered by</div>
+              <img src="/MarquesLogo.svg" className="powered-by-logo" alt="Marques Logo"/>
+          </div>
         </div>
       )}
 
@@ -1123,7 +1186,7 @@ useEffect(() => {
             </span>
           </p>
 
-          <p style={{ color: "red" }}>{error}</p>
+          <div style={{ color: "red" }}>{error.map((err, i) => (<p key={i}>{err}</p>))}</div>
         </div>
       )}
         
@@ -1147,7 +1210,9 @@ useEffect(() => {
 
           {/* Aviso */}
           <div className="warning">
-            {error}
+            {error.map((err, i) => (
+              <p key={i}>{err}</p>
+            ))}
           </div>
 
           {/* Imagens */}
@@ -1226,7 +1291,9 @@ useEffect(() => {
 
           {/* Aviso */}
           <div className="warning">
-            {error}
+            {error.map((err, i) => (
+              <p key={i}>{err}</p>
+            ))}
           </div>
 
           {/* Exposure / HDR Switch */}
@@ -1365,7 +1432,11 @@ useEffect(() => {
           </div>
 
           {/* Avisos */}
-          <div id="calibrateLabel" className="warning"></div>
+          <div className="warning">
+            {error.map((err, i) => (
+              <p key={i}>{err}</p>
+            ))}
+          </div>
 
           <div
             id="caliErrorLabel"
@@ -1408,39 +1479,40 @@ useEffect(() => {
           </div>
 
           {/* Modal */}
-          <div
-            id="calibrationModal"
-            style={{
-              display: "none",
-              position: "fixed",
-              top: 0,
-              left: 0,
-              width: "100vw",
-              height: "100vh",
-              background: "rgba(0,0,0,0.5)",
-              justifyContent: "center",
-              alignItems: "center",
-              zIndex: 50
-            }}
-          >
+          {calibrationModalOpen && (
             <div
+              id="calibrationModal"
               style={{
-                background: "white",
-                padding: "2vw",
-                borderRadius: "1vw"
+                position: "fixed",
+                top: 0,
+                left: 0,
+                width: "100vw",
+                height: "100vh",
+                background: "rgba(0,0,0,0.5)",
+                justifyContent: "center",
+                alignItems: "center",
+                zIndex: 50
               }}
             >
-              <p>Pretende ajustar manualmente?</p>
+              <div
+                style={{
+                  background: "white",
+                  padding: "2vw",
+                  borderRadius: "1vw"
+                }}
+              >
+                <p>Pretende ajustar manualmente?</p>
 
-              <button onClick={() => setCalibrationMode(true)}>
-                Sim
-              </button>
+                <button onClick={() => setCalibrationMode(true)}>
+                  Sim
+                </button>
 
-              <button onClick={() => setCalibrationMode(false)}>
-                Não
-              </button>
+                <button onClick={() => setCalibrationMode(false)}>
+                  Não
+                </button>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       )}
     </>

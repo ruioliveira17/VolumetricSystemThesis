@@ -1,4 +1,4 @@
-.counter {
+/*.counter {
   font-size: 16px;
   padding: 5px 10px;
   border-radius: 5px;
@@ -182,19 +182,171 @@
     border-right-color: var(--border);
   }
 }
+*/
+
+/* ----- BODY ----- */
 
 body {
-  font-family: Arial;
-  text-align: center;
+  background-image: url("/qubic_background.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  font-family: Inter;
   
-  overflow: auto;
-  min-width: none;
-  min-height: 20px;
+  overflow-x: hidden;
 
   margin: 0;
   height: 100vh;
   width: 100vw;
 }
+
+/* ----------------- */
+/* ----- LOGIN ----- */
+
+.qubic-logo{
+  position: absolute;
+  top: 12%;
+  left: 50%;
+  transform: translateX(-50%);
+
+  width: 11%;
+  height: 7%;
+}
+
+.login-panel {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 30%;
+  height: 50%;
+
+  background: linear-gradient(180deg, #FFFFFF1A 0%, #0000003E 100%);
+  border-radius: 5%;
+  opacity: 1;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.login-panel-title {
+  position: relative;
+  top: 8%;
+  
+  width: 25%;
+  height: 5%;
+
+  text-align: center;
+  letter-spacing: 0px;
+  color: #999999;
+  text-transform: uppercase;
+  opacity: 1;
+}
+
+.login-panel-error-or-info{
+  position: relative;
+  top: 25%; 
+
+  width: 50%;
+  height: 8%;
+  text-align: center;
+  letter-spacing: 0px;
+  color: #FFFFFF;
+  opacity: 1;
+  font-size: 100%;
+}
+
+.login-form {
+  position: relative;
+  top: 33%;
+  width: 87%;
+  height: 44%;
+}
+
+.login-input {
+  position: relative;
+
+  width: 100%;
+  height: 27%;
+
+  background: #000000 0% 0% no-repeat padding-box;
+  border-radius: 2%;
+  opacity: 0.2;
+
+  color: white;
+  padding-left: 3%;
+  box-sizing: border-box;
+  font-size: 80%;
+}
+
+.username {
+  top: 0%;
+}
+
+.password {
+  top: 7%;
+}
+
+.login-button {
+  position: relative;
+
+  top: 20%;
+  left: 31.5%;
+
+  width: 40%;
+  height: 23%;
+
+  cursor: pointer;
+}
+
+.login-button .background {
+  background: #FFFFFF 0% 0% no-repeat padding-box;
+  border-radius: 2%;
+  opacity: 0.2;
+}
+
+.login-button .text{
+  text-align: center;
+  font-size: normal normal normal 13px/15px;
+  letter-spacing: 0px;
+  color: #FFFFFF;
+  text-transform: uppercase;
+  opacity: 1;
+}
+
+.powered-by-panel{
+  position: absolute;
+  bottom: 5%;
+  left: 50%;
+  transform: translateX(-50%);
+
+  width: 7%;
+  height: 7%;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.powered-by-text{
+  position: relative;
+  top: 0%;
+  width: 62%;
+  height: 20%;
+  font-size: 80%;
+  color: #999999;
+}
+
+.powered-by-logo{
+  position: relative;
+  top: 20%;
+
+  width: 100%;
+  height: 81%;
+}
+
+/* ----------------- */
 
 .menu {
   display: flex;
