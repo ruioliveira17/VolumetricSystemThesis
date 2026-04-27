@@ -59,7 +59,10 @@ function App() {
   const [DebugMode_toggle, setDebugMode] = useState(false);
 
   const [menuSideNav, setMenuSideNavOpen] = useState(false);
+  const toggleMenu = () => setMenuSideNavOpen(prev => !prev);
+
   const [userSideNav, setUserSideNavOpen] = useState(false);
+  const toggleUserMenu = () => setUserSideNavOpen(prev => !prev);
 
   const [volInfo, setVolInfo] = useState(null);
   const [objectImage, setObjectImage] = useState(null);
@@ -186,26 +189,32 @@ function App() {
   }
 
   function logout() {
-      closeUserNav();
+    if (tokenCheckInterval.current) {
+        clearInterval(tokenCheckInterval.current);
+        tokenCheckInterval.current = null;
+    }
 
-      if (tokenCheckInterval.current) {
-          clearInterval(tokenCheckInterval.current);
-          tokenCheckInterval.current = null;
-      }
+    if (cameraLoopInterval.current) {
+      clearInterval(cameraLoopInterval.current);
+      cameraLoopInterval.current = null;
+    }
 
-      if (cameraLoopInterval.current) {
-        clearInterval(cameraLoopInterval.current);
-        cameraLoopInterval.current = null;
-      }
+    localStorage.removeItem("current_user");
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
 
-      localStorage.removeItem("current_user");
-      localStorage.removeItem("access_token");
-      localStorage.removeItem("refresh_token");
+    setUsername("");
+    setPassword("");
+    setCurrentMenu("login");
+    setSavedUser(null);
 
-      setUsername("");
-      setPassword("");
-      setCurrentMenu("login");
-      setSavedUser(null);
+    setMenuSideNavOpen(false)
+    setUserSideNavOpen(false)
+
+    setObjectList([]);
+    setSelectedObject("");
+    setVolInfo(null);
+    setVolumeData(null);
   }
 
   // Change Menu Functions
@@ -216,7 +225,6 @@ function App() {
 
     if (currentMenu === "login" || currentMenu === "register") return;
 
-    closeMenuNav();
     refreshAccessToken();
     setError([TextClear]);
 
@@ -245,6 +253,7 @@ function App() {
 
   async function volume_click(){
       try{
+          setObjectImage(null);
           refreshAccessToken();
           const access_token = localStorage.getItem("access_token");
 
@@ -265,6 +274,7 @@ function App() {
       setObjectList([]);
       setSelectedObject("");
       setVolInfo(null);
+      setVolumeData(null);
 
       await fetch('http://10.0.30.175:8000/volume/bundle', { method: 'POST', headers: { "Authorization": `Bearer ${access_token}` } });
 
@@ -298,6 +308,7 @@ function App() {
 
     } catch (error) {
       setVolInfo(null);
+      setVolumeData(null);
       setError([TextError]);
       console.error(error);
     }
@@ -310,17 +321,6 @@ function App() {
     const objData = realVolumeData[selectedObject];
     if (!objData) return;
 
-    if (selectedObject === "Total") {
-    setVolInfo({
-      volume_m: objData.volume_m,
-      volume_cm: objData.volume_cm,
-      width: null,
-      length: null,
-      height: null
-    });
-    return;
-  }
-
     setVolInfo({
       volume_m: objData.volume_m,
       volume_cm: objData.volume_cm,
@@ -332,9 +332,10 @@ function App() {
 
   async function volumeReal(access_token) {
       try {
-        setVolInfo(null);
         setObjectList([]);
         setSelectedObject("");
+        setVolInfo(null);
+        setVolumeData(null);
 
         await fetch('http://10.0.30.175:8000/volume/real', { method: 'POST', headers: { "Authorization": `Bearer ${access_token}` } });
 
@@ -365,11 +366,11 @@ function App() {
         if (objIdentified.length === 1) {
           const objData = volumeData[objIdentified[0]];
           setVolInfo({
-            volume_m: objData.Bundle.volume_m,
-            volume_cm: objData.Bundle.volume_cm,
-            width: objData.Bundle.x,
-            length: objData.Bundle.y,
-            height: objData.Bundle.z
+            volume_m: objData.volume_m,
+            volume_cm: objData.volume_cm,
+            width: objData.x,
+            length: objData.y,
+            height: objData.z
           })
         } else if (objIdentified.length > 1) {
           setObjectList(objIdentified);
@@ -992,43 +993,10 @@ function App() {
     }
   }
 
-  function openMenuNav() {
-    if (currentMenu === "login" || currentMenu === "register") return;
-
-    setUserSideNavOpen(false);
-    setMenuSideNavOpen(true);
-
-    refreshAccessToken();
-  }
-
-  function closeMenuNav() {
-    setMenuSideNavOpen(false);
-  }
-
-  function openUserNav() {
-    if (currentMenu === "login" || currentMenu === "register") return;
-
-    setMenuSideNavOpen(false);
-
-    refreshAccessToken();
-
-    if (!savedUser) return;
-
-    setUserSideNavOpen(true);
-  }
-
-  function closeUserNav() {
-    setUserSideNavOpen(false);
-  }
-
   return (
     <>
       {/* Menu Side Nav */}
-      <div id="menuSideNav" style={{width: (!isAuthScreen && menuSideNav) ? "12%" : "0"}} className="menuSideNav">
-        <button className="closebtn" onClick={closeMenuNav}>
-          &times;
-        </button>
-
+      <div className={`menuSideNav ${(!isAuthScreen && menuSideNav) ? "open" : ""}`}>
         <div className="nav-item" onClick={() => setCurrentMenu("volume-menu")}>
           Volume
         </div>
@@ -1047,20 +1015,16 @@ function App() {
       </div>
 
       {/* User Side Nav */}
-      <div id="userSideNav" style={{width: (!isAuthScreen && userSideNav) ? "12%" : "0"}} className="userSideNav">
-        <button className="closebtn" onClick={closeUserNav}>
-          &times;
-        </button>
-
-        <div className="navUser-item" id="user-name">
+      <div className={`userSideNav ${(!isAuthScreen && userSideNav) ? "open" : ""}`}>
+        <div className="navUser-item">
           User: {savedUser?.username}
         </div>
 
-        <div className="navUser-item" id="user-role">
+        <div className="navUser-item">
           Role: {savedUser?.role}
         </div>
 
-        <div className="nav-item logout" onClick={logout}>
+        <div className="navUser-item" onClick={logout}>
           Logout
         </div>
       </div>
@@ -1117,14 +1081,14 @@ function App() {
           </div>
 
           <div className="powered-by-panel">
-              <div className="powered-by-text">Powered by</div>
+              <div className="powered-by-text" translate="no">Powered by</div>
               <img src="/MarquesLogo.svg" className="powered-by-logo" alt="Marques Logo"/>
           </div>
         </div>
       )}
 
       {/* Register Screen Panel */}
-      {currentMenu === "register" && (
+      {/*{currentMenu === "register" && (
         <div className="menu">
           <h2>Register</h2>
 
@@ -1188,20 +1152,59 @@ function App() {
 
           <div style={{ color: "red" }}>{error.map((err, i) => (<p key={i}>{err}</p>))}</div>
         </div>
-      )}
+      )}*/}
         
       {/* Volume Panel */}
       {currentMenu === "volume-menu" && (
-        <div className="menu">
+        <div>
           {/* Logo */}
-          <button className="logo" onClick={openMenuNav}>
-            <img src="/static/images/BM_Logo.png" alt="BM Logo" />
+          <button className="logo">
+            <img src="/Qubic.svg" alt="BM Logo" />
           </button>
 
-          {/* Login */}
-          <button className="login" onClick={openUserNav}>
-            <img src="/static/images/user.png" alt="User" />
+          {/* Menu */}
+          <button className="menu-img" onClick={toggleMenu}>
+            <img src="/menu.svg" alt="Menu" />
           </button>
+
+          {/* User */}
+          <button className="user-img" onClick={toggleUserMenu}>
+            <img src="/user.png" alt="User" />
+          </button>
+
+          <button onClick={volume_click} className="volume-button">
+            <div className="background"></div>
+            <span className="text">Get Volume</span>
+          </button>
+
+          <div className="object-selection-menu">
+            <div className="object-list">
+              {objectList.map((obj) => (
+                <span
+                  key={obj}
+                  className={`object-item ${selectedObject === obj ? "selected" : ""}`}
+                  onClick={() => setSelectedObject(obj)}
+                >
+                  <span className="arrow">
+                    {selectedObject === obj ? "▶" : ""}
+                  </span>
+                  <span className="object-name">{obj}</span>
+                </span>
+              ))}
+            </div>
+
+            <div className="object-total">
+              {realVolumeData ? (
+                <div>
+                  TOTAL: {realVolumeData?.Total?.volume_m ?? 0} m³
+                </div>
+                /*<div>
+                  {realVolumeData?.Total?.volume_cm ?? 0} cm³
+                </div>*/
+              ) : null}
+            </div>
+
+          </div>
 
           {/* Menu Title */}
           <div className="title-container">
@@ -1224,64 +1227,66 @@ function App() {
           />
 
           {objectImage && (
-            <img src={objectImage} alt="objects"/>
-          )}
-
-          {/* Botões */}
-          <div className="volumeButtonPos">
-            <button
-              onClick={volume_click}
-              className="volumeButton"
-            >
-              Get Volume
-            </button>
-          </div>
-
-          {objectList.length > 1 && (
-            <select
-              value={selectedObject}
-              onChange={(e) => setSelectedObject(e.target.value)}
-            >
-              <option value="" disabled>
-                Select an Object
-              </option>
-
-              {objectList.map((obj) => (
-                <option key={obj} value={obj}>
-                  {obj}
-                </option>
-              ))}
-
-              <option value="Total">Total</option>
-            </select>
+            <img className="object-img" src={objectImage} alt="objects"/>
           )}
 
           {/* Labels */}
           <div className="boxInfo-container">
             {volInfo && (
               <>
-                <div>{"Volume: " + volInfo.volume_m.toFixed(6) + " m³"}</div>
-                <div>{"Volume (cm³): " + volInfo.volume_cm.toFixed(2) + " cm³"}</div>
-                <div>{(volInfo.width != null ? "Width: " + volInfo.width.toFixed(1) + " cm" : "")}</div>
-                <div>{(volInfo.length != null ? "Length: " + volInfo.length.toFixed(1) + " cm" : "")}</div>
-                <div>{(volInfo.height != null ? "Height: " + volInfo.height.toFixed(1) + " cm" : "")}</div>
+                <div className="boxInfo-text">
+                  <span className="label">Volume (m³):</span>
+                  <span className="value">{volInfo.volume_m.toFixed(6)}</span>
+                </div>
+
+                <div className="boxInfo-text">
+                  <span className="label">Volume (cm³):</span>
+                  <span className="value">{volInfo.volume_cm.toFixed(2)}</span>
+                </div>
+
+                <div className="boxInfo-text">
+                  <span className="label">Width (cm):</span>
+                  <span className="value">{volInfo.width.toFixed(1)}</span>
+                </div>
+
+                <div className="boxInfo-text">
+                  <span className="label">Length (cm):</span>
+                  <span className="value">{volInfo.length.toFixed(1)}</span>
+                </div>
+
+                <div className="boxInfo-text">
+                  <span className="label">Height (cm):</span>
+                  <span className="value">{volInfo.height.toFixed(1)}</span>
+                </div>
               </>
             )}
           </div>
+
+          {/* Powered By */}
+          <div className="powered-by-panel">
+            <div className="powered-by-text" translate="no">Powered by</div>
+            <img src="/MarquesLogo.svg" className="powered-by-logo" alt="Marques Logo"/>
+          </div>
+
         </div>
       )}
 
       {/* Configuration Panel */}
       {currentMenu === "config-menu" && (
-        <div className="menu">
+        <div>
           {/* Logo */}
-          <button className="logo" onClick={openMenuNav}>
-            <img src="/static/images/BM_Logo.png" alt="BM Logo" />
+          <button className="logo">
+            <img src="/Qubic.svg" alt="BM Logo" />
           </button>
 
-          {/* Login */}
-          <button className="login" onClick={openUserNav}>
-            <img src="/static/images/user.png" alt="User" />
+          {/* Menu */}
+          <button className="menu-img" onClick={toggleMenu}>
+            <img src="/menu.svg" alt="Menu" />
+          </button>
+
+          {/* User */}
+          <button className="user-img" onClick={toggleUserMenu}>
+            <img src="/user.png" alt="User" />
           </button>
 
           {/* Menu Title */}
@@ -1415,15 +1420,20 @@ function App() {
 
       {/* Calibration Panel */}
       {currentMenu === "calibration-menu" && (
-        <div className="menu">
+        <div>
           {/* Logo */}
-          <button className="logo" onClick={openMenuNav}>
-            <img src="/static/images/BM_Logo.png" alt="BM Logo" />
+          <button className="logo">
+            <img src="/Qubic.svg" alt="BM Logo" />
           </button>
 
-          {/* Login */}
-          <button className="login" onClick={openUserNav}>
-            <img src="/static/images/user.png" alt="User" />
+          {/* Menu */}
+          <button className="menu-img" onClick={toggleMenu}>
+            <img src="/menu.svg" alt="Menu" />
+          </button>
+
+          {/* User */}
+          <button className="user-img" onClick={toggleUserMenu}>
+            <img src="/user.png" alt="User" />
           </button>
 
           {/* Menu Title */}
