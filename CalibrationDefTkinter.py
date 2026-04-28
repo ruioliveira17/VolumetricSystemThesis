@@ -85,7 +85,7 @@ def maskAPI(colorToDepthFrame, lower, upper, color, cx_d, cy_d):
     finally :
         print('end')
 
-def manualWorkspaceDraw(colorToDepthFrame, detection_area, cx_d, cy_d):
+def manualWorkspaceDraw(colorToDepthFrame, detection_area, selected_point, cx_d, cy_d):
     try:
         colorToDepthFrame = cv2.resize(colorToDepthFrame, (640, 480))
 
@@ -97,8 +97,31 @@ def manualWorkspaceDraw(colorToDepthFrame, detection_area, cx_d, cy_d):
         
         cv2.circle(colorToDepthFrame_copy, (cx_d, cy_d), radius=3, color=(255, 255, 255), thickness=1)
 
-        for cx, cy in detection_area:
-            cv2.circle(colorToDepthFrame_copy, (cx, cy), radius=5, color=(255, 255, 255), thickness=-1)
+        for i, (cx, cy) in enumerate(detection_area):
+            if selected_point is not None and i == selected_point:
+                color = (0, 255, 255)
+                thickness = -1
+                radius = 7
+            else:
+                color = (255, 255, 255)
+                thickness = -1
+                radius = 5
+
+            cv2.circle(
+                colorToDepthFrame_copy,
+                (cx, cy),
+                radius + 2,
+                (0, 0, 0),
+                thickness=-1
+            )
+
+            cv2.circle(
+                colorToDepthFrame_copy,
+                (cx, cy),
+                radius=radius,
+                color=color,
+                thickness=thickness
+            )
         
         return colorToDepthFrame_copy, detection_area
                 

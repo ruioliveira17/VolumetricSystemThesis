@@ -49,7 +49,7 @@ from VolumeTkinter import volumeBundleAPI, volumeRealAPI
 #------------------------------------------------------   Services    ------------------------------------------------------
 
 from services.saveCalibration import save_WS_calibration
-from services.stream import generateRGB_Stream, generateCalibrationCTD_Stream, generateCalibrationMask_Stream, CameraTrack
+from services.stream import generateRGB_Stream, generateCalibrationCTD_Stream, generateCalibrationMask_Stream, CameraTrack, CTDTrack
 from services.utils import rgb_to_hsv
 from services.users import load_users, save_users
 
@@ -107,6 +107,7 @@ class LoginData(BaseModel):
 
 class ManualWorkspace(BaseModel):
     detection_area: List[List[float]] = None
+    selected_point: Optional[int] = None
 
 class RefreshData(BaseModel):
     refresh_token: str
@@ -131,6 +132,8 @@ class SystemUpdate(BaseModel):
 
 load_dotenv()
 ADMIN_REGISTER_CODE = os.environ.get("ADMIN_REGISTER_CODE")
+
+pcs = set()
 
 #-----------------------------------------------------   Lifespan   -------------------------------------------------------
 
@@ -284,12 +287,23 @@ def refresh(data: RefreshData):
 @app.post("/offer")
 async def offer(request: Request, current_user: dict = Depends(get_current_user)): 
     params = await request.json() 
+    streamType = params.get("stream", "volume")
     offer = RTCSessionDescription(sdp=params["sdp"], type=params["type"]) 
     
-    pc = RTCPeerConnection() 
+    pc = RTCPeerConnection()
+    pcs.add(pc)
+
+    @pc.on("connectionstatechange")
+    async def on_connectionstatechange():
+        if pc.connectionState in ["failed", "closed", "disconnected"]:
+            await pc.close()
+            pcs.discard(pc)
     
     await pc.setRemoteDescription(offer)
-    pc.addTrack(CameraTrack())
+    if streamType == "volume":
+        pc.addTrack(CameraTrack())
+    elif streamType == "calibration":
+        pc.addTrack(CTDTrack())
     
     answer = await pc.createAnswer()
     await pc.setLocalDescription(answer) 
@@ -698,8 +712,9 @@ def apply_manualWS(data: ManualWorkspace, current_user: dict = Depends(get_curre
         colorToDepthFrame = frameState.colorToDepthFrameHDR
 
     detection_area = numpy.array(data.detection_area, dtype=int).reshape((-1, 2))
+    selected_point = data.selected_point
 
-    workspaceDetectedFrame, detection_area = manualWorkspaceDraw(colorToDepthFrame, detection_area, int(camState.cx_d), int(camState.cy_d))
+    workspaceDetectedFrame, detection_area = manualWorkspaceDraw(colorToDepthFrame, detection_area, selected_point, int(camState.cx_d), int(camState.cy_d))
 
     if workspaceDetectedFrame is None:
         return{"message:": "Mask application failed!"}

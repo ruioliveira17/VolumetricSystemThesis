@@ -81,11 +81,16 @@ function App() {
 
   const isAuthScreen = currentMenu === "login" || currentMenu === "register";
 
-  const calibrationImage = useRef(null);
-
   const [rgb, setRgb] = useState({ r: 0, g: 0, b: 0 });
 
   const [calibrationModalOpen, setCalibrationModalOpen] = useState(false);
+  const [loadingVolume, setLoadingVolume] = useState(false);
+  const [loadingCalibration, setLoadingCalibration] = useState(false);
+
+  const canvasRef = useRef(null);
+  const angleRef = useRef(0.4);
+  const dragging = useRef(false);
+  const lastX = useRef(0);
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("current_user"));
@@ -230,9 +235,8 @@ function App() {
 
     if (currentMenu === "calibration-menu") {
       workspaceDrawing();
-      if (calibrationImage.current) {
-        calibrationImage.current.crossOrigin = "anonymous";
-        calibrationImage.current.src = "http://10.0.30.175:8000/calibrationCTD";
+      if (cameraVideo.current) {
+        cameraVideo.current.src = "http://10.0.30.175:8000/calibrationCTD";
       }
     }
 
@@ -253,20 +257,22 @@ function App() {
 
   async function volume_click(){
       try{
-          setObjectImage(null);
-          refreshAccessToken();
-          const access_token = localStorage.getItem("access_token");
+        setLoadingVolume(true);
+        setObjectImage(null);
+        refreshAccessToken();
+        const access_token = localStorage.getItem("access_token");
 
-          const response = await fetch("http://10.0.30.175:8000/volume/mode", {headers: { "Authorization": `Bearer ${access_token}`}});
-          let volumeMode = await response.json();
-          if (volumeMode["Volume Mode"] === "Bundle"){
-              volumeBundle(access_token);
-          } else if (volumeMode["Volume Mode"] === "Real"){
-              volumeReal(access_token);
-          }
+        const response = await fetch("http://10.0.30.175:8000/volume/mode", {headers: { "Authorization": `Bearer ${access_token}`}});
+        let volumeMode = await response.json();
+        if (volumeMode["Volume Mode"] === "Bundle"){
+            volumeBundle(access_token);
+        } else if (volumeMode["Volume Mode"] === "Real"){
+            volumeReal(access_token);
+        }
 
       } catch (error) {
-      } 
+        console.warn(error);
+      }
   }
 
   async function volumeBundle(access_token) {
@@ -311,6 +317,8 @@ function App() {
       setVolumeData(null);
       setError([TextError]);
       console.error(error);
+    } finally {
+      setLoadingVolume(false);
     }
   }
 
@@ -381,8 +389,245 @@ function App() {
         setVolInfo(null);
         setError([TextError]);
         console.error(error);
+      } finally {
+        setLoadingVolume(false);
       }
   }
+
+useEffect(() => {
+  const canvas = canvasRef.current;
+  if (!canvas) return;
+
+  const ctx = canvas.getContext("2d");
+
+  const rect = canvas.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
+
+  ctx.scale(dpr, dpr);
+
+  ctx.lineJoin = "round";
+  ctx.lineCap = "round";
+
+  if (!volInfo) {
+    ctx.clearRect(0, 0, rect.width, rect.height);
+    return;
+  }
+
+  const project = (x, y, z, cx, cy, scale) => {
+    const angle = angleRef.current;
+
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
+
+    const rx = x * cos - y * sin;
+    const ry = x * sin + y * cos;
+
+    const tiltAngle = 0.35;
+    const tiltCos = Math.cos(tiltAngle);
+    const tiltSin = Math.sin(tiltAngle);
+
+    const screenY = z * tiltCos - ry * tiltSin;
+    const screenZ = z * tiltSin + ry * tiltCos;
+
+    return {
+      x: cx + rx * scale,
+      y: cy - screenY * scale,
+      z: screenZ
+    };
+  };
+
+  const drawEdge = (a, b, color) => {
+    ctx.beginPath();
+    ctx.moveTo(a.x, a.y);
+    ctx.lineTo(b.x, b.y);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  };
+
+  const drawLabel = (a, b, text, color, edgeType) => {
+    const midX = (a.x + b.x) / 2;
+    const midY = (a.y + b.y) / 2;
+
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    const len = Math.sqrt(dx * dx + dy * dy);
+
+    let ox = 0, oy = 0;
+
+    if (edgeType === 'height') {
+      const nx = -(dy / len);
+      ox = nx * 22 + 18;
+      oy = 0;
+    } else if (edgeType === 'width'){
+      const ux = dx / len;
+      const uy = dy / len;
+      let nx = -uy;
+      let ny = ux;
+      const bias = -1;
+      nx *= bias;
+      ny *= bias;
+      ox = nx * 26;
+      oy = ny * 20;
+    } else if (edgeType === 'length'){
+      const ux = dx / len;
+      const uy = dy / len;
+      let nx = -uy;
+      let ny = ux;
+      const bias = 1;
+      nx *= bias;
+      ny *= bias;
+      ox = nx * 26;
+      oy = ny * 20;
+    }
+    
+    ctx.fillStyle = color;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(text, midX + ox, midY + oy);
+  };
+
+  const draw = () => {
+    const W = rect.width;
+    const H = rect.height;
+
+    ctx.clearRect(0, 0, W, H);
+
+    const w = volInfo.width;
+    const d = volInfo.length;
+    const h = volInfo.height;
+
+    const maxDim = Math.max(w, d, h);
+
+    const nw = w / maxDim;
+    const nd = d / maxDim;
+    const nh = h / maxDim;
+
+    const scale = Math.min(W, H) * 0.45;
+
+    const hw = nw / 2;
+    const hd = nd / 2;
+    const hh = nh / 2;
+
+    const cx = W / 2;
+    const cy = H / 2;
+
+    const v = [
+      project(-hw, -hd, -hh, cx, cy, scale),
+      project(hw, -hd, -hh, cx, cy, scale),
+      project(hw, hd, -hh, cx, cy, scale),
+      project(-hw, hd, -hh, cx, cy, scale),
+      project(-hw, -hd, hh, cx, cy, scale),
+      project(hw, -hd, hh, cx, cy, scale),
+      project(hw, hd, hh, cx, cy, scale),
+      project(-hw, hd, hh, cx, cy, scale),
+    ];
+
+    const X = "#E24B4A"; // width
+    const Y = "#1D9E75"; // length
+    const Z = "#378ADD"; // height
+
+    const faces = [
+      [0,1,2,3],
+      [4,5,6,7],
+      [0,1,5,4],
+      [2,3,7,6],
+      [1,2,6,5],
+      [0,3,7,4],
+    ];
+
+    const faceDepth = faces.map(face => ({
+      face,
+      z: face.reduce((s, i) => s + v[i].z, 0) / 4
+    }));
+
+    faceDepth.sort((a, b) => a.z - b.z);
+
+    faceDepth.forEach(({ face }) => {
+      const [a,b,c,d] = face;
+
+      ctx.beginPath();
+      ctx.moveTo(v[a].x, v[a].y);
+      ctx.lineTo(v[b].x, v[b].y);
+      ctx.lineTo(v[c].x, v[c].y);
+      ctx.lineTo(v[d].x, v[d].y);
+      ctx.closePath();
+
+      ctx.fillStyle = "rgba(186,186,231,0.03)";
+      ctx.fill();
+
+      ctx.strokeStyle = "#aaa";
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    });
+
+    const edges = [
+      [0,1,X,"Width"], [3,2,X], [4,5,X], [7,6,X],
+      [0,3,Y,"Length"], [1,2,Y], [4,7,Y], [5,6,Y],
+      [0,4,Z,"Height"], [1,5,Z], [2,6,Z], [3,7,Z],
+    ];
+
+    edges.forEach(([a,b,color,type]) => {
+      drawEdge(v[a], v[b], color);
+
+      const value =
+        type === "Width" ? volInfo.width :
+        type === "Length" ? volInfo.length:
+        type === "Height" ? volInfo.height :
+        ""
+
+      if (type == "Width"){
+        drawLabel(v[a], v[b], `${value} cm`, color, "width");
+      } else if (type == "Length"){
+        drawLabel(v[a], v[b], `${value} cm`, color, "length");
+      } else if (type == "Height"){
+        drawLabel(v[a], v[b], `${value} cm`, color, "height");
+      }
+    });
+  };
+
+  let frameId;
+
+  const animate = () => {
+    if (!volInfo) return;
+
+    if (!dragging.current) angleRef.current += 0.005;
+
+    draw();
+    frameId = requestAnimationFrame(animate);
+  };
+
+  animate();
+
+  const down = (e) => {
+    dragging.current = true;
+    lastX.current = e.clientX;
+  };
+
+  const move = (e) => {
+    if (!dragging.current) return;
+    angleRef.current -= (e.clientX - lastX.current) * 0.01;
+    lastX.current = e.clientX;
+  };
+
+  const up = () => (dragging.current = false);
+
+  canvas.addEventListener("mousedown", down);
+  window.addEventListener("mousemove", move);
+  window.addEventListener("mouseup", up);
+
+  return () => {
+    cancelAnimationFrame(frameId);
+    canvas.removeEventListener("mousedown", down);
+    window.removeEventListener("mousemove", move);
+    window.removeEventListener("mouseup", up);
+  };
+}, [volInfo]);
               
   async function handleExpHDR_toggle(e) {
     const checked = e.target.checked;
@@ -571,7 +816,7 @@ function App() {
       await fetch("http://10.0.30.175:8000/applyManualWorkspace", {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', "Authorization": `Bearer ${access_token}` },
-          body: JSON.stringify({ detection_area: detectionArea.current })
+          body: JSON.stringify({ detection_area: detectionArea.current, selected_point: selectedPoint.current })
       });
     } catch (err) { console.warn("Erro applyManualWSDraw:", err); }
   }
@@ -617,12 +862,11 @@ function App() {
   useEffect(() => {
     if (currentMenu !== "calibration-menu") return;
 
-    const img = calibrationImage.current;
+    const img = cameraVideo.current;
     if (!img) return;
 
     const handleClick = async (event) => {
       try {
-        refreshAccessToken();
         const access_token = localStorage.getItem("access_token");
 
         const calibRes = await fetch(
@@ -633,8 +877,8 @@ function App() {
         const calibData = await calibRes.json();
 
         const rect = img.getBoundingClientRect();
-        const x = Math.round((event.clientX - rect.left) * (img.naturalWidth / rect.width));
-        const y = Math.round((event.clientY - rect.top) * (img.naturalHeight / rect.height));
+        const x = Math.round((event.clientX - rect.left) * (img.videoWidth / rect.width));
+        const y = Math.round((event.clientY - rect.top) * (img.videoHeight / rect.height));
 
         if (calibData["Calibrate Mode"] === "Automatic") {
 
@@ -653,9 +897,9 @@ function App() {
           const canvas = document.createElement("canvas");
           const ctx = canvas.getContext("2d");
 
-          canvas.width = img.naturalWidth;
-          canvas.height = img.naturalHeight;
-          ctx.drawImage(img, 0, 0);
+          canvas.width = img.videoWidth;
+          canvas.height = img.videoHeight;
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
           const preview = document.getElementById("color-preview");
 
@@ -743,15 +987,13 @@ function App() {
 
           if (selectedPoint.current === null) return;
 
-          refreshAccessToken();
-
           //const r = await fetch("http://10.0.30.175:8000/calibrate/params", {headers: { "Authorization": `Bearer ${access_token}`}});
           //let data = await r.json();
           //let detection_area = data["Detected Area"]; // [x1, y1, x2, y2]
 
-          const img = calibrationImage.current;
-          const maxX = img.naturalWidth;
-          const maxY = img.naturalHeight;
+          const img = cameraVideo.current;
+          const maxX = img.videoWidth;
+          const maxY = img.videoHeight;
 
           let point = detectionArea.current[selectedPoint.current];
           if (event.key === "ArrowLeft") {
@@ -801,7 +1043,7 @@ function App() {
     if (calibrationPending === false){
       setCalibrationModalOpen(true);
     } else {
-      const img = calibrationImage.current;
+      const img = cameraVideo.current;
       img.dataset.manual = "false";
       setCalibrationPending(false);
       calibrate_click();
@@ -816,6 +1058,8 @@ function App() {
 
       if (Manual){
         setCalibrationPending(true);
+        const img = cameraVideo.current;
+        img.dataset.manual = "true";
         await fetch("http://10.0.30.175:8000/calibrate/mode/manual", { method: "POST", headers: { "Authorization": `Bearer ${access_token}` }});
       } else{
         calibrate_click();
@@ -824,6 +1068,8 @@ function App() {
 
   async function calibrate_click() {
     try {
+      setLoadingCalibration(true);
+      setError([TextClear]);
       refreshAccessToken();
       const access_token = localStorage.getItem("access_token");
 
@@ -873,6 +1119,8 @@ function App() {
     } catch (error) {
       setError([TextError]);
       console.error(error);
+    } finally {
+      setLoadingCalibration(false);
     }
   }
  
@@ -939,13 +1187,15 @@ function App() {
 
   useEffect(() => {
     if (currentMenu === "volume-menu") {
-      startWebRTC();
+      startWebRTC("volume");
+    } else if (currentMenu === "calibration-menu") {
+      startWebRTC("calibration");
     } else {
       stopWebRTC();
     }
   }, [currentMenu]);
 
-  async function startWebRTC() {
+  async function startWebRTC(streamType) {
     const access_token = localStorage.getItem("access_token");
 
     pc.current = new RTCPeerConnection();
@@ -969,7 +1219,8 @@ function App() {
         },
         body: JSON.stringify({
             sdp: pc.current.localDescription.sdp,
-            type: pc.current.localDescription.type
+            type: pc.current.localDescription.type,
+            stream: streamType
         })
     });
 
@@ -1080,9 +1331,9 @@ function App() {
 
           </div>
 
-          <div className="powered-by-panel">
-              <div className="powered-by-text" translate="no">Powered by</div>
-              <img src="/MarquesLogo.svg" className="powered-by-logo" alt="Marques Logo"/>
+          <div className="powered-by-panel-login">
+              <div className="powered-by-text-login" translate="no">Powered by</div>
+              <img src="/MarquesLogo.svg" className="powered-by-logo-login" alt="Marques Logo"/>
           </div>
         </div>
       )}
@@ -1172,95 +1423,176 @@ function App() {
             <img src="/user.png" alt="User" />
           </button>
 
-          <button onClick={volume_click} className="volume-button">
-            <div className="background"></div>
-            <span className="text">Get Volume</span>
-          </button>
-
-          <div className="object-selection-menu">
-            <div className="object-list">
-              {objectList.map((obj) => (
-                <span
-                  key={obj}
-                  className={`object-item ${selectedObject === obj ? "selected" : ""}`}
-                  onClick={() => setSelectedObject(obj)}
-                >
-                  <span className="arrow">
-                    {selectedObject === obj ? "▶" : ""}
-                  </span>
-                  <span className="object-name">{obj}</span>
-                </span>
-              ))}
-            </div>
-
-            <div className="object-total">
-              {realVolumeData ? (
-                <div>
-                  TOTAL: {realVolumeData?.Total?.volume_m ?? 0} m³
-                </div>
-                /*<div>
-                  {realVolumeData?.Total?.volume_cm ?? 0} cm³
-                </div>*/
-              ) : null}
-            </div>
-
-          </div>
-
-          {/* Menu Title */}
-          <div className="title-container">
-            <div className="menu-title">Volume</div>
-          </div>
-
-          {/* Aviso */}
+          {/* Warning */}
           <div className="warning">
             {error.map((err, i) => (
               <p key={i}>{err}</p>
             ))}
           </div>
 
-          {/* Imagens */}
+          <div className="volume-menu-wrapper">
+            {/* Video */}
+            <div className="camera-video-wrapper">
+              <video
+                ref={cameraVideo}
+                autoPlay
+                playsInline
+                className="camera-video"
+              />
+            </div>
+
+            {/* Button */}
+            <button onClick={volume_click} className="volume-button" disabled={loadingVolume}>
+              <div className="background"></div>
+              {loadingVolume && (
+                <div className="loadingVolume-icon">  
+                  <img src="/loading.svg" alt="loading"/>
+                </div>
+              )}
+              <span className="text">Get Volume</span>
+            </button>
+
+            {/* Menu Select Object */}
+            <div className="object-selection-menu">
+              <div className="object-list">
+                {objectList.map((obj) => (
+                  <span
+                    key={obj}
+                    className={`object-item ${selectedObject === obj ? "selected" : ""}`}
+                    onClick={() => setSelectedObject(obj)}
+                  >
+                    <span className="arrow">
+                      {selectedObject === obj ? "▶" : ""}
+                    </span>
+                    <span className="object-name">{obj}</span>
+                  </span>
+                ))}
+              </div>
+
+              <div className="object-total">
+                {realVolumeData ? (
+                  <div>
+                    TOTAL: {realVolumeData?.Total?.volume_m ?? 0} m³
+                  </div>
+                  /*<div>
+                    {realVolumeData?.Total?.volume_cm ?? 0} cm³
+                  </div>*/
+                ) : null}
+              </div>
+
+            </div>
+
+            {/* Image */}
+            {objectImage && (
+              <div className="camera-video-wrapper">
+                <img className="object-img" src={objectImage} alt="objects"/>
+              </div>
+            )}
+
+            {/* Info Objects */}
+            <div className="boxInfo-container">
+              {volInfo && (
+                <canvas
+                  ref={canvasRef}
+                  className="volume-canvas"
+                />
+              )}
+            </div>
+          </div>
+
+          {/* Powered By */}
+          <div className="powered-by-panel">
+            <div className="powered-by-text" translate="no">Powered by</div>
+            <img src="/MarquesLogo.svg" className="powered-by-logo" alt="Marques Logo"/>
+          </div>
+        </div>
+      )}
+
+      {/* Calibration Panel */}
+      {currentMenu === "calibration-menu" && (
+        <div>
+          {/* Logo */}
+          <button className="logo">
+            <img src="/Qubic.svg" alt="BM Logo" />
+          </button>
+
+          {/* Menu */}
+          <button className="menu-img" onClick={toggleMenu}>
+            <img src="/menu.svg" alt="Menu" />
+          </button>
+
+          {/* User */}
+          <button className="user-img" onClick={toggleUserMenu}>
+            <img src="/user.png" alt="User" />
+          </button>
+
+          {/* Menu Title */}
+          <div className="title-container">
+            <div className="menu-title">Calibration</div>
+          </div>
+
+          {/* Avisos */}
+          <div className="warning">
+            {error.map((err, i) => (
+              <p key={i}>{err}</p>
+            ))}
+          </div>
+
+          <div
+            id="caliErrorLabel"
+            className="warning"
+            style={{ marginTop: "1.4vh" }}
+          ></div>
+
+          {/* Video */}
           <video
             ref={cameraVideo}
             autoPlay
             playsInline
-            className="camera-video"
+            className="calibration-video"
           />
 
-          {objectImage && (
-            <img className="object-img" src={objectImage} alt="objects"/>
-          )}
+          {/* Cor */}
+          <div className="color-menu">
+            <div id="color-preview" className="color-preview"></div>
 
-          {/* Labels */}
-          <div className="boxInfo-container">
-            {volInfo && (
-              <>
-                <div className="boxInfo-text">
-                  <span className="label">Volume (m³):</span>
-                  <span className="value">{volInfo.volume_m.toFixed(6)}</span>
-                </div>
-
-                <div className="boxInfo-text">
-                  <span className="label">Volume (cm³):</span>
-                  <span className="value">{volInfo.volume_cm.toFixed(2)}</span>
-                </div>
-
-                <div className="boxInfo-text">
-                  <span className="label">Width (cm):</span>
-                  <span className="value">{volInfo.width.toFixed(1)}</span>
-                </div>
-
-                <div className="boxInfo-text">
-                  <span className="label">Length (cm):</span>
-                  <span className="value">{volInfo.length.toFixed(1)}</span>
-                </div>
-
-                <div className="boxInfo-text">
-                  <span className="label">Height (cm):</span>
-                  <span className="value">{volInfo.height.toFixed(1)}</span>
-                </div>
-              </>
-            )}
+            <div id="rgb-values" className="rgb-values">
+              R: <span>{rgb.r}</span>{" "}
+              G: <span>{rgb.g}</span>{" "}
+              B: <span>{rgb.b}</span>
+            </div>
           </div>
+
+          {/* Button */}
+          <button onClick={startCalibration} className="calibration-button" disabled={loadingCalibration}>
+            <div className="background"></div>
+            {loadingCalibration && (
+              <div className="loadingCalibration-icon">  
+                <img src="/loading.svg" alt="loading"/>
+              </div>
+            )}
+            <span className="text">Calibrate</span>
+          </button>
+
+          {/* Modal */}
+          {calibrationModalOpen && (
+            <div className="calibration-modal">
+              <div className="background"></div>
+              <div className="calibration-modal-content">
+                <p>Pretende ajustar manualmente?</p>
+
+                <div className="calibration-modal-buttons">
+                  <button onClick={() => setCalibrationMode(true)}>
+                    Sim
+                  </button>
+
+                  <button onClick={() => setCalibrationMode(false)}>
+                    Não
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Powered By */}
           <div className="powered-by-panel">
@@ -1415,116 +1747,17 @@ function App() {
             />
             <button onClick={colorSlopeSet_click}>Set</button>
           </div>
+
+          {/* Powered By */}
+          <div className="powered-by-panel">
+            <div className="powered-by-text" translate="no">Powered by</div>
+            <img src="/MarquesLogo.svg" className="powered-by-logo" alt="Marques Logo"/>
+          </div>
+
         </div>
       )}
 
-      {/* Calibration Panel */}
-      {currentMenu === "calibration-menu" && (
-        <div>
-          {/* Logo */}
-          <button className="logo">
-            <img src="/Qubic.svg" alt="BM Logo" />
-          </button>
 
-          {/* Menu */}
-          <button className="menu-img" onClick={toggleMenu}>
-            <img src="/menu.svg" alt="Menu" />
-          </button>
-
-          {/* User */}
-          <button className="user-img" onClick={toggleUserMenu}>
-            <img src="/user.png" alt="User" />
-          </button>
-
-          {/* Menu Title */}
-          <div className="title-container">
-            <div className="menu-title">Calibration</div>
-          </div>
-
-          {/* Avisos */}
-          <div className="warning">
-            {error.map((err, i) => (
-              <p key={i}>{err}</p>
-            ))}
-          </div>
-
-          <div
-            id="caliErrorLabel"
-            className="warning"
-            style={{ marginTop: "1.4vh" }}
-          ></div>
-
-          {/* Imagem */}
-          <img
-            ref={calibrationImage}
-            className="calibration-colorToDepthimg"
-            alt="Workspace Detected"
-          />
-
-          {/* Cor */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "1vw"
-            }}
-          >
-            <div id="color-preview"></div>
-
-            <div id="rgb-values">
-              R: <span>{rgb.r}</span>{" "}
-              G: <span>{rgb.g}</span>{" "}
-              B: <span>{rgb.b}</span>
-            </div>
-          </div>
-
-          {/* Botão */}
-          <div className="calibrateButtonPos">
-            <button
-              onClick={startCalibration}
-              className="calibrateButton"
-            >
-              Calibrate
-            </button>
-          </div>
-
-          {/* Modal */}
-          {calibrationModalOpen && (
-            <div
-              id="calibrationModal"
-              style={{
-                position: "fixed",
-                top: 0,
-                left: 0,
-                width: "100vw",
-                height: "100vh",
-                background: "rgba(0,0,0,0.5)",
-                justifyContent: "center",
-                alignItems: "center",
-                zIndex: 50
-              }}
-            >
-              <div
-                style={{
-                  background: "white",
-                  padding: "2vw",
-                  borderRadius: "1vw"
-                }}
-              >
-                <p>Pretende ajustar manualmente?</p>
-
-                <button onClick={() => setCalibrationMode(true)}>
-                  Sim
-                </button>
-
-                <button onClick={() => setCalibrationMode(false)}>
-                  Não
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
     </>
   )
 }
