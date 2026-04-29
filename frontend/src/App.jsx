@@ -92,6 +92,8 @@ function App() {
   const dragging = useRef(false);
   const lastX = useRef(0);
 
+  const [volBundleMode, setVolBundleMode] = useState(true);
+
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("current_user"));
 
@@ -265,11 +267,10 @@ function App() {
         const response = await fetch("http://10.0.30.175:8000/volume/mode", {headers: { "Authorization": `Bearer ${access_token}`}});
         let volumeMode = await response.json();
         if (volumeMode["Volume Mode"] === "Bundle"){
-            volumeBundle(access_token);
+          volumeBundle(access_token);
         } else if (volumeMode["Volume Mode"] === "Real"){
-            volumeReal(access_token);
+          volumeReal(access_token);
         }
-
       } catch (error) {
         console.warn(error);
       }
@@ -313,8 +314,6 @@ function App() {
       //document.getElementById("object-img").removeAttribute("hidden");
 
     } catch (error) {
-      setVolInfo(null);
-      setVolumeData(null);
       setError([TextError]);
       console.error(error);
     } finally {
@@ -394,240 +393,251 @@ function App() {
       }
   }
 
-useEffect(() => {
-  const canvas = canvasRef.current;
-  if (!canvas) return;
+  // 3D Box
+  useEffect(() => {
+    if (currentMenu !== "volume-menu") return;
 
-  const ctx = canvas.getContext("2d");
-
-  const rect = canvas.getBoundingClientRect();
-  const dpr = window.devicePixelRatio || 1;
-
-  ctx.setTransform(1, 0, 0, 1, 0, 0);
-
-  canvas.width = rect.width * dpr;
-  canvas.height = rect.height * dpr;
-
-  ctx.scale(dpr, dpr);
-
-  ctx.lineJoin = "round";
-  ctx.lineCap = "round";
-
-  if (!volInfo) {
-    ctx.clearRect(0, 0, rect.width, rect.height);
-    return;
-  }
-
-  const project = (x, y, z, cx, cy, scale) => {
-    const angle = angleRef.current;
-
-    const cos = Math.cos(angle);
-    const sin = Math.sin(angle);
-
-    const rx = x * cos - y * sin;
-    const ry = x * sin + y * cos;
-
-    const tiltAngle = 0.35;
-    const tiltCos = Math.cos(tiltAngle);
-    const tiltSin = Math.sin(tiltAngle);
-
-    const screenY = z * tiltCos - ry * tiltSin;
-    const screenZ = z * tiltSin + ry * tiltCos;
-
-    return {
-      x: cx + rx * scale,
-      y: cy - screenY * scale,
-      z: screenZ
-    };
-  };
-
-  const drawEdge = (a, b, color) => {
-    ctx.beginPath();
-    ctx.moveTo(a.x, a.y);
-    ctx.lineTo(b.x, b.y);
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 2;
-    ctx.stroke();
-  };
-
-  const drawLabel = (a, b, text, color, edgeType) => {
-    const midX = (a.x + b.x) / 2;
-    const midY = (a.y + b.y) / 2;
-
-    const dx = b.x - a.x;
-    const dy = b.y - a.y;
-    const len = Math.sqrt(dx * dx + dy * dy);
-
-    let ox = 0, oy = 0;
-
-    if (edgeType === 'height') {
-      const nx = -(dy / len);
-      ox = nx * 22 + 18;
-      oy = 0;
-    } else if (edgeType === 'width'){
-      const ux = dx / len;
-      const uy = dy / len;
-      let nx = -uy;
-      let ny = ux;
-      const bias = -1;
-      nx *= bias;
-      ny *= bias;
-      ox = nx * 26;
-      oy = ny * 20;
-    } else if (edgeType === 'length'){
-      const ux = dx / len;
-      const uy = dy / len;
-      let nx = -uy;
-      let ny = ux;
-      const bias = 1;
-      nx *= bias;
-      ny *= bias;
-      ox = nx * 26;
-      oy = ny * 20;
+    if (!volBundleMode){
+      if(!selectedObject) return;
     }
-    
-    ctx.fillStyle = color;
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText(text, midX + ox, midY + oy);
-  };
 
-  const draw = () => {
-    const W = rect.width;
-    const H = rect.height;
+    if(volBundleMode){
+      if(realVolumeData) return;
+    }
 
-    ctx.clearRect(0, 0, W, H);
+    const canvas = canvasRef.current;
+    if (!canvas) return;
 
-    const w = volInfo.width;
-    const d = volInfo.length;
-    const h = volInfo.height;
+    const ctx = canvas.getContext("2d");
 
-    const maxDim = Math.max(w, d, h);
+    const rect = canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
 
-    const nw = w / maxDim;
-    const nd = d / maxDim;
-    const nh = h / maxDim;
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
 
-    const scale = Math.min(W, H) * 0.45;
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
 
-    const hw = nw / 2;
-    const hd = nd / 2;
-    const hh = nh / 2;
+    ctx.scale(dpr, dpr);
 
-    const cx = W / 2;
-    const cy = H / 2;
+    ctx.lineJoin = "round";
+    ctx.lineCap = "round";
 
-    const v = [
-      project(-hw, -hd, -hh, cx, cy, scale),
-      project(hw, -hd, -hh, cx, cy, scale),
-      project(hw, hd, -hh, cx, cy, scale),
-      project(-hw, hd, -hh, cx, cy, scale),
-      project(-hw, -hd, hh, cx, cy, scale),
-      project(hw, -hd, hh, cx, cy, scale),
-      project(hw, hd, hh, cx, cy, scale),
-      project(-hw, hd, hh, cx, cy, scale),
-    ];
+    if (!volInfo) {
+      ctx.clearRect(0, 0, rect.width, rect.height);
+      return;
+    }
 
-    const X = "#E24B4A"; // width
-    const Y = "#1D9E75"; // length
-    const Z = "#378ADD"; // height
+    const project = (x, y, z, cx, cy, scale) => {
+      const angle = angleRef.current;
 
-    const faces = [
-      [0,1,2,3],
-      [4,5,6,7],
-      [0,1,5,4],
-      [2,3,7,6],
-      [1,2,6,5],
-      [0,3,7,4],
-    ];
+      const cos = Math.cos(angle);
+      const sin = Math.sin(angle);
 
-    const faceDepth = faces.map(face => ({
-      face,
-      z: face.reduce((s, i) => s + v[i].z, 0) / 4
-    }));
+      const rx = x * cos - y * sin;
+      const ry = x * sin + y * cos;
 
-    faceDepth.sort((a, b) => a.z - b.z);
+      const tiltAngle = 0.35;
+      const tiltCos = Math.cos(tiltAngle);
+      const tiltSin = Math.sin(tiltAngle);
 
-    faceDepth.forEach(({ face }) => {
-      const [a,b,c,d] = face;
+      const screenY = z * tiltCos - ry * tiltSin;
+      const screenZ = z * tiltSin + ry * tiltCos;
 
+      return {
+        x: cx + rx * scale,
+        y: cy - screenY * scale,
+        z: screenZ
+      };
+    };
+
+    const drawEdge = (a, b, color) => {
       ctx.beginPath();
-      ctx.moveTo(v[a].x, v[a].y);
-      ctx.lineTo(v[b].x, v[b].y);
-      ctx.lineTo(v[c].x, v[c].y);
-      ctx.lineTo(v[d].x, v[d].y);
-      ctx.closePath();
-
-      ctx.fillStyle = "rgba(186,186,231,0.03)";
-      ctx.fill();
-
-      ctx.strokeStyle = "#aaa";
-      ctx.lineWidth = 1.5;
+      ctx.moveTo(a.x, a.y);
+      ctx.lineTo(b.x, b.y);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
       ctx.stroke();
-    });
+    };
 
-    const edges = [
-      [0,1,X,"Width"], [3,2,X], [4,5,X], [7,6,X],
-      [0,3,Y,"Length"], [1,2,Y], [4,7,Y], [5,6,Y],
-      [0,4,Z,"Height"], [1,5,Z], [2,6,Z], [3,7,Z],
-    ];
+    const drawLabel = (a, b, text, color, edgeType) => {
+      const midX = (a.x + b.x) / 2;
+      const midY = (a.y + b.y) / 2;
 
-    edges.forEach(([a,b,color,type]) => {
-      drawEdge(v[a], v[b], color);
+      const dx = b.x - a.x;
+      const dy = b.y - a.y;
+      const len = Math.sqrt(dx * dx + dy * dy);
 
-      const value =
-        type === "Width" ? volInfo.width :
-        type === "Length" ? volInfo.length:
-        type === "Height" ? volInfo.height :
-        ""
+      let ox = 0, oy = 0;
 
-      if (type == "Width"){
-        drawLabel(v[a], v[b], `${value} cm`, color, "width");
-      } else if (type == "Length"){
-        drawLabel(v[a], v[b], `${value} cm`, color, "length");
-      } else if (type == "Height"){
-        drawLabel(v[a], v[b], `${value} cm`, color, "height");
+      if (edgeType === 'height') {
+        const nx = -(dy / len);
+        ox = nx * 22 + 18;
+        oy = 0;
+      } else if (edgeType === 'width'){
+        const ux = dx / len;
+        const uy = dy / len;
+        let nx = -uy;
+        let ny = ux;
+        const bias = -1;
+        nx *= bias;
+        ny *= bias;
+        ox = nx * 28;
+        oy = ny * 22;
+      } else if (edgeType === 'length'){
+        const ux = dx / len;
+        const uy = dy / len;
+        let nx = -uy;
+        let ny = ux;
+        const bias = 1;
+        nx *= bias;
+        ny *= bias;
+        ox = nx * 28;
+        oy = ny * 22;
       }
-    });
-  };
+      
+      ctx.fillStyle = color;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(text, midX + ox, midY + oy);
+    };
 
-  let frameId;
+    const draw = () => {
+      const W = rect.width;
+      const H = rect.height;
 
-  const animate = () => {
-    if (!volInfo) return;
+      ctx.clearRect(0, 0, W, H);
 
-    if (!dragging.current) angleRef.current += 0.005;
+      const w = volInfo.width;
+      const d = volInfo.length;
+      const h = volInfo.height;
 
-    draw();
-    frameId = requestAnimationFrame(animate);
-  };
+      const maxDim = Math.max(w, d, h);
 
-  animate();
+      const nw = w / maxDim;
+      const nd = d / maxDim;
+      const nh = h / maxDim;
 
-  const down = (e) => {
-    dragging.current = true;
-    lastX.current = e.clientX;
-  };
+      const scale = Math.min(W, H) * 0.7;
+      const fontSize = Math.max(15, Math.min(22, scale * 0.04));
+      ctx.font = `${fontSize}px Inter Regular`;
 
-  const move = (e) => {
-    if (!dragging.current) return;
-    angleRef.current -= (e.clientX - lastX.current) * 0.01;
-    lastX.current = e.clientX;
-  };
+      const hw = nw / 2;
+      const hd = nd / 2;
+      const hh = nh / 2;
 
-  const up = () => (dragging.current = false);
+      const cx = W / 2;
+      const cy = H / 2;
 
-  canvas.addEventListener("mousedown", down);
-  window.addEventListener("mousemove", move);
-  window.addEventListener("mouseup", up);
+      const v = [
+        project(-hw, -hd, -hh, cx, cy, scale),
+        project(hw, -hd, -hh, cx, cy, scale),
+        project(hw, hd, -hh, cx, cy, scale),
+        project(-hw, hd, -hh, cx, cy, scale),
+        project(-hw, -hd, hh, cx, cy, scale),
+        project(hw, -hd, hh, cx, cy, scale),
+        project(hw, hd, hh, cx, cy, scale),
+        project(-hw, hd, hh, cx, cy, scale),
+      ];
 
-  return () => {
-    cancelAnimationFrame(frameId);
-    canvas.removeEventListener("mousedown", down);
-    window.removeEventListener("mousemove", move);
-    window.removeEventListener("mouseup", up);
-  };
-}, [volInfo]);
+      const X = "#6CD08A"; // width
+      const Y = "#C66D6D"; // length
+      const Z = "#9EB0FD"; // height
+
+      const faces = [
+        [0,1,2,3],
+        [4,5,6,7],
+        [0,1,5,4],
+        [2,3,7,6],
+        [1,2,6,5],
+        [0,3,7,4],
+      ];
+
+      const faceDepth = faces.map(face => ({
+        face,
+        z: face.reduce((s, i) => s + v[i].z, 0) / 4
+      }));
+
+      faceDepth.sort((a, b) => a.z - b.z);
+
+      faceDepth.forEach(({ face }) => {
+        const [a,b,c,d] = face;
+
+        ctx.beginPath();
+        ctx.moveTo(v[a].x, v[a].y);
+        ctx.lineTo(v[b].x, v[b].y);
+        ctx.lineTo(v[c].x, v[c].y);
+        ctx.lineTo(v[d].x, v[d].y);
+        ctx.closePath();
+
+        ctx.fillStyle = "rgba(186,186,231,0.03)";
+        ctx.fill();
+
+        ctx.strokeStyle = "#aaa";
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+      });
+
+      const edges = [
+        [0,1,X,"Width"], [3,2,X], [4,5,X], [7,6,X],
+        [0,3,Y,"Length"], [1,2,Y], [4,7,Y], [5,6,Y],
+        [0,4,Z,"Height"], [1,5,Z], [2,6,Z], [3,7,Z],
+      ];
+
+      edges.forEach(([a,b,color,type]) => {
+        drawEdge(v[a], v[b], color);
+
+        const value =
+          type === "Width" ? volInfo.width :
+          type === "Length" ? volInfo.length:
+          type === "Height" ? volInfo.height :
+          ""
+
+        if (type == "Width"){
+          drawLabel(v[a], v[b], `${value} cm`, color, "width");
+        } else if (type == "Length"){
+          drawLabel(v[a], v[b], `${value} cm`, color, "length");
+        } else if (type == "Height"){
+          drawLabel(v[a], v[b], `${value} cm`, color, "height");
+        }
+      });
+    };
+
+    let frameId;
+
+    const animate = () => {
+      if (!dragging.current) angleRef.current += 0.005;
+
+      draw();
+      frameId = requestAnimationFrame(animate);
+    };
+
+    animate();
+
+    const down = (e) => {
+      dragging.current = true;
+      lastX.current = e.clientX;
+    };
+
+    const move = (e) => {
+      if (!dragging.current) return;
+      angleRef.current -= (e.clientX - lastX.current) * 0.01;
+      lastX.current = e.clientX;
+    };
+
+    const up = () => (dragging.current = false);
+
+    canvas.addEventListener("mousedown", down);
+    window.addEventListener("mousemove", move);
+    window.addEventListener("mouseup", up);
+
+    return () => {
+      cancelAnimationFrame(frameId);
+      canvas.removeEventListener("mousedown", down);
+      window.removeEventListener("mousemove", move);
+      window.removeEventListener("mouseup", up);
+    };
+  }, [volInfo, currentMenu]);
               
   async function handleExpHDR_toggle(e) {
     const checked = e.target.checked;
@@ -646,14 +656,18 @@ useEffect(() => {
   async function handleBundleReal_toggle(e) {
     const checked = e.target.checked;
     setBundleReal(checked);
+    setObjectImage(null);
 
     refreshAccessToken();
     const access_token = localStorage.getItem("access_token");
 
     if (checked) {
         await fetch("http://10.0.30.175:8000/volume/mode/real", { method: "POST", headers: { "Authorization": `Bearer ${access_token}`} });
+        setVolBundleMode(false);
     } else {
         await fetch("http://10.0.30.175:8000/volume/mode/bundle", { method: "POST", headers: { "Authorization": `Bearer ${access_token}`} });
+        setVolBundleMode(true);
+        setSelectedObject("");
     }
   }
 
@@ -1415,12 +1429,12 @@ useEffect(() => {
 
           {/* Menu */}
           <button className="menu-img" onClick={toggleMenu}>
-            <img src="/menu.svg" alt="Menu" />
+            <img src="/menu-closed.svg" alt="Menu" />
           </button>
 
           {/* User */}
           <button className="user-img" onClick={toggleUserMenu}>
-            <img src="/user.png" alt="User" />
+            <img src="/user.svg" alt="User" />
           </button>
 
           {/* Warning */}
@@ -1431,6 +1445,11 @@ useEffect(() => {
           </div>
 
           <div className="volume-menu-wrapper">
+            <div className="title-container">
+              <div className="menu-title">Volume</div>
+              <div className="menu-info">Calculates the volume of objects on the platform</div>
+            </div>
+
             {/* Video */}
             <div className="camera-video-wrapper">
               <video
@@ -1441,47 +1460,6 @@ useEffect(() => {
               />
             </div>
 
-            {/* Button */}
-            <button onClick={volume_click} className="volume-button" disabled={loadingVolume}>
-              <div className="background"></div>
-              {loadingVolume && (
-                <div className="loadingVolume-icon">  
-                  <img src="/loading.svg" alt="loading"/>
-                </div>
-              )}
-              <span className="text">Get Volume</span>
-            </button>
-
-            {/* Menu Select Object */}
-            <div className="object-selection-menu">
-              <div className="object-list">
-                {objectList.map((obj) => (
-                  <span
-                    key={obj}
-                    className={`object-item ${selectedObject === obj ? "selected" : ""}`}
-                    onClick={() => setSelectedObject(obj)}
-                  >
-                    <span className="arrow">
-                      {selectedObject === obj ? "▶" : ""}
-                    </span>
-                    <span className="object-name">{obj}</span>
-                  </span>
-                ))}
-              </div>
-
-              <div className="object-total">
-                {realVolumeData ? (
-                  <div>
-                    TOTAL: {realVolumeData?.Total?.volume_m ?? 0} m³
-                  </div>
-                  /*<div>
-                    {realVolumeData?.Total?.volume_cm ?? 0} cm³
-                  </div>*/
-                ) : null}
-              </div>
-
-            </div>
-
             {/* Image */}
             {objectImage && (
               <div className="camera-video-wrapper">
@@ -1489,15 +1467,161 @@ useEffect(() => {
               </div>
             )}
 
-            {/* Info Objects */}
-            <div className="boxInfo-container">
-              {volInfo && (
-                <canvas
-                  ref={canvasRef}
-                  className="volume-canvas"
-                />
-              )}
-            </div>
+            {volBundleMode && (
+              <>
+                {/* Button */}
+                <button onClick={volume_click} className="volumeBundle-button" disabled={loadingVolume}>
+                  {loadingVolume && (
+                    <div className="loadingVolume-icon">  
+                      <img src="/loading.svg" alt="loading"/>
+                    </div>
+                  )}
+                  <div className="volumeBundle-button-info-container">
+                    <img src="/VIEW_IN_AR.svg" alt="VIEW_IN_AR" className="icon"/>
+                    <span className="text">Get Volume</span>
+                  </div>
+                </button>
+
+                {/* Info Objects */}
+                <div className="boxBundleInfo-container">
+                  <div className="background"></div>
+                  {volInfo && !realVolumeData && (
+                    <>
+                      <canvas ref={canvasRef} className="volumeBundle-canvas"/>
+                      <div className="boxBundleInfoText-container">
+                        <div style={{ color: "#6CD08A" }} className="boxBundleInfo-text">
+                          <span className="label">Width (cm):</span>
+                          <span className="value">{volInfo.width.toFixed(1)}</span>
+                        </div>
+
+                        <div style={{ color: "#C66D6D" }} className="boxBundleInfo-text">
+                          <span className="label">Length (cm):</span>
+                          <span className="value">{volInfo.length.toFixed(1)}</span>
+                        </div>
+
+                        <div style={{ color: "#9EB0FD" }} className="boxBundleInfo-text">
+                          <span className="label">Height (cm):</span>
+                          <span className="value">{volInfo.height.toFixed(1)}</span>
+                        </div>
+
+                        <div style={{ color: "#FFFFFF" }} className="boxBundleInfo-text">
+                          <span className="label">Volume (m³):</span>
+                          <span className="value">{volInfo.volume_m.toFixed(6)}</span>
+                        </div>
+
+                        <div style={{ color: "#FFFFFF" }} className="boxBundleInfo-text">
+                          <span className="label">Volume (cm³):</span>
+                          <span className="value">{volInfo.volume_cm.toFixed(2)}</span>
+                        </div>
+
+                      </div>
+                    </>
+                  )}
+                </div>
+              </>
+            )}
+
+            {!volBundleMode && (
+              <>
+                {/* Button */}
+                <button onClick={volume_click} className="volume-button" disabled={loadingVolume}>
+                  {loadingVolume && (
+                    <div className="loadingVolume-icon">  
+                      <img src="/loading.svg" alt="loading"/>
+                    </div>
+                  )}
+                  <div className="volume-button-info-container">
+                    <img src="/VIEW_IN_AR.svg" alt="VIEW_IN_AR" className="icon"/>
+                    <span className="text">Get Volume</span>
+                  </div>
+                </button>
+
+                {/* Menu Select Object */}
+                <div className="object-selection-menu">
+                  <div className="background"></div>
+                  <div className="object-list">
+                    {objectList.map((obj) => (
+                      <span
+                        key={obj}
+                        className={`object-item ${selectedObject === obj ? "selected" : ""}`}
+                        onClick={() => {
+                          setSelectedObject(prev => {
+                            const isSame = prev === obj;
+
+                            if (isSame) {
+                              setVolInfo(null);
+                              return "";
+                            }
+
+                            return obj;
+                          });
+                        }}
+                      >
+                        <span className="arrow">
+                          {selectedObject === obj ? "▶" : ""}
+                        </span>
+                        <span className="object-name">Object {obj}</span>
+                      </span>
+                    ))}
+                  </div>
+
+                  <div className="object-total">
+                    {realVolumeData ? (
+                      <> 
+                        <div>TOTAL:</div>
+                        <div className="total-value">
+                          {realVolumeData?.Total?.volume_m ?? 0} m³
+                        </div>
+                      </>
+                    ) : null}
+                  </div>
+
+                </div>
+
+                {/* Info Objects */}
+                <div className="boxInfo-container">
+                  <div className="background"></div>
+                  {volInfo && selectedObject && (
+                    <>
+                      <canvas ref={canvasRef} className="volume-canvas"/>
+                      <div className="boxInfoText-container">
+                        <div style={{ color: "#6CD08A" }} className="boxInfo-text">
+                          <span className="label">Width (cm):</span>
+                          <span className="value">{volInfo.width.toFixed(1)}</span>
+                        </div>
+
+                        <div style={{ color: "#C66D6D" }} className="boxInfo-text">
+                          <span className="label">Length (cm):</span>
+                          <span className="value">{volInfo.length.toFixed(1)}</span>
+                        </div>
+
+                        <div style={{ color: "#9EB0FD" }} className="boxInfo-text">
+                          <span className="label">Height (cm):</span>
+                          <span className="value">{volInfo.height.toFixed(1)}</span>
+                        </div>
+
+                        <div style={{ color: "#FFFFFF" }} className="boxInfo-text">
+                          <span className="label">Volume (m³):</span>
+                          <span className="value">{volInfo.volume_m.toFixed(6)}</span>
+                        </div>
+
+                        <div style={{ color: "#FFFFFF" }} className="boxInfo-text">
+                          <span className="label">Volume (cm³):</span>
+                          <span className="value">{volInfo.volume_cm.toFixed(2)}</span>
+                        </div>
+
+                      </div>
+                    </>
+                  )}
+
+                  {!volInfo && !loadingVolume &&(
+                    <>
+                      <div className="boxInfo-message">Selecione um objeto</div>
+                    </>
+                  )}
+                </div>
+              </>
+            )}
           </div>
 
           {/* Powered By */}
@@ -1518,12 +1642,12 @@ useEffect(() => {
 
           {/* Menu */}
           <button className="menu-img" onClick={toggleMenu}>
-            <img src="/menu.svg" alt="Menu" />
+            <img src="/menu-closed.svg" alt="Menu" />
           </button>
 
           {/* User */}
           <button className="user-img" onClick={toggleUserMenu}>
-            <img src="/user.png" alt="User" />
+            <img src="/user.svg" alt="User" />
           </button>
 
           {/* Menu Title */}
@@ -1613,12 +1737,12 @@ useEffect(() => {
 
           {/* Menu */}
           <button className="menu-img" onClick={toggleMenu}>
-            <img src="/menu.svg" alt="Menu" />
+            <img src="/menu-closed.svg" alt="Menu" />
           </button>
 
           {/* User */}
           <button className="user-img" onClick={toggleUserMenu}>
-            <img src="/user.png" alt="User" />
+            <img src="/user.svg" alt="User" />
           </button>
 
           {/* Menu Title */}

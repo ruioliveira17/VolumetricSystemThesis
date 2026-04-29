@@ -1125,7 +1125,7 @@ def get_Volume_Real(current_user: dict = Depends(get_current_user)):
     num_objects = len(depths)
 
     for i in range(num_objects):
-        response[f"Objeto {i+1}"] = {
+        response[f"{i+1}"] = {
             "volume_m": round(float(volumes[i]), 6),
             "volume_cm": round(float(volumes[i] * 1000000), 2),
             "x": round(float(widths[i]), 1),
