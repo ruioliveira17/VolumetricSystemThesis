@@ -1,0 +1,10 @@
+.env
+
+__pycache__/
+*.pyc
+*.log
+
+debug_*.png
+DEPTHS*.png
+colorToDepthFrame*.png
+Objects.png
