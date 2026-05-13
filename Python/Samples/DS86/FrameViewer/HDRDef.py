@@ -5,6 +5,7 @@ sys.path.append('C:/Tese/Python')
 from API.VzenseDS_api import *
 import cv2
 import time
+import numpy
 
 from GetFrame import getFrame
 from CameraState import camState
@@ -279,7 +280,7 @@ def hdrAPI():
 
             if DTC_can and D_can:
                 exposureTimeArray.append(exposureTime / 1e6)
-                exposureTime += 950
+                exposureTime += 475
             
             DTC_can = False
             D_can = False

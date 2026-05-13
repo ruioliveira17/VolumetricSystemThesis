@@ -5,6 +5,8 @@ import ctypes
 from ctypes import *
 gCallbackFuncList=[]
 
+base_dir = os.path.dirname(os.path.abspath(__file__))
+
 class VzenseTofCam():
     device_handle = c_void_p(0)
     def __init__(self):
@@ -25,12 +27,14 @@ class VzenseTofCam():
                     print(libpath)
                     self.vz_cam_lib = cdll.LoadLibrary(libpath)
                 else:
-                    libpath = (os.path.abspath(os.path.dirname(os.getcwd()) + os.path.sep + "../../../"))+"/Ubuntu16.04/Lib/libNebula_api.so"
+                    libpath = os.path.join(os.path.dirname(__file__), "../../libs/libNebula_api.so")
                     print(libpath)
                     self.vz_cam_lib = cdll.LoadLibrary(libpath)
             elif machine_ == 'aarch64':
-                libpath = (os.path.abspath(os.path.dirname(os.getcwd()) + os.path.sep + "../../../"))+"/AArch64/Lib/libNebula_api.so"
-                print(libpath)
+                libpath = os.path.join(base_dir, "../../AArch64/Lib/libNebula_api.so")  # ajusta conforme a tua estrutura
+                print("Carregando biblioteca:", libpath)
+                if not os.path.exists(libpath):
+                    raise FileNotFoundError(f"Biblioteca não encontrada: {libpath}")
                 self.vz_cam_lib = cdll.LoadLibrary(libpath)
             else:
                 print('do not supported OS', system_, machine_)

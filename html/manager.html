@@ -1,0 +1,1803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Allows you to connect to our product.">
+    <title>BM Volumetric System</title>
+    <link rel="icon" type="image/png" href="BM_MiniLogo.png">
+    <style>
+        body {
+            font-family: Arial;
+            text-align: center;
+            background-color: white;
+            overflow: auto;
+            min-width: none;
+            min-height: 20px;
+
+            margin: 0;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        .menu {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 95vh;
+            position: relative;
+        }
+
+       .logo {
+            position: absolute;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: white;
+            border: none;
+            top: 2vh;
+            left: 2vw;
+            z-index: 10;
+            transition: 0.3s;
+       }
+
+       .logo img{
+            width: 15vw;
+            object-fit: contain;
+       }
+
+       .logo:hover {
+            transform: scale(1.05);
+        }
+
+       .login {
+            position: absolute;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            top: 2vh;
+            right: 2vw;
+            background-color: white;
+            border:  0.2vh solid black;
+            z-index: 10;
+            transition: 0.3s;
+       }
+
+       .login img {
+            width: 6vw;
+            object-fit: contain;
+            cursor: pointer;
+        }
+
+        .login img:hover {
+            transform: scale(1.05);
+        }
+
+        .user-panel {
+            display: none; 
+            position: absolute; 
+            right: 110%; 
+            margin-right: 0.5vw;
+            background-color: lightblue; 
+            border: 0.2vh solid black; 
+            padding: 1.8vh;
+            min-width: 9vw;
+            max-width: 14vw; 
+            height: auto;
+            z-index: 10;
+            font-size: 1vw;
+        }
+
+        .type1 {background-color: turquoise; border: 0.2vh solid black;}
+        .type2 {background-color: springgreen; border: 0.2vh solid black;}
+        .type3 {background-color: turquoise; border: 1px solid black; width: 1520px; height: 50px;}
+
+        .title-container{
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            margin-bottom: 8vh;
+        }
+
+        .menu-title {
+            font-size: 5vw;
+            font-weight: semi-bold;
+            color: black;
+        }
+
+        .menu-grid-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1;
+            margin-bottom: 8vh;
+        }
+
+        .menu-grid {
+            display: grid;
+            justify-content: center;
+            grid-template-columns: repeat(3, 1fr);
+            row-gap: 3vh;
+            column-gap: 5vw;
+            width: 85vw;
+        }
+
+        .menu-grid button {
+            width: 100%;
+            aspect-ratio: 16/9;
+            transition: 0.3s;
+
+            cursor: pointer;
+        }
+
+        .menu-grid button:hover {
+            transform: scale(1.05);
+        }
+
+        .menu-grid img {
+            width: 60%;
+        }
+
+        #camera-video {
+            width: 55vw;
+            height: auto;
+            object-fit: contain;
+            margin-top: -8vh;
+        }
+
+        .warning {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2vw;
+            margin-top: -8vh;
+        }
+
+        .boxInfo-row {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            margin-top: 10vh;
+        }
+
+        .boxInfo-column {
+            display: flex;
+            flex-direction: column;
+            min-height: 5.2vw;
+        }
+
+        .boxInfo {
+            font-size:1.6vw;
+            text-align: left;
+            width: 10vw;
+        }
+
+        .under-text {
+            margin-top: 2vh;
+        }
+
+        .volumeButton {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 5vh auto 0 auto;
+            width:20vw;
+            font-size:1.2vw;
+            border: 0.2vh solid black;
+        }
+        
+        .volumeButton:hover {
+            transform: scale(1.05);
+        }
+
+        #volume-depthimg {
+            position: absolute;
+            left: 25vw;
+            top: 37vh;
+            transform: translate(-50%, -50%);
+            width: 24vw;
+            object-fit: contain;
+        } 
+
+        #volume-colorToDepthimg {
+            position: absolute;
+            left: 25vw;
+            top: 77vh;
+            transform: translate(-50%, -50%);
+            width: 24vw;
+            object-fit: contain;
+        }
+
+        #object-img{
+            position: absolute;
+            left: 78vw;
+            top: 57vh;
+            transform: translate(-50%, -50%);
+            width: 33vw; 
+            object-fit: contain;
+        }
+
+        #calibration-colorToDepthimg {
+            position: absolute;
+            left: 25vw;
+            top: 37vh;
+            transform: translate(-50%, -50%);
+            width: 24vw;
+            object-fit: contain;
+        } 
+
+        #calibration-mask {
+            position: absolute;
+            left: 25vw;
+            top: 77vh;
+            transform: translate(-50%, -50%);
+            width: 24vw;
+            object-fit: contain;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 3vw;
+            height: 3.6vh;
+        }
+
+        .switch input { 
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .switch-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5vw;
+            font-size: 1vw;
+            margin-bottom: 2vh;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 2.6vh;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 2.6vh; width: 1.2vw;
+            left: 0.25vw; bottom: 0.4vh;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: turquoise;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(1.2vw);
+        }
+
+        .input-box {
+            display: flex;
+            align-items: center;
+            gap: 1vw;
+            font-size: 1vw;
+            margin-bottom: 2vh;
+            width: fit-content;
+        }
+
+        .input-box label{
+            display: inline-block;
+            width: 7vw;
+            text-align: left;
+        }
+
+        .input-box input {
+            font-size: 1vw;
+            padding: 0.3vh 0.5vw;
+            border: 0.2vh solid black;
+        }
+
+        .input-box button {
+            font-size: 1vw;
+            padding: 0.3vh 0.5vw;
+            cursor: pointer;
+            border: 0.2vh solid black;
+        }
+
+        .calibButton button {
+            position: absolute;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            top: 20vh;
+            left: 10vw;
+            color: white;
+            font-size: 1vw;
+            padding: 0.5vh 1vw;
+            width: 80vw;
+            height: 5vh;
+            border: 0.2vh solid black;
+        }
+        
+        .calibrateButton {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 5vh auto 0 auto;
+            width:20vw;
+            font-size:1.2vw;
+            border: 0.2vh solid black;
+            position: absolute;
+            left:47vw;
+            top:78vh;
+        }
+        
+        .calibrateButton:hover {
+            transform: scale(1.05);
+        }
+
+        .readonly-slider {
+            display: flex;
+            align-items: center;
+            pointer-events: none; 
+        }
+
+        input[type="range"] {
+            appearance: none;  
+            width: 26vw;
+        }
+
+        /* Track - a barra por baixo */
+        input[type="range"]::-webkit-slider-runnable-track {
+            height: 1.9vh;          /* grossura da barra */
+            background: #ccc;      /* cor da barra */
+            border-radius: 0.5vw;
+        }
+
+        /* Thumb - a bolinha que mexe */
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 3.2vh;           /* altura da bolinha */
+            width: 1.6vw;            /* largura da bolinha */
+            background: #ccc;
+            border: 0.2vh solid #9d9d9d;
+            border-radius: 50%;
+            margin-top: -0.6vh;      /* para centralizar a bolinha na barra */
+        }
+
+    </style>
+</head>
+
+<body>
+    <!-- Login Screen Panel -->
+    <div id="login-screen" class="menu">
+        <h2>Login</h2>
+        <input type="text" id="username" placeholder="Username"><br><br>
+        <input type="password" id="password" placeholder="Password"><br><br>
+        <button onclick="login()">Login</button>
+
+        <p style="margin-top: 15px;">
+            Don't have an account? 
+            <span onclick="showRegisterScreen()" style="color: black; cursor: pointer; text-decoration: underline;">
+                Register
+            </span>
+        </p>
+
+        <p id="error-label" style="color: red;"></p>
+    </div>
+
+    <!-- Register Screen Panel -->
+    <div id="register-screen" class="menu" style="display: none;">
+        <h2>Register</h2>
+        <input type="text" id="reg-username" placeholder="Username"><br><br>
+        <input type="password" id="reg-password" placeholder="Password"><br><br>
+        
+        <select id="reg-role" onchange="handleRoleChange()">
+            <option value="user">User</option>
+            <option value="admin">Admin</option>
+        </select><br><br>
+
+        <input type="text" id="reg-code" placeholder="Admin Code" disabled><br><br>
+
+        <button onclick="register()">Register</button>
+
+        <p style="margin-top: 15px;">
+            Already have an account? 
+            <span onclick="showLoginScreen()" style="color: black; cursor: pointer; text-decoration: underline;">
+                Login
+            </span>
+        </p>
+
+        <p id="reg-error-label" style="color: red;"></p>
+
+    </div>
+
+    <!-- Main Menu Panel -->
+    <div id="main-menu" class="menu" style="display: none;">
+        <!-- Logo -->
+        <button class="logo" onclick="goBack()">
+            <img src="BM_Logo.png" alt="BM Logo">
+        </button>
+
+        <!-- Login -->
+        <button class="login" onclick="UserInfo(this)">
+            <img src="user.png" alt="User">
+            <!-- User Panel -->
+            <div class="user-panel">
+                <p id="user-name" style="margin: 0; text-align: left;">User:</p>
+                <p id="user-role" style="margin: 0; text-align: left;">Role:</p>
+                <div style="display: flex; justify-content: flex-end; margin-top: 0px;">
+                    <span id="logout-text" onclick="logout()" style="color: black; cursor: pointer; text-decoration: underline;">Logout</span>
+                </div>
+            </div>
+        </button>
+
+        <!-- Menu Title -->
+        <div class="title-container">
+            <div class="menu-title">Menu</div>
+        </div>
+
+        <!-- Botões -->
+        <div class="menu-grid-container">
+            <div class="menu-grid">
+                <button class="type1" onclick="goTo('camera-menu')"><img src="cam_icon.png" alt="Cam Icon"></button>
+                <button class="type2" onclick="goTo('barcode-menu')"><img src="barcode.png" alt="Barcode Icon"></button>
+                <button class="type1" onclick="goTo('volume-menu')"><img src="boxvol.png" alt="Volume Icon"></button>
+                <button class="type2" onclick="goTo('storage-menu')"><img src="storage.png" alt="Storage Icon"></button>
+                <button class="type1" onclick="goTo('stacking-menu')"><img src="stacking.png" alt="Stacking Icon"></button>
+                <button class="type2" onclick="goTo('config-menu')"><img src="conf_icon.png" alt="Config Icon"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Camera Panel -->
+    <div id="camera-menu" class="menu" style="display: none;">
+        <!-- Logo -->
+        <button class="logo" onclick="goBack()">
+            <img src="BM_Logo.png" alt="BM Logo">
+        </button>
+
+        <!-- Login -->
+        <button class="login" onclick="UserInfo(this)">
+            <img src="user.png" alt="User">
+            <!-- User Panel -->
+            <div class="user-panel">
+                <p id="user-name" style="margin: 0; text-align: left;">User:</p>
+                <p id="user-role" style="margin: 0; text-align: left;">Role:</p>
+                <div style="display: flex; justify-content: flex-end; margin-top: 0px;">
+                    <span id="logout-text" onclick="logout()" style="color: black; cursor: pointer; text-decoration: underline;">Logout</span>
+                </div>
+            </div>
+        </button>
+
+        <!-- Menu Title -->
+        <div class="title-container">
+            <div class="menu-title">Camera</div>
+        </div>
+
+        <video id="camera-video" autoplay playsinline>
+        </video>
+    </div>
+
+    <!-- Barcode Panel -->
+    <div id="barcode-menu" class="menu" style="display: none;">
+        <!-- Logo -->
+        <button class="logo" onclick="goBack()">
+            <img src="BM_Logo.png" alt="BM Logo">
+        </button>
+
+        <!-- Login -->
+        <button class="login" onclick="UserInfo(this)">
+            <img src="user.png" alt="User">
+            <!-- User Panel -->
+            <div class="user-panel">
+                <p id="user-name" style="margin: 0; text-align: left;">User:</p>
+                <p id="user-role" style="margin: 0; text-align: left;">Role:</p>
+                <div style="display: flex; justify-content: flex-end; margin-top: 0px;">
+                    <span id="logout-text" onclick="logout()" style="color: black; cursor: pointer; text-decoration: underline;">Logout</span>
+                </div>
+            </div>
+        </button>
+
+        <!-- Menu Title -->
+        <div class="title-container">
+            <div class="menu-title">Barcode</div>
+        </div>
+    </div>
+
+    <!-- Volume Panel -->
+    <div id="volume-menu" class="menu" style="display: none;">
+        <!-- Logo -->
+        <button class="logo" onclick="goBack()">
+            <img src="BM_Logo.png" alt="BM Logo">
+        </button>
+
+        <!-- Login -->
+        <button class="login" onclick="UserInfo(this)">
+            <img src="user.png" alt="User">
+            <!-- User Panel -->
+            <div class="user-panel">
+                <p id="user-name" style="margin: 0; text-align: left;">User:</p>
+                <p id="user-role" style="margin: 0; text-align: left;">Role:</p>
+                <div style="display: flex; justify-content: flex-end; margin-top: 0px;">
+                    <span id="logout-text" onclick="logout()" style="color: black; cursor: pointer; text-decoration: underline;">Logout</span>
+                </div>
+            </div>
+        </button>
+
+        <!-- Menu Title -->
+        <div class="title-container">
+            <div class="menu-title">Volume</div>
+        </div>
+
+        <!-- Aviso -->
+        <div id="objOutOfLine_label" class="warning"></div>
+
+        <!-- Labels -->
+        <div  class="boxInfo-row">
+            <div class="boxInfo">Volume:</div>
+            <div class="boxInfo-column">
+                <div id="volume_value_label" class="boxInfo"></div>
+                <div id="volume_value_cm_label" class="boxInfo under-text"></div>
+            </div>
+        </div>
+
+        <div  class="boxInfo-row">
+            <div class="boxInfo">Width:</div>
+            <div id="width_value_label" class="boxInfo"></div>
+        </div>
+        
+        <div  class="boxInfo-row">
+            <div class="boxInfo">Length:</div>
+            <div id="length_value_label" class="boxInfo"></div>
+        </div>
+
+        <div  class="boxInfo-row">
+            <div class="boxInfo">Height:</div>
+            <div id="height_value_label" class="boxInfo"></div>
+        </div>
+
+        <!-- Botões -->
+        <button onclick="volumeReal_click()" class="volumeButton">Get Real Volume</button>
+
+        <button onclick="volumeBundle_click()" class="volumeButton">Get Bundle Volume</button>
+
+        <!-- Imagens -->
+        <img id="volume-depthimg" alt="Depth Img">
+        <img id="volume-colorToDepthimg" alt="ColorToDepth Img">
+        <img id="object-img" alt="Objects Image">
+    </div>
+
+    <!-- Storage Panel -->
+    <div id="storage-menu" class="menu" style="display: none;">
+        <!-- Logo -->
+        <button class="logo" onclick="goBack()">
+            <img src="BM_Logo.png" alt="BM Logo">
+        </button>
+
+        <!-- Login -->
+        <button class="login" onclick="UserInfo(this)">
+            <img src="user.png" alt="User">
+            <!-- User Panel -->
+            <div class="user-panel">
+                <p id="user-name" style="margin: 0; text-align: left;">User:</p>
+                <p id="user-role" style="margin: 0; text-align: left;">Role:</p>
+                <div style="display: flex; justify-content: flex-end; margin-top: 0px;">
+                    <span id="logout-text" onclick="logout()" style="color: black; cursor: pointer; text-decoration: underline;">Logout</span>
+                </div>
+            </div>
+        </button>
+
+        <!-- Menu Title -->
+        <div class="title-container">
+            <div class="menu-title">Storage</div>
+        </div>
+    </div>
+
+    <!-- Stacking Panel -->
+    <div id="stacking-menu" class="menu" style="display: none;"">
+        <!-- Logo -->
+        <button class="logo" onclick="goBack()">
+            <img src="BM_Logo.png" alt="BM Logo">
+        </button>
+
+        <!-- Login -->
+        <button class="login" onclick="UserInfo(this)">
+            <img src="user.png" alt="User">
+            <!-- User Panel -->
+            <div class="user-panel">
+                <p id="user-name" style="margin: 0; text-align: left;">User:</p>
+                <p id="user-role" style="margin: 0; text-align: left;">Role:</p>
+                <div style="display: flex; justify-content: flex-end; margin-top: 0px;">
+                    <span id="logout-text" onclick="logout()" style="color: black; cursor: pointer; text-decoration: underline;">Logout</span>
+                </div>
+            </div>
+        </button>
+
+
+        <!-- Menu Title -->
+        <div class="title-container">
+            <div class="menu-title">Stacking</div>
+        </div>
+    </div>
+
+    <!-- Configuration Panel -->
+    <div id="config-menu" class="menu" style="display: none;">
+        <!-- Logo -->
+        <button class="logo" onclick="goBack()">
+            <img src="BM_Logo.png" alt="BM Logo">
+        </button>
+
+        <!-- Login -->
+        <button class="login" onclick="UserInfo(this)">
+            <img src="user.png" alt="User">
+            <!-- User Panel -->
+            <div class="user-panel">
+                <p id="user-name" style="margin: 0; text-align: left;">User:</p>
+                <p id="user-role" style="margin: 0; text-align: left;">Role:</p>
+                <div style="display: flex; justify-content: flex-end; margin-top: 0px;">
+                    <span id="logout-text" onclick="logout()" style="color: black; cursor: pointer; text-decoration: underline;">Logout</span>
+                </div>
+            </div>
+        </button>
+
+        <!-- Menu Title -->
+        <div class="title-container">
+            <div class="menu-title">Configurations</div>
+        </div>
+
+        <div id="config-error" class="warning">
+        </div>
+
+        <!-- Exposure / HDR Switch -->
+        <div class="switch-row" style="position: absolute; top: 29vh; left: 10vw;">
+            <span>Exposition</span>
+            <label class="switch">
+                <input type="checkbox" id="ExpHDR_switch" onchange="ExpHDR_toggle()">
+                <span class="slider round"></span>
+            </label>
+            <span>HDR</span>
+        </div>
+
+        <!-- Static / Dynamic Switch -->
+        <div class="switch-row" style="position: absolute; top: 38vh; left: 10vw;">
+            <span>Static</span>
+            <label class="switch">
+                <input type="checkbox" id="StaticDynamic_switch" onchange="StaticDynamic_toggle()">
+                <span class="slider round"></span>
+            </label>
+            <span>Dynamic</span>
+        </div>
+
+        <!-- Debug Mode Switch -->
+        <span style="font-size: 1vw; position: absolute; top: 63vh; left: 10.5vw;">Debug Mode</span>
+        <div class="switch-row" style="position: absolute; top: 66vh; left: 10vw;">
+            <span>On</span>
+            <label class="switch">
+                <input type="checkbox" id="DebugMode_switch" onchange="DebugMode_toggle()">
+                <span class="slider round"></span>
+            </label>
+            <span>Off</span>
+        </div>
+
+        <!-- Exposure Time Set -->
+        <div class="input-box" style="position: absolute; top: 29vh; left: 52vw;">
+            <label for="exposureTime">Exposure Time:</label>
+            <input type="text" id="exposureTime" />
+            <button onclick="exposureSet_click()">Set</button>
+        </div>
+
+        <!-- Color Slope Set -->
+        <div class="input-box" style="position: absolute; top: 34vh; left: 52vw;">
+            <label for="exposureTime"> Color Slope:</label>
+            <input type="text" id="colorSlope" />
+            <button onclick="colorSlopeSet_click()">Set</button>
+        </div>
+
+        <div class="calibButton">
+            <button class="type3" onclick="goTo('calibration-menu')">Calibração</button>
+        </div>
+    </div>
+
+    <!-- Calibration Panel -->
+    <div id="calibration-menu" class="menu" style="display: none;">
+        <!-- Logo -->
+        <button class="logo" onclick="goBack()">
+            <img src="BM_Logo.png" alt="BM Logo">
+        </button>
+
+        <!-- Login -->
+        <button class="login" onclick="UserInfo(this)">
+            <img src="user.png" alt="User">
+            <!-- User Panel -->
+            <div class="user-panel">
+                <p id="user-name" style="margin: 0; text-align: left;">User:</p>
+                <p id="user-role" style="margin: 0; text-align: left;">Role:</p>
+                <div style="display: flex; justify-content: flex-end; margin-top: 0px;">
+                    <span id="logout-text" onclick="logout()" style="color: black; cursor: pointer; text-decoration: underline;">Logout</span>
+                </div>
+            </div>
+        </button>
+
+        <!-- Menu Title -->
+        <div class="title-container">
+            <div class="menu-title">Calibration</div>
+        </div>
+        
+        <!-- Automatic / Manual -->
+        <div class="switch-row" style="position: absolute; top: 26vh; left: 47vw;">
+            <span>Automatic</span>
+            <label class="switch">
+                <input type="checkbox" id="AutoManual_switch" onchange="AutoManual_toggle()">
+                <span class="slider round"></span>
+            </label>
+            <span>Manual</span>
+        </div>
+        
+        <button onclick="calibrate_click()" class="calibrateButton">Calibrate</button>
+
+         <!-- Imagens -->
+        <img id="calibration-colorToDepthimg" alt="Workspace Detected">
+        <img id="calibration-mask" alt="Detection Mask">
+
+
+        <!-- Color Dropdown -->
+        <div style="position: absolute; top: 32vh; left: 47vw; display: flex; align-items: center;">
+            <label for="colorDropdown" style="font-size: 0.8vw; margin-right: 1vw;">Select Color:</label>
+            <select id="colorDropdown" onchange="colorDropdown_change()" style="width: 10vw; height: 4vh; font-size: 0.8vw; border: 0.2vh solid black; text-align: center;">
+                <option value="Select a Point" selected=true>Select a Point</option>
+                <option value="Black">Black</option>
+                <option value="White">White</option>
+                <option value="Grey">Grey</option>
+                <option value="Red">Red</option>
+                <option value="Pink">Pink</option>
+                <option value="Orange">Orange</option>
+                <option value="Brown">Brown</option>
+                <option value="Yellow">Yellow</option>
+                <option value="Green">Green</option>
+                <option value="Blue-Green">Blue-Green</option>
+                <option value="Blue">Blue</option>
+                <option value="Purple">Purple</option>
+                <option value="Light Purple">Light Purple</option>
+            </select>
+        </div> 
+
+        <!-- Avisos -->
+        <div id="calibrateLabel" class="warning"></div>
+
+        <div id="caliErrorLabel" class="warning" style="margin-top: 1.4vh;"></div>
+
+        <div class="readonly-slider" style="position: absolute; top: 38vh; left: 47vw;">
+            <input type="range" id="hminSlider" min="0" max="179" value="0">
+            <label style="margin-left: 0.8vw; font-size: 1vw;">Minimum Hue: <span id="hminValue">0</span></label>
+        </div>
+
+        <div class="readonly-slider" style="position: absolute; top: 44vh; left: 47vw;">
+            <input type="range" id="hmaxSlider" min="0" max="179" value="179">
+            <label style="margin-left: 0.8vw; font-size: 1vw;">Maximum Hue: <span id="hmaxValue">179</span></label>
+        </div>
+
+        <div class="readonly-slider" style="position: absolute; top: 50vh; left: 47vw;">
+            <input type="range" id="sminSlider" min="0" max="255" value="0">
+            <label style="margin-left: 0.8vw; font-size: 1vw;">Minimum Saturation: <span id="sminValue">0</span></label>
+        </div>
+
+        <div class="readonly-slider" style="position: absolute; top: 56vh; left: 47vw;">
+            <input type="range" id="smaxSlider" min="0" max="255" value="255">
+            <label style="margin-left: 0.8vw; font-size: 1vw;">Maximum Saturation: <span id="smaxValue">255</span></label>
+        </div>
+
+        <div class="readonly-slider" style="position: absolute; top: 62vh; left: 47vw;">
+            <input type="range" id="vminSlider" min="0" max="255" value="0">
+            <label style="margin-left: 0.8vw; font-size: 1vw;">Minimum Value: <span id="vminValue">0</span></label>
+        </div>
+
+        <div class="readonly-slider" style="position: absolute; top: 68vh; left: 47vw;">
+            <input type="range" id="vmaxSlider" min="0" max="255" value="255">
+            <label style="margin-left: 0.8vw; font-size: 1vw;">Maximum Value: <span id="vmaxValue">255</span></label>
+        </div>
+
+    </div>
+
+    <script>
+        let menuStack = [];
+        let currentMenu = null;
+        let cameraLoopInterval = null;
+        let colorClickInitialized = false;
+        let selected_point = null;
+        let step = 2;
+        let thresh = 10;
+        let detection_area = [0, 0, 0, 0];
+        let tokenCheckInterval = null;
+        let pc = null;
+
+        function showLoginScreen() {
+            document.getElementById("register-screen").style.display = "none";
+            document.getElementById("login-screen").style.display = "flex";
+            document.getElementById("reg-error-label").textContent = "";
+            document.getElementById("reg-username").value = "";
+            document.getElementById("reg-password").value = "";
+            document.getElementById("reg-role").value = "user";
+            document.getElementById("reg-code").value = "";
+        }
+
+        window.addEventListener("DOMContentLoaded", () => {
+            const savedUser = JSON.parse(localStorage.getItem("current_user"));
+            if(savedUser) {
+                document.getElementById("login-screen").style.display = "none";
+                currentMenu = "main-menu";
+                document.getElementById(currentMenu).style.display = "block";
+            }
+        });
+
+        async function login() {
+            const user = document.getElementById("username").value;
+            const pass = document.getElementById("password").value;
+            const errorLabel = document.getElementById("error-label");
+
+            if (!user || !pass) {
+                errorLabel.textContent = "Please fill in all fields.";
+                return;
+            }
+
+            try{
+                const response = await fetch('http://10.0.30.175:8000/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username: user, password: pass })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const role = data.role;
+
+                    startTokenCheck();
+
+                    localStorage.setItem("current_user", JSON.stringify({ username: user, role: role }));
+                    localStorage.setItem("access_token", data.access_token);
+                    localStorage.setItem("refresh_token", data.refresh_token);
+
+                    document.getElementById("login-screen").style.display = "none";
+                    currentMenu = "main-menu";
+                    document.getElementById(currentMenu).style.display = "block";
+                } else {
+                    const data = await response.json();
+                    errorLabel.textContent =  data.detail;
+                }
+            } catch (error) {
+                errorLabel.textContent = "Server connection error.";
+            }
+        }
+
+        function showRegisterScreen() {
+            document.getElementById("login-screen").style.display = "none";
+            document.getElementById("register-screen").style.display = "flex";
+            document.getElementById("error-label").textContent = "";
+            document.getElementById("username").value = "";
+            document.getElementById("password").value = "";
+        }
+
+        async function register() {
+            const user = document.getElementById("reg-username").value;
+            const pass = document.getElementById("reg-password").value;
+            const role = document.getElementById("reg-role").value;
+            const code = document.getElementById("reg-code").value;
+            const errorLabel = document.getElementById("reg-error-label");
+
+            if (!user || !pass || (role === "admin" && !code)) {
+                errorLabel.textContent = "Please fill in all fields.";
+                return;
+            }
+
+            try {
+                const response = await fetch('http://10.0.30.175:8000/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username: user, password: pass, role: role, code: code })
+                });
+                
+                const data = await response.json();
+
+                if (!response.ok) {
+                   errorLabel.textContent = data.detail || "Registration failed.";
+                    return;
+                }
+
+            } catch (error) {
+                errorLabel.textContent = "Server connection error.";
+                return;
+            }
+
+            errorLabel.textContent = "Registration successful!";
+            showLoginScreen();
+        }
+
+        function handleRoleChange() {
+            const role = document.getElementById("reg-role");
+            const code = document.getElementById("reg-code");
+
+            if (role.value === "admin") {
+                code.disabled = false;
+            } else {
+                code.disabled = true;
+                code.value = "";
+            }
+        }
+
+        function UserInfo(button) {
+            refreshAccessToken();
+
+            const panel = button.querySelector(".user-panel");
+            const currentUser = JSON.parse(localStorage.getItem("current_user"));
+
+            if (!currentUser) return;
+
+            panel.querySelector("#user-name").textContent = "User: " + currentUser.username;
+            panel.querySelector("#user-role").textContent = "Role: " + currentUser.role;
+
+            panel.style.display = (panel.style.display === "block") ? "none" : "block";
+        }
+
+        document.addEventListener("click", function(event) {
+            const clickedLoginButton = event.target.closest(".login");
+            
+            // fecha todos os painéis que estão abertos, exceto o do login clicado
+            document.querySelectorAll(".login .user-panel").forEach(panel => {
+                if (panel.style.display === "block" && (!clickedLoginButton || !clickedLoginButton.contains(panel))) {
+                    panel.style.display = "none";
+                }
+            });
+        });
+
+        function logout() {
+            if (tokenCheckInterval) {
+                clearInterval(tokenCheckInterval);
+                tokenCheckInterval = null;
+            }
+
+            localStorage.removeItem("current_user");
+            localStorage.removeItem("access_token");
+            localStorage.removeItem("refresh_token");
+            cameraLoopInterval = null;
+            document.getElementById(currentMenu).style.display = "none";
+            document.querySelectorAll(".login .user-panel").forEach(panel => {
+                panel.style.display = "none";
+            });
+            
+            showLoginScreen();
+
+            document.getElementById("username").value = "";
+            document.getElementById("password").value = "";
+
+            menuStack = [];
+            currentMenu = null;
+        }
+
+        function goTo(menuID) {
+            refreshAccessToken();
+
+            if(currentMenu) {
+                menuStack.push(currentMenu);
+                document.getElementById(currentMenu).style.display = "none";
+            }
+            document.getElementById(menuID).style.display = "block";    
+            currentMenu = menuID; 
+
+            if (menuID === "camera-menu") {
+                startWebRTC();
+            } else if (menuID === "calibration-menu"){
+                workspaceDrawing();
+                const img = document.getElementById("calibration-colorToDepthimg");
+                img.src = "http://10.0.30.175:8000/calibrationCTD";
+                const imgMask = document.getElementById("calibration-mask");
+                imgMask.src = "http://10.0.30.175:8000/calibrationMask";
+            } else {
+                if (cameraLoopInterval){
+                    clearInterval(cameraLoopInterval);
+                    cameraLoopInterval = null;
+                } 
+            }
+
+            if (menuID === "config-menu" || menuID === "calibration-menu") {
+                refreshToggles();
+            }
+
+            if (menuID === "calibration-menu") {
+                refreshSliders();
+                screenClick();  
+            } 
+        }
+
+        function goBack() {
+            refreshAccessToken();
+
+            if (menuStack.length === 0) return;
+
+            document.getElementById(currentMenu).style.display = "none";
+            if (currentMenu === "camera-menu"){
+                stopWebRTC();
+            }
+
+            if (currentMenu === "calibration-menu"){
+                const img = document.getElementById("calibration-colorToDepthimg");
+                img.src = "";
+                const imgMask = document.getElementById("calibration-mask");
+                imgMask.src = "";
+            }
+
+            currentMenu = menuStack.pop();
+            document.getElementById(currentMenu).style.display = "block";
+        }
+
+        async function volumeBundle_click() {
+            const TextOutOfLine = "There are objects outside the yellow stripes. To detect them, make sure they are inside the stripes.";
+            const TextError = "Error";
+
+            try {
+                refreshAccessToken();
+                const access_token = localStorage.getItem("access_token");
+
+                document.getElementById("volume_value_label").textContent = "";
+                document.getElementById("volume_value_cm_label").textContent = "";
+                document.getElementById("width_value_label").textContent = "";
+                document.getElementById("length_value_label").textContent = "";
+                document.getElementById("height_value_label").textContent = "";
+
+                const dropdown = document.getElementById("objOption_menu");
+                if (dropdown) dropdown.remove();
+
+                const modeResponse = await fetch('http://10.0.30.175:8000/exposition/mode', {headers: { "Authorization": `Bearer ${access_token}`}});
+                const modeData = await modeResponse.json();
+                
+                {/*if (modeData["Exposition Mode"] === "Fixed Exposition") {
+                    await fetch('http://10.0.30.175:8000/captureFrame', { method: 'POST' });
+                }*/}
+
+                let colorFrameUrl = 'http://10.0.30.175:8000/getFrame/color';
+                let colorToDepthFrameUrl = 'http://10.0.30.175:8000/getFrame/colorToDepth';
+                let depthFrameUrl = 'http://10.0.30.175:8000/getFrame/depth';
+
+                if (modeData["Exposition Mode"] === "HDR") {
+                    let resp = await fetch('http://10.0.30.175:8000/getFrame/HDRcolorToDepth');
+                    if (resp.status === 204) {
+                        resp = await fetch(colorToDepthFrameUrl, {headers: { "Authorization": `Bearer ${access_token}` }});
+                    }
+                    const blob = await resp.blob();
+                    document.getElementById("volume-colorToDepthimg").src = URL.createObjectURL(blob);
+                } else {
+                    const resp = await fetch(colorToDepthFrameUrl, {headers: { "Authorization": `Bearer ${access_token}` }});
+                    const blob = await resp.blob();
+                    document.getElementById("volume-colorToDepthimg").src = URL.createObjectURL(blob);
+                }
+
+                if (modeData["Exposition Mode"] === "HDR") {
+                    let resp = await fetch('http://10.0.30.175:8000/getFrame/HDRdepth');
+                    if (resp.status === 204) {
+                        resp = await fetch(depthFrameUrl, {headers: { "Authorization": `Bearer ${access_token}` }});
+                    }
+                    const blob = await resp.blob();
+                    document.getElementById("volume-depthimg").src = URL.createObjectURL(blob);
+                } else {
+                    const resp = await fetch(depthFrameUrl, {headers: { "Authorization": `Bearer ${access_token}` }});
+                    const blob = await resp.blob();
+                    document.getElementById("volume-depthimg").src = URL.createObjectURL(blob);
+                }
+
+                await fetch('http://10.0.30.175:8000/volume/bundle', { method: 'POST', headers: { "Authorization": `Bearer ${access_token}` } });
+
+                const response = await fetch('http://10.0.30.175:8000/getObjectsOutOfLine', {headers: { "Authorization": `Bearer ${access_token}`}});
+                const data = await response.json();
+                const objectsOutOfLine = data.objects_outOfLine.map((val, i) => val ? i + 1 : null).filter(v => v !== null);
+                if (objectsOutOfLine.length > 0) {
+                    document.getElementById("objOutOfLine_label").textContent = TextOutOfLine;
+                } else {
+                    document.getElementById("objOutOfLine_label").textContent = "";
+
+                    const dataResponse = await fetch('http://10.0.30.175:8000/volume/bundle/results', {headers: { "Authorization": `Bearer ${access_token}`}});
+                    const volumeData = await dataResponse.json();
+
+                    document.getElementById("volume_value_label").innerText = volumeData.Bundle.volume_m.toFixed(6) + " m³";
+                    document.getElementById("volume_value_cm_label").innerText = volumeData.Bundle.volume_cm.toFixed(2) + " cm³";
+                    document.getElementById("width_value_label").innerText = volumeData.Bundle.x.toFixed(1) + " cm";
+                    document.getElementById("length_value_label").innerText = volumeData.Bundle.y.toFixed(1) + " cm";
+                    document.getElementById("height_value_label").innerText = volumeData.Bundle.z.toFixed(1) + " cm";
+                }
+
+                const imgResp = await fetch("http://10.0.30.175:8000/getFrame/detectedObjectsFrame", {headers: { "Authorization": `Bearer ${access_token}` }});
+                if (imgResp.status === 404) throw new Error("Frame not Available");
+
+                const blob = await imgResp.blob();
+                document.getElementById("object-img").src = URL.createObjectURL(blob);
+
+            } catch (error) {
+                document.getElementById("volume_value_label").innerText = TextError;
+                document.getElementById("volume_value_cm_label").innerText = TextError;
+                document.getElementById("width_value_label").innerText = TextError;
+                document.getElementById("length_value_label").innerText = TextError;
+                document.getElementById("height_value_label").innerText = TextError;
+                document.getElementById("objOutOfLine_label").innerText = TextError;
+
+                console.error(error);
+            }
+        }
+
+        async function volumeReal_click() {
+            const TextOutOfLine = "There are objects outside the yellow stripes. To detect them, make sure they are inside the stripes.";
+            const TextError = "Error";
+
+            try {
+                refreshAccessToken();
+                const access_token = localStorage.getItem("access_token");
+
+                document.getElementById("volume_value_label").textContent = "";
+                document.getElementById("volume_value_cm_label").textContent = "";
+                document.getElementById("width_value_label").textContent = "";
+                document.getElementById("length_value_label").textContent = "";
+                document.getElementById("height_value_label").textContent = "";
+
+                const oldDropdown = document.getElementById("objOption_menu");
+                if (oldDropdown) {
+                    oldDropdown.remove();
+                }
+
+                const modeResponse = await fetch('http://10.0.30.175:8000/exposition/mode', {headers: { "Authorization": `Bearer ${access_token}`}});
+                const modeData = await modeResponse.json();
+
+                let colorFrameUrl = 'http://10.0.30.175:8000/getFrame/color';
+                let colorToDepthFrameUrl = 'http://10.0.30.175:8000/getFrame/colorToDepth';
+                let depthFrameUrl = 'http://10.0.30.175:8000/getFrame/depth';
+
+                if (modeData["Exposition Mode"] === "HDR") {
+                    let resp = await fetch('http://10.0.30.175:8000/getFrame/HDRcolorToDepth');
+                    if (resp.status === 204) {
+                        resp = await fetch(colorToDepthFrameUrl, {headers: { "Authorization": `Bearer ${access_token}` }});
+                    }
+                    const blob = await resp.blob();
+                    document.getElementById("volume-colorToDepthimg").src = URL.createObjectURL(blob);
+                } else {
+                    const resp = await fetch(colorToDepthFrameUrl, {headers: { "Authorization": `Bearer ${access_token}` }});
+                    const blob = await resp.blob();
+                    document.getElementById("volume-colorToDepthimg").src = URL.createObjectURL(blob);
+                }
+
+                if (modeData["Exposition Mode"] === "HDR") {
+                    let resp = await fetch('http://10.0.30.175:8000/getFrame/HDRdepth');
+                    if (resp.status === 204) {
+                        resp = await fetch(depthFrameUrl, {headers: { "Authorization": `Bearer ${access_token}` }});
+                    }
+                    const blob = await resp.blob();
+                    document.getElementById("volume-depthimg").src = URL.createObjectURL(blob);
+                } else {
+                    const resp = await fetch(depthFrameUrl, {headers: { "Authorization": `Bearer ${access_token}` }});
+                    const blob = await resp.blob();
+                    document.getElementById("volume-depthimg").src = URL.createObjectURL(blob);
+                }
+
+                await fetch('http://10.0.30.175:8000/volume/real', { method: 'POST', headers: { "Authorization": `Bearer ${access_token}` } });
+
+                const response = await fetch('http://10.0.30.175:8000/getObjectsOutOfLine', {headers: { "Authorization": `Bearer ${access_token}`}});
+                const data = await response.json();
+                const objectsOutOfLine = data.objects_outOfLine.map((val, i) => val ? i + 1 : null).filter(v => v !== null);
+                if (objectsOutOfLine.length > 0) {
+                    document.getElementById("objOutOfLine_label").textContent = TextOutOfLine;
+                } else {
+                    document.getElementById("objOutOfLine_label").textContent = "";
+                }
+
+                const dataResponse = await fetch('http://10.0.30.175:8000/volume/real/results', {headers: { "Authorization": `Bearer ${access_token}`}});
+                const volumeData = await dataResponse.json();
+
+                const imgResp = await fetch("http://10.0.30.175:8000/getFrame/detectedObjectsFrame", {headers: { "Authorization": `Bearer ${access_token}` }});
+                if (imgResp.status === 404) throw new Error("Frame not Available");
+
+                const blob = await imgResp.blob();
+                document.getElementById("object-img").src = URL.createObjectURL(blob);
+
+                const objIdentified = Object.keys(volumeData).filter(key => key !== "Total");
+                const objTotal = volumeData["Total"]
+                
+                if (objIdentified.length === 1) {
+                    const objData = volumeData[objIdentified[0]];
+                    document.getElementById("volume_value_label").innerText = objData.volume_m.toFixed(6) + " m³";
+                    document.getElementById("volume_value_cm_label").innerText = objData.volume_cm.toFixed(2) + " cm³";
+                    document.getElementById("width_value_label").innerText = objData.x.toFixed(1) + " cm";
+                    document.getElementById("length_value_label").innerText = objData.y.toFixed(1) + " cm";
+                    document.getElementById("height_value_label").innerText = objData.z.toFixed(1) + " cm";
+                } else if (objIdentified.length > 1) {
+                    const select = document.createElement("select");
+                    select.id = "objOption_menu";
+                    select.style.width = "16vw";
+                    select.style.fontSize = "1vw";
+                    select.style.position = "absolute";
+                    select.style.left = "50%";
+                    select.style.transform = "translateX(-50%)"
+                    select.style.top = "18%";
+                    select.style.border = "0.2vh solid black";
+                    select.style.textAlign = "center";
+
+                    const placeholder = document.createElement("option");
+                    placeholder.text = "Select an Object";
+                    placeholder.disabled = true;
+                    placeholder.selected = true;
+                    placeholder.value = "";
+                    select.add(placeholder);
+
+                    objIdentified.forEach(objName => {
+                        const option = document.createElement("option");
+                        option.text = objName;
+                        option.value = objName;
+                        select.add(option);
+                    });
+
+                    const totalOption = document.createElement("option");
+                    totalOption.value = "Total";
+                    totalOption.text = "Total";
+                    select.add(totalOption);   
+
+                    select.addEventListener("change", (event) => {
+                        document.getElementById("volume_value_label").textContent = "";
+                        document.getElementById("volume_value_cm_label").textContent = "";
+                        document.getElementById("width_value_label").textContent = "";
+                        document.getElementById("length_value_label").textContent = "";
+                        document.getElementById("height_value_label").textContent = "";
+
+                        const selected = event.target.value;
+                        if (!selected) return;
+
+                        const objData = volumeData[selected];
+                        if (!objData) return;
+
+                        document.getElementById("volume_value_label").innerText = objData.volume_m.toFixed(6) + " m³";
+                        document.getElementById("volume_value_cm_label").innerText = objData.volume_cm.toFixed(2) + " cm³";
+                        document.getElementById("width_value_label").innerText = objData.x.toFixed(1) + " cm";
+                        document.getElementById("length_value_label").innerText = objData.y.toFixed(1) + " cm";
+                        document.getElementById("height_value_label").innerText = objData.z.toFixed(1) + " cm";
+                    });
+
+                    document.getElementById("volume-menu").appendChild(select);
+
+                }
+            } catch (error) {
+                document.getElementById("volume_value_label").innerText = TextError;
+                document.getElementById("volume_value_cm_label").innerText = TextError;
+                document.getElementById("width_value_label").innerText = TextError;
+                document.getElementById("length_value_label").innerText = TextError;
+                document.getElementById("height_value_label").innerText = TextError;
+                document.getElementById("objOutOfLine_label").innerText = TextError;
+
+                console.error(error);
+            }
+        }
+        
+        async function ExpHDR_toggle() {
+            refreshAccessToken();
+            const access_token = localStorage.getItem("access_token");
+
+            const checked = document.getElementById("ExpHDR_switch").checked;
+            if (checked) {
+                await fetch("http://10.0.30.175:8000/exposition/mode/hdr", { method: "POST", headers: { "Authorization": `Bearer ${access_token}`} });
+            } else {
+                await fetch("http://10.0.30.175:8000/exposition/mode/fixed", { method: "POST", headers: { "Authorization": `Bearer ${access_token}`} });
+            }
+        }
+
+        async function StaticDynamic_toggle() {
+            refreshAccessToken();
+            const access_token = localStorage.getItem("access_token");
+
+            const checked = document.getElementById("StaticDynamic_switch").checked;
+            if (checked) {
+                await fetch("http://10.0.30.175:8000/working/mode/dynamic", { method: "POST", headers: { "Authorization": `Bearer ${access_token}`} });
+            } else {
+                await fetch("http://10.0.30.175:8000/working/mode/static", { method: "POST", headers: { "Authorization": `Bearer ${access_token}`} });
+            }
+        }
+
+        async function DebugMode_toggle() {
+            refreshAccessToken();
+            const access_token = localStorage.getItem("access_token");
+
+            const checked = document.getElementById("DebugMode_switch").checked;
+            if (checked) {
+                await fetch("http://10.0.30.175:8000/debug/mode/on", { method: "POST", headers: { "Authorization": `Bearer ${access_token}` } });
+            } else {
+                await fetch("http://10.0.30.175:8000/debug/mode/off", { method: "POST", headers: { "Authorization": `Bearer ${access_token}` } });
+            }
+        }
+
+        async function AutoManual_toggle() {
+            refreshAccessToken();
+            const access_token = localStorage.getItem("access_token");
+
+            const checked = document.getElementById("AutoManual_switch").checked;
+            if (checked) {
+                await fetch("http://10.0.30.175:8000/calibrate/mode/manual", { method: "POST", headers: { "Authorization": `Bearer ${access_token}` }});
+                selected_point = null;
+            } else {
+                await fetch("http://10.0.30.175:8000/calibrate/mode/automatic", { method: "POST", headers: { "Authorization": `Bearer ${access_token}` }});
+            }
+
+            setColorDropdownState(checked);
+        }
+
+        async function exposureSet_click() {
+            const value = parseInt(document.getElementById("exposureTime").value);
+            
+            if (isNaN(value)) {
+                document.getElementById("config-error").textContent = "Only integer values are allowed for exposure time.";
+                return;
+            }
+
+            if (value < 100 || value > 4000) {
+                document.getElementById("config-error").textContent = "Exposure Time value must be between 100 and 4000.";
+                return;
+            }
+
+            try {
+                refreshAccessToken();
+                const access_token = localStorage.getItem("access_token");
+
+                await fetch("http://10.0.30.175:8000/update_systemInfo", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json", "Authorization": `Bearer ${access_token}`
+                    },
+                    body: JSON.stringify({ exposureTime: value })
+                });
+            } catch (error) {
+                console.error("Exposure set error:", error);
+            }
+        }
+
+        async function colorSlopeSet_click() {
+            const value = parseInt(document.getElementById("colorSlope").value);
+            if (isNaN(value)) {
+                document.getElementById("config-error").textContent = "Only integer values are allowed for color slope.";
+                return;
+            }
+
+            if (value < 150 || value > 5000) {
+                document.getElementById("config-error").textContent = "Color Slope value must be between 150 and 5000.";
+                return;
+            }
+
+            try {
+                refreshAccessToken();
+                const access_token = localStorage.getItem("access_token");
+
+                await fetch("http://10.0.30.175:8000/update_systemInfo", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json", "Authorization": `Bearer ${access_token}`
+                    },
+                    body: JSON.stringify({ colorSlope: value })
+                });
+            } catch (error) {
+                console.error("Color slope set error:", error);
+            }
+        }
+
+        async function refreshToggles() {
+            try {
+                if(currentMenu === "config-menu") {
+                    // MODE (Static / Dynamic)
+                    let r = await fetch("http://10.0.30.175:8000/working/mode", {headers: { "Authorization": `Bearer ${access_token}`}});
+                    let modeData = await r.json();
+
+                    document.getElementById("StaticDynamic_switch").checked =
+                        (modeData["Mode"] === "Dynamic");
+
+                    // EXPOSITION MODE
+                    r = await fetch("http://10.0.30.175:8000/exposition/mode", {headers: { "Authorization": `Bearer ${access_token}`}});
+                    let expData = await r.json();
+
+                    document.getElementById("ExpHDR_switch").checked =
+                        (expData["Exposition Mode"] === "HDR");
+
+                    // DEBUG MODE
+                    r = await fetch("http://10.0.30.175:8000/debug/mode", {headers: { "Authorization": `Bearer ${access_token}`}});
+                    let debugData = await r.json();
+
+                    document.getElementById("DebugMode_switch").checked =
+                        (debugData["Debug Mode"] === "On");
+                } else if (currentMenu === "calibration-menu") {
+                    // CALIBRATION MODE
+                    r = await fetch("http://10.0.30.175:8000/calibrate/mode", {headers: { "Authorization": `Bearer ${access_token}`}});
+                    let calibData = await r.json();
+
+                    document.getElementById("AutoManual_switch").checked =
+                        (calibData["Calibrate Mode"] === "Manual");
+                }
+            } catch (error) {
+                console.log("Toggle refresh error:", error);
+            }
+
+            // só continua a atualizar se estiveres no config menu
+            if (currentMenu === "config-menu" || currentMenu === "calibration-menu") {
+                setTimeout(refreshToggles, 500);
+            }
+        }
+
+        async function refreshSliders() {
+            try {
+                const access_token = localStorage.getItem("access_token");
+                const resp = await fetch("http://10.0.30.175:8000/mask", { headers: { "Authorization": `Bearer ${access_token}`}});
+                const data = await resp.json();
+
+                document.getElementById("hminSlider").value = data.hmin;
+                document.getElementById("hminValue").textContent = data.hmin;
+
+                document.getElementById("hmaxSlider").value = data.hmax;
+                document.getElementById("hmaxValue").textContent = data.hmax;
+
+                document.getElementById("sminSlider").value = data.smin;
+                document.getElementById("sminValue").textContent = data.smin;
+
+                document.getElementById("smaxSlider").value = data.smax;
+                document.getElementById("smaxValue").textContent = data.smax;
+
+                document.getElementById("vminSlider").value = data.vmin;
+                document.getElementById("vminValue").textContent = data.vmin;
+
+                document.getElementById("vmaxSlider").value = data.vmax;
+                document.getElementById("vmaxValue").textContent = data.vmax;
+
+            } catch (err) {
+                console.warn("Não foi possível atualizar sliders:", err);
+            }
+
+            if (currentMenu === "calibration-menu") {
+                setTimeout(refreshSliders, 500);
+            }
+        }
+
+        async function applyMask(access_token) {
+            try {
+                if (currentMenu !== "calibration-menu") return;
+                const r = await fetch("http://10.0.30.175:8000/mask", {headers: { "Authorization": `Bearer ${access_token}`}});
+                const maskValues = await r.json();
+                await fetch("http://10.0.30.175:8000/applyMask", {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', "Authorization": `Bearer ${access_token}` },
+                    body: JSON.stringify(maskValues)
+                });
+            } catch (err) { console.warn("Erro applyMask:", err); }
+        }
+
+        async function applyManualWSDraw(access_token) {
+            try {
+                if (selected_point === null) {
+                    const r = await fetch("http://10.0.30.175:8000/calibrate/params", { headers: { "Authorization": `Bearer ${access_token}` } });
+                    detection_area = (await r.json())["Detected Area"];
+                }
+                await fetch("http://10.0.30.175:8000/applyManualWorkspace", {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', "Authorization": `Bearer ${access_token}` },
+                    body: JSON.stringify({ detection_area })
+                });
+            } catch (err) { console.warn("Erro applyManualWSDraw:", err); }
+        }
+
+        async function workspaceDrawing(){
+            try{
+                const access_token = localStorage.getItem("access_token");
+                r = await fetch("http://10.0.30.175:8000/calibrate/mode", {headers: { "Authorization": `Bearer ${access_token}`}});
+                let calibData = await r.json();
+                if (calibData["Calibrate Mode"] === "Automatic") {
+                    applyMask(access_token);
+                } else if (calibData["Calibrate Mode"] === "Manual") {
+                    applyManualWSDraw(access_token);
+                }
+            } catch (err) { console.warn("Erro drawing Workspace:", err); }
+            
+            if (currentMenu === "calibration-menu") {
+                setTimeout(workspaceDrawing, 500);
+            }
+        }
+
+        async function colorDropdown_change() {
+            try {
+                refreshAccessToken();
+                const access_token = localStorage.getItem("access_token");
+
+                const color = document.getElementById("colorDropdown").value;
+                await fetch("http://10.0.30.175:8000/mask/color", {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${access_token}` },
+                    body: JSON.stringify({ color })
+                });
+                await fetch("http://10.0.30.175:8000/mask/optionSelected", {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${access_token}` },
+                    body: JSON.stringify({ optionSelected: color })
+                });
+            } catch (err) { console.warn("Erro a mudar cor:", err); }
+        }
+
+        function setColorDropdownState(calibrationMode) {
+            const dropdown = document.getElementById("colorDropdown");
+            dropdown.disabled = calibrationMode;
+        }
+
+        async function screenClick() {
+            if (colorClickInitialized) return;
+
+            const img = document.getElementById("calibration-colorToDepthimg");
+            img.addEventListener("click", async (event) => {
+
+                try {
+                    refreshAccessToken();
+                    const access_token = localStorage.getItem("access_token");
+
+                    if (currentMenu === "calibration-menu"){
+                        const r = await fetch("http://10.0.30.175:8000/calibrate/mode", {headers: { "Authorization": `Bearer ${access_token}`}});
+                        let calibData = await r.json();
+
+                        if (calibData["Calibrate Mode"] === "Automatic") {
+                            const r = await fetch("http://10.0.30.175:8000/mask", {headers: { "Authorization": `Bearer ${access_token}`}});
+                            const maskValues = await r.json();
+                            let optionSelected = maskValues.optionSelected;
+
+                            if (optionSelected === "Select a Point") {
+                                const rect = img.getBoundingClientRect();
+                                const x = Math.round((event.clientX - rect.left) * (img.naturalWidth / rect.width));
+                                const y = Math.round((event.clientY - rect.top) * (img.naturalHeight / rect.height));
+
+                                await fetch("http://10.0.30.175:8000/mask/colorClick", {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${access_token}` },
+                                    body: JSON.stringify({x, y})
+                                });
+                            }
+                        } else if (calibData["Calibrate Mode"] === "Manual") {
+                            const r = await fetch("http://10.0.30.175:8000/calibrate/params", { headers: { "Authorization": `Bearer ${access_token}` } });
+                            const response = await r.json();
+                            let points = response["Detected Area"];
+
+                            const rect = img.getBoundingClientRect();
+                            const x = (event.clientX - rect.left) * (img.naturalWidth / rect.width);
+                            const y = (event.clientY - rect.top) * (img.naturalHeight / rect.height);
+
+                            let minDist = Infinity;
+                            let closestPoint = null;
+
+                            points.forEach((point, index) => {
+                                const dist = Math.sqrt((point[0] - x) ** 2 + (point[1] - y) **2);
+                                if (dist < minDist){
+                                    minDist = dist;
+                                    closestPoint = index;
+                                }
+                            });
+
+                            if (minDist <= 10){
+                                selected_point = closestPoint;
+                                console.log("Selected point:", selected_point);
+                            } else {
+                                selected_point = null;
+                                console.log("None of the points were selected")
+                            }
+                        }
+                    }
+                } catch (err) { console.warn("Erro colorClick:", err); }
+            });
+                    
+            colorClickInitialized = true;
+        }
+
+        document.addEventListener("keydown", async (event) => {
+            try {
+                refreshAccessToken();
+                const access_token = localStorage.getItem("access_token");
+
+                if (currentMenu === "calibration-menu") {
+                    const r_mode = await fetch("http://10.0.30.175:8000/calibrate/mode", {headers: { "Authorization": `Bearer ${access_token}`}});
+                    const calibData = await r_mode.json();
+
+                    if (calibData["Calibrate Mode"] !== "Manual") return;
+
+                    // Pegar detection_area do servidor
+                    const r = await fetch("http://10.0.30.175:8000/calibrate/params", {headers: { "Authorization": `Bearer ${access_token}`}});
+                    let data = await r.json();
+                    detection_area = data["Detected Area"]; // [x1, y1, x2, y2]
+
+                    const img = document.getElementById("calibration-colorToDepthimg");
+                    const maxX = img.naturalWidth;
+                    const maxY = img.naturalHeight;
+
+                    let point = detection_area[selected_point];
+
+                    if (event.key === "ArrowLeft") {
+                        point[0] = Math.max(0, point[0] - step);
+
+                    } else if (event.key === "ArrowRight") {
+                        point[0] = Math.min(maxX, point[0] + step);
+
+                    } else if (event.key === "ArrowUp") {
+                        point[1] = Math.max(0, point[1] - step);
+
+                    } else if (event.key === "ArrowDown") {
+                        point[1] = Math.min(maxY, point[1] + step);
+
+                    }
+
+                    detection_area[selected_point] = point;
+                }
+            } catch (err) {
+                console.warn("Erro key_pressed:", err);
+            }
+        });
+
+        async function calibrate_click() {
+            const calibrateLabel = document.getElementById("calibrateLabel");
+            const caliErrorLabel = document.getElementById("caliErrorLabel");
+
+            const TextCalibrated = "System Calibrated";
+            const TextNotCalibrated = "System was not Calibrated";
+            const TextError = "Error";
+            const TextWsNotEmpty = "Workspace isn't Empty";
+            const TextCenterNotAligned = "Center Point isn't Aligned";
+            const TextWsNotEmptyAndCenterNotAligned = "Center Point isn't Aligned and Workspace isn't Empty";
+            const TextClear = "";
+
+            try {
+                refreshAccessToken();
+                const access_token = localStorage.getItem("access_token");
+
+                const maskResponse = await fetch("http://10.0.30.175:8000/mask", {headers: { "Authorization": `Bearer ${access_token}`}});
+                if (!maskResponse.ok) throw new Error("Mask request failed");
+                const maskValues = await maskResponse.json();
+
+                const calibrateResponse = await fetch("http://10.0.30.175:8000/calibrate", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json", "Authorization": `Bearer ${access_token}`
+                    },
+                    body: JSON.stringify(maskValues)
+                });
+
+                if (!calibrateResponse.ok) throw new Error("Calibrate request failed");
+
+                const flagsResponse = await fetch("http://10.0.30.175:8000/calibrate/flags", { headers: { "Authorization": `Bearer ${access_token}` } });
+                if (!flagsResponse.ok) throw new Error("Flags request failed");
+
+                const data = await flagsResponse.json();
+
+                const center_aligned = data["Center Aligned"];
+                const ws_clear = data["Workspace Clear"];
+
+                if (center_aligned && ws_clear) {
+                    calibrateLabel.innerText = TextCalibrated;
+                    caliErrorLabel.innerText = TextClear;
+                }
+                else if (center_aligned && !ws_clear) {
+                    calibrateLabel.innerText = TextNotCalibrated;
+                    caliErrorLabel.innerText = TextWsNotEmpty;
+                }
+                else if (!center_aligned && ws_clear) {
+                    calibrateLabel.innerText = TextNotCalibrated;
+                    caliErrorLabel.innerText = TextCenterNotAligned;
+                }
+                else {
+                    calibrateLabel.innerText = TextNotCalibrated;
+                    caliErrorLabel.innerText = TextWsNotEmptyAndCenterNotAligned;
+                }
+
+            } catch (error) {
+                calibrateLabel.innerText = TextError;
+                caliErrorLabel.innerText = TextError;
+                console.error(error);
+            }
+        }
+
+        function startTokenCheck() {
+            timer = 5 * 60 * 1000; // 5 minutos (300000ms)
+            
+            tokenCheckInterval = setInterval(async () => {
+                const access_token = localStorage.getItem("access_token");
+                if (!access_token) {
+                    logout();
+                }
+
+                const refresh_token = localStorage.getItem("refresh_token");
+                try{
+                    const payloadBase64 = refresh_token.split('.')[1];
+                    const payload = JSON.parse(atob(payloadBase64));
+                    const exp = payload.exp;
+                    const currentTime = Math.floor(Date.now() / 1000);
+
+                    if(currentTime >= exp){
+                        logout();
+                    }
+                } catch (e) {
+                }
+
+            }, timer); // 5 minutos
+        }
+
+        async function refreshAccessToken() {
+            const refreshToken = localStorage.getItem("refresh_token");
+            if (!refreshToken) return false;
+
+            try {
+                const response = await fetch('http://10.0.30.175:8000/refresh', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ refresh_token: refreshToken })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    localStorage.setItem("access_token", data.access_token);
+                    localStorage.setItem("refresh_token", data.refresh_token);
+                    return true;
+                }
+            } catch (e) {}
+
+            return false;
+        }
+
+        async function startWebRTC() {
+            const access_token = localStorage.getItem("access_token");
+
+            pc = new RTCPeerConnection();
+
+            pc.addTransceiver('video', { direction: 'recvonly' });
+
+            pc.ontrack = (event) => {
+                const video = document.getElementById("camera-video");
+                video.srcObject = event.streams[0];
+            };
+
+            const offer = await pc.createOffer();
+            await pc.setLocalDescription(offer);
+
+            const response = await fetch("http://10.0.30.175:8000/offer", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${access_token}`
+                },
+                body: JSON.stringify({
+                    sdp: pc.localDescription.sdp,
+                    type: pc.localDescription.type
+                })
+            });
+
+            const answer = await response.json();
+
+            await pc.setRemoteDescription(answer);
+        }
+
+        function stopWebRTC() {
+            if (pc) {
+                pc.close();
+                pc = null;
+            }
+
+            const video = document.getElementById("camera-video");
+
+            if (video.srcObject) {
+                video.srcObject.getTracks().forEach(track => track.stop());
+                video.srcObject = null;
+            }
+        }
+
+    </script>
+
+</body>
+</html>

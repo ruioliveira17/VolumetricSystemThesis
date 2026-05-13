@@ -1,0 +1,1585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Allows you to connect to our product.">
+    <title>BM Volumetric System</title>
+    <link rel="icon" type="image/png" href="/static/images/BM_MiniLogo.png">
+    <style>
+        body {
+            font-family: Arial;
+            text-align: center;
+            background-color: white;
+            overflow: auto;
+            min-width: none;
+            min-height: 20px;
+
+            margin: 0;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        .menu {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 95vh;
+            position: relative;
+        }
+
+        .title-container{
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            margin-bottom: 8vh;
+        }
+
+        .menu-title {
+            font-size: 5vw;
+            font-weight: semi-bold;
+            color: black;
+        }
+
+        .warning {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2vw;
+            margin-top: -8vh;
+        }
+
+       .logo {
+            position: absolute;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: white;
+            border: none;
+            top: 2vh;
+            left: 2vw;
+            z-index: 10;
+            transition: 0.3s;
+       }
+
+       .logo img{
+            width: 15vw;
+            object-fit: contain;
+       }
+
+       .logo:hover {
+            transform: scale(1.05);
+        }
+
+        .menuSideNav {
+            height: 100%;
+            width: 0;
+            position: fixed;
+            z-index: 20;
+            top: 0;
+            left: 0;
+            background-color: #f72121;
+            overflow-x: hidden;
+            transition: 0.5s; /
+        }
+
+        .menuSideNav .closebtn {
+            position: absolute;
+            top: 0;
+            right: 1vw;
+            font-size: 4vh;
+            color: #ffffff;
+        }
+
+        .nav-item {
+            position: relative; 
+            top: 7vh;
+            cursor: pointer;
+            font-size: 2vh;
+            margin-bottom: 1vh;
+            color: white;
+        }
+
+        .nav-item:hover {
+            background-color: rgba(255,255,255,0.1);
+            transform: scale(1.10);
+            transition: 0.3s;
+        }
+
+       .login {
+            position: absolute;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            top: 2vh;
+            right: 2vw;
+            background-color: white;
+            border:  none;
+            z-index: 10;
+            transition: 0.3s;
+       }
+
+       .login img {
+            width: 6vw;
+            object-fit: contain;
+            cursor: pointer;
+        }
+
+        .login img:hover {
+            transform: scale(1.05);
+        }
+
+        .userSideNav {
+            height: 100%;
+            width: 0;
+            position: fixed;
+            z-index: 20;
+            top: 0;
+            right: 0;
+            background-color: #f72121;
+            overflow-x: hidden;
+            transition: 0.5s;
+
+            display: flex;
+            flex-direction: column;
+        }
+
+        .userSideNav .closebtn {
+            position: absolute;
+            top: 0;
+            right: 1vw;
+            font-size: 4vh;
+            color: #ffffff;
+        }
+
+        .navUser-item {
+            position: relative; 
+            top: 7vh;
+            cursor: pointer;
+            font-size: 2vh;
+            margin-bottom: 1vh;
+            color: white;
+        }
+
+        .navUser-item:hover {
+            background-color: rgba(255,255,255,0.1);
+        }
+
+        .logout {
+            margin-top: auto;
+            margin-bottom: 10vh;
+        }
+
+        #camera-video {
+            position: absolute;
+            left: 25vw;
+            top: 65vh;
+            transform: translate(-50%, -50%);
+            width: 45vw;
+            height: auto;
+            object-fit: contain;
+            margin-top: -8vh;
+        }
+
+        #object-img{
+            position: absolute;
+            left: 25vw;
+            top: 65vh;
+            transform: translate(-50%, -50%);
+            width: 45vw; 
+            object-fit: contain;
+            margin-top: -8vh;
+        }
+
+        .volumeButtonPos {
+            position: absolute;
+            top: 16.8vh;
+            left: 54vw;
+        }
+
+        .volumeButton {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 5vh auto 0 auto;
+            width:20vw;
+            font-size:1.2vw;
+            border: 0.2vh solid black;
+        }
+        
+        .volumeButton:hover {
+            transform: scale(1.05);
+        }
+
+        .boxInfo-container {
+            margin-top: 27vh;
+        }
+
+        .boxInfo-row {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            margin-top: 10vh;
+            margin-left: 30vw;
+        }
+
+        .boxInfo-column {
+            display: flex;
+            flex-direction: column;
+            min-height: 5.2vw;
+        }
+
+        .boxInfo {
+            font-size:1.6vw;
+            text-align: left;
+            width: 11vw;
+        }
+
+        .under-text {
+            margin-top: 2vh;
+        }
+
+        #calibration-colorToDepthimg {
+            position: absolute;
+            left: 25vw;
+            top: 65vh;
+            transform: translate(-50%, -50%);
+            width: 45vw; 
+            object-fit: contain;
+            margin-top: -8vh;
+        } 
+
+        #calibration-colorToDepthimg:hover {
+            cursor: url('static/eyedropper.svg') 0 32, auto;
+        }
+
+        #calibration-colorToDepthimg:active {
+            cursor: url('static/eyedropper-click.svg') 0 32, auto;
+        }
+
+        #calibration-colorToDepthimg[data-manual="true"] {
+            cursor: default;
+        }
+
+        #calibration-colorToDepthimg[data-manual="true"]:hover {
+            cursor: default;
+        }
+
+        #color-preview {
+            position: absolute;
+            left: 54vw;
+            top: 40vh;
+            width: 8vh;
+            height: 8vh;
+            border-radius: 50%;
+            border: 2px solid black;
+            z-index: 30;
+        }
+
+        #rgb-values {
+            position: absolute;
+            left: 60vw;
+            top: 42vh;
+            font-size: 1.6vw;
+            font-variant-numeric: tabular-nums;
+        }
+
+        #rgb-values span {
+            display: inline-block;
+            width: 3ch;
+            text-align: right;
+        }
+
+        .calibrateButtonPos {
+            position: absolute;
+            top: 66.8vh;
+            left: 54vw;
+        }
+
+        .calibrateButton {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 5vh auto 0 auto;
+            width:20vw;
+            font-size:1.2vw;
+            border: 0.2vh solid black;
+        }
+        
+        .calibrateButton:hover {
+            transform: scale(1.05);
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 3vw;
+            height: 3.6vh;
+        }
+
+        .switch input { 
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .switch-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5vw;
+            font-size: 1vw;
+            margin-bottom: 2vh;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 2.6vh;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 2.6vh; width: 1.2vw;
+            left: 0.25vw; bottom: 0.4vh;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: turquoise;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(1.2vw);
+        }
+
+        .input-box {
+            display: flex;
+            align-items: center;
+            gap: 1vw;
+            font-size: 1vw;
+            margin-bottom: 2vh;
+            width: fit-content;
+        }
+
+        .input-box label{
+            display: inline-block;
+            width: 7vw;
+            text-align: left;
+        }
+
+        .input-box input {
+            font-size: 1vw;
+            padding: 0.3vh 0.5vw;
+            border: 0.2vh solid black;
+        }
+
+        .input-box button {
+            font-size: 1vw;
+            padding: 0.3vh 0.5vw;
+            cursor: pointer;
+            border: 0.2vh solid black;
+        }
+
+        .readonly-slider {
+            display: flex;
+            align-items: center;
+            pointer-events: none; 
+        }
+
+        input[type="range"] {
+            appearance: none;  
+            width: 26vw;
+        }
+
+        input[type="range"]::-webkit-slider-runnable-track {
+            height: 1.9vh;          /* grossura da barra */
+            background: #ccc;      /* cor da barra */
+            border-radius: 0.5vw;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 3.2vh;           /* altura da bolinha */
+            width: 1.6vw;            /* largura da bolinha */
+            background: #ccc;
+            border: 0.2vh solid #9d9d9d;
+            border-radius: 50%;
+            margin-top: -0.6vh;      /* para centralizar a bolinha na barra */
+        }
+
+    </style>
+</head>
+
+<body>
+    <!-- Menu Side Nav -->
+    <div id="menuSideNav" class="menuSideNav">
+        <a href="javascript:void(0)" class="closebtn" onclick="closeMenuNav()">&times;</a>
+        <div class="nav-item" onclick="goTo('volume-menu')">Volume</div>
+        <div class="nav-item" onclick="goTo('calibration-menu')">Calibration</div>
+        <div class="nav-item" onclick="goTo('config-menu')">Configurations</div>
+        <div class="nav-item">About</div>
+    </div>
+
+    <!-- User Side Nav -->
+    <div id="userSideNav" class="userSideNav">
+        <a href="javascript:void(0)" class="closebtn" onclick="closeUserNav()">&times;</a>
+        <div class="navUser-item" id="user-name">User:</div>
+        <div class="navUser-item" id="user-role">Role:</div>
+
+        <div class="nav-item logout" onclick="logout()">
+            Logout
+        </div>
+    </div>
+
+    <!-- Login Screen Panel -->
+    <div id="login-screen" class="menu">
+        <h2>Login</h2>
+        <input type="text" id="username" placeholder="Username"><br><br>
+        <input type="password" id="password" placeholder="Password"><br><br>
+        <button onclick="login()">Login</button>
+
+        <p style="margin-top: 15px;">
+            Don't have an account? 
+            <span onclick="showRegisterScreen()" style="color: black; cursor: pointer; text-decoration: underline;">
+                Register
+            </span>
+        </p>
+
+        <p id="error-label" style="color: red;"></p>
+    </div>
+
+    <!-- Register Screen Panel -->
+    <div id="register-screen" class="menu" style="display: none;">
+        <h2>Register</h2>
+        <input type="text" id="reg-username" placeholder="Username"><br><br>
+        <input type="password" id="reg-password" placeholder="Password"><br><br>
+        
+        <select id="reg-role" onchange="handleRoleChange()">
+            <option value="user">User</option>
+            <option value="admin">Admin</option>
+        </select><br><br>
+
+        <input type="text" id="reg-code" placeholder="Admin Code" disabled><br><br>
+
+        <button onclick="register()">Register</button>
+
+        <p style="margin-top: 15px;">
+            Already have an account? 
+            <span onclick="showLoginScreen()" style="color: black; cursor: pointer; text-decoration: underline;">
+                Login
+            </span>
+        </p>
+
+        <p id="reg-error-label" style="color: red;"></p>
+
+    </div>
+
+    <!-- Volume Panel -->
+    <div id="volume-menu" class="menu" style="display: none;">
+        <!-- Logo -->
+        <button class="logo" onclick="openMenuNav()">
+            <img src="/static/images/BM_Logo.png" alt="BM Logo">
+        </button>
+
+        <!-- Login -->
+        <button class="login" onclick="openUserNav()">
+            <img src="/static/images/user.png" alt="User">
+        </button>
+
+        <!-- Menu Title -->
+        <div class="title-container">
+            <div class="menu-title">Volume</div>
+        </div>
+
+        <!-- Aviso -->
+        <div id="objOutOfLine_label" class="warning"></div>
+
+        <!-- Imagens -->
+        <video id="camera-video" autoplay playsinline></video>
+        <img id="object-img" alt="Objects Image" hidden>
+
+        <!-- Botões -->
+        <div class="volumeButtonPos">
+            <button onclick="volume_click()" class="volumeButton">Get Volume</button>
+        </div>
+
+        <!-- Labels -->
+        <div class="boxInfo-container">
+            <div  class="boxInfo-row">
+                <div class="boxInfo">Volume:</div>
+                <div class="boxInfo-column">
+                    <div id="volume_value_label" class="boxInfo"></div>
+                    <div id="volume_value_cm_label" class="boxInfo under-text"></div>
+                </div>
+            </div>
+
+            <div  class="boxInfo-row">
+                <div class="boxInfo">Width:</div>
+                <div id="width_value_label" class="boxInfo"></div>
+            </div>
+            
+            <div  class="boxInfo-row">
+                <div class="boxInfo">Length:</div>
+                <div id="length_value_label" class="boxInfo"></div>
+            </div>
+
+            <div  class="boxInfo-row">
+                <div class="boxInfo">Height:</div>
+                <div id="height_value_label" class="boxInfo"></div>
+            </div>
+        </div>
+        
+    </div>
+
+    <!-- Configuration Panel -->
+    <div id="config-menu" class="menu" style="display: none;">
+        <!-- Logo -->
+        <button class="logo" onclick="openMenuNav()">
+            <img src="/static/images/BM_Logo.png" alt="BM Logo">
+        </button>
+
+        <!-- Login -->
+        <button class="login" onclick="openUserNav()">
+            <img src="/static/images/user.png" alt="User">
+        </button>
+
+        <!-- Menu Title -->
+        <div class="title-container">
+            <div class="menu-title">Configurations</div>
+        </div>
+
+        <div id="config-error" class="warning">
+        </div>
+
+        <!-- Exposure / HDR Switch -->
+        <div class="switch-row" style="position: absolute; top: 29vh; left: 10vw;">
+            <span>Exposition</span>
+            <label class="switch">
+                <input type="checkbox" id="ExpHDR_switch" onchange="ExpHDR_toggle()">
+                <span class="slider round"></span>
+            </label>
+            <span>HDR</span>
+        </div>
+
+        <!-- Bundle / Real Switch -->
+        <div class="switch-row" style="position: absolute; top: 38vh; left: 10vw;">
+            <span>Bundle</span>
+            <label class="switch">
+                <input type="checkbox" id="BundleReal_switch" onchange="BundleReal_toggle()">
+                <span class="slider round"></span>
+            </label>
+            <span>Real Volume</span>
+        </div>
+
+        <!-- Static / Dynamic Switch -->
+        <div class="switch-row" style="position: absolute; top: 47vh; left: 10vw;">
+            <span>Static</span>
+            <label class="switch">
+                <input type="checkbox" id="StaticDynamic_switch" onchange="StaticDynamic_toggle()">
+                <span class="slider round"></span>
+            </label>
+            <span>Dynamic</span>
+        </div>
+
+        <!-- Debug Mode Switch -->
+        <span style="font-size: 1vw; position: absolute; top: 63vh; left: 10.5vw;">Debug Mode</span>
+        <div class="switch-row" style="position: absolute; top: 66vh; left: 10vw;">
+            <span>On</span>
+            <label class="switch">
+                <input type="checkbox" id="DebugMode_switch" onchange="DebugMode_toggle()">
+                <span class="slider round"></span>
+            </label>
+            <span>Off</span>
+        </div>
+
+        <!-- Exposure Time Set -->
+        <div class="input-box" style="position: absolute; top: 29vh; left: 52vw;">
+            <label for="exposureTime">Exposure Time:</label>
+            <input type="text" id="exposureTime" />
+            <button onclick="exposureSet_click()">Set</button>
+        </div>
+
+        <!-- Color Slope Set -->
+        <div class="input-box" style="position: absolute; top: 34vh; left: 52vw;">
+            <label for="exposureTime"> Color Slope:</label>
+            <input type="text" id="colorSlope" />
+            <button onclick="colorSlopeSet_click()">Set</button>
+        </div>
+    </div>
+
+    <!-- Calibration Panel -->
+    <div id="calibration-menu" class="menu" style="display: none;">
+        <!-- Logo -->
+        <button class="logo" onclick="openMenuNav()">
+            <img src="/static/images/BM_Logo.png" alt="BM Logo">
+        </button>
+
+        <!-- Login -->
+        <button class="login" onclick="openUserNav()">
+            <img src="/static/images/user.png" alt="User">
+        </button>
+
+        <!-- Menu Title -->
+        <div class="title-container">
+            <div class="menu-title">Calibration</div>
+        </div>
+        
+        <!-- Avisos -->
+        <div id="calibrateLabel" class="warning"></div>
+        <div id="caliErrorLabel" class="warning" style="margin-top: 1.4vh;"></div>
+
+        <!-- Imagens -->
+        <img id="calibration-colorToDepthimg" alt="Workspace Detected">
+
+        <!-- Cor -->
+        <div style="display: flex; align-items: center; gap: 1vw;">
+            <div id="color-preview"></div>
+            <div id="rgb-values">
+                R: <span id="r-val">000</span>
+                G: <span id="g-val">000</span>
+                B: <span id="b-val">000</span>
+            </div>
+        </div>
+
+        <!-- Botão -->
+        <div class="calibrateButtonPos">
+            <button onclick="startCalibration()" class="calibrateButton">Calibrate</button>
+        </div>
+
+        <div id="calibrationModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.5); justify-content:center; align-items:center; z-index: 50;">
+            <div style="background:white; padding:2vw; border-radius:1vw;">
+                <p>Pretende ajustar manualmente?</p>
+                <button onclick="setCalibrationMode(true)">Sim</button>
+                <button onclick="setCalibrationMode(false)">Não</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        let calibrationPending = false;
+        let cameraLoopInterval = null;
+        let colorClickInitialized = false;
+        let currentMenu = null;
+        let detection_area = [0, 0, 0, 0];
+        let pc = null;
+        let selected_point = null;
+        let step = 2;
+        let tokenCheckInterval = null;
+
+        function showLoginScreen() {
+            document.getElementById("register-screen").style.display = "none";
+            document.getElementById("login-screen").style.display = "flex";
+            document.getElementById("reg-error-label").textContent = "";
+            document.getElementById("reg-username").value = "";
+            document.getElementById("reg-password").value = "";
+            document.getElementById("reg-role").value = "user";
+            document.getElementById("reg-code").value = "";
+        }
+
+        window.addEventListener("DOMContentLoaded", () => {
+            const savedUser = JSON.parse(localStorage.getItem("current_user"));
+            if(savedUser) {
+                document.getElementById("login-screen").style.display = "none";
+                currentMenu = "volume-menu";
+                document.getElementById(currentMenu).style.display = "block";
+                startWebRTC();
+            }
+        });
+
+        async function login() {
+            const user = document.getElementById("username").value;
+            const pass = document.getElementById("password").value;
+            const errorLabel = document.getElementById("error-label");
+
+            if (!user || !pass) {
+                errorLabel.textContent = "Please fill in all fields.";
+                return;
+            }
+
+            try{
+                const response = await fetch('http://10.0.30.175:8000/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username: user, password: pass })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const role = data.role;
+
+                    startTokenCheck();
+
+                    localStorage.setItem("current_user", JSON.stringify({ username: user, role: role }));
+                    localStorage.setItem("access_token", data.access_token);
+                    localStorage.setItem("refresh_token", data.refresh_token);
+
+                    document.getElementById("login-screen").style.display = "none";
+                    currentMenu = "volume-menu";
+                    document.getElementById(currentMenu).style.display = "block";
+                    startWebRTC();
+                } else {
+                    const data = await response.json();
+                    errorLabel.textContent =  data.detail;
+                }
+            } catch (error) {
+                errorLabel.textContent = "Server connection error.";
+            }
+        }
+
+        function showRegisterScreen() {
+            document.getElementById("login-screen").style.display = "none";
+            document.getElementById("register-screen").style.display = "flex";
+            document.getElementById("error-label").textContent = "";
+            document.getElementById("username").value = "";
+            document.getElementById("password").value = "";
+        }
+
+        async function register() {
+            const user = document.getElementById("reg-username").value;
+            const pass = document.getElementById("reg-password").value;
+            const role = document.getElementById("reg-role").value;
+            const code = document.getElementById("reg-code").value;
+            const errorLabel = document.getElementById("reg-error-label");
+
+            if (!user || !pass || (role === "admin" && !code)) {
+                errorLabel.textContent = "Please fill in all fields.";
+                return;
+            }
+
+            try {
+                const response = await fetch('http://10.0.30.175:8000/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username: user, password: pass, role: role, code: code })
+                });
+                
+                const data = await response.json();
+
+                if (!response.ok) {
+                   errorLabel.textContent = data.detail || "Registration failed.";
+                    return;
+                }
+
+            } catch (error) {
+                errorLabel.textContent = "Server connection error.";
+                return;
+            }
+
+            errorLabel.textContent = "Registration successful!";
+            showLoginScreen();
+        }
+
+        function handleRoleChange() {
+            const role = document.getElementById("reg-role");
+            const code = document.getElementById("reg-code");
+
+            if (role.value === "admin") {
+                code.disabled = false;
+            } else {
+                code.disabled = true;
+                code.value = "";
+            }
+        }
+
+        function logout() {
+            closeUserNav()
+            if (tokenCheckInterval) {
+                clearInterval(tokenCheckInterval);
+                tokenCheckInterval = null;
+            }
+
+            localStorage.removeItem("current_user");
+            localStorage.removeItem("access_token");
+            localStorage.removeItem("refresh_token");
+            cameraLoopInterval = null;
+            document.getElementById(currentMenu).style.display = "none";
+            
+            showLoginScreen();
+
+            document.getElementById("username").value = "";
+            document.getElementById("password").value = "";
+
+            currentMenu = null;
+        }
+
+        function goTo(menuID) {
+            closeMenuNav();
+            refreshAccessToken();
+
+            if(currentMenu) {
+                document.getElementById(currentMenu).style.display = "none";
+            }
+            document.getElementById(menuID).style.display = "block";    
+            currentMenu = menuID; 
+
+            if (menuID === "volume-menu") {
+                startWebRTC();
+            } else {
+                stopWebRTC();
+            }
+
+            if (menuID === "calibration-menu"){
+                workspaceDrawing();
+                const img = document.getElementById("calibration-colorToDepthimg");
+                img.crossOrigin = "anonymous";
+                img.src = "http://10.0.30.175:8000/calibrationCTD";
+            } else {
+                if (cameraLoopInterval){
+                    clearInterval(cameraLoopInterval);
+                    cameraLoopInterval = null;
+                } 
+            }
+
+            if (menuID === "config-menu" || menuID === "calibration-menu") {
+                refreshToggles();
+            }
+
+            if (menuID === "calibration-menu") {
+                screenClick();  
+            }
+        }
+
+        async function volume_click(){
+            try{
+                refreshAccessToken();
+                const access_token = localStorage.getItem("access_token");
+
+                document.getElementById("volume_value_label").textContent = "";
+                document.getElementById("volume_value_cm_label").textContent = "";
+                document.getElementById("width_value_label").textContent = "";
+                document.getElementById("length_value_label").textContent = "";
+                document.getElementById("height_value_label").textContent = "";
+
+                r = await fetch("http://10.0.30.175:8000/volume/mode", {headers: { "Authorization": `Bearer ${access_token}`}});
+                let volumeMode = await r.json();
+                if (volumeMode["Volume Mode"] === "Bundle"){
+                    volumeBundle(access_token);
+                } else if (volumeMode["Volume Mode"] === "Real"){
+                    volumeReal(access_token);
+                }
+
+            } catch (error) {
+            }
+            
+        }
+
+        async function volumeBundle(access_token) {
+            const TextOutOfLine = "There are objects outside the yellow stripes. To detect them, make sure they are inside the stripes.";
+            const TextError = "Error";
+
+            try {
+                const dropdown = document.getElementById("objOption_menu");
+                if (dropdown) dropdown.remove();
+
+                await fetch('http://10.0.30.175:8000/volume/bundle', { method: 'POST', headers: { "Authorization": `Bearer ${access_token}` } });
+
+                const response = await fetch('http://10.0.30.175:8000/getObjectsOutOfLine', {headers: { "Authorization": `Bearer ${access_token}`}});
+                const data = await response.json();
+                const objectsOutOfLine = data.objects_outOfLine.map((val, i) => val ? i + 1 : null).filter(v => v !== null);
+                if (objectsOutOfLine.length > 0) {
+                    document.getElementById("objOutOfLine_label").textContent = TextOutOfLine;
+                } else {
+                    document.getElementById("objOutOfLine_label").textContent = "";
+
+                    const dataResponse = await fetch('http://10.0.30.175:8000/volume/bundle/results', {headers: { "Authorization": `Bearer ${access_token}`}});
+                    const volumeData = await dataResponse.json();
+
+                    document.getElementById("volume_value_label").innerText = volumeData.Bundle.volume_m.toFixed(6) + " m³";
+                    document.getElementById("volume_value_cm_label").innerText = volumeData.Bundle.volume_cm.toFixed(2) + " cm³";
+                    document.getElementById("width_value_label").innerText = volumeData.Bundle.x.toFixed(1) + " cm";
+                    document.getElementById("length_value_label").innerText = volumeData.Bundle.y.toFixed(1) + " cm";
+                    document.getElementById("height_value_label").innerText = volumeData.Bundle.z.toFixed(1) + " cm";
+                }
+
+                const imgResp = await fetch("http://10.0.30.175:8000/getFrame/detectedObjectsFrame", {headers: { "Authorization": `Bearer ${access_token}` }});
+                if (imgResp.status === 404) throw new Error("Frame not Available");
+
+                const blob = await imgResp.blob();
+                document.getElementById("object-img").src = URL.createObjectURL(blob);
+                document.getElementById("object-img").removeAttribute("hidden");
+
+            } catch (error) {
+                document.getElementById("volume_value_label").innerText = TextError;
+                document.getElementById("volume_value_cm_label").innerText = TextError;
+                document.getElementById("width_value_label").innerText = TextError;
+                document.getElementById("length_value_label").innerText = TextError;
+                document.getElementById("height_value_label").innerText = TextError;
+                document.getElementById("objOutOfLine_label").innerText = TextError;
+
+                console.error(error);
+            }
+        }
+
+        async function volumeReal(access_token) {
+            const TextOutOfLine = "There are objects outside the yellow stripes. To detect them, make sure they are inside the stripes.";
+            const TextError = "Error";
+
+            try {
+                const oldDropdown = document.getElementById("objOption_menu");
+                if (oldDropdown) {
+                    oldDropdown.remove();
+                }
+
+                await fetch('http://10.0.30.175:8000/volume/real', { method: 'POST', headers: { "Authorization": `Bearer ${access_token}` } });
+
+                const response = await fetch('http://10.0.30.175:8000/getObjectsOutOfLine', {headers: { "Authorization": `Bearer ${access_token}`}});
+                const data = await response.json();
+                const objectsOutOfLine = data.objects_outOfLine.map((val, i) => val ? i + 1 : null).filter(v => v !== null);
+                if (objectsOutOfLine.length > 0) {
+                    document.getElementById("objOutOfLine_label").textContent = TextOutOfLine;
+                } else {
+                    document.getElementById("objOutOfLine_label").textContent = "";
+                }
+
+                const dataResponse = await fetch('http://10.0.30.175:8000/volume/real/results', {headers: { "Authorization": `Bearer ${access_token}`}});
+                const volumeData = await dataResponse.json();
+
+                const imgResp = await fetch("http://10.0.30.175:8000/getFrame/detectedObjectsFrame", {headers: { "Authorization": `Bearer ${access_token}` }});
+                if (imgResp.status === 404) throw new Error("Frame not Available");
+
+                const blob = await imgResp.blob();
+                document.getElementById("object-img").src = URL.createObjectURL(blob);
+                document.getElementById("object-img").removeAttribute("hidden");
+
+                const objIdentified = Object.keys(volumeData).filter(key => key !== "Total");
+                
+                if (objIdentified.length === 1) {
+                    const objData = volumeData[objIdentified[0]];
+                    document.getElementById("volume_value_label").innerText = objData.volume_m.toFixed(6) + " m³";
+                    document.getElementById("volume_value_cm_label").innerText = objData.volume_cm.toFixed(2) + " cm³";
+                    document.getElementById("width_value_label").innerText = objData.x.toFixed(1) + " cm";
+                    document.getElementById("length_value_label").innerText = objData.y.toFixed(1) + " cm";
+                    document.getElementById("height_value_label").innerText = objData.z.toFixed(1) + " cm";
+                } else if (objIdentified.length > 1) {
+                    const select = document.createElement("select");
+                    select.id = "objOption_menu";
+                    select.style.width = "20vw";
+                    select.style.fontSize = "1vw";
+                    select.style.position = "absolute";
+                    select.style.left = "64%";
+                    select.style.transform = "translateX(-50%)"
+                    select.style.top = "32%";
+                    select.style.border = "0.2vh solid black";
+                    select.style.textAlign = "center";
+
+                    const placeholder = document.createElement("option");
+                    placeholder.text = "Select an Object";
+                    placeholder.disabled = true;
+                    placeholder.selected = true;
+                    placeholder.value = "";
+                    select.add(placeholder);
+
+                    objIdentified.forEach(objName => {
+                        const option = document.createElement("option");
+                        option.text = objName;
+                        option.value = objName;
+                        select.add(option);
+                    });
+
+                    const totalOption = document.createElement("option");
+                    totalOption.value = "Total";
+                    totalOption.text = "Total";
+                    select.add(totalOption);   
+
+                    select.addEventListener("change", (event) => {
+                        document.getElementById("volume_value_label").textContent = "";
+                        document.getElementById("volume_value_cm_label").textContent = "";
+                        document.getElementById("width_value_label").textContent = "";
+                        document.getElementById("length_value_label").textContent = "";
+                        document.getElementById("height_value_label").textContent = "";
+
+                        const selected = event.target.value;
+                        if (!selected) return;
+
+                        const objData = volumeData[selected];
+                        if (!objData) return;
+
+                        document.getElementById("volume_value_label").innerText = objData.volume_m.toFixed(6) + " m³";
+                        document.getElementById("volume_value_cm_label").innerText = objData.volume_cm.toFixed(2) + " cm³";
+                        document.getElementById("width_value_label").innerText = objData.x.toFixed(1) + " cm";
+                        document.getElementById("length_value_label").innerText = objData.y.toFixed(1) + " cm";
+                        document.getElementById("height_value_label").innerText = objData.z.toFixed(1) + " cm";
+                    });
+
+                    document.getElementById("volume-menu").appendChild(select);
+
+                }
+            } catch (error) {
+                document.getElementById("volume_value_label").innerText = TextError;
+                document.getElementById("volume_value_cm_label").innerText = TextError;
+                document.getElementById("width_value_label").innerText = TextError;
+                document.getElementById("length_value_label").innerText = TextError;
+                document.getElementById("height_value_label").innerText = TextError;
+                document.getElementById("objOutOfLine_label").innerText = TextError;
+
+                console.error(error);
+            }
+        }
+        
+        async function ExpHDR_toggle() {
+            refreshAccessToken();
+            const access_token = localStorage.getItem("access_token");
+
+            const checked = document.getElementById("ExpHDR_switch").checked;
+            if (checked) {
+                await fetch("http://10.0.30.175:8000/exposition/mode/hdr", { method: "POST", headers: { "Authorization": `Bearer ${access_token}`} });
+            } else {
+                await fetch("http://10.0.30.175:8000/exposition/mode/fixed", { method: "POST", headers: { "Authorization": `Bearer ${access_token}`} });
+            }
+        }
+
+        async function StaticDynamic_toggle() {
+            refreshAccessToken();
+            const access_token = localStorage.getItem("access_token");
+
+            const checked = document.getElementById("StaticDynamic_switch").checked;
+            if (checked) {
+                await fetch("http://10.0.30.175:8000/working/mode/dynamic", { method: "POST", headers: { "Authorization": `Bearer ${access_token}`} });
+            } else {
+                await fetch("http://10.0.30.175:8000/working/mode/static", { method: "POST", headers: { "Authorization": `Bearer ${access_token}`} });
+            }
+        }
+
+        async function BundleReal_toggle() {
+            refreshAccessToken();
+            const access_token = localStorage.getItem("access_token");
+
+            const checked = document.getElementById("BundleReal_switch").checked;
+            if (checked) {
+                await fetch("http://10.0.30.175:8000/volume/mode/real", { method: "POST", headers: { "Authorization": `Bearer ${access_token}`} });
+            } else {
+                await fetch("http://10.0.30.175:8000/volume/mode/bundle", { method: "POST", headers: { "Authorization": `Bearer ${access_token}`} });
+            }
+        }
+
+        async function DebugMode_toggle() {
+            refreshAccessToken();
+            const access_token = localStorage.getItem("access_token");
+
+            const checked = document.getElementById("DebugMode_switch").checked;
+            if (checked) {
+                await fetch("http://10.0.30.175:8000/debug/mode/on", { method: "POST", headers: { "Authorization": `Bearer ${access_token}` } });
+            } else {
+                await fetch("http://10.0.30.175:8000/debug/mode/off", { method: "POST", headers: { "Authorization": `Bearer ${access_token}` } });
+            }
+        }
+
+        async function AutoManual_toggle() {
+            refreshAccessToken();
+            const access_token = localStorage.getItem("access_token");
+
+            const checked = document.getElementById("AutoManual_switch").checked;
+            if (checked) {
+                await fetch("http://10.0.30.175:8000/calibrate/mode/manual", { method: "POST", headers: { "Authorization": `Bearer ${access_token}` }});
+                selected_point = null;
+            } else {
+                await fetch("http://10.0.30.175:8000/calibrate/mode/automatic", { method: "POST", headers: { "Authorization": `Bearer ${access_token}` }});
+            }
+
+            setColorDropdownState(checked);
+        }
+
+        async function exposureSet_click() {
+            const value = parseInt(document.getElementById("exposureTime").value);
+            
+            if (isNaN(value)) {
+                document.getElementById("config-error").textContent = "Only integer values are allowed for exposure time.";
+                return;
+            }
+
+            if (value < 100 || value > 4000) {
+                document.getElementById("config-error").textContent = "Exposure Time value must be between 100 and 4000.";
+                return;
+            }
+
+            try {
+                refreshAccessToken();
+                const access_token = localStorage.getItem("access_token");
+
+                await fetch("http://10.0.30.175:8000/update_systemInfo", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json", "Authorization": `Bearer ${access_token}`
+                    },
+                    body: JSON.stringify({ exposureTime: value })
+                });
+            } catch (error) {
+                console.error("Exposure set error:", error);
+            }
+        }
+
+        async function colorSlopeSet_click() {
+            const value = parseInt(document.getElementById("colorSlope").value);
+            if (isNaN(value)) {
+                document.getElementById("config-error").textContent = "Only integer values are allowed for color slope.";
+                return;
+            }
+
+            if (value < 150 || value > 5000) {
+                document.getElementById("config-error").textContent = "Color Slope value must be between 150 and 5000.";
+                return;
+            }
+
+            try {
+                refreshAccessToken();
+                const access_token = localStorage.getItem("access_token");
+
+                await fetch("http://10.0.30.175:8000/update_systemInfo", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json", "Authorization": `Bearer ${access_token}`
+                    },
+                    body: JSON.stringify({ colorSlope: value })
+                });
+            } catch (error) {
+                console.error("Color slope set error:", error);
+            }
+        }
+
+        async function refreshToggles() {
+            try {
+                if(currentMenu === "config-menu") {
+                    // MODE (Static / Dynamic)
+                    let r = await fetch("http://10.0.30.175:8000/working/mode", {headers: { "Authorization": `Bearer ${access_token}`}});
+                    let modeData = await r.json();
+
+                    document.getElementById("StaticDynamic_switch").checked =
+                        (modeData["Mode"] === "Dynamic");
+
+                    // EXPOSITION MODE
+                    r = await fetch("http://10.0.30.175:8000/exposition/mode", {headers: { "Authorization": `Bearer ${access_token}`}});
+                    let expData = await r.json();
+
+                    document.getElementById("ExpHDR_switch").checked =
+                        (expData["Exposition Mode"] === "HDR");
+
+                    // DEBUG MODE
+                    r = await fetch("http://10.0.30.175:8000/debug/mode", {headers: { "Authorization": `Bearer ${access_token}`}});
+                    let debugData = await r.json();
+
+                    document.getElementById("DebugMode_switch").checked =
+                        (debugData["Debug Mode"] === "On");
+                } else if (currentMenu === "calibration-menu") {
+                    // CALIBRATION MODE
+                    r = await fetch("http://10.0.30.175:8000/calibrate/mode", {headers: { "Authorization": `Bearer ${access_token}`}});
+                    let calibData = await r.json();
+
+                    document.getElementById("AutoManual_switch").checked =
+                        (calibData["Calibrate Mode"] === "Manual");
+                }
+            } catch (error) {
+                console.log("Toggle refresh error:", error);
+            }
+
+            // só continua a atualizar se estiveres no config menu
+            if (currentMenu === "config-menu" || currentMenu === "calibration-menu") {
+                setTimeout(refreshToggles, 500);
+            }
+        }
+
+        async function applyMask(access_token) {
+            try {
+                if (currentMenu !== "calibration-menu") return;
+                const r = await fetch("http://10.0.30.175:8000/mask", {headers: { "Authorization": `Bearer ${access_token}`}});
+                const maskValues = await r.json();
+                await fetch("http://10.0.30.175:8000/applyMask", {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', "Authorization": `Bearer ${access_token}` },
+                    body: JSON.stringify(maskValues)
+                });
+            } catch (err) { console.warn("Erro applyMask:", err); }
+        }
+
+        async function applyManualWSDraw(access_token) {
+            try {
+                if (selected_point === null) {
+                    const r = await fetch("http://10.0.30.175:8000/calibrate/params", { headers: { "Authorization": `Bearer ${access_token}` } });
+                    detection_area = (await r.json())["Detected Area"];
+                }
+                await fetch("http://10.0.30.175:8000/applyManualWorkspace", {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', "Authorization": `Bearer ${access_token}` },
+                    body: JSON.stringify({ detection_area })
+                });
+            } catch (err) { console.warn("Erro applyManualWSDraw:", err); }
+        }
+
+        async function workspaceDrawing(){
+            try{
+                const access_token = localStorage.getItem("access_token");
+                r = await fetch("http://10.0.30.175:8000/calibrate/mode", {headers: { "Authorization": `Bearer ${access_token}`}});
+                let calibData = await r.json();
+                if (calibData["Calibrate Mode"] === "Automatic") {
+                    applyMask(access_token);
+                } else if (calibData["Calibrate Mode"] === "Manual") {
+                    applyManualWSDraw(access_token);
+                }
+            } catch (err) { console.warn("Erro drawing Workspace:", err); }
+            
+            if (currentMenu === "calibration-menu") {
+                setTimeout(workspaceDrawing, 500);
+            }
+        }
+
+        async function screenClick() {
+            if (colorClickInitialized) return;
+
+            const img = document.getElementById("calibration-colorToDepthimg");
+            img.addEventListener("click", async (event) => {
+
+                try {
+                    refreshAccessToken();
+                    const access_token = localStorage.getItem("access_token");
+
+                    if (currentMenu === "calibration-menu"){
+                        const r = await fetch("http://10.0.30.175:8000/calibrate/mode", {headers: { "Authorization": `Bearer ${access_token}`}});
+                        let calibData = await r.json();
+
+                        if (calibData["Calibrate Mode"] === "Automatic") {
+                            const r = await fetch("http://10.0.30.175:8000/mask", {headers: { "Authorization": `Bearer ${access_token}`}});
+                            const maskValues = await r.json();
+                            let optionSelected = maskValues.optionSelected;
+
+                            const rect = img.getBoundingClientRect();
+                            const x = Math.round((event.clientX - rect.left) * (img.naturalWidth / rect.width));
+                            const y = Math.round((event.clientY - rect.top) * (img.naturalHeight / rect.height));
+
+                            await fetch("http://10.0.30.175:8000/mask/colorClick", {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${access_token}` },
+                                body: JSON.stringify({x, y})
+                            });
+
+                            const canvas = document.createElement("canvas");
+                            const ctx = canvas.getContext("2d");
+
+                            canvas.width = img.naturalWidth;
+                            canvas.height = img.naturalHeight;
+                            ctx.drawImage(img, 0, 0);
+
+                            const preview = document.getElementById("color-preview");
+
+                            const pixel = ctx.getImageData(x, y, 1, 1).data;
+                            const r_color = pixel[0];
+                            const g_color = pixel[1];
+                            const b_color = pixel[2];
+
+                            document.getElementById("r-val").textContent = r_color;
+                            document.getElementById("g-val").textContent = g_color;
+                            document.getElementById("b-val").textContent = b_color;
+
+                            preview.style.backgroundColor = `rgb(${r_color}, ${g_color}, ${b_color})`;
+
+                        } else if (calibData["Calibrate Mode"] === "Manual") {
+                            const r = await fetch("http://10.0.30.175:8000/calibrate/params", { headers: { "Authorization": `Bearer ${access_token}` } });
+                            const response = await r.json();
+                            let points = response["Detected Area"];
+
+                            const rect = img.getBoundingClientRect();
+                            const x = (event.clientX - rect.left) * (img.naturalWidth / rect.width);
+                            const y = (event.clientY - rect.top) * (img.naturalHeight / rect.height);
+
+                            let minDist = Infinity;
+                            let closestPoint = null;
+
+                            points.forEach((point, index) => {
+                                const dist = Math.sqrt((point[0] - x) ** 2 + (point[1] - y) **2);
+                                if (dist < minDist){
+                                    minDist = dist;
+                                    closestPoint = index;
+                                }
+                            });
+
+                            if (minDist <= 10){
+                                selected_point = closestPoint;
+                                console.log("Selected point:", selected_point);
+                            } else {
+                                selected_point = null;
+                                console.log("None of the points were selected")
+                            }
+                        }
+                    }
+                } catch (err) { console.warn("Erro colorClick:", err); }
+            });
+                    
+            colorClickInitialized = true;
+        }
+
+        document.addEventListener("keydown", async (event) => {
+            try {
+                refreshAccessToken();
+                const access_token = localStorage.getItem("access_token");
+
+                if (currentMenu === "calibration-menu") {
+                    const r_mode = await fetch("http://10.0.30.175:8000/calibrate/mode", {headers: { "Authorization": `Bearer ${access_token}`}});
+                    const calibData = await r_mode.json();
+
+                    if (calibData["Calibrate Mode"] !== "Manual") return;
+
+                    // Pegar detection_area do servidor
+                    const r = await fetch("http://10.0.30.175:8000/calibrate/params", {headers: { "Authorization": `Bearer ${access_token}`}});
+                    let data = await r.json();
+                    detection_area = data["Detected Area"]; // [x1, y1, x2, y2]
+
+                    const img = document.getElementById("calibration-colorToDepthimg");
+                    const maxX = img.naturalWidth;
+                    const maxY = img.naturalHeight;
+
+                    let point = detection_area[selected_point];
+
+                    if (event.key === "ArrowLeft") {
+                        point[0] = Math.max(0, point[0] - step);
+
+                    } else if (event.key === "ArrowRight") {
+                        point[0] = Math.min(maxX, point[0] + step);
+
+                    } else if (event.key === "ArrowUp") {
+                        point[1] = Math.max(0, point[1] - step);
+
+                    } else if (event.key === "ArrowDown") {
+                        point[1] = Math.min(maxY, point[1] + step);
+
+                    }
+
+                    detection_area[selected_point] = point;
+                }
+            } catch (err) {
+                console.warn("Erro key_pressed:", err);
+            }
+        });
+
+        function startCalibration(){
+            if (calibrationPending === false){
+                document.getElementById("calibrationModal").style.display = "flex";
+            } else {
+                const img = document.getElementById("calibration-colorToDepthimg");
+                img.dataset.manual = "false";
+                calibrationPending = false;
+                calibrate_click();
+            }
+        }
+
+        async function setCalibrationMode(Manual){
+            refreshAccessToken();
+            const access_token = localStorage.getItem("access_token");
+
+            document.getElementById("calibrationModal").style.display = "none";
+            if (Manual){
+                const img = document.getElementById("calibration-colorToDepthimg");
+                img.dataset.manual = "true";
+                calibrationPending = true;
+                await fetch("http://10.0.30.175:8000/calibrate/mode/manual", { method: "POST", headers: { "Authorization": `Bearer ${access_token}` }});
+            } else{
+                calibrate_click();
+            }
+        }
+
+        async function calibrate_click() {
+            const calibrateLabel = document.getElementById("calibrateLabel");
+            const caliErrorLabel = document.getElementById("caliErrorLabel");
+
+            const TextCalibrated = "System Calibrated";
+            const TextNotCalibrated = "System was not Calibrated";
+            const TextError = "Error";
+            const TextWsNotEmpty = "Workspace isn't Empty";
+            const TextCenterNotAligned = "Center Point isn't Aligned";
+            const TextWsNotEmptyAndCenterNotAligned = "Center Point isn't Aligned and Workspace isn't Empty";
+            const TextClear = "";
+
+            try {
+                refreshAccessToken();
+                const access_token = localStorage.getItem("access_token");
+
+                const maskResponse = await fetch("http://10.0.30.175:8000/mask", {headers: { "Authorization": `Bearer ${access_token}`}});
+                if (!maskResponse.ok) throw new Error("Mask request failed");
+                const maskValues = await maskResponse.json();
+
+                const calibrateResponse = await fetch("http://10.0.30.175:8000/calibrate", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json", "Authorization": `Bearer ${access_token}`
+                    },
+                    body: JSON.stringify(maskValues)
+                });
+
+                if (!calibrateResponse.ok) throw new Error("Calibrate request failed");
+
+                const flagsResponse = await fetch("http://10.0.30.175:8000/calibrate/flags", { headers: { "Authorization": `Bearer ${access_token}` } });
+                if (!flagsResponse.ok) throw new Error("Flags request failed");
+
+                const data = await flagsResponse.json();
+
+                const center_aligned = data["Center Aligned"];
+                const ws_clear = data["Workspace Clear"];
+
+                if (center_aligned && ws_clear) {
+                    calibrateLabel.innerText = TextCalibrated;
+                    caliErrorLabel.innerText = TextClear;
+                }
+                else if (center_aligned && !ws_clear) {
+                    calibrateLabel.innerText = TextNotCalibrated;
+                    caliErrorLabel.innerText = TextWsNotEmpty;
+                }
+                else if (!center_aligned && ws_clear) {
+                    calibrateLabel.innerText = TextNotCalibrated;
+                    caliErrorLabel.innerText = TextCenterNotAligned;
+                }
+                else {
+                    calibrateLabel.innerText = TextNotCalibrated;
+                    caliErrorLabel.innerText = TextWsNotEmptyAndCenterNotAligned;
+                }
+
+                r = await fetch("http://10.0.30.175:8000/calibrate/mode", {headers: { "Authorization": `Bearer ${access_token}`}});
+                let calibData = await r.json();
+                if (calibData["Calibrate Mode"] === "Manual") {
+                    await fetch("http://10.0.30.175:8000/calibrate/mode/automatic", { method: "POST", headers: { "Authorization": `Bearer ${access_token}` }});
+                }
+
+                selected_point = null;
+
+            } catch (error) {
+                calibrateLabel.innerText = TextError;
+                caliErrorLabel.innerText = TextError;
+                console.error(error);
+            }
+        }
+
+        function startTokenCheck() {
+            timer = 5 * 60 * 1000; // 5 minutos (300000ms)
+            
+            tokenCheckInterval = setInterval(async () => {
+                const access_token = localStorage.getItem("access_token");
+                if (!access_token) {
+                    logout();
+                }
+
+                const refresh_token = localStorage.getItem("refresh_token");
+                try{
+                    const payloadBase64 = refresh_token.split('.')[1];
+                    const payload = JSON.parse(atob(payloadBase64));
+                    const exp = payload.exp;
+                    const currentTime = Math.floor(Date.now() / 1000);
+
+                    if(currentTime >= exp){
+                        logout();
+                    }
+                } catch (e) {
+                }
+
+            }, timer); // 5 minutos
+        }
+
+        async function refreshAccessToken() {
+            const refreshToken = localStorage.getItem("refresh_token");
+            if (!refreshToken) return false;
+
+            try {
+                const response = await fetch('http://10.0.30.175:8000/refresh', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ refresh_token: refreshToken })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    localStorage.setItem("access_token", data.access_token);
+                    localStorage.setItem("refresh_token", data.refresh_token);
+                    return true;
+                }
+            } catch (e) {}
+
+            return false;
+        }
+
+        async function startWebRTC() {
+            const access_token = localStorage.getItem("access_token");
+
+            pc = new RTCPeerConnection();
+
+            pc.addTransceiver('video', { direction: 'recvonly' });
+
+            pc.ontrack = (event) => {
+                const video = document.getElementById("camera-video");
+                video.srcObject = event.streams[0];
+            };
+
+            const offer = await pc.createOffer();
+            await pc.setLocalDescription(offer);
+
+            const response = await fetch("http://10.0.30.175:8000/offer", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${access_token}`
+                },
+                body: JSON.stringify({
+                    sdp: pc.localDescription.sdp,
+                    type: pc.localDescription.type
+                })
+            });
+
+            const answer = await response.json();
+
+            await pc.setRemoteDescription(answer);
+        }
+
+        function stopWebRTC() {
+            if (pc) {
+                pc.close();
+                pc = null;
+            }
+
+            const video = document.getElementById("camera-video");
+
+            if (video.srcObject) {
+                video.srcObject.getTracks().forEach(track => track.stop());
+                video.srcObject = null;
+            }
+        }
+
+        function openMenuNav() {
+            closeUserNav()
+            document.getElementById("menuSideNav").style.width = "12%";
+        }
+
+        function closeMenuNav() {
+            document.getElementById("menuSideNav").style.width = "0";
+        }
+
+        function openUserNav() {
+            closeMenuNav()
+
+            refreshAccessToken();
+
+            const currentUser = JSON.parse(localStorage.getItem("current_user"));
+
+            if (!currentUser) return;
+
+            document.getElementById("user-name").textContent = "User: " + currentUser.username;
+            document.getElementById("user-role").textContent = "Role: " + currentUser.role;
+
+            document.getElementById("userSideNav").style.width = "12%";
+        }
+
+        function closeUserNav() {
+            document.getElementById("userSideNav").style.width = "0";
+        }
+
+    </script>
+
+</body>
+</html>
