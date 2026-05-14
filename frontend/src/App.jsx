@@ -5,6 +5,8 @@ import heroImg from './assets/hero.png'
 import './App.css'
 
 function App() {
+  const API_URL = import.meta.env.VITE_API_URL;
+
   // Errors and Info
   const TextLoginWelcome = "Welcome!"
   const TextLoginCredentials = "Please insert your login credentials.";
@@ -102,6 +104,7 @@ function App() {
   const [lockMenu, setLockMenu] = useState(false);
 
   useEffect(() => {
+    console.log(API_URL);
     const user = JSON.parse(localStorage.getItem("current_user"));
 
     if (!user) return;
@@ -118,7 +121,7 @@ function App() {
     }
 
     try {
-      const res = await fetch("http://10.0.30.175:8000/calibration/status", {
+      const res = await fetch(`${API_URL}/calibration/status`, {
         headers: {
           "Authorization": `Bearer ${access_token}`
         }
@@ -162,7 +165,7 @@ function App() {
     }
 
     try {
-      const response = await fetch("http://10.0.30.175:8000/login", {
+      const response = await fetch(`${API_URL}/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -203,7 +206,7 @@ function App() {
     refreshAccessToken();
     const access_token = localStorage.getItem("access_token");
 
-    const res = await fetch("http://10.0.30.175:8000/calibration/status", {
+    const res = await fetch(`${API_URL}/calibration/status`, {
       headers: {
         "Authorization": `Bearer ${access_token}`
       }
@@ -234,7 +237,7 @@ function App() {
       }
 
       try {
-          const response = await fetch('http://10.0.30.175:8000/register', {
+          const response = await fetch(`${API_URL}/register`, {
               method: 'POST',
               headers: {
                   'Content-Type': 'application/json'
@@ -302,7 +305,7 @@ function App() {
       workspaceDrawing();
       if (calibrationImage.current) {
         calibrationImage.current.crossOrigin = "anonymous";
-        calibrationImage.current.src = "http://10.0.30.175:8000/calibrationCTD";
+        calibrationImage.current.src = `${API_URL}/calibrationCTD`;
       }
     }
 
@@ -328,7 +331,7 @@ function App() {
         refreshAccessToken();
         const access_token = localStorage.getItem("access_token");
 
-        const response = await fetch("http://10.0.30.175:8000/volume/mode", {headers: { "Authorization": `Bearer ${access_token}`}});
+        const response = await fetch(`${API_URL}/volume/mode`, {headers: { "Authorization": `Bearer ${access_token}`}});
         let volumeMode = await response.json();
         if (volumeMode["Volume Mode"] === "Bundle"){
           volumeBundle(access_token);
@@ -347,9 +350,9 @@ function App() {
       setVolInfo(null);
       setVolumeData(null);
 
-      await fetch('http://10.0.30.175:8000/volume/bundle', { method: 'POST', headers: { "Authorization": `Bearer ${access_token}` } });
+      await fetch(`${API_URL}/volume/bundle`, { method: 'POST', headers: { "Authorization": `Bearer ${access_token}` } });
 
-      const response = await fetch('http://10.0.30.175:8000/getObjectsOutOfLine', {headers: { "Authorization": `Bearer ${access_token}`}});
+      const response = await fetch(`${API_URL}/getObjectsOutOfLine`, {headers: { "Authorization": `Bearer ${access_token}`}});
       const data = await response.json();
       const objectsOutOfLine = data.objects_outOfLine.map((val, i) => val ? i + 1 : null).filter(v => v !== null);
       if (objectsOutOfLine.length > 0) {
@@ -357,7 +360,7 @@ function App() {
       } else {
           setError([TextClear]);
 
-          const dataResponse = await fetch('http://10.0.30.175:8000/volume/bundle/results', {headers: { "Authorization": `Bearer ${access_token}`}});
+          const dataResponse = await fetch(`${API_URL}/volume/bundle/results`, {headers: { "Authorization": `Bearer ${access_token}`}});
           const volumeData = await dataResponse.json();
 
           setVolInfo({
@@ -369,7 +372,7 @@ function App() {
           })
       }
 
-      const imgResp = await fetch("http://10.0.30.175:8000/getFrame/detectedObjectsFrame", {headers: { "Authorization": `Bearer ${access_token}` }});
+      const imgResp = await fetch(`${API_URL}/getFrame/detectedObjectsFrame`, {headers: { "Authorization": `Bearer ${access_token}` }});
       if (imgResp.status === 404) throw new Error("Frame not Available");
 
       const blob = await imgResp.blob();
@@ -408,9 +411,9 @@ function App() {
         setVolInfo(null);
         setVolumeData(null);
 
-        await fetch('http://10.0.30.175:8000/volume/real', { method: 'POST', headers: { "Authorization": `Bearer ${access_token}` } });
+        await fetch(`${API_URL}/volume/real`, { method: 'POST', headers: { "Authorization": `Bearer ${access_token}` } });
 
-        const response = await fetch('http://10.0.30.175:8000/getObjectsOutOfLine', {headers: { "Authorization": `Bearer ${access_token}`}});
+        const response = await fetch(`${API_URL}/getObjectsOutOfLine`, {headers: { "Authorization": `Bearer ${access_token}`}});
         const data = await response.json();
         const objectsOutOfLine = data.objects_outOfLine.map((val, i) => val ? i + 1 : null).filter(v => v !== null);
         if (objectsOutOfLine.length > 0) {
@@ -419,12 +422,12 @@ function App() {
             setError([TextClear]);
         }
 
-        const dataResponse = await fetch('http://10.0.30.175:8000/volume/real/results', {headers: { "Authorization": `Bearer ${access_token}`}});
+        const dataResponse = await fetch(`${API_URL}/volume/real/results`, {headers: { "Authorization": `Bearer ${access_token}`}});
         const volumeData = await dataResponse.json();
 
         setVolumeData(volumeData);
 
-        const imgResp = await fetch("http://10.0.30.175:8000/getFrame/detectedObjectsFrame", {headers: { "Authorization": `Bearer ${access_token}` }});
+        const imgResp = await fetch(`${API_URL}/getFrame/detectedObjectsFrame`, {headers: { "Authorization": `Bearer ${access_token}` }});
         if (imgResp.status === 404) throw new Error("Frame not Available");
 
         const blob = await imgResp.blob();
@@ -435,7 +438,13 @@ function App() {
         const objIdentified = Object.keys(volumeData).filter(key => key !== "Total");
         
         if (objIdentified.length === 1) {
-          const objData = volumeData[objIdentified[0]];
+          
+          const key = objIdentified[0];
+          const objData = volumeData[key];
+
+          setSelectedObject(key);
+
+          setObjectList([key]);
           setVolInfo({
             volume_m: objData.volume_m,
             volume_cm: objData.volume_cm,
@@ -711,9 +720,9 @@ function App() {
     const access_token = localStorage.getItem("access_token");
     
     if (checked) {
-        await fetch("http://10.0.30.175:8000/exposition/mode/hdr", { method: "POST", headers: { "Authorization": `Bearer ${access_token}`} });
+        await fetch(`${API_URL}/exposition/mode/hdr`, { method: "POST", headers: { "Authorization": `Bearer ${access_token}`} });
     } else {
-        await fetch("http://10.0.30.175:8000/exposition/mode/fixed", { method: "POST", headers: { "Authorization": `Bearer ${access_token}`} });
+        await fetch(`${API_URL}/exposition/mode/fixed`, { method: "POST", headers: { "Authorization": `Bearer ${access_token}`} });
     }
   }
 
@@ -726,10 +735,10 @@ function App() {
     const access_token = localStorage.getItem("access_token");
 
     if (checked) {
-        await fetch("http://10.0.30.175:8000/volume/mode/real", { method: "POST", headers: { "Authorization": `Bearer ${access_token}`} });
+        await fetch(`${API_URL}/volume/mode/real`, { method: "POST", headers: { "Authorization": `Bearer ${access_token}`} });
         setVolBundleMode(false);
     } else {
-        await fetch("http://10.0.30.175:8000/volume/mode/bundle", { method: "POST", headers: { "Authorization": `Bearer ${access_token}`} });
+        await fetch(`${API_URL}/volume/mode/bundle`, { method: "POST", headers: { "Authorization": `Bearer ${access_token}`} });
         setVolBundleMode(true);
         setSelectedObject("");
     }
@@ -743,9 +752,9 @@ function App() {
     const access_token = localStorage.getItem("access_token");
 
     if (checked) {
-        await fetch("http://10.0.30.175:8000/working/mode/dynamic", { method: "POST", headers: { "Authorization": `Bearer ${access_token}`} });
+        await fetch(`${API_URL}/working/mode/dynamic`, { method: "POST", headers: { "Authorization": `Bearer ${access_token}`} });
     } else {
-        await fetch("http://10.0.30.175:8000/working/mode/static", { method: "POST", headers: { "Authorization": `Bearer ${access_token}`} });
+        await fetch(`${API_URL}/working/mode/static`, { method: "POST", headers: { "Authorization": `Bearer ${access_token}`} });
     }
   }
 
@@ -757,9 +766,9 @@ function App() {
     const access_token = localStorage.getItem("access_token");
 
     if (checked) {
-        await fetch("http://10.0.30.175:8000/debug/mode/on", { method: "POST", headers: { "Authorization": `Bearer ${access_token}` } });
+        await fetch(`${API_URL}/debug/mode/on`, { method: "POST", headers: { "Authorization": `Bearer ${access_token}` } });
     } else {
-        await fetch("http://10.0.30.175:8000/debug/mode/off", { method: "POST", headers: { "Authorization": `Bearer ${access_token}` } });
+        await fetch(`${API_URL}/debug/mode/off`, { method: "POST", headers: { "Authorization": `Bearer ${access_token}` } });
     }
   }
 
@@ -780,7 +789,7 @@ function App() {
         refreshAccessToken();
         const access_token = localStorage.getItem("access_token");
 
-        await fetch("http://10.0.30.175:8000/update_systemInfo", {
+        await fetch(`${API_URL}/update_systemInfo`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json", "Authorization": `Bearer ${access_token}`
@@ -810,7 +819,7 @@ function App() {
         refreshAccessToken();
         const access_token = localStorage.getItem("access_token");
 
-        await fetch("http://10.0.30.175:8000/update_systemInfo", {
+        await fetch(`${API_URL}/update_systemInfo`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json", "Authorization": `Bearer ${access_token}`
@@ -845,25 +854,25 @@ function App() {
 
       if(currentMenu === "config-menu") {
           // EXPOSITION MODE
-          const r1 = await fetch("http://10.0.30.175:8000/exposition/mode", {headers: { "Authorization": `Bearer ${access_token}`}});
+          const r1 = await fetch(`${API_URL}/exposition/mode`, {headers: { "Authorization": `Bearer ${access_token}`}});
           const expData = await r1.json();
 
           setExpHDR(expData["Exposition Mode"] === "HDR");
 
           // VOLUME MODE
-          const r2 = await fetch("http://10.0.30.175:8000/volume/mode", {headers: { "Authorization": `Bearer ${access_token}`}});
+          const r2 = await fetch(`${API_URL}/volume/mode`, {headers: { "Authorization": `Bearer ${access_token}`}});
           const volumeData = await r2.json();
 
           setBundleReal(volumeData["Volume Mode"] === "Real");
 
          // MODE (Static / Dynamic)
-          const r3 = await fetch("http://10.0.30.175:8000/working/mode", {headers: { "Authorization": `Bearer ${access_token}`}});
+          const r3 = await fetch(`${API_URL}/working/mode`, {headers: { "Authorization": `Bearer ${access_token}`}});
           const modeData = await r3.json();
 
           setStaticDynamic(modeData["Mode"] === "Dynamic");
 
           // DEBUG MODE
-          const r4 = await fetch("http://10.0.30.175:8000/debug/mode", {headers: { "Authorization": `Bearer ${access_token}`}});
+          const r4 = await fetch(`${API_URL}/debug/mode`, {headers: { "Authorization": `Bearer ${access_token}`}});
           const debugData = await r4.json();
 
           setDebugMode(debugData["Debug Mode"] === "On");
@@ -875,9 +884,9 @@ function App() {
 
   async function applyMask(access_token) {
     try {
-      const r = await fetch("http://10.0.30.175:8000/mask", {headers: { "Authorization": `Bearer ${access_token}`}});
+      const r = await fetch(`${API_URL}/mask`, {headers: { "Authorization": `Bearer ${access_token}`}});
       const maskValues = await r.json();
-      await fetch("http://10.0.30.175:8000/applyMask", {
+      await fetch(`${API_URL}/applyMask`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', "Authorization": `Bearer ${access_token}` },
           body: JSON.stringify(maskValues)
@@ -888,10 +897,10 @@ function App() {
   async function applyManualWSDraw(access_token) {
     try {
       if (selectedPoint.current === null) {
-          const r = await fetch("http://10.0.30.175:8000/calibrate/params", { headers: { "Authorization": `Bearer ${access_token}` } });
+          const r = await fetch(`${API_URL}/calibrate/params`, { headers: { "Authorization": `Bearer ${access_token}` } });
           detectionArea.current = (await r.json())["Detected Area"];
       }
-      await fetch("http://10.0.30.175:8000/applyManualWorkspace", {
+      await fetch(`${API_URL}/applyManualWorkspace`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', "Authorization": `Bearer ${access_token}` },
           body: JSON.stringify({ detection_area: detectionArea.current, selected_point: selectedPoint.current })
@@ -925,7 +934,7 @@ function App() {
   async function workspaceDrawing(){
     try{
       const access_token = localStorage.getItem("access_token");
-      const r = await fetch("http://10.0.30.175:8000/calibrate/mode", {headers: { "Authorization": `Bearer ${access_token}`}});
+      const r = await fetch(`${API_URL}/calibrate/mode`, {headers: { "Authorization": `Bearer ${access_token}`}});
       const calibData = await r.json();
       if (calibData["Calibrate Mode"] === "Automatic") {
         if (currentMenu !== "calibration-menu") return;
@@ -948,7 +957,7 @@ function App() {
         const access_token = localStorage.getItem("access_token");
 
         const calibRes = await fetch(
-          "http://10.0.30.175:8000/calibrate/mode",
+          `${API_URL}/calibrate/mode`,
           { headers: { "Authorization": `Bearer ${access_token}` } }
         );
 
@@ -961,7 +970,7 @@ function App() {
         if (calibData["Calibrate Mode"] === "Automatic") {
 
           await fetch(
-            "http://10.0.30.175:8000/mask/colorClick",
+            `${API_URL}/mask/colorClick`,
             {
               method: "POST",
               headers: {
@@ -997,7 +1006,7 @@ function App() {
         } else if (calibData["Calibrate Mode"] === "Manual") {
 
           const r = await fetch(
-            "http://10.0.30.175:8000/calibrate/params",
+            `${API_URL}/calibrate/params`,
             { headers: { "Authorization": `Bearer ${access_token}` } }
           );
 
@@ -1057,14 +1066,14 @@ function App() {
 
       const handleKeyDown = async (event) => {
         try{
-          const r_mode = await fetch("http://10.0.30.175:8000/calibrate/mode", {headers: { "Authorization": `Bearer ${access_token}`}});
+          const r_mode = await fetch(`${API_URL}/calibrate/mode`, {headers: { "Authorization": `Bearer ${access_token}`}});
           const calibData = await r_mode.json();
 
           if (calibData["Calibrate Mode"] !== "Manual") return;
 
           if (selectedPoint.current === null) return;
 
-          //const r = await fetch("http://10.0.30.175:8000/calibrate/params", {headers: { "Authorization": `Bearer ${access_token}`}});
+          //const r = await fetch(`${API_URL}/calibrate/params`, {headers: { "Authorization": `Bearer ${access_token}`}});
           //let data = await r.json();
           //let detection_area = data["Detected Area"]; // [x1, y1, x2, y2]
 
@@ -1124,26 +1133,31 @@ function App() {
     const img = calibrationImage.current;
     if (!img) return;
 
-    img.addEventListener("mousedown", handleMouseDown);
-    img.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("mouseup", handleMouseUp);
+    img.addEventListener("pointerdown", handleMouseDown);
+    img.addEventListener("pointermove", handleMouseMove);
+    window.addEventListener("pointerup", handleMouseUp);
+    window.addEventListener("pointercancel", handleMouseUp);
 
     return () => {
-      img.removeEventListener("mousedown", handleMouseDown);
-      img.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", handleMouseUp);
+      img.removeEventListener("pointerdown", handleMouseDown);
+      img.removeEventListener("pointermove", handleMouseMove);
+      window.removeEventListener("pointerup", handleMouseUp);
+      window.removeEventListener("pointercancel", handleMouseUp);
     };
   }, [currentMenu, calibrationMode]);
   
   function getMousePos(event, img) {
     const rect = img.getBoundingClientRect();
 
+    const clientX = event.clientX ?? event.touches?.[0]?.clientX;
+    const clientY = event.clientY ?? event.touches?.[0]?.clientY;
+
     const x = Math.round(
-      (event.clientX - rect.left) * (img.naturalWidth / rect.width)
+      (clientX - rect.left) * (img.naturalWidth / rect.width)
     );
 
     const y = Math.round(
-      (event.clientY - rect.top) * (img.naturalHeight / rect.height)
+      (clientY - rect.top) * (img.naturalHeight / rect.height)
     );
 
     return { x, y };
@@ -1154,6 +1168,8 @@ function App() {
 
     const img = calibrationImage.current;
     if (!img) return;
+
+    img.setPointerCapture?.(event.pointerId);
 
     const { x, y } = getMousePos(event, img);
 
@@ -1208,10 +1224,10 @@ function App() {
       
       if (Manual){
         setCalibrationMode("manual");
-        await fetch("http://10.0.30.175:8000/calibrate/mode/manual", { method: "POST", headers: { "Authorization": `Bearer ${access_token}` }});
+        await fetch(`${API_URL}/calibrate/mode/manual`, { method: "POST", headers: { "Authorization": `Bearer ${access_token}` }});
       } else {
         setCalibrationMode("auto");
-        await fetch("http://10.0.30.175:8000/calibrate/mode/automatic", { method: "POST", headers: { "Authorization": `Bearer ${access_token}` }});
+        await fetch(`${API_URL}/calibrate/mode/automatic`, { method: "POST", headers: { "Authorization": `Bearer ${access_token}` }});
       }
   }
 
@@ -1222,11 +1238,11 @@ function App() {
       refreshAccessToken();
       const access_token = localStorage.getItem("access_token");
 
-      const maskResponse = await fetch("http://10.0.30.175:8000/mask", {headers: { "Authorization": `Bearer ${access_token}`}});
+      const maskResponse = await fetch(`${API_URL}/mask`, {headers: { "Authorization": `Bearer ${access_token}`}});
       if (!maskResponse.ok) throw new Error("Mask request failed");
       const maskValues = await maskResponse.json();
 
-      const calibrateResponse = await fetch("http://10.0.30.175:8000/calibrate", {
+      const calibrateResponse = await fetch(`${API_URL}/calibrate`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json", "Authorization": `Bearer ${access_token}`
@@ -1236,7 +1252,7 @@ function App() {
 
       if (!calibrateResponse.ok) throw new Error("Calibrate request failed");
 
-      const flagsResponse = await fetch("http://10.0.30.175:8000/calibrate/flags", { headers: { "Authorization": `Bearer ${access_token}` } });
+      const flagsResponse = await fetch(`${API_URL}/calibrate/flags`, { headers: { "Authorization": `Bearer ${access_token}` } });
       if (!flagsResponse.ok) throw new Error("Flags request failed");
 
       const data = await flagsResponse.json();
@@ -1258,10 +1274,10 @@ function App() {
         setError([TextNotCalibrated, TextWsNotEmptyAndCenterNotAligned]);
       }
 
-      /*const r = await fetch("http://10.0.30.175:8000/calibrate/mode", {headers: { "Authorization": `Bearer ${access_token}`}});
+      /*const r = await fetch(`${API_URL}/calibrate/mode`, {headers: { "Authorization": `Bearer ${access_token}`}});
       let calibData = await r.json();
       if (calibData["Calibrate Mode"] === "Manual") {
-        await fetch("http://10.0.30.175:8000/calibrate/mode/automatic", { method: "POST", headers: { "Authorization": `Bearer ${access_token}` }});
+        await fetch(`${API_URL}/calibrate/mode/automatic`, { method: "POST", headers: { "Authorization": `Bearer ${access_token}` }});
       }*/
 
       selectedPoint.current = null;
@@ -1282,7 +1298,7 @@ function App() {
       const access_token = localStorage.getItem("access_token");
 
       if(confirm){
-        const calibrateResponse = await fetch("http://10.0.30.175:8000/saveCalibration", {
+        const calibrateResponse = await fetch(`${API_URL}/saveCalibration`, {
           method: "POST",
           headers: {
               "Content-Type": "application/json", "Authorization": `Bearer ${access_token}`
@@ -1343,7 +1359,7 @@ function App() {
       if (!refreshToken) return false;
 
       try {
-          const response = await fetch('http://10.0.30.175:8000/refresh', {
+          const response = await fetch(`${API_URL}/refresh`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ refresh_token: refreshToken })
@@ -1390,7 +1406,7 @@ function App() {
     const offer = await pc.current.createOffer();
     await pc.current.setLocalDescription(offer);
 
-    const response = await fetch("http://10.0.30.175:8000/offer", {
+    const response = await fetch(`${API_URL}/offer`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",

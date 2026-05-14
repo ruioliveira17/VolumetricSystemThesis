@@ -796,9 +796,10 @@ def calibrate(data: HSVValue, current_user: dict = Depends(get_current_user)):
          """,
          tags=["Calibration"])
 def saveCalibration(current_user: dict = Depends(get_current_user)):
-    workspaceState.detection_area = workspaceState.detection_area
-    workspaceState.workspace_depth = workspaceState.workspace_depth
-    frameState.calibrationColorFrame = frameState.calibrationColorFrame
+    workspaceState.detection_area = workspaceState.temp_detection_area
+    workspaceState.workspace_depth = workspaceState.temp_workspace_depth
+    camState.colorSlope = int(workspaceState.temp_workspace_depth * 1.4)
+    frameState.calibrationColorFrame = frameState.temp_calibrationColorFrame
 
     if workspaceState.center_aligned is True and workspaceState.workspace_clear is True:
         save_WS_calibration()

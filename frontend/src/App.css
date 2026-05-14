@@ -876,6 +876,7 @@ body {
 
   -webkit-user-drag: none;
   user-select: none;
+  touch-action: none;
 }
 
 .calibration-colorToDepthimg:hover {
