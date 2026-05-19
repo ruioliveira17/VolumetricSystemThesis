@@ -85,6 +85,8 @@ def volumeRealAPI(depthFrame, workspace_depth, box_limits, depths, fx_d, fy_d, c
     totalVolume = 0
 
     for i in range((len(depths))):
+        if box_limits[i] is None:
+            continue
         pts_flat = box_limits[i].reshape(-1,2)
         rect_px = cv2.minAreaRect(pts_flat.astype(numpy.float32))
         box_px = cv2.boxPoints(rect_px)
@@ -145,7 +147,7 @@ def isInside(box1, box2):
 
     result = inside / len(box1)
     
-    if result > 0.05:
+    if result > 0.15:
         return True
     else:
         return False

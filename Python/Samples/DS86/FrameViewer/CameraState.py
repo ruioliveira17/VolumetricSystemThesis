@@ -42,7 +42,8 @@ class CameraState:
         self.fy_rgb = 0
 
         self.hdrEnabled = True
-        self.hdrExposures = [200, 675, 1150, 1625, 2100, 2575, 3050, 3525, 4000]
+        self.hdrExposures = [30, 824, 1618, 2412, 4000]
+        #self.hdrExposures = [200, 675, 1150, 1625, 2100, 2575, 3050, 3525, 4000]
         #self.hdrExposures = [200, 2100, 4000]
         self.hdrIndex = 0
 

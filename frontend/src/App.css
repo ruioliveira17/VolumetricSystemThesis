@@ -614,7 +614,7 @@ body {
 }
 
 .object-selection-menu{
-  position: absolute;
+  position: relative;
   left: 47.2%;
   top: 27.2%;
   width: 14.3%;
@@ -765,7 +765,7 @@ body {
 }
 
 .boxBundleInfo-container{
-  position: absolute;
+  position: relative;
   left: 47.2%;
   top: 27.2%;
   width: 51.2%;
@@ -851,6 +851,27 @@ body {
   width: 3vw;
   object-fit: contain;
   filter: brightness(0) invert(1);
+}
+
+.countdown {
+  position: absolute;
+
+  top: 5%;
+  left: 50%;
+  transform: translate(-50%, 0%);
+
+  display: flex; 
+  justify-content: center; 
+  align-items: center;
+
+  width: 50%; 
+  height: 20%; 
+  
+  font-size: 5vh; 
+  font-weight: bold; 
+  color: white; 
+  
+  z-index: 9999; 
 }
 
 /* ----------------- */

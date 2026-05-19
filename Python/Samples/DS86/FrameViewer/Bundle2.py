@@ -50,7 +50,7 @@ def boxes_overlap(box1, box2):
         return True
     return False
 
-def contours_overlap_by_points(c, prev_c, colorToDepth_copy, min_ratio = 0.4):
+def contours_overlap_by_points(c, prev_c, colorToDepth_copy, min_ratio = 0.25):
     inside = 0
     total = len(c)
     print("Total", total)
@@ -80,12 +80,20 @@ def is_valid_area(c, min_area = 150):
 
     return True
 
-def comparisonCaliImageCurrImage(colorFrame, calibrationColorFrame, box_scaled):
+def comparisonCaliImageCurrImage(colorFrame, calibrationColorFrame, depthFrame, calibrationDepthFrame, box_scaled, box):
     mask = numpy.zeros(colorFrame.shape[:2], dtype=numpy.uint8)
+    depth_mask = numpy.zeros(depthFrame.shape[:2], dtype=numpy.uint8)
 
     cv2.fillPoly(mask, [box_scaled], 255)
     total_pixels = numpy.count_nonzero(mask)
 
+    box = numpy.round(box).astype(numpy.int32)
+    box = box.reshape((-1, 1, 2))
+
+    cv2.fillPoly(depth_mask, [box], 255)
+    total_pixels_depth = numpy.count_nonzero(depth_mask)
+
+    # ---------------- COLOR ----------------
     current = cv2.bitwise_and(colorFrame, colorFrame, mask=mask)
     cali = cv2.bitwise_and(calibrationColorFrame, calibrationColorFrame, mask=mask)
 
@@ -97,12 +105,25 @@ def comparisonCaliImageCurrImage(colorFrame, calibrationColorFrame, box_scaled):
     diffPercentage = numpy.sum(diff>20) / total_pixels
     print("Diff Percentage:", diffPercentage)
 
-    if diffPercentage > 0.6:
+    # ---------------- DEPTH ----------------
+    print("depthFrame:", depthFrame.shape, depthFrame.dtype)
+    print("calibrationDepthFrame:", calibrationDepthFrame.shape, calibrationDepthFrame.dtype)
+    depthDiff = cv2.absdiff(
+        depthFrame.astype(numpy.float32),
+        calibrationDepthFrame.astype(numpy.float32)
+    )
+
+    validMask = depth_mask > 0
+
+    depthDiffPercentage = numpy.sum((depthDiff > 15) & validMask) / total_pixels_depth
+    print("Depth Diff Percentage:", depthDiffPercentage)
+
+    if diffPercentage > 0.3 and depthDiffPercentage >= 0.95 :
         return True
     
     return False
 
-def bundleIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFrame, objects_info, workspace_depth, threshold, colorSlope, cx_d, cy_d, cx_rgb, cy_rgb):
+def bundleIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFrame, calibrationDepthFrame, objects_info, workspace_depth, threshold, colorSlope, cx_d, cy_d, cx_rgb, cy_rgb):
     contours = []
     box_ws = []
     box_limits = []
@@ -307,7 +328,7 @@ def bundleIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColor
                     
     return minimum_value, not_set, box_ws, box_limits, depths, object_outOfLine
 
-def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFrame, objects_info, workspace_depth, threshold, colorSlope, cx_d, cy_d, cx_rgb, cy_rgb):
+def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFrame, calibrationDepthFrame, objects_info, workspace_depth, threshold, colorSlope, cx_d, cy_d, cx_rgb, cy_rgb):
     contours = []
     box_ws = []
     box_limits = []
@@ -368,7 +389,7 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
             #cv2.imwrite(f"debug_morf{i}.png", morf)
             #cv2.imwrite(f"debug_depth{i}.png", depth_filtered)
             #cv2.imwrite(f"debug_depthcolored{i}.png", depth_img)
-            cv2.imwrite(f"debug_binary{i}.png", binary)
+            #cv2.imwrite(f"debug_binary{i}.png", binary)
             #cv2.imwrite(f"debug_inv{i}.png", invBinary)
             #debug_contours = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
             #cv2.drawContours(debug_contours, contour, -1, (0,255,0), 2)
@@ -398,7 +419,7 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
                 box_scaled[:,1] = (box[:,1] - cy_d) * Sy + cy_rgb #+ (offset_y_959mm_depth * or_depth_offset)/workspace_depth
                 box_scaled = numpy.round(box_scaled).astype(numpy.int32)
                 print("Box_Scaled:", box_scaled)
-                if not comparisonCaliImageCurrImage(colorFrame, calibrationColorFrame, box_scaled):
+                if not comparisonCaliImageCurrImage(colorFrame, calibrationColorFrame, depthFrame, calibrationDepthFrame, box_scaled, box):
                     continue
 
                 if not is_valid_area(c):
@@ -407,7 +428,7 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
 
                 bbox_c = get_bbox(c)
 
-                for prev_list in contours:
+                for i_prev_obj, prev_list in enumerate(contours):
                     print("Watching Previous...")
                     for prev_c in prev_list:
                         bbox_prev = get_bbox(prev_c)
@@ -415,10 +436,29 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
                         if boxes_overlap(bbox_c, bbox_prev):
                             print("Wotefoque")
                             boxesOverlap, colorToDepth_copy2 = contours_overlap_by_points(c, prev_c, colorToDepth_copy2)
-                            
+                            print("Previous Depth:", depths[i_prev_obj])
                             if boxesOverlap: #or contourDifference < 0.02:
-                                belongs_to_previous = True
-                                print("Pertence ao anterior o macaco")
+                                #shouldMerge?
+                                if obj['depth'] - 5 <= depths[i_prev_obj] + threshold:
+                                    #merge
+                                    A = cv2.contourArea(c)
+                                    B = cv2.contourArea(prev_c)
+                                    if A > B:
+                                        del contours[i_prev_obj]
+                                        del objects_info[i_prev_obj]
+                                        all_pts = numpy.vstack([c.reshape(-1,2), prev_c.reshape(-1,2)])
+                                        merged_contour = cv2.convexHull(all_pts)
+                                        c = merged_contour
+                                        print("Deleted Previous Object because it was merged")
+                                    else:
+                                        all_pts = numpy.vstack([c.reshape(-1,2), prev_c.reshape(-1,2)])
+                                        merged_contour = cv2.convexHull(all_pts)
+                                        contours[i_prev_obj] = [merged_contour]
+                                        belongs_to_previous = True
+                                        print("Object Merged")
+                                else:
+                                    belongs_to_previous = True
+                                    print("Pertence ao anterior o macaco")
                                 break
                         if too_close(bbox_c, bbox_prev):
                             belongs_to_previous = True
@@ -429,6 +469,7 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
                     if belongs_to_previous:
                         break
                 if not belongs_to_previous:
+                    print("New")
                     workspace_warning = obj["workspace_warning"]
                     ws_poly = numpy.array(workspace_warning, dtype = numpy.int32)
                     value = False
@@ -438,6 +479,7 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
 
                         if cv2.pointPolygonTest(ws_poly, (x, y), False) < 0:
                             value = True
+                            print("Out of Line")
                             break
 
                     if not value:
@@ -449,31 +491,31 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
                         contours.append([all_shifted_contours])
                         box_ws.append(obj["workspace_limits"])
 
-                        mask = numpy.zeros(depthFrame.shape, dtype=numpy.uint8)
-                        kernel = numpy.ones((10, 10), dtype=numpy.uint8)
-                        mask = cv2.erode(mask, kernel, iterations=1)
-                        cv2.drawContours(mask, [c], contourIdx=-1, color=1, thickness=-1)
+                        # mask = numpy.zeros(depthFrame.shape, dtype=numpy.uint8)
+                        # kernel = numpy.ones((10, 10), dtype=numpy.uint8)
+                        # mask = cv2.erode(mask, kernel, iterations=1)
+                        # cv2.drawContours(mask, [c], contourIdx=-1, color=1, thickness=-1)
 
-                        previous_mask = numpy.zeros(depthFrame.shape, dtype=numpy.uint8)
+                        # previous_mask = numpy.zeros(depthFrame.shape, dtype=numpy.uint8)
 
-                        for prev_list in contours[:-1]:
-                            for prev_c in prev_list:
-                                cv2.drawContours(previous_mask, [prev_c], contourIdx=-1, color=1, thickness=-1)
+                        # for prev_list in contours[:-1]:
+                        #     for prev_c in prev_list:
+                        #         cv2.drawContours(previous_mask, [prev_c], contourIdx=-1, color=1, thickness=-1)
 
-                        valid_mask = (
-                            (mask == 1) &
-                            (previous_mask == 0) &
-                            (depthFrame > 150) &
-                            (depthFrame < workspace_depth - threshold)
-                        )
+                        # valid_mask = (
+                        #     (mask == 1) &
+                        #     (previous_mask == 0) &
+                        #     (depthFrame > 150) &
+                        #     (depthFrame < workspace_depth - threshold)
+                        # )
 
-                        depth_values = depthFrame[valid_mask]
-                        print("Depth Values:", depth_values)
-                        mean_depth = numpy.mean(depth_values)
-                        print("Mean Depth:", mean_depth)
+                        # depth_values = depthFrame[valid_mask]
+                        # print("Depth Values:", depth_values)
+                        # mean_depth = numpy.mean(depth_values)
+                        # print("Mean Depth:", mean_depth)
 
-                        depths.append(mean_depth)
-                        #depths.append(obj["depth"])
+                        #depths.append(mean_depth)
+                        depths.append(obj["depth"])
 
                     object_outOfLine.append(value)
 

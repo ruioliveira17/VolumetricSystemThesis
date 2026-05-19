@@ -103,6 +103,8 @@ function App() {
 
   const [lockMenu, setLockMenu] = useState(false);
 
+  const [countdown, setCountdown] = useState(null);
+
   useEffect(() => {
     console.log(API_URL);
     const user = JSON.parse(localStorage.getItem("current_user"));
@@ -326,12 +328,29 @@ function App() {
 
   async function volume_click(){
       try{
-        setLoadingVolume(true);
+        setObjectList([]);
+        setSelectedObject("");
+        setVolInfo(null);
+        setVolumeData(null);
         setObjectImage(null);
         refreshAccessToken();
         const access_token = localStorage.getItem("access_token");
 
         const response = await fetch(`${API_URL}/volume/mode`, {headers: { "Authorization": `Bearer ${access_token}`}});
+
+        if (response.status === 401) {
+          throw new Error("Session expired");
+        }
+
+        for (let i = 3; i > 0; i--) {
+          setCountdown(i);
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+
+        setCountdown(null);
+
+        setLoadingVolume(true);
+
         let volumeMode = await response.json();
         if (volumeMode["Volume Mode"] === "Bundle"){
           volumeBundle(access_token);
@@ -345,11 +364,6 @@ function App() {
 
   async function volumeBundle(access_token) {
     try {
-      setObjectList([]);
-      setSelectedObject("");
-      setVolInfo(null);
-      setVolumeData(null);
-
       await fetch(`${API_URL}/volume/bundle`, { method: 'POST', headers: { "Authorization": `Bearer ${access_token}` } });
 
       const response = await fetch(`${API_URL}/getObjectsOutOfLine`, {headers: { "Authorization": `Bearer ${access_token}`}});
@@ -406,11 +420,6 @@ function App() {
 
   async function volumeReal(access_token) {
       try {
-        setObjectList([]);
-        setSelectedObject("");
-        setVolInfo(null);
-        setVolumeData(null);
-
         await fetch(`${API_URL}/volume/real`, { method: 'POST', headers: { "Authorization": `Bearer ${access_token}` } });
 
         const response = await fetch(`${API_URL}/getObjectsOutOfLine`, {headers: { "Authorization": `Bearer ${access_token}`}});
@@ -1663,6 +1672,7 @@ function App() {
                 {/* Info Objects */}
                 <div className="boxBundleInfo-container">
                   <div className="background"></div>
+
                   {volInfo && !realVolumeData && (
                     <>
                       <canvas ref={canvasRef} className="volumeBundle-canvas"/>
@@ -1695,6 +1705,12 @@ function App() {
                       </div>
                     </>
                   )}
+
+                  {countdown && (
+                    <div className="countdown">
+                      {countdown}
+                    </div>
+                  )}
                 </div>
               </>
             )}
@@ -1717,6 +1733,7 @@ function App() {
                 {/* Menu Select Object */}
                 <div className="object-selection-menu">
                   <div className="background"></div>
+
                   <div className="object-list">
                     {objectList.map((obj) => (
                       <span
@@ -1753,6 +1770,12 @@ function App() {
                       </>
                     ) : null}
                   </div>
+
+                  {countdown && (
+                    <div className="countdown">
+                      {countdown}
+                    </div>
+                  )}
 
                 </div>
 

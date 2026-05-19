@@ -10,6 +10,7 @@ import cv2
 
 def MinDepthAPI(depthFrame, detection_area, workspace_depth, threshold, not_set, cx_d, cy_d, fx_d, fy_d):
     depth_copy = depthFrame.copy()
+    #threshold = 15
 
     objects_info = []
 
@@ -64,19 +65,50 @@ def MinDepthAPI(depthFrame, detection_area, workspace_depth, threshold, not_set,
         print("Workspace Width:",workspace_width_m)
         print("Workspace Height:", workspace_height_m)
 
+        # ys, xs = numpy.indices(depth_copy.shape)
+
+        # Z = depth_copy.astype(numpy.float32)
+
+        # X = (xs - cx_d) * Z / fx_d
+        # Y = (ys - cy_d) * Z / fy_d
+
+        # depth_corrected = numpy.sqrt(
+        #     Z**2 - X**2 - Y**2
+        # )
+
+        # depth_vis = cv2.normalize(
+        #     depth_corrected,
+        #     None,
+        #     0,
+        #     255,
+        #     cv2.NORM_MINMAX
+        # ).astype(numpy.uint8)
+
+        # depth_vis = cv2.applyColorMap(
+        #     depth_vis,
+        #     cv2.COLORMAP_JET
+        # )
+
+        #depth_corrected = numpy.nan_to_num(
+        #    depth_corrected,
+        #    nan=0.0,
+        #    posinf=0.0,
+        #    neginf=0.0
+        #)
+
+        #depth_copy = numpy.round(depth_corrected).astype(numpy.int32)
+
         while True:
             mask = numpy.zeros(depth_copy.shape, dtype = numpy.uint8)
             box = numpy.array(detection_area, dtype=numpy.int32)
             cv2.fillPoly(mask, [box], 255)
             
-
             valid_values = depth_copy[(depth_copy > 150) & (depth_copy < workspace_depth) & (mask > 0)]
             if valid_values.size  == 0:
                 break
 
             else:
                 min_value = numpy.min(valid_values) # minimo da profundidade
-                #print("MinValue:", min_value)
 
                 index = numpy.where((depth_copy == min_value) & (mask > 0))
                 min_idx = (index[0][0], index[1][0])
@@ -85,10 +117,7 @@ def MinDepthAPI(depthFrame, detection_area, workspace_depth, threshold, not_set,
                 for y, x in zip(index[0], index[1]):
                     x = int(x)
                     y = int(y)
-                    #neighbors = depth_copy[max(0, y-7):y+8, max(0, x-7):x+8]
-                    #neighbors = depth_copy[max(0, y-1):y+2, max(0, x-1):x+2]
                     neighbors = depth_copy[max(0, y-2):y+3, max(0, x-2):x+3]
-                    #neighbors = depth_copy[max(0, y-4):y+5, max(0, x-4):x+5]
 
                     if min_value + threshold > prev_lower:
                         flag = True
@@ -97,34 +126,25 @@ def MinDepthAPI(depthFrame, detection_area, workspace_depth, threshold, not_set,
 
                     detection_area_poly = numpy.array(detection_area, dtype = numpy.int32)
                     if cv2.pointPolygonTest(detection_area_poly, (x, y), False) >= 0:
-                        #if (2705 - threshold <= min_value <= 2705 + threshold):
-                        #    print("Inside!")
                         if flag:
                             valid_mask = (neighbors >= min_value - threshold) & (neighbors <= min_value + threshold)
                         else:
                             valid_mask = (neighbors >= min_value - threshold) & (neighbors <= prev_lower)
-                        #valid_count = numpy.sum(numpy.abs(neighbors - min_value) <= threshold)
                         valid_count = numpy.sum(valid_mask)
                         total_count = neighbors.size
-                        #if (2705 - threshold <= min_value <= 2705 + threshold):
-                        #    print("Valid:", valid_count)
-                        #    print("Total:", total_count)
-                        #    print("%:", valid_count / total_count)
 
                         if valid_count / total_count >= 0.9 and not (min_value - threshold <= workspace_depth <= min_value + threshold):
-                            #if (2705 - threshold <= min_value <= 2705 + threshold):
-                            #    print("90%")
                             neighbors = neighbors[(neighbors > (min_value - threshold)) & (neighbors < (min_value + threshold))]
-                            #min_value = numpy.mean(neighbors)
-                            min_value = round(numpy.median(neighbors), 1)
+                            depth_value = round(numpy.median(neighbors), 1)
 
-                            if len(objects_info) == 0 or abs(min_value - objects_info[-1]["depth"]) > threshold:
+                            if len(objects_info) == 0 or abs(depth_value - objects_info[-1]["depth"]) > threshold:
                                 print(f"Ponto {min_idx} válido, todos vizinhos semelhantes")
-                                print("Profundidade:", min_value)
+                                print("Profundidade:", depth_value)
+                                print("Min Value", min_value)
                                 workspace_limits = []
                                 workspace_warning = []
 
-                                prev_lower = min_value - threshold
+                                prev_lower = depth_value - threshold
                                 
                                 pts_pixels = detection_area
                                 
@@ -150,24 +170,9 @@ def MinDepthAPI(depthFrame, detection_area, workspace_depth, threshold, not_set,
                                         Y_warning = (Y * fy_d / (object_depth / 1000)) * 0.92 + cy_d
 
                                     workspace_warning.append([int(X_warning), int(Y_warning)])
-                                
-                                    #pts = numpy.array(workspace_limits, dtype=numpy.int32)
-                                    #pts = pts.reshape((-1, 1, 2))
-
-                                    #cv2.polylines(frameState.colorToDepthFrame, [pts], isClosed=True, color=(0, 255, 0), thickness=2)
-
-                                    #pts_warn = numpy.array(workspace_warning, dtype=numpy.int32)
-                                    #pts_warn = pts_warn.reshape((-1, 1, 2))
-
-                                    #cv2.polylines(frameState.colorToDepthFrame, [pts_warn], isClosed=True, color=(0, 0, 255), thickness=2)
-
-                                    #cv2.imwrite("Z2.png", frameState.colorToDepthFrame)
-
-                                #print("Width:", half_width_px)
-                                #print("Height:", half_height_px)
 
                                 objects_info.append({
-                                            "depth": min_value,
+                                            "depth": depth_value,
                                             "workspace_limits": workspace_limits,
                                             "workspace_warning": workspace_warning
                                         })

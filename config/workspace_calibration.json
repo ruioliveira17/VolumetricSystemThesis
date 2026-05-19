@@ -1,23 +1,23 @@
 {
     "detection_area": [
         [
-            413,
-            382
+            137,
+            379
         ],
         [
-            136,
-            382
+            134,
+            104
         ],
         [
-            138,
-            108
+            410,
+            101
         ],
         [
-            413,
-            102
+            409,
+            380
         ]
     ],
-    "workspace_depth": 1154.6326530612246,
+    "workspace_depth": 1155.8367346938776,
     "hmin": 23,
     "hmax": 75,
     "smin": 30,
@@ -25,7 +25,8 @@
     "vmin": 50,
     "vmax": 255,
     "color": "Green",
-    "colorSlope": 1616,
+    "colorSlope": 1618,
     "exposureTime": 4000,
-    "calibrationColorFrame_path": "config/calibrationColorFrame.png"
+    "calibrationColorFrame_path": "config/calibrationColorFrame.png",
+    "calibrationDepthFrame_path": "config/calibrationDepthFrame.png"
 }

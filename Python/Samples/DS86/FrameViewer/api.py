@@ -159,6 +159,7 @@ async def lifespan(app: FastAPI):
             camState.colorSlope = calib["colorSlope"]
             camState.exposureTime = calib["exposureTime"]
             frameState.calibrationColorFrame = cv2.imread(calib["calibrationColorFrame_path"])
+            frameState.calibrationDepthFrame = cv2.imread(calib["calibrationDepthFrame_path"], cv2.IMREAD_UNCHANGED)
             
             print("Calibração carregada!")
 
@@ -787,6 +788,7 @@ def calibrate(data: HSVValue, current_user: dict = Depends(get_current_user)):
     workspaceState.temp_detection_area = detection_area.reshape((-1, 2)).tolist() if isinstance(detection_area, numpy.ndarray) else detection_area
     workspaceState.temp_workspace_depth = workspace_depth
     frameState.temp_calibrationColorFrame = calibrationColorFrame
+    frameState.temp_calibrationDepthFrame = depthFrame
 
     return {"message:": "Calibration sucessfully done"}
 
@@ -800,6 +802,7 @@ def saveCalibration(current_user: dict = Depends(get_current_user)):
     workspaceState.workspace_depth = workspaceState.temp_workspace_depth
     camState.colorSlope = int(workspaceState.temp_workspace_depth * 1.4)
     frameState.calibrationColorFrame = frameState.temp_calibrationColorFrame
+    frameState.calibrationDepthFrame = frameState.temp_calibrationDepthFrame
 
     if workspaceState.center_aligned is True and workspaceState.workspace_clear is True:
         save_WS_calibration()
@@ -1107,7 +1110,7 @@ def volume_Real(current_user: dict = Depends(get_current_user)):
         print("New Min Value", depthState.minimum_value)
 
     if depthState.not_set == 0:
-        depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine = objIdentifier(colorFrame, colorToDepthFrame, depthFrame, frameState.calibrationColorFrame, depthState.objects_info, workspaceState.workspace_depth, depthState.threshold, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb)
+        depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine = objIdentifier(colorFrame, colorToDepthFrame, depthFrame, frameState.calibrationColorFrame, frameState.calibrationDepthFrame, depthState.objects_info, workspaceState.workspace_depth, depthState.threshold, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb)
         if volumeState.box_limits is not None and len(volumeState.box_limits) > 0:
             volumeState.volume, volumeState.width_meters, volumeState.length_meters, volumeState.height_meters = volumeRealAPI(depthFrame, workspaceState.workspace_depth, volumeState.box_limits, volumeState.depths, camState.fx_d, camState.fy_d, camState.cx_d, camState.cy_d)
         else:

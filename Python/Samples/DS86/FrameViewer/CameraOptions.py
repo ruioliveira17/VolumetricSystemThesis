@@ -14,6 +14,7 @@ import numpy
 
 colorArray = []
 depthArray = []
+skipFrame = 0
 
 def statusCamera():
     print("Status")
@@ -271,19 +272,22 @@ def captureLoop():
                 time.sleep(sleep_time)
 
 def processHDR(colorToDepthFrame, depthFrame, colorFrame):
-    global colorArray, depthArray
+    global colorArray, depthArray, skipFrame
     
     exposure = camState.hdrExposures[camState.hdrIndex]
     camState.camera.VZ_SetExposureTime(VzSensorType.VzToFSensor, c_int32(exposure))
-    if camState.hdrIndex == 0:
-        camState.hdrIndex += 1
+    if skipFrame == 0:
+        skipFrame = 1
+        return
     else:
-        camState.hdrIndex += 1
+        skipFrame = 0
 
         colorArray.append(colorToDepthFrame)
         depthArray.append(depthFrame)
 
         frameState.colorFrameHDR = colorFrame
+
+        camState.hdrIndex += 1
 
         if camState.hdrIndex >= len(camState.hdrExposures):
             # HDR COLOR

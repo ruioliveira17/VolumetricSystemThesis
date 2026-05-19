@@ -10,6 +10,7 @@ from MaskState import maskState
 
 def save_WS_calibration():
     cv2.imwrite("config/calibrationColorFrame.png", frameState.calibrationColorFrame)
+    cv2.imwrite("config/calibrationDepthFrame.png", frameState.calibrationDepthFrame)
 
     data = {
         "detection_area": workspaceState.detection_area.tolist() if isinstance(workspaceState.detection_area, numpy.ndarray) else workspaceState.detection_area,
@@ -23,7 +24,8 @@ def save_WS_calibration():
         "color": maskState.color,
         "colorSlope": int(camState.colorSlope),
         "exposureTime": int(camState.exposureTime),
-        "calibrationColorFrame_path": "config/calibrationColorFrame.png"
+        "calibrationColorFrame_path": "config/calibrationColorFrame.png",
+        "calibrationDepthFrame_path": "config/calibrationDepthFrame.png"
     }
 
     os.makedirs("config", exist_ok=True)
