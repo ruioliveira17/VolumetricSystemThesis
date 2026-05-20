@@ -1017,13 +1017,15 @@ def volume_Bundle(current_user: dict = Depends(get_current_user)):
     depthState.not_set, depthState.objects_info = MinDepthAPI(depthFrame, workspaceState.detection_area, workspaceState.workspace_depth, depthState.threshold, depthState.not_set, camState.cx_d, camState.cy_d, camState.fx_d, camState.fy_d)
 
     if depthState.objects_info is not None and len(depthState.objects_info) != 0:
-        depthState.minimum_depth = depthState.objects_info[0]["depth"]
-        depthState.minimum_value = depthState.minimum_depth
+        #depthState.minimum_depth = depthState.objects_info[0]["depth"]
+        #depthState.minimum_value = depthState.minimum_depth
+        depthState.minimum_value = depthState.objects_info[0]["depth"]
 
         print("New Min Value", depthState.minimum_value)
 
     if depthState.not_set == 0:
-        depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine = bundleIdentifier(colorFrame, colorToDepthFrame, depthFrame, frameState.calibrationColorFrame, depthState.objects_info, workspaceState.workspace_depth, depthState.threshold, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb)
+        depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine = bundleIdentifier(colorFrame, colorToDepthFrame, depthFrame, frameState.calibrationColorFrame, frameState.calibrationDepthFrame, depthState.objects_info, workspaceState.workspace_depth, depthState.threshold, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb)
+        depthState.minimum_depth = min(volumeState.depths)
         if volumeState.box_limits is not None and len(volumeState.box_limits) > 0:
             volumeState.volume, volumeState.width_meters, volumeState.length_meters, volumeState.height_meters = volumeBundleAPI(depthFrame, workspaceState.workspace_depth, depthState.minimum_depth, volumeState.box_limits, volumeState.depths, camState.fx_d, camState.fy_d, camState.cx_d, camState.cy_d)
         else:

@@ -50,7 +50,16 @@ def boxes_overlap(box1, box2):
         return True
     return False
 
-def contours_overlap_by_points(c, prev_c, colorToDepth_copy, min_ratio = 0.25):
+def contours_overlap_by_points(c, prev_c, colorToDepth_copy):
+    #a = cv2.contourArea(c)
+    #if a <= 350:
+    #    min_ratio = 0.05
+    #elif 350 < a <= 700:
+    #    min_ratio = 0.15
+    #else:
+    #    min_ratio = 0.25
+    min_ratio = 0.25
+
     inside = 0
     total = len(c)
     print("Total", total)
@@ -94,7 +103,20 @@ def comparisonCaliImageCurrImage(colorFrame, calibrationColorFrame, depthFrame, 
     total_pixels_depth = numpy.count_nonzero(depth_mask)
 
     # ---------------- COLOR ----------------
+    #cali_hsv = cv2.cvtColor(calibrationColorFrame, cv2.COLOR_BGR2HSV)
+
+    #lower_yellow = numpy.array([23, 30, 50])
+    #upper_yellow = numpy.array([75, 255, 255])
+
+    #yellow_mask = cv2.inRange(cali_hsv, lower_yellow, upper_yellow)
+
+    #cv2.imwrite("yellow_mask.png", yellow_mask)
+
+    #cali_clean = calibrationColorFrame.copy()
+    #cali_clean[yellow_mask > 0] = (0, 0, 0)
+
     current = cv2.bitwise_and(colorFrame, colorFrame, mask=mask)
+    #cali = cv2.bitwise_and(cali_clean, cali_clean, mask=mask)
     cali = cv2.bitwise_and(calibrationColorFrame, calibrationColorFrame, mask=mask)
 
     currentGray = cv2.cvtColor(current, cv2.COLOR_BGR2GRAY)
@@ -106,8 +128,6 @@ def comparisonCaliImageCurrImage(colorFrame, calibrationColorFrame, depthFrame, 
     print("Diff Percentage:", diffPercentage)
 
     # ---------------- DEPTH ----------------
-    print("depthFrame:", depthFrame.shape, depthFrame.dtype)
-    print("calibrationDepthFrame:", calibrationDepthFrame.shape, calibrationDepthFrame.dtype)
     depthDiff = cv2.absdiff(
         depthFrame.astype(numpy.float32),
         calibrationDepthFrame.astype(numpy.float32)
@@ -164,64 +184,44 @@ def bundleIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColor
                 else:
                     print("É igual")
                     mask = (workspace_area2 >= (obj["depth"] - threshold)) & (workspace_area2 <= (obj["depth"] + threshold))
-
-            #depth_filtered = numpy.where(mask, workspace_area2, 0).astype(numpy.uint16)
-
-            #depth_img = depthImg(depth_filtered, colorSlope)
-
-            #gray = cv2.cvtColor(depth_img, cv2.COLOR_BGR2GRAY)
-        
-            #blur = cv2.GaussianBlur(gray, (5,5), 0)
             
             binary = mask.astype(numpy.uint8) * 255
-            #_, binary = cv2.threshold(blur, 90, 255, cv2.THRESH_BINARY)
-            #_, binary = cv2.threshold(blur, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-
-            # Fecha buracos e regulariza a forma
-            #element_close = numpy.ones((3, 3), numpy.uint8)
-            #binary = cv2.morphologyEx(binary, cv2.MORPH_CLOSE, element_close)
 
             # Remove ruído pequeno
             element_open = numpy.ones((3, 3), numpy.uint8)
             binary = cv2.morphologyEx(binary, cv2.MORPH_OPEN, element_open)
 
-            #invBinary = cv2.bitwise_not(binary)
+            # Fecha buracos e regulariza a forma
+            element_close = numpy.ones((7, 7), numpy.uint8)
+            binary = cv2.morphologyEx(binary, cv2.MORPH_CLOSE, element_close)
 
-            #element = numpy.ones((3, 3), numpy.uint8)
-            #morf = cv2.morphologyEx(invBinary, cv2.MORPH_GRADIENT, element)
-
-            #contour, _ = cv2.findContours(morf, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
             contour, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-            #cv2.imwrite(f"debug_morf{i}.png", morf)
-            #cv2.imwrite(f"debug_depth{i}.png", depth_filtered)
-            #cv2.imwrite(f"debug_depthcolored{i}.png", depth_img)
-            #cv2.imwrite(f"debug_binary{i}.png", binary)
-            #cv2.imwrite(f"debug_inv{i}.png", invBinary)
-            #debug_contours = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
-            #cv2.drawContours(debug_contours, contour, -1, (0,255,0), 2)
-            #cv2.imwrite(f"debug_contours{i}.png", debug_contours)
-            #cv2.drawContours(colorToDepthFrame, contour, -1, (0, 255, 0), 2)
-            #cv2.imwrite(f"colorToDepthFrame{i}.png", colorToDepthFrame)
-
-            #shifted_contours = [c + numpy.array([[[x1, y1]]], dtype=numpy.int32) for c in contour]
-            
-            #shifted_contours_sorted = sorted(shifted_contours, key=lambda x: len(x), reverse=True)
             shifted_contours_sorted = sorted(contour, key=lambda x: len(x), reverse=True)
 
-            
+            for j, c in enumerate(contour):
+                colorToDepth_copy4 = colorToDepthFrame.copy()
+                
+                cv2.drawContours(colorToDepth_copy4, [c], -1, (0, 255, 0), 2)
+                
+                texto = f"{float(obj['depth']):.1f}"
+                cv2.putText(colorToDepth_copy4, texto, (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 0), 6, cv2.LINE_AA)
+                cv2.putText(colorToDepth_copy4, texto, (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 255, 0), 2, cv2.LINE_AA)
+                
+                cv2.imwrite(f"DEPTHS{i}_contour{j}.png", colorToDepth_copy4)
 
             print("Depth:", obj["depth"])
             print("-------------------------------------------------------------------")
 
             for c in shifted_contours_sorted:
+                belongs_to_previous = False
                 rect = cv2.minAreaRect(c)
                 box = cv2.boxPoints(rect)
                 box_scaled = numpy.copy(box)
                 box_scaled[:,0] = (box[:,0] - cx_d) * Sx + cx_rgb + (offset_x_959mm_depth * or_depth_offset)/workspace_depth
                 box_scaled[:,1] = (box[:,1] - cy_d) * Sy + cy_rgb #+ (offset_y_959mm_depth * or_depth_offset)/workspace_depth
                 box_scaled = numpy.round(box_scaled).astype(numpy.int32)
-                if not comparisonCaliImageCurrImage(colorFrame, calibrationColorFrame, box_scaled):
+                if not comparisonCaliImageCurrImage(colorFrame, calibrationColorFrame, depthFrame, calibrationDepthFrame, box_scaled, box):
                     continue
 
                 if not is_valid_area(c):
@@ -230,25 +230,45 @@ def bundleIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColor
 
                 bbox_c = get_bbox(c)
 
-                for prev_list in contours:
+                for i_prev_obj, prev_list in enumerate(contours):
+                    print("Watching Previous...")
                     for prev_c in prev_list:
                         bbox_prev = get_bbox(prev_c)
 
                         if boxes_overlap(bbox_c, bbox_prev):
                             print("Wotefoque")
                             boxesOverlap, colorToDepth_copy2 = contours_overlap_by_points(c, prev_c, colorToDepth_copy2)
-                            #contourDifference = cv2.matchShapes(c, prev_c, cv2.CONTOURS_MATCH_I1, 0)
-                            #print("Contour Difference:", contourDifference)
+                            print("Previous Depth:", depths[i_prev_obj])
                             if boxesOverlap: #or contourDifference < 0.02:
-                                belongs_to_previous = True
-                                print("Pertence ao anterior o macaco")
+                                #shouldMerge?
+                                if obj['depth'] - 5 <= depths[i_prev_obj] + threshold:
+                                    #merge
+                                    A = cv2.contourArea(c)
+                                    B = cv2.contourArea(prev_c)
+                                    if A > B:
+                                        del contours[i_prev_obj]
+                                        del objects_info[i_prev_obj]
+                                        del depths[i_prev_obj]
+                                        all_pts = numpy.vstack([c.reshape(-1,2), prev_c.reshape(-1,2)])
+                                        merged_contour = cv2.convexHull(all_pts)
+                                        c = merged_contour
+                                        print("Deleted Previous Object because it was merged")
+                                    else:
+                                        all_pts = numpy.vstack([c.reshape(-1,2), prev_c.reshape(-1,2)])
+                                        merged_contour = cv2.convexHull(all_pts)
+                                        contours[i_prev_obj] = [merged_contour]
+                                        belongs_to_previous = True
+                                        print("Object Merged")
+                                else:
+                                    belongs_to_previous = True
+                                    print("Pertence ao anterior o macaco")
                                 break
                         if too_close(bbox_c, bbox_prev):
                             belongs_to_previous = True
                             print("Too Close")
                             break
                         print("Não pertence")
-                        belongs_to_previous = False
+
                     if belongs_to_previous:
                         break
                 if not belongs_to_previous:
@@ -264,11 +284,7 @@ def bundleIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColor
                             value = True
                             break
 
-                    #if ((bbox_c[0] < workspace_warning[0]) or (bbox_c[1] > workspace_warning[2]) or (bbox_c[2] < workspace_warning[1]) or (bbox_c[3] > workspace_warning[3])):
-                    #    value = True
-                    #else:
-                    #    value = False
-                    if value == False:
+                    if not value:
                         correct_shifted_contours = []
                         correct_shifted_contours.append(c)
                         print("Adicionar ao Conjunto")
@@ -277,22 +293,6 @@ def bundleIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColor
                         contours.append([all_shifted_contours])
                         box_ws.append(obj["workspace_limits"])
 
-                        #mask = numpy.zeros(depthFrame.shape, dtype=numpy.uint8)
-                        #kernel = numpy.ones((10, 10), dtype=numpy.uint8)
-                        #mask = cv2.erode(mask, kernel, iterations=1)
-                        #cv2.drawContours(mask, [c], contourIdx=-1, color=1, thickness=-1)
-                        #valid_mask = (
-                        #    (mask == 1) &
-                        #    (depthFrame > 150) &
-                        #    (depthFrame < workspace_depth - threshold)
-                        #)
-
-                        #depth_values = depthFrame[valid_mask]
-                        #print("Depth Values:", depth_values)
-                        #mean_depth = numpy.mean(depth_values)
-                        #print("Mean Depth:", mean_depth)
-
-                        #depths.append(mean_depth)
                         depths.append(obj["depth"])
                         print("Número de Objetos no contours", len(contours))
 
@@ -432,34 +432,33 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
                     print("Watching Previous...")
                     for prev_c in prev_list:
                         bbox_prev = get_bbox(prev_c)
-
-                        if boxes_overlap(bbox_c, bbox_prev):
-                            print("Wotefoque")
-                            boxesOverlap, colorToDepth_copy2 = contours_overlap_by_points(c, prev_c, colorToDepth_copy2)
-                            print("Previous Depth:", depths[i_prev_obj])
-                            if boxesOverlap: #or contourDifference < 0.02:
-                                #shouldMerge?
-                                if obj['depth'] - 5 <= depths[i_prev_obj] + threshold:
-                                    #merge
-                                    A = cv2.contourArea(c)
-                                    B = cv2.contourArea(prev_c)
-                                    if A > B:
-                                        del contours[i_prev_obj]
-                                        del objects_info[i_prev_obj]
-                                        all_pts = numpy.vstack([c.reshape(-1,2), prev_c.reshape(-1,2)])
-                                        merged_contour = cv2.convexHull(all_pts)
-                                        c = merged_contour
-                                        print("Deleted Previous Object because it was merged")
-                                    else:
-                                        all_pts = numpy.vstack([c.reshape(-1,2), prev_c.reshape(-1,2)])
-                                        merged_contour = cv2.convexHull(all_pts)
-                                        contours[i_prev_obj] = [merged_contour]
-                                        belongs_to_previous = True
-                                        print("Object Merged")
+                        print("Wotefoque")
+                        boxesOverlap, colorToDepth_copy2 = contours_overlap_by_points(c, prev_c, colorToDepth_copy2)
+                        print("Previous Depth:", depths[i_prev_obj])
+                        if boxesOverlap: #or contourDifference < 0.02:
+                            #shouldMerge?
+                            if obj['depth'] - 5 <= depths[i_prev_obj] + threshold:
+                                #merge
+                                A = cv2.contourArea(c)
+                                B = cv2.contourArea(prev_c)
+                                if A > B:
+                                    del contours[i_prev_obj]
+                                    del objects_info[i_prev_obj]
+                                    del depths[i_prev_obj]
+                                    all_pts = numpy.vstack([c.reshape(-1,2), prev_c.reshape(-1,2)])
+                                    merged_contour = cv2.convexHull(all_pts)
+                                    c = merged_contour
+                                    print("Deleted Previous Object because it was merged")
                                 else:
+                                    all_pts = numpy.vstack([c.reshape(-1,2), prev_c.reshape(-1,2)])
+                                    merged_contour = cv2.convexHull(all_pts)
+                                    contours[i_prev_obj] = [merged_contour]
                                     belongs_to_previous = True
-                                    print("Pertence ao anterior o macaco")
-                                break
+                                    print("Object Merged")
+                            else:
+                                belongs_to_previous = True
+                                print("Pertence ao anterior o macaco")
+                            break
                         if too_close(bbox_c, bbox_prev):
                             belongs_to_previous = True
                             print("Too Close")

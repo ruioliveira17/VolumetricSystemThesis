@@ -17,6 +17,9 @@ def volumeBundleAPI(depthFrame, workspace_depth, minimum_depth, box_limits, dept
 
     pts_m = []
 
+    print("Depths Len:", len(depths))
+    print("Box Limits Len:", len(box_limits))
+
     for i in range((len(depths))):
         pts_flat = box_limits[i].reshape(-1,2)
         rect_px = cv2.minAreaRect(pts_flat.astype(numpy.float32))
@@ -83,10 +86,11 @@ def volumeRealAPI(depthFrame, workspace_depth, box_limits, depths, fx_d, fy_d, c
     ength = []
     eight = []
     totalVolume = 0
+    
+    print("Depths Len:", len(depths))
+    print("Box Limits Len:", len(box_limits))
 
     for i in range((len(depths))):
-        if box_limits[i] is None:
-            continue
         pts_flat = box_limits[i].reshape(-1,2)
         rect_px = cv2.minAreaRect(pts_flat.astype(numpy.float32))
         box_px = cv2.boxPoints(rect_px)
