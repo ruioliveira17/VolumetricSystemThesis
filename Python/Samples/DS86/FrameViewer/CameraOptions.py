@@ -303,7 +303,17 @@ def processHDR(colorToDepthFrame, depthFrame, colorFrame):
             stacked_d = numpy.stack(depthArray, axis=0).astype(numpy.float32)
             mask_d = (stacked_d > 150) & (stacked_d <= 5000)
             stacked_d[~mask_d] = numpy.nan
-            hdrDepth = numpy.nanmedian(stacked_d, axis=0)
+
+            median_d = numpy.nanmedian(stacked_d, axis=0)
+            mad_d    = numpy.nanmedian(numpy.abs(stacked_d - median_d), axis=0)
+            CONSISTENCY_THRESHOLD = 15
+
+            unstable = mad_d > CONSISTENCY_THRESHOLD
+
+            hdrDepth = median_d.copy()
+            min_d = numpy.nanmin(stacked_d, axis=0)
+            hdrDepth[unstable] = min_d[unstable]
+           
             hdrDepth = numpy.nan_to_num(hdrDepth, nan=0).astype(numpy.uint16)
 
             frameState.depthFrameHDR = hdrDepth

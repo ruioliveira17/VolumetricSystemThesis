@@ -20,6 +20,8 @@ import io
 import json
 import numpy
 import os
+import time
+import threading
 
 #------------------------------------------------------   Classes    -------------------------------------------------------
 
@@ -40,7 +42,7 @@ from color_presets import COLOR_PRESETS
 
 from API.VzenseDS_api import *
 from auth import create_access_token, create_refresh_token, get_password_hash, verify_password, verify_token
-from Bundle2 import bundleIdentifier, objIdentifier
+from Bundle2 import objIdentifier
 from CalibrationDefTkinter import calibrateAPI, maskAPI, manualWorkspaceDraw
 from CameraOptions import startCamera, stopCamera, setFPS, setFlyingPixelFilter, setFillHoleFilter, setSpatialFilter, setConfidenceFilter
 from MinDepth2 import MinDepthAPI
@@ -82,6 +84,63 @@ def require_admin(user: dict = Depends(get_current_user)):
     if user["role"] != "admin":
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin privileges required.")
     return user
+
+#--------------------------------------------------   Object Processing   -------------------------------------------------
+
+objProcessing_thread = None
+objProcessing_thread_running = False
+
+def object_processing():
+    global objProcessing_thread_running
+
+    print("THREAD START:", threading.get_ident())
+
+    while objProcessing_thread_running:
+        print("RUNNING:", threading.get_ident())
+        if frameState.depthFrameHDR is None or modeState.expositionMode == "Fixed Exposition":
+            depthFrame = frameState.depthFrame
+        else:
+            depthFrame = frameState.depthFrameHDR
+
+        depthState.not_set, depthState.objects_info = MinDepthAPI(depthFrame, workspaceState.detection_area, workspaceState.workspace_warning, workspaceState.workspace_depth, depthState.threshold, depthState.not_set, camState.cx_d, camState.cy_d, camState.fx_d, camState.fy_d)
+
+        if depthState.objects_info is not None and len(depthState.objects_info) != 0:
+            depthState.minimum_depth = depthState.objects_info[0]["depth"]
+            depthState.minimum_value = depthState.minimum_depth
+
+            print("New Min Value", depthState.minimum_value)
+
+        time.sleep(0.01)
+
+def start_ObjProcessing():
+    global objProcessing_thread
+    global objProcessing_thread_running
+
+    #if objProcessing_thread_running:
+    #    return
+    
+    #objProcessing_thread_running = True
+
+    #objProcessing_thread = threading.Thread(
+    #    target=object_processing,
+    #    daemon=True
+    #)
+
+    #objProcessing_thread.start()
+
+    print("Volume thread started")
+
+def stop_ObjProcessing():
+    global objProcessing_thread
+    global objProcessing_thread_running
+
+    #objProcessing_thread_running = False
+
+    #if objProcessing_thread is not None:
+    #    objProcessing_thread.join()
+    #    objProcessing_thread = None
+
+    print("Volume thread stopped")
 #----------------------------------------------------   Base Models    ----------------------------------------------------
 
 class CamValues(BaseModel):
@@ -148,6 +207,7 @@ async def lifespan(app: FastAPI):
                 calib = json.load(f)
 
             workspaceState.detection_area = calib["detection_area"]
+            workspaceState.workspace_warning = calib["workspace_warning"]
             workspaceState.workspace_depth = calib["workspace_depth"]
             maskState.hmin = calib["hmin"]
             maskState.hmax = calib["hmax"]
@@ -159,7 +219,7 @@ async def lifespan(app: FastAPI):
             camState.colorSlope = calib["colorSlope"]
             camState.exposureTime = calib["exposureTime"]
             frameState.calibrationColorFrame = cv2.imread(calib["calibrationColorFrame_path"])
-            frameState.calibrationDepthFrame = cv2.imread(calib["calibrationDepthFrame_path"], cv2.IMREAD_UNCHANGED)
+            frameState.calibrationDepthFrame = numpy.load(calib["calibrationDepthFrame_path"])
             
             print("Calibração carregada!")
 
@@ -689,7 +749,7 @@ def apply_mask(data: HSVValue, current_user: dict = Depends(get_current_user)):
     else:
         colorToDepthFrame = frameState.colorToDepthFrameHDR
 
-    maskFrame, workspaceDetectedFrame, detection_area = maskAPI(colorToDepthFrame, lower, upper, maskState.color, int(camState.cx_d), int(camState.cy_d))
+    maskFrame, workspaceDetectedFrame, detection_area, workspace_warning = maskAPI(colorToDepthFrame, lower, upper, maskState.color, int(camState.cx_d), int(camState.cy_d))
 
     if maskFrame is None or workspaceDetectedFrame is None:
         return{"message:": "Mask application failed!"}
@@ -697,6 +757,7 @@ def apply_mask(data: HSVValue, current_user: dict = Depends(get_current_user)):
     frameState.maskFrame = maskFrame
     frameState.workspaceDetectedFrame = workspaceDetectedFrame
     workspaceState.detected_area = detection_area.reshape((-1, 2)).tolist() if isinstance(detection_area, numpy.ndarray) else detection_area
+    workspaceState.temp_workspace_warning = workspace_warning.reshape((-1, 2)).tolist() if isinstance(workspace_warning, numpy.ndarray) else workspace_warning
     
     return{"message:": "Mask applied with success"}
 
@@ -743,7 +804,7 @@ def get_calibration_status(current_user: dict = Depends(get_current_user)):
         with open(path, "r") as f:
             data = json.load(f)
 
-        if "detection_area" not in data:
+        if "detection_area" not in data or "workspace_warning" not in data:
             return {"calibrated": False}
 
         return {"calibrated": True}
@@ -775,7 +836,7 @@ def calibrate(data: HSVValue, current_user: dict = Depends(get_current_user)):
     else:
         depthFrame = frameState.depthFrameHDR
 
-    detection_area, workspace_depth, center_aligned, workspace_clear, calibrationColorFrame = calibrateAPI(colorToDepthFrame, depthFrame, colorFrame, workspaceState.detected_area, lower, upper, camState.colorSlope, int(camState.cx_d), int(camState.cy_d), modeState.calibrationMode)
+    detection_area, workspace_depth, center_aligned, workspace_clear, calibrationColorFrame, calibrationDepthFrame = calibrateAPI(colorToDepthFrame, depthFrame, colorFrame, workspaceState.detected_area, lower, upper, camState.colorSlope, int(camState.cx_d), int(camState.cy_d), int(camState.fx_d), int(camState.fy_d), modeState.calibrationMode)
 
     if detection_area is None or workspace_depth is None:
         workspaceState.center_aligned = center_aligned
@@ -788,7 +849,7 @@ def calibrate(data: HSVValue, current_user: dict = Depends(get_current_user)):
     workspaceState.temp_detection_area = detection_area.reshape((-1, 2)).tolist() if isinstance(detection_area, numpy.ndarray) else detection_area
     workspaceState.temp_workspace_depth = workspace_depth
     frameState.temp_calibrationColorFrame = calibrationColorFrame
-    frameState.temp_calibrationDepthFrame = depthFrame
+    frameState.temp_calibrationDepthFrame = calibrationDepthFrame
 
     return {"message:": "Calibration sucessfully done"}
 
@@ -799,6 +860,7 @@ def calibrate(data: HSVValue, current_user: dict = Depends(get_current_user)):
          tags=["Calibration"])
 def saveCalibration(current_user: dict = Depends(get_current_user)):
     workspaceState.detection_area = workspaceState.temp_detection_area
+    workspaceState.workspace_warning = workspaceState.temp_workspace_warning
     workspaceState.workspace_depth = workspaceState.temp_workspace_depth
     camState.colorSlope = int(workspaceState.temp_workspace_depth * 1.4)
     frameState.calibrationColorFrame = frameState.temp_calibrationColorFrame
@@ -993,6 +1055,18 @@ def debugOn(current_user: dict = Depends(require_admin)):
 
 #------------------------------------------------------- Volume -------------------------------------------------------
 
+@app.post("/menu/volume/open")
+def open_volume_menu():
+    start_ObjProcessing()
+
+    return {"status": "ok"}
+
+@app.post("/menu/volume/close")
+def close_volume_menu():
+    stop_ObjProcessing()
+
+    return {"status": "ok"}
+
 @app.post("/volume/bundle", summary="Starts the Bundle Volume Algorithm",
          description="""
          Starts the bundle volume algorithm.
@@ -1014,17 +1088,15 @@ def volume_Bundle(current_user: dict = Depends(get_current_user)):
     else:
         depthFrame = frameState.depthFrameHDR
 
-    depthState.not_set, depthState.objects_info = MinDepthAPI(depthFrame, workspaceState.detection_area, workspaceState.workspace_depth, depthState.threshold, depthState.not_set, camState.cx_d, camState.cy_d, camState.fx_d, camState.fy_d)
+    depthState.not_set, depthState.objects_info = MinDepthAPI(depthFrame, workspaceState.detection_area, workspaceState.workspace_warning, workspaceState.workspace_depth, depthState.threshold, depthState.not_set, camState.cx_d, camState.cy_d, camState.fx_d, camState.fy_d)
 
     if depthState.objects_info is not None and len(depthState.objects_info) != 0:
-        #depthState.minimum_depth = depthState.objects_info[0]["depth"]
-        #depthState.minimum_value = depthState.minimum_depth
         depthState.minimum_value = depthState.objects_info[0]["depth"]
 
         print("New Min Value", depthState.minimum_value)
 
     if depthState.not_set == 0:
-        depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine = bundleIdentifier(colorFrame, colorToDepthFrame, depthFrame, frameState.calibrationColorFrame, frameState.calibrationDepthFrame, depthState.objects_info, workspaceState.workspace_depth, depthState.threshold, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb)
+        depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine = objIdentifier(colorFrame, colorToDepthFrame, depthFrame, frameState.calibrationColorFrame, frameState.calibrationDepthFrame, modeState.volumeMode, depthState.objects_info, workspaceState.workspace_depth, depthState.threshold, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb, camState.fx_d, camState.fy_d)
         depthState.minimum_depth = min(volumeState.depths)
         if volumeState.box_limits is not None and len(volumeState.box_limits) > 0:
             volumeState.volume, volumeState.width_meters, volumeState.length_meters, volumeState.height_meters = volumeBundleAPI(depthFrame, workspaceState.workspace_depth, depthState.minimum_depth, volumeState.box_limits, volumeState.depths, camState.fx_d, camState.fy_d, camState.cx_d, camState.cy_d)
@@ -1088,6 +1160,7 @@ def get_Volume_Bundle(current_user: dict = Depends(get_current_user)):
          """,
          tags=["Volume"])
 def volume_Real(current_user: dict = Depends(get_current_user)):
+    t0 = time.perf_counter()
     if frameState.colorToDepthFrameHDR is None or modeState.expositionMode == "Fixed Exposition":
         colorFrame = frameState.colorFrame
     else:
@@ -1103,7 +1176,7 @@ def volume_Real(current_user: dict = Depends(get_current_user)):
     else:
         depthFrame = frameState.depthFrameHDR
 
-    depthState.not_set, depthState.objects_info = MinDepthAPI(depthFrame, workspaceState.detection_area, workspaceState.workspace_depth, depthState.threshold, depthState.not_set, camState.cx_d, camState.cy_d, camState.fx_d, camState.fy_d)
+    depthState.not_set, depthState.objects_info = MinDepthAPI(depthFrame, workspaceState.detection_area, workspaceState.workspace_warning, workspaceState.workspace_depth, depthState.threshold, depthState.not_set, camState.cx_d, camState.cy_d, camState.fx_d, camState.fy_d)
 
     if depthState.objects_info is not None and len(depthState.objects_info) != 0:
         depthState.minimum_depth = depthState.objects_info[0]["depth"]
@@ -1112,9 +1185,13 @@ def volume_Real(current_user: dict = Depends(get_current_user)):
         print("New Min Value", depthState.minimum_value)
 
     if depthState.not_set == 0:
-        depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine = objIdentifier(colorFrame, colorToDepthFrame, depthFrame, frameState.calibrationColorFrame, frameState.calibrationDepthFrame, depthState.objects_info, workspaceState.workspace_depth, depthState.threshold, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb)
+        depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine = objIdentifier(colorFrame, colorToDepthFrame, depthFrame, frameState.calibrationColorFrame, frameState.calibrationDepthFrame, modeState.volumeMode, depthState.objects_info, workspaceState.workspace_depth, depthState.threshold, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb, camState.fx_d, camState.fy_d)
+        t2 = time.perf_counter()
+        print("objIdentifier:", (t2 - t0) * 1000, "ms")
         if volumeState.box_limits is not None and len(volumeState.box_limits) > 0:
-            volumeState.volume, volumeState.width_meters, volumeState.length_meters, volumeState.height_meters = volumeRealAPI(depthFrame, workspaceState.workspace_depth, volumeState.box_limits, volumeState.depths, camState.fx_d, camState.fy_d, camState.cx_d, camState.cy_d)
+            volumeState.volume, volumeState.width_meters, volumeState.length_meters, volumeState.height_meters = volumeRealAPI(depthFrame, frameState.calibrationDepthFrame, workspaceState.workspace_depth, volumeState.box_limits, volumeState.depths, camState.fx_d, camState.fy_d, camState.cx_d, camState.cy_d)
+            t3 = time.perf_counter()
+            print("volumeRealAPI:", (t3 - t2) * 1000, "ms")
         else:
             volumeState.volume = 0
             volumeState.width_meters = 0
@@ -1141,6 +1218,9 @@ def volume_Real(current_user: dict = Depends(get_current_user)):
         volumeState.height_meters = [h * 100 for h in volumeState.height_meters]
     else:
         volumeState.height_meters = volumeState.height_meters * 100
+
+    t4 = time.perf_counter()
+    print("TOTAL /volume/real:", (t4 - t0) * 1000, "ms")
 
     return{
         "volume": volumeState.volume,

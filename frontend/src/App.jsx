@@ -328,6 +328,7 @@ function App() {
 
   async function volume_click(){
       try{
+        const start = performance.now();
         setObjectList([]);
         setSelectedObject("");
         setVolInfo(null);
@@ -353,10 +354,12 @@ function App() {
 
         let volumeMode = await response.json();
         if (volumeMode["Volume Mode"] === "Bundle"){
-          volumeBundle(access_token);
+          await volumeBundle(access_token);
         } else if (volumeMode["Volume Mode"] === "Real"){
-          volumeReal(access_token);
+          await volumeReal(access_token);
         }
+        const end = performance.now();
+        console.log("TOTAL UI TIME:", end - start, "ms");
       } catch (error) {
         console.warn(error);
       }
@@ -1390,13 +1393,21 @@ function App() {
   }
 
   useEffect(() => {
-    if (currentMenu === "volume-menu") {
-      startWebRTC("volume");
-    } else if (currentMenu === "calibration-menu") {
-      startWebRTC("calibration");
-    } else {
-      stopWebRTC();
-    }
+    const handleMenu = async () => {
+      if (currentMenu === "volume-menu") {
+        startWebRTC("volume");
+        await fetch(`${API_URL}/menu/volume/open`, {method: "POST"});
+      } else if (currentMenu === "calibration-menu") {
+        startWebRTC("calibration");
+        await fetch(`${API_URL}/menu/volume/close`, {method: "POST"});
+      } else {
+        stopWebRTC();
+        await fetch(`${API_URL}/menu/volume/close`, {method: "POST"});
+      }
+    };
+
+    handleMenu();
+    
   }, [currentMenu]);
 
   async function startWebRTC(streamType) {

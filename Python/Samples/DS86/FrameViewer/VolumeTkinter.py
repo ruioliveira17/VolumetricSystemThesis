@@ -72,7 +72,7 @@ def volumeBundleAPI(depthFrame, workspace_depth, minimum_depth, box_limits, dept
 
     return volume, width_meters, length_meters, height_meters
 
-def volumeRealAPI(depthFrame, workspace_depth, box_limits, depths, fx_d, fy_d, cx_d, cy_d): 
+def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits, depths, fx_d, fy_d, cx_d, cy_d): 
     volume = 0
     width_meters = 0
     length_meters = 0
@@ -86,6 +86,8 @@ def volumeRealAPI(depthFrame, workspace_depth, box_limits, depths, fx_d, fy_d, c
     ength = []
     eight = []
     totalVolume = 0
+
+    calibrationDepthFrame_copy = calibrationDepthFrame.copy()
     
     print("Depths Len:", len(depths))
     print("Box Limits Len:", len(box_limits))
@@ -96,6 +98,16 @@ def volumeRealAPI(depthFrame, workspace_depth, box_limits, depths, fx_d, fy_d, c
         box_px = cv2.boxPoints(rect_px)
         cv2.drawContours(frameState.colorToDepthFrame, [numpy.int32(box_px)], 0, (0, 255, 0), 2)
         cv2.imwrite(f"colorToDepthFrame{i}.png", frameState.colorToDepthFrame)
+
+        mask = numpy.zeros(calibrationDepthFrame_copy.shape, dtype=numpy.uint8)
+        cv2.fillPoly(mask, [pts_flat.astype(numpy.int32)], 255)
+
+        #ws_values = calibrationDepthFrame[mask == 255].astype(numpy.float32)
+        #ws_values = ws_values[(ws_values >= 150) & (ws_values < workspace_depth + 15)]
+        #ws_depth = numpy.mean(ws_values)
+        ws_values = calibrationDepthFrame_copy[mask == 255]
+        ws_depth = numpy.median(ws_values)
+        print("Workspace Depth:", ws_depth)
 
         for (u,v) in pts_flat:
             Z_radial = depthFrame[int(v), int(u)] / 1000
@@ -116,7 +128,7 @@ def volumeRealAPI(depthFrame, workspace_depth, box_limits, depths, fx_d, fy_d, c
         allObj_pts_m[idx] = numpy.array(obj, dtype=numpy.float32)
         rect_m = cv2.minAreaRect(allObj_pts_m[idx])
         width_meters, length_meters = rect_m[1]
-        height_meters = (workspace_depth - depths[idx]) / 1000
+        height_meters = (ws_depth - depths[idx]) / 1000
 
         print("Verifying object ")
         for j in range(idx + 1, len(allObj_pts_m)):

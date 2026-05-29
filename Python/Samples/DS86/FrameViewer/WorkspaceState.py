@@ -3,6 +3,8 @@ class WorkspaceState:
         self.detection_area = None
         self.temp_detection_area = None
         self.detected_area = None
+        self.temp_workspace_warning = None
+        self.workspace_warning = None
         self.workspace_depth = None
         self.temp_workspace_depth = None 
         self.center_aligned = None
