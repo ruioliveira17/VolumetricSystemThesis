@@ -51,13 +51,6 @@ def boxes_overlap(box1, box2):
     return False
 
 def contours_overlap_by_points(c, prev_c, colorToDepth_copy):
-    #a = cv2.contourArea(c)
-    #if a <= 350:
-    #    min_ratio = 0.05
-    #elif 350 < a <= 700:
-    #    min_ratio = 0.15
-    #else:
-    #    min_ratio = 0.25
     min_ratio = 0.25
 
     inside = 0
@@ -89,17 +82,16 @@ def is_valid_area(c, min_area = 150):
 
     return True
 
-def comparisonCaliImageCurrImage(colorFrame, calibrationColorFrame, depthFrame, calibrationDepthFrame, box_scaled, box):
+def comparisonCaliImageCurrImage(colorFrame, calibrationColorFrame, depthFrame, calibrationDepthFrame, box_scaled, contour):
     mask = numpy.zeros(colorFrame.shape[:2], dtype=numpy.uint8)
     depth_mask = numpy.zeros(depthFrame.shape[:2], dtype=numpy.uint8)
 
     cv2.fillPoly(mask, [box_scaled], 255)
     total_pixels = numpy.count_nonzero(mask)
 
-    box = numpy.round(box).astype(numpy.int32)
-    box = box.reshape((-1, 1, 2))
+    hull = cv2.convexHull(contour.astype(numpy.int32))
 
-    cv2.fillPoly(depth_mask, [box], 255)
+    cv2.fillPoly(depth_mask, [hull], 255)
     total_pixels_depth = numpy.count_nonzero(depth_mask)
 
     # ---------------- COLOR ----------------
@@ -111,8 +103,7 @@ def comparisonCaliImageCurrImage(colorFrame, calibrationColorFrame, depthFrame, 
 
     diff = cv2.absdiff(currentGray, caliGray)
 
-    diffPercentage = numpy.sum(diff>20) / total_pixels
-    print("Diff Percentage:", diffPercentage)
+    colorScore = numpy.sum(diff>20) / total_pixels
 
     # ---------------- DEPTH ----------------
     depthDiff = cv2.absdiff(
@@ -122,13 +113,19 @@ def comparisonCaliImageCurrImage(colorFrame, calibrationColorFrame, depthFrame, 
 
     validMask = depth_mask > 0
 
-    depthDiffPercentage = numpy.sum((depthDiff > 15) & validMask) / total_pixels_depth
-    print("Depth Diff Percentage:", depthDiffPercentage)
+    depthScore = numpy.sum((depthDiff > 15) & validMask) / total_pixels_depth
 
-    if diffPercentage >= 0.25 and depthDiffPercentage >= 0.95:
-        return True
-    
-    return False
+    # ---------------- DECISION ----------------
+    w_color = 0.5
+    w_depth = 0.5
+
+    finalScore = (w_color * colorScore) + (w_depth * depthScore)
+
+    print("Color Score:", colorScore)
+    print("Depth Score:", depthScore)
+    print("Final Score:", finalScore)
+
+    return finalScore >= 0.60
 
 def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFrame, calibrationDepthFrame, volumeMode, objects_info, workspace_depth, threshold, colorSlope, cx_d, cy_d, cx_rgb, cy_rgb, fx_d, fy_d):
     contours = []
@@ -140,6 +137,7 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
     object_outOfLine = []
     belongs_to_previous = False
     pending_merges = []
+    curr_index = 0
 
     colorToDepth_copy2 = colorFrame.copy()
     colorToDepth_copy3 = colorToDepthFrame.copy()
@@ -148,13 +146,13 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
     Sx = ((1600/2) / numpy.tan(numpy.radians(70/2))) / ((640/2) / numpy.tan(numpy.radians(60/2)))
     Sy = ((1200/2) / numpy.tan(numpy.radians(50/2))) / ((480/2) / numpy.tan(numpy.radians(45/2)))
 
-    ys, xs = numpy.indices(depth_copy.shape)
+    #ys, xs = numpy.indices(depth_copy.shape)
 
-    D = depth_copy.astype(numpy.float32)
+    #D = depth_copy.astype(numpy.float32)
 
-    depth_corrected = D / (numpy.sqrt(1 + ((xs - cx_d) / fx_d) ** 2 + ((ys - cy_d) / fy_d) ** 2))
+    #depth_corrected = D / (numpy.sqrt(1 + ((xs - cx_d) / fx_d) ** 2 + ((ys - cy_d) / fy_d) ** 2))
 
-    depth_copy = numpy.round(depth_corrected).astype(numpy.int32)
+    #depth_copy = numpy.round(depth_corrected).astype(numpy.int32)
 
     if len(objects_info) != 0:
         #for obj in objects_info:
@@ -231,7 +229,7 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
                 box_scaled[:,1] = (box[:,1] - cy_d) * Sy + cy_rgb #+ (offset_y_959mm_depth * or_depth_offset)/workspace_depth
                 box_scaled = numpy.round(box_scaled).astype(numpy.int32)
                 print("Box_Scaled:", box_scaled)
-                if not comparisonCaliImageCurrImage(colorFrame, calibrationColorFrame, depthFrame, calibrationDepthFrame, box_scaled, box):
+                if not comparisonCaliImageCurrImage(colorFrame, calibrationColorFrame, depthFrame, calibrationDepthFrame, box_scaled, c):
                     continue
 
                 if not is_valid_area(c):
@@ -253,29 +251,9 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
                                 print("Merge is emminent. Prepare for merging...")
                                 
                                 pending_merges.append({
-                                    "current_contour": c,
-                                    "prev_contour": prev_c,
-                                    "current_depth": obj['depth'],
-                                    "prev_depth": depths[i_prev_obj],
+                                    "current_index": curr_index,
                                     "prev_index": i_prev_obj
                                 })
-                                #merge
-                                #A = cv2.contourArea(c)
-                                #B = cv2.contourArea(prev_c)
-                                #if A > B:
-                                #    del contours[i_prev_obj]
-                                #    del objects_info[i_prev_obj]
-                                #    del depths[i_prev_obj]
-                                #    all_pts = numpy.vstack([c.reshape(-1,2), prev_c.reshape(-1,2)])
-                                #    merged_contour = cv2.convexHull(all_pts)
-                                #    c = merged_contour
-                                #    print("Deleted Previous Object because it was merged")
-                                #else:
-                                #    all_pts = numpy.vstack([c.reshape(-1,2), prev_c.reshape(-1,2)])
-                                #    merged_contour = cv2.convexHull(all_pts)
-                                #    contours[i_prev_obj] = [merged_contour]
-                                #    belongs_to_previous = True
-                                #    print("Object Merged")
                             else:
                                 belongs_to_previous = True
                                 print("Pertence ao anterior o macaco")
@@ -336,12 +314,74 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
 
                         depths.append(mean_depth)
                         #depths.append(obj["depth"])
+                        curr_index = len(contours)
 
                     object_outOfLine.append(value)
 
-            print("-------------------------------------------------------------------")
+        if len(pending_merges) > 0:
+            to_delete = set()
 
-    
+            for merge in pending_merges:
+                current_index = merge["current_index"]
+                prev_index = merge["prev_index"]
+
+                if current_index in to_delete:
+                    continue
+
+                if prev_index in to_delete:
+                    continue
+
+                c = contours[current_index][0]
+                prev_c = contours[prev_index][0]
+
+                A = cv2.contourArea(c)
+                B = cv2.contourArea(prev_c)
+
+                all_pts = numpy.vstack([
+                    c.reshape(-1, 2),
+                    prev_c.reshape(-1, 2)
+                ])
+
+                merged_contour = cv2.convexHull(all_pts)
+
+                if A > B:
+
+                    contours[current_index] = [merged_contour]
+
+                    depths[current_index] = min(
+                        depths[current_index],
+                        depths[prev_index]
+                    )
+
+                    to_delete.add(prev_index)
+
+                    print(
+                        f"Merged previous {prev_index} into current {current_index}"
+                    )
+
+                else:
+
+                    contours[prev_index] = [merged_contour]
+
+                    depths[prev_index] = min(
+                        depths[current_index],
+                        depths[prev_index]
+                    )
+
+                    to_delete.add(current_index)
+
+                    print(
+                        f"Merged current {current_index} into previous {prev_index}"
+                    )
+
+            for idx in sorted(to_delete, reverse=True):
+                del contours[idx]
+                del depths[idx]
+                del objects_info[idx]
+                del box_ws[idx]
+                del object_outOfLine[idx]
+
+            print("-------------------------------------------------------------------")    
 
     if volumeMode == "Bundle":
         box_limits = [c for contour_list in contours for c in contour_list if c.size > 0]

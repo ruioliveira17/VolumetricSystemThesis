@@ -116,17 +116,17 @@ def start_ObjProcessing():
     global objProcessing_thread
     global objProcessing_thread_running
 
-    #if objProcessing_thread_running:
-    #    return
+    if objProcessing_thread_running:
+        return
     
-    #objProcessing_thread_running = True
+    objProcessing_thread_running = True
 
-    #objProcessing_thread = threading.Thread(
-    #    target=object_processing,
-    #    daemon=True
-    #)
+    objProcessing_thread = threading.Thread(
+        target=object_processing,
+        daemon=True
+    )
 
-    #objProcessing_thread.start()
+    objProcessing_thread.start()
 
     print("Volume thread started")
 
@@ -134,11 +134,11 @@ def stop_ObjProcessing():
     global objProcessing_thread
     global objProcessing_thread_running
 
-    #objProcessing_thread_running = False
+    objProcessing_thread_running = False
 
-    #if objProcessing_thread is not None:
-    #    objProcessing_thread.join()
-    #    objProcessing_thread = None
+    if objProcessing_thread is not None:
+        objProcessing_thread.join()
+        objProcessing_thread = None
 
     print("Volume thread stopped")
 #----------------------------------------------------   Base Models    ----------------------------------------------------
@@ -1088,12 +1088,12 @@ def volume_Bundle(current_user: dict = Depends(get_current_user)):
     else:
         depthFrame = frameState.depthFrameHDR
 
-    depthState.not_set, depthState.objects_info = MinDepthAPI(depthFrame, workspaceState.detection_area, workspaceState.workspace_warning, workspaceState.workspace_depth, depthState.threshold, depthState.not_set, camState.cx_d, camState.cy_d, camState.fx_d, camState.fy_d)
+    #depthState.not_set, depthState.objects_info = MinDepthAPI(depthFrame, workspaceState.detection_area, workspaceState.workspace_warning, workspaceState.workspace_depth, depthState.threshold, depthState.not_set, camState.cx_d, camState.cy_d, camState.fx_d, camState.fy_d)
 
-    if depthState.objects_info is not None and len(depthState.objects_info) != 0:
-        depthState.minimum_value = depthState.objects_info[0]["depth"]
+    #if depthState.objects_info is not None and len(depthState.objects_info) != 0:
+    #    depthState.minimum_value = depthState.objects_info[0]["depth"]
 
-        print("New Min Value", depthState.minimum_value)
+    #    print("New Min Value", depthState.minimum_value)
 
     if depthState.not_set == 0:
         depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine = objIdentifier(colorFrame, colorToDepthFrame, depthFrame, frameState.calibrationColorFrame, frameState.calibrationDepthFrame, modeState.volumeMode, depthState.objects_info, workspaceState.workspace_depth, depthState.threshold, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb, camState.fx_d, camState.fy_d)
@@ -1176,13 +1176,13 @@ def volume_Real(current_user: dict = Depends(get_current_user)):
     else:
         depthFrame = frameState.depthFrameHDR
 
-    depthState.not_set, depthState.objects_info = MinDepthAPI(depthFrame, workspaceState.detection_area, workspaceState.workspace_warning, workspaceState.workspace_depth, depthState.threshold, depthState.not_set, camState.cx_d, camState.cy_d, camState.fx_d, camState.fy_d)
+    #depthState.not_set, depthState.objects_info = MinDepthAPI(depthFrame, workspaceState.detection_area, workspaceState.workspace_warning, workspaceState.workspace_depth, depthState.threshold, depthState.not_set, camState.cx_d, camState.cy_d, camState.fx_d, camState.fy_d)
 
-    if depthState.objects_info is not None and len(depthState.objects_info) != 0:
-        depthState.minimum_depth = depthState.objects_info[0]["depth"]
-        depthState.minimum_value = depthState.minimum_depth
+    #if depthState.objects_info is not None and len(depthState.objects_info) != 0:
+    #    depthState.minimum_depth = depthState.objects_info[0]["depth"]
+    #    depthState.minimum_value = depthState.minimum_depth
 
-        print("New Min Value", depthState.minimum_value)
+    #    print("New Min Value", depthState.minimum_value)
 
     if depthState.not_set == 0:
         depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine = objIdentifier(colorFrame, colorToDepthFrame, depthFrame, frameState.calibrationColorFrame, frameState.calibrationDepthFrame, modeState.volumeMode, depthState.objects_info, workspaceState.workspace_depth, depthState.threshold, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb, camState.fx_d, camState.fy_d)
@@ -1245,7 +1245,13 @@ def get_Volume_Real(current_user: dict = Depends(get_current_user)):
     heights = volumeState.height_meters if isinstance(volumeState.height_meters, list) else [volumeState.height_meters]
     depths = volumeState.depths if isinstance(volumeState.depths, list) else [volumeState.depths]
 
-    num_objects = len(depths)
+    num_objects = min(
+        len(volumes),
+        len(widths),
+        len(lengths),
+        len(heights),
+        len(depths)
+    )
 
     for i in range(num_objects):
         response[f"{i+1}"] = {

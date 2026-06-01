@@ -56,40 +56,11 @@ def MinDepthAPI(depthFrame, detection_area, workspace_warning, workspace_depth, 
         # print("Workspace Width:",workspace_width_m)
         # print("Workspace Height:", workspace_height_m)
 
-        ys, xs = numpy.indices(depth_copy.shape)
+        #ys, xs = numpy.indices(depth_copy.shape)
 
-        D = depth_copy.astype(numpy.float32)
+        #D = depth_copy.astype(numpy.float32)
 
-        depth_corrected = D / (numpy.sqrt(1 + ((xs - cx_d) / fx_d) ** 2 + ((ys - cy_d) / fy_d) ** 2))
-
-        depth_copy = numpy.round(depth_corrected).astype(numpy.int32)
-
-        #X = (xs - cx_d) * Z / fx_d
-        #Y = (ys - cy_d) * Z / fy_d
-
-        #depth_corrected = numpy.sqrt(
-        #    Z**2 - X**2 - Y**2
-        #)
-
-        #depth_vis = cv2.normalize(
-        #    depth_corrected,
-        #    None,
-        #    0,
-        #    255,
-        #    cv2.NORM_MINMAX
-        #).astype(numpy.uint8)
-
-        #depth_vis = cv2.applyColorMap(
-        #    depth_vis,
-        #    cv2.COLORMAP_JET
-        #)
-
-        #depth_corrected = numpy.nan_to_num(
-        #    depth_corrected,
-        #    nan=0.0,
-        #    posinf=0.0,
-        #    neginf=0.0
-        #)
+        #depth_corrected = D / (numpy.sqrt(1 + ((xs - cx_d) / fx_d) ** 2 + ((ys - cy_d) / fy_d) ** 2))
 
         #depth_copy = numpy.round(depth_corrected).astype(numpy.int32)
 

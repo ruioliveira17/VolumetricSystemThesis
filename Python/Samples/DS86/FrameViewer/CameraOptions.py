@@ -9,12 +9,27 @@ import time
 from CameraState import camState
 from FilterState import filterState
 from FrameState import frameState
+import cv2
 import threading
 import numpy
+import os
+
+output_dir = "HDR_Files"
+os.makedirs(output_dir, exist_ok=True)
+
+hdrGroups = [
+    camState.hdrExposuresLow,
+    camState.hdrExposuresMedium,
+    camState.hdrExposuresHigh
+]
 
 colorArray = []
 depthArray = []
 skipFrame = 0
+final_index = 0
+hdrGroupIndex = 0
+hdrColorArray = []
+hdrDepthArray = []
 
 def statusCamera():
     print("Status")
@@ -119,7 +134,7 @@ def startCamera():
         else:
             print("VZ_SetTransformColorImgToDepthSensorEnabled failed:",ret)    
 
-        setFlyingPixelFilter(value = True) 
+        setFlyingPixelFilter(value = False) 
 
         setFillHoleFilter(value = True)
 
@@ -271,58 +286,170 @@ def captureLoop():
             if sleep_time > 0:
                 time.sleep(sleep_time)
 
-def processHDR(colorToDepthFrame, depthFrame, colorFrame):
-    global colorArray, depthArray, skipFrame
+# def processHDR(colorToDepthFrame, depthFrame, colorFrame):
+#     global colorArray, depthArray, skipFrame
     
-    exposure = camState.hdrExposures[camState.hdrIndex]
-    camState.camera.VZ_SetExposureTime(VzSensorType.VzToFSensor, c_int32(exposure))
+#     exposure = camState.hdrExposures[camState.hdrIndex]
+#     camState.camera.VZ_SetExposureTime(VzSensorType.VzToFSensor, c_int32(exposure))
+#     if skipFrame == 0:
+#         skipFrame = 1
+#         return
+#     else:
+#         skipFrame = 0
+
+#         colorArray.append(colorToDepthFrame)
+#         depthArray.append(depthFrame)
+
+#         frameState.colorFrameHDR = colorFrame
+
+#         camState.hdrIndex += 1
+
+#         if camState.hdrIndex >= len(camState.hdrExposures):
+#             # HDR COLOR
+#             stacked = numpy.stack(colorArray, axis=0).astype(numpy.float32)
+#             mask = stacked > 0
+#             stacked[~mask] = 0
+#             count = mask.sum(axis=0).clip(min=1)
+#             hdrColor = (stacked.sum(axis=0) / count).astype(numpy.uint8)
+
+#             frameState.colorToDepthFrameHDR = hdrColor
+
+#             # HDR DEPTH
+#             stacked_d = numpy.stack(depthArray, axis=0).astype(numpy.float32)
+#             mask_d = (stacked_d > 150) & (stacked_d <= 5000)
+#             stacked_d[~mask_d] = numpy.nan
+
+#             median_d = numpy.nanmedian(stacked_d, axis=0)
+#             mad_d    = numpy.nanmedian(numpy.abs(stacked_d - median_d), axis=0)
+#             CONSISTENCY_THRESHOLD = 15
+
+#             unstable = mad_d > CONSISTENCY_THRESHOLD
+
+#             hdrDepth = median_d.copy()
+#             min_d = numpy.nanmin(stacked_d, axis=0)
+#             hdrDepth[unstable] = min_d[unstable]
+           
+#             hdrDepth = numpy.nan_to_num(hdrDepth, nan=0).astype(numpy.uint16)
+
+#             frameState.depthFrameHDR = hdrDepth
+
+#             #print("HDR Processed")
+
+#             camState.hdrIndex = 0
+#             colorArray = []
+#             depthArray = []
+
+def buildHDRDepth(depthFrames):
+    stacked_d = numpy.stack(depthFrames, axis=0).astype(numpy.float32)
+
+    mask_d = (stacked_d > 150) & (stacked_d <= 5000)
+    stacked_d[~mask_d] = numpy.nan
+
+    median_d = numpy.nanmedian(stacked_d, axis=0)
+
+    mad_d = numpy.nanmedian(
+        numpy.abs(stacked_d - median_d),
+        axis=0
+    )
+
+    unstable = mad_d > 15
+
+    hdrDepth = median_d.copy()
+
+    min_d = numpy.nanmin(stacked_d, axis=0)
+    hdrDepth[unstable] = min_d[unstable]
+
+    return numpy.nan_to_num(
+        hdrDepth,
+        nan=0
+    ).astype(numpy.uint16)
+
+def buildHDRColor(colorFrames):
+    stacked = numpy.stack(colorFrames, axis=0).astype(numpy.float32)
+
+    mask = stacked > 0
+    stacked[~mask] = 0
+
+    count = mask.sum(axis=0).clip(min=1)
+
+    return (
+        stacked.sum(axis=0) / count
+    ).astype(numpy.uint8)
+
+def processHDR(colorToDepthFrame, depthFrame, colorFrame):
+    global colorArray
+    global depthArray
+    global skipFrame
+    global hdrGroupIndex
+    global final_index
+    global hdrColorArray
+    global hdrDepthArray
+
+    exposure = hdrGroups[hdrGroupIndex][camState.hdrIndex]
+
+    camState.camera.VZ_SetExposureTime(
+        VzSensorType.VzToFSensor,
+        c_int32(exposure)
+    )
+
     if skipFrame == 0:
         skipFrame = 1
         return
-    else:
-        skipFrame = 0
 
-        colorArray.append(colorToDepthFrame)
-        depthArray.append(depthFrame)
+    skipFrame = 0
 
-        frameState.colorFrameHDR = colorFrame
+    colorArray.append(colorToDepthFrame)
+    depthArray.append(depthFrame)
 
-        camState.hdrIndex += 1
+    frameState.colorFrameHDR = colorFrame
 
-        if camState.hdrIndex >= len(camState.hdrExposures):
-            # HDR COLOR
-            stacked = numpy.stack(colorArray, axis=0).astype(numpy.float32)
-            mask = stacked > 0
-            stacked[~mask] = 0
-            count = mask.sum(axis=0).clip(min=1)
-            hdrColor = (stacked.sum(axis=0) / count).astype(numpy.uint8)
+    camState.hdrIndex += 1
 
-            frameState.colorToDepthFrameHDR = hdrColor
+    # terminou um grupo de 4 exposições
+    if camState.hdrIndex >= len(hdrGroups[hdrGroupIndex]):
 
-            # HDR DEPTH
-            stacked_d = numpy.stack(depthArray, axis=0).astype(numpy.float32)
-            mask_d = (stacked_d > 150) & (stacked_d <= 5000)
-            stacked_d[~mask_d] = numpy.nan
+        hdrColor = buildHDRColor(colorArray)
+        hdrDepth = buildHDRDepth(depthArray)
 
-            median_d = numpy.nanmedian(stacked_d, axis=0)
-            mad_d    = numpy.nanmedian(numpy.abs(stacked_d - median_d), axis=0)
-            CONSISTENCY_THRESHOLD = 15
+        hdrColorArray.append(hdrColor)
+        hdrDepthArray.append(hdrDepth)
 
-            unstable = mad_d > CONSISTENCY_THRESHOLD
+        if final_index <= 4:
+            if hdrGroupIndex == 0:
+                cv2.imwrite(os.path.join(output_dir, f"LowHDRcolor_{final_index}.png"), hdrColor)
+                numpy.save(os.path.join(output_dir, f"LowHDRdepth_{final_index}.npy"), hdrDepth)
+            if hdrGroupIndex == 1:
+                cv2.imwrite(os.path.join(output_dir, f"MediumHDRcolor_{final_index}.png"), hdrColor)
+                numpy.save(os.path.join(output_dir, f"MediumHDRdepth_{final_index}.npy"), hdrDepth)
+            if hdrGroupIndex == 2:
+                cv2.imwrite(os.path.join(output_dir, f"HighHDRcolor_{final_index}.png"), hdrColor)
+                numpy.save(os.path.join(output_dir, f"HighHDRdepth_{final_index}.npy"), hdrDepth)
 
-            hdrDepth = median_d.copy()
-            min_d = numpy.nanmin(stacked_d, axis=0)
-            hdrDepth[unstable] = min_d[unstable]
-           
-            hdrDepth = numpy.nan_to_num(hdrDepth, nan=0).astype(numpy.uint16)
+        colorArray = []
+        depthArray = []
 
-            frameState.depthFrameHDR = hdrDepth
+        camState.hdrIndex = 0
+        hdrGroupIndex += 1
 
-            print("HDR Processed")
+        # terminou Low + Medium + High
+        if hdrGroupIndex >= 3:
 
-            camState.hdrIndex = 0
-            colorArray = []
-            depthArray = []
+            finalColor = buildHDRColor(hdrColorArray)
+            finalDepth = buildHDRDepth(hdrDepthArray)
+
+            if final_index <= 4:
+                cv2.imwrite(os.path.join(output_dir, f"HDRcolorFinal_{final_index}.png"), finalColor)
+                numpy.save(os.path.join(output_dir, f"HDRdepthFinal_{final_index}.npy"), finalDepth)
+
+                final_index += 1
+
+            frameState.colorToDepthFrameHDR = finalColor
+            frameState.depthFrameHDR = finalDepth
+
+            hdrColorArray = []
+            hdrDepthArray = []
+
+            hdrGroupIndex = 0
 
 def setFlyingPixelFilter(value: bool):
     ret,params = camState.camera.VZ_GetFlyingPixelFilterParams()

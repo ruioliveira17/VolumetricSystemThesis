@@ -158,13 +158,13 @@ def calibrateAPI(colorToDepthFrame, depthFrame, colorFrame, detection_area, lowe
 
     depth_copy = depthFrame.copy()
 
-    ys, xs = numpy.indices(depth_copy.shape)
+    #ys, xs = numpy.indices(depth_copy.shape)
 
-    D = depth_copy.astype(numpy.float32)
+    #D = depth_copy.astype(numpy.float32)
 
-    depth_corrected = D / (numpy.sqrt(1 + ((xs - cx_d) / fx_d) ** 2 + ((ys - cy_d) / fy_d) ** 2))
+    #depth_corrected = D / (numpy.sqrt(1 + ((xs - cx_d) / fx_d) ** 2 + ((ys - cy_d) / fy_d) ** 2))
 
-    depth_copy = numpy.round(depth_corrected).astype(numpy.int32)
+    #depth_copy = numpy.round(depth_corrected).astype(numpy.int32)
 
     depth_copy2 = depth_copy.copy()
 

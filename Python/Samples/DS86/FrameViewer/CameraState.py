@@ -31,7 +31,7 @@ class CameraState:
 
         self.colorSlope = 4100
         self.exposureTime = 4000
-        self.fps = 5
+        self.fps = 10
         self.cx_d = 0
         self.cy_d = 0
         self.fx_d = 0
@@ -42,6 +42,12 @@ class CameraState:
         self.fy_rgb = 0
 
         self.hdrEnabled = True
+        self.hdrExposuresLow = [30, 195, 360, 525]
+        self.hdrExposuresMedium = [690, 855, 1020, 1185]
+        self.hdrExposuresHigh = [1350, 1515, 1750, 2000]
+        #self.hdrExposuresLow = [30, 471, 942, 1353]
+        #self.hdrExposuresMedium = [1700, 2030, 2360, 2700]
+        #self.hdrExposuresHigh = [3040, 3370, 3710, 4000]
         self.hdrExposures = [30, 300, 824, 2412, 4000]
         #self.hdrExposures = [200, 675, 1150, 1625, 2100, 2575, 3050, 3525, 4000]
         #self.hdrExposures = [200, 2100, 4000]
