@@ -314,7 +314,7 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
 
                         depths.append(mean_depth)
                         #depths.append(obj["depth"])
-                        curr_index = len(contours)
+                        curr_index += 1
 
                     object_outOfLine.append(value)
 
