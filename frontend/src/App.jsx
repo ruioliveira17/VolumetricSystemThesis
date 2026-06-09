@@ -147,6 +147,29 @@ function App() {
     } catch (err) {
       setCurrentMenu("login-menu");
     }
+
+    try {
+      const res = await fetch(`${API_URL}/configuration/status`, {
+        headers: {
+          "Authorization": `Bearer ${access_token}`
+        }
+      });
+
+      if (res.status === 401) {
+        return;
+      }
+
+      const data = await res.json();
+
+      if (data.configured) {
+        handleExpHDR_toggle(data.expositionMode);
+        handleBundleReal_toggle(data.volumeMode);
+      }
+
+    } catch (err) {
+        console.error("Error fetching configuration status:", err);
+    }
+
   }
 
   function showLoginScreen() {

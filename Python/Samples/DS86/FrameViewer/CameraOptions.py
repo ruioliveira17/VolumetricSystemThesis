@@ -20,7 +20,6 @@ os.makedirs(output_dir, exist_ok=True)
 hdrGroups = [
     camState.hdrExposuresLow,
     camState.hdrExposuresMedium,
-    camState.hdrExposuresHigh
 ]
 
 colorArray = []
@@ -77,25 +76,39 @@ def startCamera():
             raise RuntimeError("Nenhuma câmera encontrada!") 
     else: 
         print("there are no camera found")
-        return {"message": "No camera detected"}
+        _ip_cfg = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "..", "config", "camera_ip.txt")
+        if os.path.exists(_ip_cfg):
+            with open(_ip_cfg) as _f:
+                _direct_ip = _f.read().strip()
+            print(f"Discovery falhou. Tentando IP direto: {_direct_ip}")
+            ret = camState.camera.VZ_OpenDeviceByIP(_direct_ip.encode())
+            if ret != 0:
+                print("VZ_OpenDeviceByIP direto falhou:", ret)
+                camState.camera = None
+                return {"message": "No camera detected"}
+            print("VZ_OpenDeviceByIP ret =", ret)
+        else:
+            camState.camera = None
+            return {"message": "No camera detected"}
 
-    retry = 20
-    while retry > 0:
-        if  VzConnectStatus.Connected.value == device_info.status:
-            print("uri: "+str(device_info.uri))
-            print("alias: "+str(device_info.alias))
-            print("ip: "+str(device_info.ip))
-            print("connectStatus: "+str(device_info.status))
-            break
-        retry -= 1
-        time.sleep(1)
-        ret,device_info=camState.camera.VZ_GetDeviceInfo()
-    else:
-        print("connect status:",device_info.status)  
-        print("Call VZ_OpenDeviceByIP with connect status :",VzConnectStatus.Connected.value)
-        raise RuntimeError("Connected Status Error!") 
+    if camera_count > 0:
+        retry = 20
+        while retry > 0:
+            if  VzConnectStatus.Connected.value == device_info.status:
+                print("uri: "+str(device_info.uri))
+                print("alias: "+str(device_info.alias))
+                print("ip: "+str(device_info.ip))
+                print("connectStatus: "+str(device_info.status))
+                break
+            retry -= 1
+            time.sleep(1)
+            ret,device_info=camState.camera.VZ_GetDeviceInfo()
+        else:
+            print("connect status:",device_info.status)  
+            print("Call VZ_OpenDeviceByIP with connect status :",VzConnectStatus.Connected.value)
+            raise RuntimeError("Connected Status Error!") 
 
-    ret = camState.camera.VZ_OpenDeviceByIP(device_info.ip)
+        ret = camState.camera.VZ_OpenDeviceByIP(device_info.ip)
     print("VZ_OpenDeviceByIP ret =", ret)
     if  ret != 0:
         return{"message": "Failed"}
@@ -134,7 +147,7 @@ def startCamera():
         else:
             print("VZ_SetTransformColorImgToDepthSensorEnabled failed:",ret)    
 
-        setFlyingPixelFilter(value = False) 
+        setFlyingPixelFilter(value = True) 
 
         setFillHoleFilter(value = True)
 
@@ -421,10 +434,6 @@ def processHDR(colorToDepthFrame, depthFrame, colorFrame):
             if hdrGroupIndex == 1:
                 cv2.imwrite(os.path.join(output_dir, f"MediumHDRcolor_{final_index}.png"), hdrColor)
                 numpy.save(os.path.join(output_dir, f"MediumHDRdepth_{final_index}.npy"), hdrDepth)
-            if hdrGroupIndex == 2:
-                cv2.imwrite(os.path.join(output_dir, f"HighHDRcolor_{final_index}.png"), hdrColor)
-                numpy.save(os.path.join(output_dir, f"HighHDRdepth_{final_index}.npy"), hdrDepth)
-
         colorArray = []
         depthArray = []
 
@@ -432,7 +441,7 @@ def processHDR(colorToDepthFrame, depthFrame, colorFrame):
         hdrGroupIndex += 1
 
         # terminou Low + Medium + High
-        if hdrGroupIndex >= 3:
+        if hdrGroupIndex >= len(hdrGroups):
 
             finalColor = buildHDRColor(hdrColorArray)
             finalDepth = buildHDRDepth(hdrDepthArray)
@@ -445,6 +454,7 @@ def processHDR(colorToDepthFrame, depthFrame, colorFrame):
 
             frameState.colorToDepthFrameHDR = finalColor
             frameState.depthFrameHDR = finalDepth
+
 
             hdrColorArray = []
             hdrDepthArray = []

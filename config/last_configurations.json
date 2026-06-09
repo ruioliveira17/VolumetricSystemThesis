@@ -1,0 +1,13 @@
+{
+    "expositionMode": "HDR",
+    "volumeMode": "Real",
+    "workingMode": "Static",
+    "debugMode": "Off",
+    "exposureTime": 4000,
+    "colorSlope": 1597,
+    "fps": 10,
+    "flyingPixelFilter": true,
+    "fillHoleFilter": true,
+    "spatialFilter": true,
+    "confidenceFilter": false
+}

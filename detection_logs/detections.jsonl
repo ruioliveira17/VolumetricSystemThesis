@@ -1,0 +1,696 @@
+{"timestamp": "2026-06-02T15:18:32.046688", "workspace_depth_mm": 1142.0, "n_objects": 1, "objects": [{"depth_mm": 968.0, "height_cm": 17.4, "width_cm": 33.53080153465271, "length_cm": 41.3788378238678, "volume_m3": 0.024141901419236438}]}
+{"timestamp": "2026-06-02T15:18:42.146669", "workspace_depth_mm": 1142.0, "n_objects": 1, "objects": [{"depth_mm": 967.0, "height_cm": 17.5, "width_cm": 41.347140073776245, "length_cm": 33.56148600578308, "volume_m3": 0.0242842506018909}]}
+{"timestamp": "2026-06-02T15:18:49.368916", "workspace_depth_mm": 1142.0, "n_objects": 1, "objects": [{"depth_mm": 967.0, "height_cm": 1750.0, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-02T15:57:00.793813", "workspace_depth_mm": 1142.0, "n_objects": 0, "objects": []}
+{"timestamp": "2026-06-02T16:54:36.889226", "workspace_depth_mm": 1142.0, "n_objects": 0, "objects": []}
+{"timestamp": "2026-06-02T17:06:45.555565", "workspace_depth_mm": 1142.0, "n_objects": 1, "objects": [{"depth_mm": 967.0, "height_cm": 17.5, "width_cm": 34.432777762413025, "length_cm": 42.46251583099365, "volume_m3": 0.02558679148972711}]}
+{"timestamp": "2026-06-02T17:07:05.201988", "workspace_depth_mm": 1142.0, "n_objects": 1, "objects": [{"depth_mm": 967.0, "height_cm": 17.5, "width_cm": 34.32978093624115, "length_cm": 42.35406219959259, "volume_m3": 0.025445099348759048}]}
+{"timestamp": "2026-06-02T17:07:17.892055", "workspace_depth_mm": 1142.0, "n_objects": 1, "objects": [{"depth_mm": 967.0, "height_cm": 17.5, "width_cm": 34.48055684566498, "length_cm": 42.461639642715454, "volume_m3": 0.025621767140563856}]}
+{"timestamp": "2026-06-02T17:07:35.972499", "workspace_depth_mm": 1142.0, "n_objects": 1, "objects": [{"depth_mm": 967.0, "height_cm": 17.5, "width_cm": 34.374648332595825, "length_cm": 42.46314465999603, "volume_m3": 0.025543974133711386}]}
+{"timestamp": "2026-06-02T17:09:14.855902", "workspace_depth_mm": 1142.0, "n_objects": 1, "objects": [{"depth_mm": 967.0, "height_cm": 17.5, "width_cm": 34.77334380149841, "length_cm": 43.14710199832916, "volume_m3": 0.026256457706958836}]}
+{"timestamp": "2026-06-02T17:09:47.138179", "workspace_depth_mm": 1142.0, "n_objects": 1, "objects": [{"depth_mm": 967.0, "height_cm": 17.4, "width_cm": 36.13043427467346, "length_cm": 55.92133402824402, "volume_m3": 0.03515604025567584}]}
+{"timestamp": "2026-06-02T17:10:59.968955", "workspace_depth_mm": 1142.0, "n_objects": 0, "objects": []}
+{"timestamp": "2026-06-02T17:11:09.034997", "workspace_depth_mm": 1142.0, "n_objects": 1, "objects": [{"depth_mm": 914.0, "height_cm": 22.8, "width_cm": 21.888068318367004, "length_cm": 30.872538685798645, "volume_m3": 0.01540687737888911}]}
+{"timestamp": "2026-06-02T17:11:27.570058", "workspace_depth_mm": 1142.0, "n_objects": 1, "objects": [{"depth_mm": 914.0, "height_cm": 22.8, "width_cm": 33.14533531665802, "length_cm": 38.94547522068024, "volume_m3": 0.02943162704383777}]}
+{"timestamp": "2026-06-02T17:11:46.061070", "workspace_depth_mm": 1142.0, "n_objects": 1, "objects": [{"depth_mm": 911.0, "height_cm": 23.1, "width_cm": 25.290924310684204, "length_cm": 32.620447874069214, "volume_m3": 0.01905752952558156}]}
+{"timestamp": "2026-06-02T17:12:19.408834", "workspace_depth_mm": 1142.0, "n_objects": 1, "objects": [{"depth_mm": 1062.0, "height_cm": 7.7, "width_cm": 19.947265088558197, "length_cm": 37.78974115848541, "volume_m3": 0.005804275280775563}]}
+{"timestamp": "2026-06-02T17:12:27.561731", "workspace_depth_mm": 1142.0, "n_objects": 1, "objects": [{"depth_mm": 1060.0, "height_cm": 7.9, "width_cm": 14.24376517534256, "length_cm": 37.724170088768005, "volume_m3": 0.004244940339414836}]}
+{"timestamp": "2026-06-02T17:12:35.098360", "workspace_depth_mm": 1142.0, "n_objects": 1, "objects": [{"depth_mm": 1060.0, "height_cm": 7.9, "width_cm": 14.50093537569046, "length_cm": 37.816062569618225, "volume_m3": 0.004332109407932296}]}
+{"timestamp": "2026-06-02T17:12:51.522936", "workspace_depth_mm": 1142.0, "n_objects": 1, "objects": [{"depth_mm": 1065.0, "height_cm": 7.8, "width_cm": 14.51149433851242, "length_cm": 37.79061138629913, "volume_m3": 0.004277506296813382}]}
+{"timestamp": "2026-06-03T10:35:57.533062", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_103557_533062.jpg", "objects": []}
+{"timestamp": "2026-06-03T10:36:24.376790", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_103624_376790.jpg", "objects": []}
+{"timestamp": "2026-06-03T11:06:33.522059", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_110633_522059.jpg", "objects": []}
+{"timestamp": "2026-06-03T11:06:46.666666", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_110646_666666.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.299999999999997, "width_cm": 38.01488280296326, "length_cm": 44.20143961906433, "volume_m3": 0.02906940706034908}]}
+{"timestamp": "2026-06-03T11:07:15.592936", "workspace_depth_mm": 1141.0, "n_objects": 2, "image": "20260603_110715_592936.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 15.4, "width_cm": 33.836036920547485, "length_cm": 42.237597703933716, "volume_m3": 0.022008954896321205}, {"depth_mm": 1121.0, "height_cm": 1.7999999999999998, "width_cm": 59.58588123321533, "length_cm": 72.7868378162384, "volume_m3": 0.0078067221722274375}]}
+{"timestamp": "2026-06-03T11:07:25.918977", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_110725_918977.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.299999999999997, "width_cm": 33.91115963459015, "length_cm": 42.78052747249603, "volume_m3": 0.025097755227231833}]}
+{"timestamp": "2026-06-03T11:07:42.779034", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_110742_779034.jpg", "objects": [{"depth_mm": 968.0, "height_cm": 17.2, "width_cm": 40.16565680503845, "length_cm": 50.80297589302063, "volume_m3": 0.035097200183571785}]}
+{"timestamp": "2026-06-03T11:07:53.109779", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_110753_109779.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.299999999999997, "width_cm": 35.23820638656616, "length_cm": 42.21324026584625, "volume_m3": 0.025734076498291198}]}
+{"timestamp": "2026-06-03T11:08:23.583128", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_110823_583128.jpg", "objects": [{"depth_mm": 968.0, "height_cm": 17.2, "width_cm": 36.78964674472809, "length_cm": 50.47428011894226, "volume_m3": 0.03193921208664981}]}
+{"timestamp": "2026-06-03T11:08:52.753404", "workspace_depth_mm": 1141.0, "n_objects": 2, "image": "20260603_110852_753404.jpg", "objects": [{"depth_mm": 1088.0, "height_cm": 5.1, "width_cm": 5.471058934926987, "length_cm": 36.94071173667908, "volume_m3": 0.0010307345361485532}, {"depth_mm": 1083.0, "height_cm": 5.6000000000000005, "width_cm": 7.294703274965286, "length_cm": 13.785512745380402, "volume_m3": 0.0005631428598364918}]}
+{"timestamp": "2026-06-03T11:09:03.523635", "workspace_depth_mm": 1141.0, "n_objects": 2, "image": "20260603_110903_523635.jpg", "objects": [{"depth_mm": 792.0, "height_cm": 32.0, "width_cm": 22.86132127046585, "length_cm": 40.35161733627319, "volume_m3": 0.02951972120663811}, {"depth_mm": 1112.0, "height_cm": 2.7, "width_cm": 50.16171336174011, "length_cm": 54.714059829711914, "volume_m3": 0.007410287662294792}]}
+{"timestamp": "2026-06-03T11:09:17.603677", "workspace_depth_mm": 1141.0, "n_objects": 2, "image": "20260603_110917_603677.jpg", "objects": [{"depth_mm": 793.0, "height_cm": 34.5, "width_cm": 22.04849421977997, "length_cm": 41.5404736995697, "volume_m3": 0.03159871885169001}, {"depth_mm": 1082.0, "height_cm": 5.6000000000000005, "width_cm": 6.546720862388611, "length_cm": 14.861030876636505, "volume_m3": 0.0005448297169093941}]}
+{"timestamp": "2026-06-03T12:45:11.280731", "workspace_depth_mm": 1141.0, "n_objects": 2, "image": "20260603_124511_280731.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}, {"depth_mm": 1115.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T12:45:11.848931", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124511_848931.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:45:12.400754", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124512_400754.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:45:12.985910", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124512_985910.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:45:13.522489", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124513_522489.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:45:14.117407", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124514_117407.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:45:14.666411", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124514_666411.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:45:15.264057", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124515_264057.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:45:17.993465", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_124517_993465.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T12:45:18.551691", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124518_551691.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:45:19.086651", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124519_086651.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:45:19.634160", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124519_634160.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:45:20.158199", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124520_158199.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:45:20.686484", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124520_686484.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:45:21.209398", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124521_209398.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:45:21.747481", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124521_747481.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:45:22.309630", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124522_309630.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:45:22.847094", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124522_847094.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:45:23.408296", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124523_408296.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:45:23.974116", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124523_974116.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:47:56.338887", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_124756_338887.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T12:47:57.870125", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124757_870125.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:47:58.716475", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124758_716475.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:47:59.534786", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124759_534786.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:48:00.393869", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124800_393869.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:48:01.236825", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124801_236825.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:48:02.092778", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124802_092778.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:48:05.416130", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_124805_416130.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T12:48:06.964839", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124806_964839.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:48:07.785264", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124807_785264.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:48:08.637641", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124808_637641.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:48:09.462035", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124809_462035.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:48:10.288322", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124810_288322.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:48:11.114197", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124811_114197.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:48:14.123255", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_124814_123255.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T12:48:15.644448", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124815_644448.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:48:16.497527", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124816_497527.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:48:17.354645", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124817_354645.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:48:18.202135", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124818_202135.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:48:19.067951", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124819_067951.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:48:19.916590", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124819_916590.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:48:20.772769", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124820_772769.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:48:21.610183", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124821_610183.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:48:25.005619", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_124825_005619.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T12:48:26.540823", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124826_540823.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:48:27.377056", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124827_377056.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:48:28.227549", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124828_227549.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:48:29.148699", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124829_148699.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:48:30.028454", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124830_028454.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:48:33.446976", "workspace_depth_mm": 1141.0, "n_objects": 2, "image": "20260603_124833_446976.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}, {"depth_mm": 978.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T12:48:34.974033", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124834_974033.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:48:35.806397", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124835_806397.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:48:36.712044", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124836_712044.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:48:37.559195", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124837_559195.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:48:38.385539", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124838_385539.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:48:39.265095", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124839_265095.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:48:40.084533", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124840_084533.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:48:40.956734", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124840_956734.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:48:43.815371", "workspace_depth_mm": 1141.0, "n_objects": 2, "image": "20260603_124843_815371.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}, {"depth_mm": 1111.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T12:48:45.348786", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124845_348786.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:48:46.216991", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124846_216991.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:48:47.072869", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124847_072869.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:48:47.945969", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124847_945969.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:48:48.768767", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124848_768767.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:48:49.633208", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124849_633208.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:48:50.474344", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124850_474344.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:48:51.341543", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124851_341543.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:48:55.310706", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_124855_310706.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T12:48:56.883750", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124856_883750.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:48:57.766641", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124857_766641.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:48:58.611212", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124858_611212.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:48:59.476063", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124859_476063.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:49:00.292848", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124900_292848.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:49:01.372984", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124901_372984.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:49:03.871974", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_124903_871974.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T12:49:05.399890", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124905_399890.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:49:06.281654", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124906_281654.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:49:07.132526", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124907_132526.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:49:07.987411", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124907_987411.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:49:08.804340", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124908_804340.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:49:09.657925", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124909_657925.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:49:10.539831", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124910_539831.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:49:13.409659", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_124913_409659.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T12:49:14.971631", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124914_971631.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:49:15.815590", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124915_815590.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:49:16.669420", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124916_669420.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:49:17.530915", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124917_530915.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:49:18.440722", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124918_440722.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:49:19.254241", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124919_254241.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:49:21.938565", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_124921_938565.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T12:49:23.492702", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124923_492702.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:49:24.329863", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124924_329863.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:49:25.177251", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124925_177251.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:49:26.040799", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124926_040799.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:49:26.884767", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124926_884767.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:49:27.721231", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124927_721231.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:49:28.594571", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124928_594571.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:49:29.488441", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124929_488441.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:49:32.777183", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_124932_777183.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T12:49:34.312472", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124934_312472.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:49:35.148905", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124935_148905.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:49:36.052717", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124936_052717.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:49:36.890856", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124936_890856.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:49:37.764522", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124937_764522.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:49:38.624795", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124938_624795.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:49:43.036784", "workspace_depth_mm": 1141.0, "n_objects": 2, "image": "20260603_124943_036784.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}, {"depth_mm": 1122.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T12:49:44.563214", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124944_563214.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:49:45.384789", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124945_384789.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:49:46.265792", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124946_265792.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:49:47.160046", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124947_160046.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:49:48.017972", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124948_017972.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:49:48.903745", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124948_903745.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:49:51.454306", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_124951_454306.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T12:49:53.001641", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124953_001641.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:49:53.848849", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124953_848849.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:49:54.656913", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124954_656913.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:49:55.469890", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124955_469890.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:49:56.286513", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124956_286513.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:49:57.119585", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124957_119585.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:49:57.968516", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124957_968516.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:49:58.810617", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_124958_810617.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:50:01.615012", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_125001_615012.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T12:50:03.151619", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125003_151619.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:50:04.023618", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125004_023618.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:50:04.921507", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125004_921507.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:50:05.777215", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125005_777215.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:50:06.637131", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125006_637131.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:50:07.487064", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125007_487064.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:50:08.368298", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125008_368298.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:50:09.236837", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125009_236837.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:50:11.660826", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_125011_660826.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T12:50:13.202480", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125013_202480.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:50:14.042562", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125014_042562.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:50:14.882001", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125014_882001.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:50:15.728673", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125015_728673.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:50:16.577814", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125016_577814.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:50:17.385458", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125017_385458.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:50:18.205681", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125018_205681.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:50:19.059383", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125019_059383.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:50:22.106981", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_125022_106981.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T12:50:23.642170", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125023_642170.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:50:24.460341", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125024_460341.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:50:25.282522", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125025_282522.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:50:26.120397", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125026_120397.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:50:26.946513", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125026_946513.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:50:27.769112", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125027_769112.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:50:28.601179", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125028_601179.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:50:31.452143", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_125031_452143.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T12:50:33.012889", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125033_012889.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:50:33.826875", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125033_826875.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:50:34.657861", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125034_657861.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:50:35.477109", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125035_477109.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:50:36.303550", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125036_303550.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:50:37.120077", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125037_120077.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:50:37.957937", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125037_957937.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:50:40.972610", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_125040_972610.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T12:50:42.518309", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125042_518309.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:50:43.344181", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125043_344181.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:50:44.189503", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125044_189503.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:50:45.020975", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125045_020975.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:50:45.856875", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125045_856875.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:50:46.675411", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125046_675411.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:50:47.510261", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125047_510261.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:50:51.088503", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_125051_088503.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T12:50:52.688829", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125052_688829.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:50:53.564739", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125053_564739.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:50:54.388206", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125054_388206.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:50:55.370256", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125055_370256.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:50:56.201130", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125056_201130.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:50:57.104761", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125057_104761.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:50:59.871260", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_125059_871260.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T12:51:01.409044", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125101_409044.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:51:02.251672", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125102_251672.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:51:03.106874", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125103_106874.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:51:03.979242", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125103_979242.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:51:04.788365", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125104_788365.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:51:05.637019", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125105_637019.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:51:06.721009", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125106_721009.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:51:09.593102", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_125109_593102.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T12:51:11.169934", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125111_169934.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:51:12.047018", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125112_047018.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:51:12.872241", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125112_872241.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:51:13.717464", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125113_717464.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:51:14.538282", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125114_538282.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:51:15.365557", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125115_365557.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:51:18.578522", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_125118_578522.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T12:51:20.197670", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125120_197670.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:51:21.062476", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125121_062476.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:51:21.877141", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125121_877141.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:51:22.690506", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125122_690506.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:51:23.529051", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125123_529051.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:51:24.374590", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125124_374590.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:51:25.192965", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125125_192965.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:51:27.966253", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_125127_966253.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T12:51:29.507391", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125129_507391.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:51:30.356717", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125130_356717.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:51:31.184094", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125131_184094.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:51:32.016142", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125132_016142.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:51:32.833586", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125132_833586.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:51:33.673409", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125133_673409.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:51:34.521340", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125134_521340.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:51:35.472796", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125135_472796.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:51:38.425463", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_125138_425463.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T12:51:40.060818", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125140_060818.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:51:40.916793", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125140_916793.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:51:41.817983", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125141_817983.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:51:42.669541", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125142_669541.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:51:43.524761", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125143_524761.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:51:44.501836", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125144_501836.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:51:47.607776", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_125147_607776.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T12:58:10.627992", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_125810_627992.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T12:58:12.962440", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_125812_962440.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T12:58:14.469255", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125814_469255.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:58:16.329890", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_125816_329890.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T12:58:17.841873", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125817_841873.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:58:19.849113", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_125819_849113.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T12:58:22.212036", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_125822_212036.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T12:58:23.728991", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125823_728991.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:58:25.564001", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_125825_564001.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T12:58:27.875618", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_125827_875618.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T12:58:29.382152", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125829_382152.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:58:31.271483", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_125831_271483.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T12:58:33.603501", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_125833_603501.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T12:58:35.110512", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125835_110512.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:58:36.810797", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_125836_810797.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T12:58:38.323667", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125838_323667.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:58:40.188927", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_125840_188927.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T12:58:42.902760", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_125842_902760.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T12:58:44.416690", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125844_416690.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:58:46.279039", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_125846_279039.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T12:58:48.523161", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_125848_523161.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T12:58:50.062123", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125850_062123.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:58:51.980347", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_125851_980347.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T12:58:54.593093", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_125854_593093.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T12:58:56.651051", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_125856_651051.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T12:58:58.161436", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125858_161436.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:58:59.816339", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_125859_816339.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T12:59:01.337684", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125901_337684.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:59:03.253900", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_125903_253900.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T12:59:06.274053", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_125906_274053.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T12:59:09.286606", "workspace_depth_mm": 1141.0, "n_objects": 2, "image": "20260603_125909_286606.jpg", "objects": [{"depth_mm": 965.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}, {"depth_mm": 970.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T12:59:10.808801", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125910_808801.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:59:13.089571", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_125913_089571.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T12:59:15.539594", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_125915_539594.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T12:59:18.085535", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_125918_085535.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T12:59:19.629135", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_125919_629135.jpg", "objects": []}
+{"timestamp": "2026-06-03T12:59:21.626759", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_125921_626759.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T13:00:19.460220", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_130019_460220.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.299999999999997, "width_cm": 35.17731428146362, "length_cm": 45.69098651409149, "volume_m3": 0.027806051129148204}]}
+{"timestamp": "2026-06-03T13:01:04.295624", "workspace_depth_mm": 1141.0, "n_objects": 2, "image": "20260603_130104_295624.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 18.2, "width_cm": 34.450045228004456, "length_cm": 41.057953238487244, "volume_m3": 0.025742959897840232}, {"depth_mm": 978.0, "height_cm": 17.1, "width_cm": 6.205163896083832, "length_cm": 26.33163332939148, "volume_m3": 0.002794004917873827}]}
+{"timestamp": "2026-06-03T13:01:24.750473", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_130124_750473.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.299999999999997, "width_cm": 34.85024273395538, "length_cm": 42.166754603385925, "volume_m3": 0.025422724254898547}]}
+{"timestamp": "2026-06-03T13:01:40.282107", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_130140_282107.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.299999999999997, "width_cm": 34.98382866382599, "length_cm": 45.672208070755005, "volume_m3": 0.02764174454193413}]}
+{"timestamp": "2026-06-03T13:01:54.400248", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_130154_400248.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.299999999999997, "width_cm": 34.97358858585358, "length_cm": 45.68222165107727, "volume_m3": 0.0276397122048271}]}
+{"timestamp": "2026-06-03T13:02:24.910122", "workspace_depth_mm": 1141.0, "n_objects": 2, "image": "20260603_130224_910122.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 18.2, "width_cm": 34.44038927555084, "length_cm": 41.03991985321045, "volume_m3": 0.025724440843591947}, {"depth_mm": 978.0, "height_cm": 17.1, "width_cm": 5.645451322197914, "length_cm": 26.129496097564697, "volume_m3": 0.002522468850799388}]}
+{"timestamp": "2026-06-03T13:02:33.765540", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_130233_765540.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.299999999999997, "width_cm": 35.1533979177475, "length_cm": 45.78959941864014, "volume_m3": 0.02784711815323849}]}
+{"timestamp": "2026-06-03T13:02:50.148935", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_130250_148935.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.299999999999997, "width_cm": 35.17245948314667, "length_cm": 45.7285612821579, "volume_m3": 0.027825077262303682}]}
+{"timestamp": "2026-06-03T13:03:01.615591", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_130301_615591.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.299999999999997, "width_cm": 35.152027010917664, "length_cm": 45.76682150363922, "volume_m3": 0.027832180240606075}]}
+{"timestamp": "2026-06-03T13:13:18.797825", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_131318_797825.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T13:13:20.307197", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_131320_307197.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:13:22.099753", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_131322_099753.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T13:13:23.617038", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_131323_617038.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:13:25.549835", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_131325_549835.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T13:13:28.363752", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_131328_363752.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T13:13:31.043383", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_131331_043383.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T13:13:32.562798", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_131332_562798.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:13:34.326351", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_131334_326351.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T13:13:36.531139", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_131336_531139.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T13:13:38.045185", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_131338_045185.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:13:39.581436", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_131339_581436.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T13:13:41.093393", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_131341_093393.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:13:42.852762", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_131342_852762.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T13:13:45.039071", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_131345_039071.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T13:13:46.554406", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_131346_554406.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:13:48.060667", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_131348_060667.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T13:13:49.579390", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_131349_579390.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:13:51.404450", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_131351_404450.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T13:13:52.916111", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_131352_916111.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:13:54.866706", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_131354_866706.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T13:13:57.523440", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_131357_523440.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T13:13:59.030840", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_131359_030840.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:14:00.845748", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_131400_845748.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T13:14:02.901606", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_131402_901606.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T13:14:04.416918", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_131404_416918.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:14:06.592314", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_131406_592314.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T13:14:08.101724", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_131408_101724.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:14:10.138760", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_131410_138760.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T13:14:12.566572", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_131412_566572.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T13:14:14.797657", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_131414_797657.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T13:14:16.317948", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_131416_317948.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:14:18.040286", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_131418_040286.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T13:14:19.555439", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_131419_555439.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:14:21.732974", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_131421_732974.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T13:14:24.435774", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_131424_435774.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T13:14:26.563270", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_131426_563270.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T13:14:28.088836", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_131428_088836.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:14:29.696352", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_131429_696352.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T13:19:07.229890", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": null, "objects": []}
+{"timestamp": "2026-06-03T13:19:08.050401", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": null, "objects": []}
+{"timestamp": "2026-06-03T13:19:10.176989", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_131910_176989.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T13:19:11.705890", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_131911_705890.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:19:12.537684", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_131912_537684.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:19:13.371776", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_131913_371776.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:19:16.143487", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_131916_143487.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T13:19:17.691124", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_131917_691124.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:19:18.608240", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_131918_608240.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:19:19.507804", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_131919_507804.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:19:20.344824", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_131920_344824.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:19:21.173317", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_131921_173317.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:19:21.994056", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_131921_994056.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:19:22.841055", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_131922_841055.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:19:23.718253", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_131923_718253.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:19:24.582985", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_131924_582985.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:19:27.199469", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_131927_199469.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T13:19:28.743538", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_131928_743538.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:19:29.588288", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_131929_588288.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:19:30.456908", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_131930_456908.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:19:31.298548", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_131931_298548.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:19:32.132397", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_131932_132397.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:19:33.019896", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_131933_019896.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:19:33.997416", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_131933_997416.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:19:34.913596", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_131934_913596.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:19:35.852730", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_131935_852730.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:19:36.802380", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_131936_802380.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:19:37.680509", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_131937_680509.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:19:38.725000", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_131938_725000.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:19:39.580739", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_131939_580739.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:19:40.555549", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_131940_555549.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:19:41.588860", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_131941_588860.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:19:42.476750", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_131942_476750.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:19:43.504879", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_131943_504879.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:19:44.523308", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_131944_523308.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:19:45.656344", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_131945_656344.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:19:46.638315", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_131946_638315.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:19:47.575596", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_131947_575596.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:19:48.725674", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_131948_725674.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:19:49.620834", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_131949_620834.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:19:53.725429", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_131953_725429.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T13:19:55.394505", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_131955_394505.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:19:59.732464", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_131959_732464.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T13:20:01.494151", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132001_494151.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:20:02.371850", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132002_371850.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:20:03.269207", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132003_269207.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:20:04.186069", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132004_186069.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:20:05.361257", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132005_361257.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:20:06.330326", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132006_330326.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:20:07.342345", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132007_342345.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:20:08.482119", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132008_482119.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:20:13.234486", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_132013_234486.jpg", "objects": [{"depth_mm": 966.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T13:20:14.941308", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132014_941308.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:20:15.936864", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132015_936864.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:20:18.941191", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_132018_941191.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T13:20:20.558518", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132020_558518.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:20:21.565317", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132021_565317.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:20:22.524808", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132022_524808.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:20:23.481795", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132023_481795.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:20:24.424708", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132024_424708.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:20:25.269873", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132025_269873.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:20:26.369580", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132026_369580.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:20:27.273138", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132027_273138.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:20:28.281647", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132028_281647.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:20:31.328947", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_132031_328947.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T13:20:33.110070", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132033_110070.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:20:33.999933", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132033_999933.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:20:37.881832", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_132037_881832.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T13:20:39.547851", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132039_547851.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:20:40.389321", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132040_389321.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:20:41.317066", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132041_317066.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:20:42.288447", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132042_288447.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:20:43.360769", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132043_360769.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:20:44.314028", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132044_314028.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:20:45.444918", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132045_444918.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:20:46.360737", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132046_360737.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:20:51.993920", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_132051_993920.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T13:20:53.615200", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132053_615200.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:20:59.079714", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_132059_079714.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T13:21:00.969068", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132100_969068.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:21:01.996704", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132101_996704.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:21:03.045162", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132103_045162.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:21:04.142588", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132104_142588.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:21:05.084986", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132105_084986.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:21:05.967939", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132105_967939.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:21:07.117362", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132107_117362.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:21:07.988852", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132107_988852.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:21:12.196564", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_132112_196564.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T13:21:13.980849", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132113_980849.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:21:19.306973", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_132119_306973.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T13:21:21.193696", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132121_193696.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:21:22.240834", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132122_240834.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:21:23.257140", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132123_257140.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:21:24.379057", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132124_379057.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:21:25.268703", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132125_268703.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:21:26.137412", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132126_137412.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:21:27.036833", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132127_036833.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:21:27.966709", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132127_966709.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:21:28.886493", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132128_886493.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:21:33.732327", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_132133_732327.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T13:21:35.364753", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132135_364753.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:21:38.935884", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_132138_935884.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T13:21:40.731111", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132140_731111.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:21:41.764754", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132141_764754.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:21:42.653113", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132142_653113.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:21:43.745078", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132143_745078.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:21:44.916918", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132144_916918.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:21:46.139761", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132146_139761.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:21:47.084715", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132147_084715.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:21:48.009729", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132148_009729.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:21:49.241361", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132149_241361.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:21:53.049857", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_132153_049857.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T13:21:54.855311", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132154_855311.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:21:55.913525", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132155_913525.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:21:59.533029", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_132159_533029.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T13:22:01.374224", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132201_374224.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:22:02.370968", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132202_370968.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:22:03.453899", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132203_453899.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:22:04.517599", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132204_517599.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:22:05.477580", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132205_477580.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:22:06.665099", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132206_665099.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:22:07.690238", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132207_690238.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:22:12.021279", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_132212_021279.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T13:22:13.628947", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132213_628947.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:22:14.683495", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132214_683495.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:22:19.933589", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_132219_933589.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T13:22:21.713574", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132221_713574.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:22:22.615549", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132222_615549.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:22:23.628154", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132223_628154.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:22:24.653610", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132224_653610.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:22:25.606349", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132225_606349.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:22:26.456801", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132226_456801.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:22:27.385928", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132227_385928.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:22:28.457089", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132228_457089.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:22:35.257588", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_132235_257588.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T13:22:40.960725", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_132240_960725.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T13:22:42.539267", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132242_539267.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:22:43.524627", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132243_524627.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:22:44.614664", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132244_614664.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:22:45.609943", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132245_609943.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:22:46.537176", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132246_537176.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:22:47.518511", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132247_518511.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:22:51.582680", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_132251_582680.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T13:22:53.283954", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132253_283954.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:22:58.122644", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_132258_122644.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T13:22:59.851058", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132259_851058.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:23:00.825519", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132300_825519.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:23:01.960260", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132301_960260.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:23:02.900715", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132302_900715.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:23:03.864745", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132303_864745.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:23:04.954629", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132304_954629.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:23:05.896740", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132305_896740.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:23:08.712035", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_132308_712035.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T13:23:10.523777", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132310_523777.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:23:11.412960", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132311_412960.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:23:12.366588", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_132312_366588.jpg", "objects": []}
+{"timestamp": "2026-06-03T13:23:16.137301", "workspace_depth_mm": 1141.0, "n_objects": 2, "image": "20260603_132316_137301.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}, {"depth_mm": 978.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:08:16.236185", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_140816_236185.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.299999999999997, "width_cm": 34.98512506484985, "length_cm": 45.69661319255829, "volume_m3": 0.027657539887163744}]}
+{"timestamp": "2026-06-03T14:08:37.533294", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_140837_533294.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.299999999999997, "width_cm": 34.86410677433014, "length_cm": 42.14923083782196, "volume_m3": 0.02542226841987284}]}
+{"timestamp": "2026-06-03T14:13:30.385353", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_141330_385353.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:13:31.895893", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_141331_895893.jpg", "objects": []}
+{"timestamp": "2026-06-03T14:13:33.620501", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_141333_620501.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:13:35.128627", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_141335_128627.jpg", "objects": []}
+{"timestamp": "2026-06-03T14:13:36.680754", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_141336_680754.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:13:39.500814", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_141339_500814.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:13:41.009365", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_141341_009365.jpg", "objects": []}
+{"timestamp": "2026-06-03T14:13:42.938306", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_141342_938306.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:13:45.821640", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_141345_821640.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:13:48.268291", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_141348_268291.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:13:49.776490", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_141349_776490.jpg", "objects": []}
+{"timestamp": "2026-06-03T14:13:51.537745", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_141351_537745.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:13:54.485731", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_141354_485731.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:13:56.000953", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_141356_000953.jpg", "objects": []}
+{"timestamp": "2026-06-03T14:13:57.515203", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_141357_515203.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:13:59.963320", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_141359_963320.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:14:01.475172", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_141401_475172.jpg", "objects": []}
+{"timestamp": "2026-06-03T14:14:03.427806", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_141403_427806.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:14:06.327339", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_141406_327339.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:14:08.584847", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_141408_584847.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:14:10.093225", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_141410_093225.jpg", "objects": []}
+{"timestamp": "2026-06-03T14:14:11.673747", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_141411_673747.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:14:13.190590", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_141413_190590.jpg", "objects": []}
+{"timestamp": "2026-06-03T14:14:15.064245", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_141415_064245.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:14:17.460695", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_141417_460695.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:14:18.970192", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_141418_970192.jpg", "objects": []}
+{"timestamp": "2026-06-03T14:14:20.878028", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_141420_878028.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:14:23.612808", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_141423_612808.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:14:25.121276", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_141425_121276.jpg", "objects": []}
+{"timestamp": "2026-06-03T14:14:26.888884", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_141426_888884.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:14:29.297704", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_141429_297704.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:14:30.810974", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_141430_810974.jpg", "objects": []}
+{"timestamp": "2026-06-03T14:14:33.023171", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_141433_023171.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:14:35.903762", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_141435_903762.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:14:38.563267", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_141438_563267.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:14:40.070723", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_141440_070723.jpg", "objects": []}
+{"timestamp": "2026-06-03T14:14:41.494623", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_141441_494623.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:20:11.594674", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_142011_594674.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.299999999999997, "width_cm": 35.183995962142944, "length_cm": 45.65466344356537, "volume_m3": 0.0277892234505492}]}
+{"timestamp": "2026-06-03T14:38:28.725769", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_143828_725769.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:38:31.510286", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_143831_510286.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:38:33.026057", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_143833_026057.jpg", "objects": []}
+{"timestamp": "2026-06-03T14:38:34.714391", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_143834_714391.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:38:37.112410", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_143837_112410.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:38:38.626752", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_143838_626752.jpg", "objects": []}
+{"timestamp": "2026-06-03T14:38:40.530762", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_143840_530762.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:38:43.072014", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_143843_072014.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:38:44.588022", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_143844_588022.jpg", "objects": []}
+{"timestamp": "2026-06-03T14:38:46.384126", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_143846_384126.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:38:48.513558", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_143848_513558.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:38:50.020276", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_143850_020276.jpg", "objects": []}
+{"timestamp": "2026-06-03T14:38:51.973967", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_143851_973967.jpg", "objects": [{"depth_mm": 966.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:38:53.486262", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_143853_486262.jpg", "objects": []}
+{"timestamp": "2026-06-03T14:38:55.128330", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_143855_128330.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:38:57.260242", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_143857_260242.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:38:58.776777", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_143858_776777.jpg", "objects": []}
+{"timestamp": "2026-06-03T14:39:00.153256", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_143900_153256.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:39:01.682301", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_143901_682301.jpg", "objects": []}
+{"timestamp": "2026-06-03T14:39:03.383410", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_143903_383410.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:39:05.696094", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_143905_696094.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:39:07.209501", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_143907_209501.jpg", "objects": []}
+{"timestamp": "2026-06-03T14:39:08.970481", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_143908_970481.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:39:10.511745", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_143910_511745.jpg", "objects": []}
+{"timestamp": "2026-06-03T14:39:12.273542", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_143912_273542.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:39:14.961070", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_143914_961070.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:39:16.484402", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_143916_484402.jpg", "objects": []}
+{"timestamp": "2026-06-03T14:39:18.226723", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_143918_226723.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:39:20.525651", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_143920_525651.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:39:22.046308", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_143922_046308.jpg", "objects": []}
+{"timestamp": "2026-06-03T14:39:24.126207", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_143924_126207.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:39:25.651932", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_143925_651932.jpg", "objects": []}
+{"timestamp": "2026-06-03T14:39:26.486055", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_143926_486055.jpg", "objects": []}
+{"timestamp": "2026-06-03T14:39:27.296603", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_143927_296603.jpg", "objects": []}
+{"timestamp": "2026-06-03T14:39:29.703156", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_143929_703156.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:39:31.226992", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_143931_226992.jpg", "objects": []}
+{"timestamp": "2026-06-03T14:39:32.061495", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_143932_061495.jpg", "objects": []}
+{"timestamp": "2026-06-03T14:39:34.462425", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_143934_462425.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:39:35.990481", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_143935_990481.jpg", "objects": []}
+{"timestamp": "2026-06-03T14:39:36.812299", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_143936_812299.jpg", "objects": []}
+{"timestamp": "2026-06-03T14:39:38.962524", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_143938_962524.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:39:40.505563", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_143940_505563.jpg", "objects": []}
+{"timestamp": "2026-06-03T14:39:41.337544", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_143941_337544.jpg", "objects": []}
+{"timestamp": "2026-06-03T14:39:42.166558", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_143942_166558.jpg", "objects": []}
+{"timestamp": "2026-06-03T14:39:44.317483", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_143944_317483.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:39:45.840076", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_143945_840076.jpg", "objects": []}
+{"timestamp": "2026-06-03T14:39:46.666762", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_143946_666762.jpg", "objects": []}
+{"timestamp": "2026-06-03T14:39:48.711218", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_143948_711218.jpg", "objects": [{"depth_mm": 967.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:42:24.122237", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_144224_122237.jpg", "objects": [{"depth_mm": 966.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:42:25.633047", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_144225_633047.jpg", "objects": []}
+{"timestamp": "2026-06-03T14:42:27.526592", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_144227_526592.jpg", "objects": [{"depth_mm": 966.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:42:30.303850", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_144230_303850.jpg", "objects": [{"depth_mm": 966.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:42:31.823954", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_144231_823954.jpg", "objects": []}
+{"timestamp": "2026-06-03T14:42:33.800214", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_144233_800214.jpg", "objects": [{"depth_mm": 965.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:42:36.268814", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_144236_268814.jpg", "objects": [{"depth_mm": 965.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:42:37.784590", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_144237_784590.jpg", "objects": []}
+{"timestamp": "2026-06-03T14:42:39.477339", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_144239_477339.jpg", "objects": [{"depth_mm": 966.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:42:41.879993", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_144241_879993.jpg", "objects": [{"depth_mm": 966.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:42:43.390661", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_144243_390661.jpg", "objects": []}
+{"timestamp": "2026-06-03T14:42:45.077145", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_144245_077145.jpg", "objects": [{"depth_mm": 966.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:42:46.592733", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_144246_592733.jpg", "objects": []}
+{"timestamp": "2026-06-03T14:42:48.452445", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_144248_452445.jpg", "objects": [{"depth_mm": 965.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:42:49.968977", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_144249_968977.jpg", "objects": []}
+{"timestamp": "2026-06-03T14:42:51.872725", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_144251_872725.jpg", "objects": [{"depth_mm": 966.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:42:54.240190", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_144254_240190.jpg", "objects": [{"depth_mm": 966.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:42:55.750375", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_144255_750375.jpg", "objects": []}
+{"timestamp": "2026-06-03T14:42:57.385830", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_144257_385830.jpg", "objects": [{"depth_mm": 966.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:42:58.893791", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_144258_893791.jpg", "objects": []}
+{"timestamp": "2026-06-03T14:43:00.916079", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_144300_916079.jpg", "objects": [{"depth_mm": 966.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:43:03.526372", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_144303_526372.jpg", "objects": [{"depth_mm": 965.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:43:05.042468", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_144305_042468.jpg", "objects": []}
+{"timestamp": "2026-06-03T14:43:06.500145", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_144306_500145.jpg", "objects": [{"depth_mm": 966.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:43:09.428134", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_144309_428134.jpg", "objects": [{"depth_mm": 966.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:43:10.940140", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_144310_940140.jpg", "objects": []}
+{"timestamp": "2026-06-03T14:43:12.611921", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_144312_611921.jpg", "objects": [{"depth_mm": 966.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:43:14.804420", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_144314_804420.jpg", "objects": [{"depth_mm": 966.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:43:16.333070", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_144316_333070.jpg", "objects": []}
+{"timestamp": "2026-06-03T14:43:18.107905", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_144318_107905.jpg", "objects": [{"depth_mm": 966.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:43:19.636737", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_144319_636737.jpg", "objects": []}
+{"timestamp": "2026-06-03T14:43:21.760784", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_144321_760784.jpg", "objects": [{"depth_mm": 966.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:43:24.284978", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_144324_284978.jpg", "objects": [{"depth_mm": 966.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:43:27.199616", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_144327_199616.jpg", "objects": [{"depth_mm": 966.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:43:29.916000", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_144329_916000.jpg", "objects": [{"depth_mm": 966.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:43:32.353900", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_144332_353900.jpg", "objects": [{"depth_mm": 966.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:43:33.869927", "workspace_depth_mm": 1141.0, "n_objects": 0, "image": "20260603_144333_869927.jpg", "objects": []}
+{"timestamp": "2026-06-03T14:43:35.639508", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_144335_639508.jpg", "objects": [{"depth_mm": 966.0, "height_cm": null, "width_cm": null, "length_cm": null, "volume_m3": null}]}
+{"timestamp": "2026-06-03T14:46:19.120763", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_144619_120763.jpg", "objects": [{"depth_mm": 966.0, "height_cm": 17.4, "width_cm": 34.81605350971222, "length_cm": 42.10666120052338, "volume_m3": 0.025508187188825766}]}
+{"timestamp": "2026-06-03T14:46:33.941287", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_144633_941287.jpg", "objects": [{"depth_mm": 966.0, "height_cm": 17.4, "width_cm": 35.09799540042877, "length_cm": 45.80857753753662, "volume_m3": 0.02797553284060002}]}
+{"timestamp": "2026-06-03T15:11:49.370402", "workspace_depth_mm": 1141.0, "n_frames": 5, "n_objects": 1, "image": "20260603_151149_370402.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.4, "width_cm": 34.32970643043518, "length_cm": 42.881762981414795, "volume_m3": 0.025614859018063624}]}
+{"timestamp": "2026-06-03T15:12:20.456261", "workspace_depth_mm": 1141.0, "n_frames": 5, "n_objects": 1, "image": "20260603_151220_456261.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.4, "width_cm": 34.51039493083954, "length_cm": 42.83796548843384, "volume_m3": 0.025723378862487753}]}
+{"timestamp": "2026-06-03T15:12:35.595170", "workspace_depth_mm": 1141.0, "n_frames": 5, "n_objects": 1, "image": "20260603_151235_595170.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.4, "width_cm": 34.29461121559143, "length_cm": 43.32326352596283, "volume_m3": 0.025852127938315036}]}
+{"timestamp": "2026-06-03T15:12:50.814755", "workspace_depth_mm": 1141.0, "n_frames": 5, "n_objects": 1, "image": "20260603_151250_814755.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.4, "width_cm": 34.29461121559143, "length_cm": 43.35417449474335, "volume_m3": 0.025870573324340316}]}
+{"timestamp": "2026-06-03T15:13:05.269594", "workspace_depth_mm": 1141.0, "n_frames": 5, "n_objects": 1, "image": "20260603_151305_269594.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.4, "width_cm": 34.32971239089966, "length_cm": 42.881762981414795, "volume_m3": 0.02561486346542054}]}
+{"timestamp": "2026-06-03T15:13:19.625609", "workspace_depth_mm": 1141.0, "n_frames": 5, "n_objects": 1, "image": "20260603_151319_625609.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.4, "width_cm": 34.32970643043518, "length_cm": 43.368321657180786, "volume_m3": 0.025905498465167588}]}
+{"timestamp": "2026-06-03T15:13:34.929921", "workspace_depth_mm": 1141.0, "n_frames": 5, "n_objects": 1, "image": "20260603_151334_929921.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.4, "width_cm": 34.32971239089966, "length_cm": 42.83796548843384, "volume_m3": 0.02558870160254841}]}
+{"timestamp": "2026-06-03T15:13:49.508973", "workspace_depth_mm": 1141.0, "n_frames": 5, "n_objects": 1, "image": "20260603_151349_508973.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.4, "width_cm": 34.32971239089966, "length_cm": 42.881762981414795, "volume_m3": 0.02561486346542054}]}
+{"timestamp": "2026-06-03T15:14:04.592526", "workspace_depth_mm": 1141.0, "n_frames": 5, "n_objects": 1, "image": "20260603_151404_592526.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.4, "width_cm": 34.32970643043518, "length_cm": 42.83796548843384, "volume_m3": 0.025588697159733824}]}
+{"timestamp": "2026-06-03T15:14:19.472192", "workspace_depth_mm": 1141.0, "n_frames": 5, "n_objects": 1, "image": "20260603_151419_472192.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.4, "width_cm": 34.32971239089966, "length_cm": 43.15568208694458, "volume_m3": 0.025778485480955595}]}
+{"timestamp": "2026-06-03T15:14:34.756553", "workspace_depth_mm": 1141.0, "n_frames": 5, "n_objects": 1, "image": "20260603_151434_756553.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.4, "width_cm": 34.32971239089966, "length_cm": 43.35417449474335, "volume_m3": 0.025897052339479847}]}
+{"timestamp": "2026-06-03T15:14:49.382116", "workspace_depth_mm": 1141.0, "n_frames": 5, "n_objects": 1, "image": "20260603_151449_382116.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.4, "width_cm": 34.29461121559143, "length_cm": 43.29603314399719, "volume_m3": 0.02583587885500295}]}
+{"timestamp": "2026-06-03T15:15:03.829285", "workspace_depth_mm": 1141.0, "n_frames": 5, "n_objects": 1, "image": "20260603_151503_829285.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.4, "width_cm": 34.364813566207886, "length_cm": 42.88176894187927, "volume_m3": 0.025641057514337793}]}
+{"timestamp": "2026-06-03T15:15:19.174925", "workspace_depth_mm": 1141.0, "n_frames": 5, "n_objects": 1, "image": "20260603_151519_174925.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.4, "width_cm": 34.54567492008209, "length_cm": 42.881762981414795, "volume_m3": 0.0257760023248338}]}
+{"timestamp": "2026-06-03T15:15:33.893369", "workspace_depth_mm": 1141.0, "n_frames": 5, "n_objects": 1, "image": "20260603_151533_893369.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.4, "width_cm": 34.32971239089966, "length_cm": 42.88176894187927, "volume_m3": 0.025614867025826483}]}
+{"timestamp": "2026-06-03T15:15:49.279905", "workspace_depth_mm": 1141.0, "n_frames": 5, "n_objects": 1, "image": "20260603_151549_279905.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.4, "width_cm": 34.29461121559143, "length_cm": 43.35417449474335, "volume_m3": 0.025870573324340316}]}
+{"timestamp": "2026-06-03T15:16:04.306840", "workspace_depth_mm": 1141.0, "n_frames": 5, "n_objects": 1, "image": "20260603_151604_306840.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.4, "width_cm": 34.36480760574341, "length_cm": 42.88176894187927, "volume_m3": 0.025641053066980262}]}
+{"timestamp": "2026-06-03T15:16:19.548285", "workspace_depth_mm": 1141.0, "n_frames": 5, "n_objects": 1, "image": "20260603_151619_548285.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.4, "width_cm": 34.32971239089966, "length_cm": 42.88176894187927, "volume_m3": 0.025614867025826483}]}
+{"timestamp": "2026-06-03T15:16:35.095505", "workspace_depth_mm": 1141.0, "n_frames": 5, "n_objects": 1, "image": "20260603_151635_095505.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.4, "width_cm": 34.32970643043518, "length_cm": 43.15568208694458, "volume_m3": 0.02577848100518996}]}
+{"timestamp": "2026-06-03T15:16:49.752936", "workspace_depth_mm": 1141.0, "n_frames": 5, "n_objects": 1, "image": "20260603_151649_752936.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.4, "width_cm": 34.32970643043518, "length_cm": 42.88176894187927, "volume_m3": 0.02561486257846895}]}
+{"timestamp": "2026-06-03T15:17:04.445587", "workspace_depth_mm": 1141.0, "n_frames": 5, "n_objects": 1, "image": "20260603_151704_445587.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.4, "width_cm": 34.29461121559143, "length_cm": 43.43782663345337, "volume_m3": 0.0259204907501351}]}
+{"timestamp": "2026-06-03T15:17:18.961581", "workspace_depth_mm": 1141.0, "n_frames": 5, "n_objects": 1, "image": "20260603_151718_961581.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.4, "width_cm": 34.32971239089966, "length_cm": 42.83795952796936, "volume_m3": 0.025588698042142467}]}
+{"timestamp": "2026-06-03T15:17:34.090999", "workspace_depth_mm": 1141.0, "n_frames": 5, "n_objects": 1, "image": "20260603_151734_090999.jpg", "objects": [{"depth_mm": 966.0, "height_cm": 17.4, "width_cm": 34.58096385002136, "length_cm": 42.83796548843384, "volume_m3": 0.02577597956577348}]}
+{"timestamp": "2026-06-03T15:17:48.971997", "workspace_depth_mm": 1141.0, "n_frames": 5, "n_objects": 1, "image": "20260603_151748_971997.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.4, "width_cm": 34.32970643043518, "length_cm": 42.83796548843384, "volume_m3": 0.025588697159733824}]}
+{"timestamp": "2026-06-03T15:18:03.877672", "workspace_depth_mm": 1141.0, "n_frames": 5, "n_objects": 1, "image": "20260603_151803_877672.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.4, "width_cm": 34.32971239089966, "length_cm": 43.14221143722534, "volume_m3": 0.0257704389635235}]}
+{"timestamp": "2026-06-03T15:18:19.180228", "workspace_depth_mm": 1141.0, "n_frames": 5, "n_objects": 1, "image": "20260603_151819_180228.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.4, "width_cm": 34.29461121559143, "length_cm": 43.35368275642395, "volume_m3": 0.025870279891184303}]}
+{"timestamp": "2026-06-03T15:23:07.800567", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_152307_800567.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.299999999999997, "width_cm": 34.87396240234375, "length_cm": 42.18786060810089, "volume_m3": 0.025452761059002568}]}
+{"timestamp": "2026-06-03T15:23:32.107732", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_152332_107732.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.299999999999997, "width_cm": 34.64215099811554, "length_cm": 41.97967052459717, "volume_m3": 0.02515880327334127}]}
+{"timestamp": "2026-06-03T15:23:48.539438", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_152348_539438.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.299999999999997, "width_cm": 34.642595052719116, "length_cm": 46.586936712265015, "volume_m3": 0.027920338230564952}]}
+{"timestamp": "2026-06-03T15:24:08.602482", "workspace_depth_mm": 1141.0, "n_objects": 1, "image": "20260603_152408_602482.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.299999999999997, "width_cm": 35.06610989570618, "length_cm": 46.72824144363403, "volume_m3": 0.028347393339733237}]}
+{"timestamp": "2026-06-03T15:36:22.607462", "workspace_depth_mm": 1141.0, "n_frames": 3, "n_objects": 1, "image": "20260603_153622_607462.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.299999999999997, "width_cm": 34.82585847377777, "length_cm": 45.30775249004364, "volume_m3": 0.02729734780450957}]}
+{"timestamp": "2026-06-03T15:40:52.412735", "workspace_depth_mm": 1141.0, "n_frames": 3, "n_objects": 2, "image": "20260603_154052_412735.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.299999999999997, "width_cm": 34.69141125679016, "length_cm": 42.46317446231842, "volume_m3": 0.025484758859761335}, {"depth_mm": 973.0, "height_cm": 16.6, "width_cm": 1.5846624970436096, "length_cm": 30.584025382995605, "volume_m3": 0.0008045249433488451}]}
+{"timestamp": "2026-06-03T15:48:55.883626", "workspace_depth_mm": 1141.0, "n_frames": 3, "n_objects": 1, "image": "20260603_154855_883626.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.299999999999997, "width_cm": 34.638652205467224, "length_cm": 42.366501688957214, "volume_m3": 0.025388070346974025}]}
+{"timestamp": "2026-06-03T15:54:17.887253", "workspace_depth_mm": 1141.0, "n_frames": 3, "n_objects": 1, "image": "20260603_155417_887253.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.299999999999997, "width_cm": 34.61385369300842, "length_cm": 42.45300590991974, "volume_m3": 0.025421694942322836}]}
+{"timestamp": "2026-06-03T15:54:45.617179", "workspace_depth_mm": 1141.0, "n_frames": 3, "n_objects": 1, "image": "20260603_155445_617179.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.299999999999997, "width_cm": 34.67299938201904, "length_cm": 42.49592423439026, "volume_m3": 0.025490877976610007}]}
+{"timestamp": "2026-06-03T15:55:33.525112", "workspace_depth_mm": 1141.0, "n_frames": 3, "n_objects": 1, "image": "20260603_155533_525112.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.299999999999997, "width_cm": 34.662631154060364, "length_cm": 42.428842186927795, "volume_m3": 0.02544302881143413}]}
+{"timestamp": "2026-06-03T15:56:19.997831", "workspace_depth_mm": 1141.0, "n_frames": 3, "n_objects": 1, "image": "20260603_155619_997831.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.299999999999997, "width_cm": 34.676945209503174, "length_cm": 41.98582470417023, "volume_m3": 0.02518776447117206}]}
+{"timestamp": "2026-06-03T15:57:21.237417", "workspace_depth_mm": 1141.0, "n_frames": 3, "n_objects": 1, "image": "20260603_155721_237417.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.299999999999997, "width_cm": 34.64009165763855, "length_cm": 42.023393511772156, "volume_m3": 0.02518350971212145}]}
+{"timestamp": "2026-06-03T16:04:27.571860", "workspace_depth_mm": 1141.0, "n_frames": 2, "n_objects": 1, "image": "20260603_160427_571860.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.299999999999997, "width_cm": 34.1276690363884, "length_cm": 42.19517409801483, "volume_m3": 0.024912396802312203}]}
+{"timestamp": "2026-06-03T16:04:46.711714", "workspace_depth_mm": 1141.0, "n_frames": 2, "n_objects": 1, "image": "20260603_160446_711714.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.299999999999997, "width_cm": 34.4217449426651, "length_cm": 42.11588799953461, "volume_m3": 0.02507985073724126}]}
+{"timestamp": "2026-06-03T16:18:18.449967", "workspace_depth_mm": 1141.0, "n_frames": 2, "n_objects": 1, "image": "20260603_161818_449967.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.299999999999997, "width_cm": 34.6466600894928, "length_cm": 43.5978502035141, "volume_m3": 0.026131994211764348}]}
+{"timestamp": "2026-06-03T16:19:10.188444", "workspace_depth_mm": 1141.0, "n_frames": 2, "n_objects": 1, "image": "20260603_161910_188444.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.299999999999997, "width_cm": 34.668903052806854, "length_cm": 43.582285940647125, "volume_m3": 0.02613943579746084}]}
+{"timestamp": "2026-06-03T16:19:26.607697", "workspace_depth_mm": 1141.0, "n_frames": 2, "n_objects": 1, "image": "20260603_161926_607697.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.299999999999997, "width_cm": 35.13237088918686, "length_cm": 43.6243012547493, "volume_m3": 0.026514414774318065}]}
+{"timestamp": "2026-06-03T16:19:43.844324", "workspace_depth_mm": 1141.0, "n_frames": 2, "n_objects": 1, "image": "20260603_161943_844324.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.299999999999997, "width_cm": 34.48818325996399, "length_cm": 43.077442049980164, "volume_m3": 0.025701964983170365}]}
+{"timestamp": "2026-06-03T16:21:10.241315", "workspace_depth_mm": 1141.0, "n_frames": 2, "n_objects": 5, "image": "20260603_162110_241315.jpg", "objects": [{"depth_mm": 965.0, "height_cm": 8.9, "width_cm": 25.480113923549652, "length_cm": 31.367580592632294, "volume_m3": 0.007113320790356923}, {"depth_mm": 1106.0, "height_cm": 3.3000000000000003, "width_cm": 8.800805360078812, "length_cm": 17.726832628250122, "volume_m3": 0.0005148343319193481}, {"depth_mm": 967.0, "height_cm": 17.4, "width_cm": 34.86350476741791, "length_cm": 43.28197240829468, "volume_m3": 0.02625592577435707}, {"depth_mm": 1068.0, "height_cm": 7.199999999999999, "width_cm": 10.347292572259903, "length_cm": 21.56897783279419, "volume_m3": 0.0016068997736676705}, {"depth_mm": 1105.0, "height_cm": 3.4000000000000004, "width_cm": 9.238142520189285, "length_cm": 18.55621337890625, "volume_m3": 0.0005828448090198891}]}
+{"timestamp": "2026-06-03T16:32:29.307158", "workspace_depth_mm": 1141.0, "n_frames": 3, "n_objects": 2, "image": "20260603_163229_307158.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.4, "width_cm": 34.650230407714844, "length_cm": 43.144428730010986, "volume_m3": 0.02601238049569156}, {"depth_mm": 1105.0, "height_cm": 3.4000000000000004, "width_cm": 9.72752645611763, "length_cm": 19.81259286403656, "volume_m3": 0.0006552735722472903}]}
+{"timestamp": "2026-06-03T16:42:21.082391", "workspace_depth_mm": 1141.0, "n_frames": 3, "n_objects": 1, "image": "20260603_164221_082391.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.4, "width_cm": 34.60246920585632, "length_cm": 43.02418231964111, "volume_m3": 0.025904127222512015}]}
+{"timestamp": "2026-06-03T16:42:29.158059", "workspace_depth_mm": 1141.0, "n_frames": 3, "n_objects": 1, "image": "20260603_164229_158059.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.4, "width_cm": 34.871870279312134, "length_cm": 43.25798451900482, "volume_m3": 0.026247670749627375}]}
+{"timestamp": "2026-06-03T16:42:35.451788", "workspace_depth_mm": 1141.0, "n_frames": 3, "n_objects": 1, "image": "20260603_164235_451788.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.4, "width_cm": 34.45377051830292, "length_cm": 43.06706786155701, "volume_m3": 0.02581851799016979}]}
+{"timestamp": "2026-06-03T16:42:44.974029", "workspace_depth_mm": 1141.0, "n_frames": 3, "n_objects": 1, "image": "20260603_164244_974029.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.4, "width_cm": 34.876662492752075, "length_cm": 43.247950077056885, "volume_m3": 0.02624518835513173}]}
+{"timestamp": "2026-06-03T16:42:56.260347", "workspace_depth_mm": 1141.0, "n_frames": 3, "n_objects": 1, "image": "20260603_164256_260347.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.4, "width_cm": 34.62704122066498, "length_cm": 43.0537611246109, "volume_m3": 0.02594034388429823}]}
+{"timestamp": "2026-06-03T16:43:08.808500", "workspace_depth_mm": 1141.0, "n_frames": 3, "n_objects": 1, "image": "20260603_164308_808500.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.4, "width_cm": 34.642115235328674, "length_cm": 43.12112331390381, "volume_m3": 0.02599224045875708}]}
+{"timestamp": "2026-06-03T16:43:35.267580", "workspace_depth_mm": 1141.0, "n_frames": 3, "n_objects": 1, "image": "20260603_164335_267580.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.4, "width_cm": 34.6672922372818, "length_cm": 43.21511089801788, "volume_m3": 0.026067825287085417}]}
+{"timestamp": "2026-06-03T16:44:01.851169", "workspace_depth_mm": 1141.0, "n_frames": 3, "n_objects": 1, "image": "20260603_164401_851169.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.4, "width_cm": 34.62137579917908, "length_cm": 43.06039214134216, "volume_m3": 0.025940094319906383}]}
+{"timestamp": "2026-06-03T16:48:27.485198", "workspace_depth_mm": 1141.0, "n_frames": 3, "n_objects": 1, "image": "20260603_164827_485198.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.4, "width_cm": 34.79112088680267, "length_cm": 43.203866481781006, "volume_m3": 0.026154130382881696}]}
+{"timestamp": "2026-06-03T16:48:36.121317", "workspace_depth_mm": 1141.0, "n_frames": 3, "n_objects": 1, "image": "20260603_164836_121317.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.4, "width_cm": 34.64367091655731, "length_cm": 43.146198987960815, "volume_m3": 0.026008523311282297}]}
+{"timestamp": "2026-06-03T16:48:44.991015", "workspace_depth_mm": 1141.0, "n_frames": 3, "n_objects": 1, "image": "20260603_164844_991015.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.4, "width_cm": 41.549792885780334, "length_cm": 47.03215956687927, "volume_m3": 0.03400267090816162}]}
+{"timestamp": "2026-06-03T16:49:29.981952", "workspace_depth_mm": 1141.0, "n_frames": 3, "n_objects": 1, "image": "20260603_164929_981952.jpg", "objects": [{"depth_mm": 968.0, "height_cm": 17.299999999999997, "width_cm": 35.11541783809662, "length_cm": 45.54651081562042, "volume_m3": 0.027669356319591634}]}
+{"timestamp": "2026-06-03T16:50:14.053032", "workspace_depth_mm": 1141.0, "n_frames": 3, "n_objects": 1, "image": "20260603_165014_053032.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.4, "width_cm": 34.34684872627258, "length_cm": 42.84745156764984, "volume_m3": 0.025607143909026266}]}
+{"timestamp": "2026-06-03T16:50:42.102132", "workspace_depth_mm": 1141.0, "n_frames": 3, "n_objects": 1, "image": "20260603_165042_102132.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.4, "width_cm": 34.31063890457153, "length_cm": 42.06574559211731, "volume_m3": 0.02511346536637113}]}
+{"timestamp": "2026-06-03T16:51:22.083010", "workspace_depth_mm": 1141.0, "n_frames": 3, "n_objects": 1, "image": "20260603_165122_083010.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.4, "width_cm": 36.53969764709473, "length_cm": 42.40928590297699, "volume_m3": 0.02696343122723718}]}
+{"timestamp": "2026-06-03T16:51:47.537199", "workspace_depth_mm": 1141.0, "n_frames": 3, "n_objects": 1, "image": "20260603_165147_537199.jpg", "objects": [{"depth_mm": 967.0, "height_cm": 17.299999999999997, "width_cm": 38.36604356765747, "length_cm": 43.76862645149231, "volume_m3": 0.029050662207486488}]}
+{"timestamp": "2026-06-03T16:52:07.961768", "workspace_depth_mm": 1141.0, "n_frames": 3, "n_objects": 1, "image": "20260603_165207_961768.jpg", "objects": [{"depth_mm": 966.0, "height_cm": 17.4, "width_cm": 34.63578820228577, "length_cm": 42.54164397716522, "volume_m3": 0.025638262647920445}]}
+{"timestamp": "2026-06-03T16:52:41.572433", "workspace_depth_mm": 1141.0, "n_frames": 2, "n_objects": 3, "image": "20260603_165241_572433.jpg", "objects": [{"depth_mm": 794.5, "height_cm": 34.55, "width_cm": 17.887043952941895, "length_cm": 43.263690173625946, "volume_m3": 0.026736846682107816}, {"depth_mm": 1079.0, "height_cm": 6.0, "width_cm": 8.344148099422455, "length_cm": 39.31070566177368, "volume_m3": 0.001968086099607866}, {"depth_mm": 784.0, "height_cm": 35.6, "width_cm": 24.092906713485718, "length_cm": 45.30957043170929, "volume_m3": 0.038862357429558465}]}
+{"timestamp": "2026-06-03T16:53:15.845284", "workspace_depth_mm": 1141.0, "n_frames": 3, "n_objects": 2, "image": "20260603_165315_845284.jpg", "objects": [{"depth_mm": 793.0, "height_cm": 34.699999999999996, "width_cm": 18.176181614398956, "length_cm": 43.41738522052765, "volume_m3": 0.027383931080974915}, {"depth_mm": 1079.0, "height_cm": 6.0, "width_cm": 8.30937772989273, "length_cm": 37.25051432847977, "volume_m3": 0.001857171565128719}]}
+{"timestamp": "2026-06-03T16:53:42.174737", "workspace_depth_mm": 1141.0, "n_frames": 3, "n_objects": 1, "image": "20260603_165342_174737.jpg", "objects": [{"depth_mm": 795.0, "height_cm": 34.5, "width_cm": 17.52985566854477, "length_cm": 42.723479866981506, "volume_m3": 0.02583830703255266}]}
+{"timestamp": "2026-06-03T16:54:08.992080", "workspace_depth_mm": 1141.0, "n_frames": 3, "n_objects": 1, "image": "20260603_165408_992080.jpg", "objects": [{"depth_mm": 795.0, "height_cm": 34.599999999999994, "width_cm": 18.111783266067505, "length_cm": 42.78148412704468, "volume_m3": 0.026809774303517015}]}
+{"timestamp": "2026-06-03T16:54:34.786170", "workspace_depth_mm": 1141.0, "n_frames": 3, "n_objects": 1, "image": "20260603_165434_786170.jpg", "objects": [{"depth_mm": 795.0, "height_cm": 34.699999999999996, "width_cm": 25.119268894195557, "length_cm": 45.29203176498413, "volume_m3": 0.03947828454601718}]}
+{"timestamp": "2026-06-03T16:54:59.936392", "workspace_depth_mm": 1141.0, "n_frames": 3, "n_objects": 2, "image": "20260603_165459_936392.jpg", "objects": [{"depth_mm": 795.0, "height_cm": 34.599999999999994, "width_cm": 17.75345206260681, "length_cm": 42.67679154872894, "volume_m3": 0.026215048903939307}, {"depth_mm": 1041.0, "height_cm": 10.0, "width_cm": 13.95384967327118, "length_cm": 20.572692155838013, "volume_m3": 0.002870682537170488}]}
+{"timestamp": "2026-06-03T16:55:34.550290", "workspace_depth_mm": 1141.0, "n_frames": 3, "n_objects": 1, "image": "20260603_165534_550290.jpg", "objects": [{"depth_mm": 794.0, "height_cm": 34.699999999999996, "width_cm": 17.94329583644867, "length_cm": 43.729230761528015, "volume_m3": 0.027227234391628673}]}
+{"timestamp": "2026-06-03T16:56:18.591716", "workspace_depth_mm": 1141.0, "n_frames": 0, "n_objects": 0, "image": "20260603_165618_591716.jpg", "objects": []}
+{"timestamp": "2026-06-03T16:56:25.248992", "workspace_depth_mm": 1141.0, "n_frames": 0, "n_objects": 0, "image": "20260603_165625_248992.jpg", "objects": []}
+{"timestamp": "2026-06-03T16:56:54.414486", "workspace_depth_mm": 1141.0, "n_frames": 0, "n_objects": 0, "image": "20260603_165654_414486.jpg", "objects": []}
+{"timestamp": "2026-06-03T16:57:04.059291", "workspace_depth_mm": 1141.0, "n_frames": 3, "n_objects": 1, "image": "20260603_165704_059291.jpg", "objects": [{"depth_mm": 997.0, "height_cm": 14.499999999999998, "width_cm": 8.278997987508774, "length_cm": 36.834242939949036, "volume_m3": 0.004421784035983086}]}
+{"timestamp": "2026-06-03T16:57:23.735496", "workspace_depth_mm": 1141.0, "n_frames": 3, "n_objects": 1, "image": "20260603_165723_735496.jpg", "objects": [{"depth_mm": 1001.0, "height_cm": 14.000000000000002, "width_cm": 21.39100432395935, "length_cm": 38.35047781467438, "volume_m3": 0.011484973314634496}]}
+{"timestamp": "2026-06-03T16:57:44.047381", "workspace_depth_mm": 1141.0, "n_frames": 3, "n_objects": 1, "image": "20260603_165744_047381.jpg", "objects": [{"depth_mm": 1001.0, "height_cm": 14.000000000000002, "width_cm": 8.352986723184586, "length_cm": 37.35484182834625, "volume_m3": 0.0043683429697437106}]}
+{"timestamp": "2026-06-03T16:58:05.856087", "workspace_depth_mm": 1141.0, "n_frames": 3, "n_objects": 1, "image": "20260603_165805_856087.jpg", "objects": [{"depth_mm": 1000.0, "height_cm": 14.099999999999998, "width_cm": 8.234547078609467, "length_cm": 37.0073139667511, "volume_m3": 0.004296812414480519}]}
+{"timestamp": "2026-06-03T16:58:26.428448", "workspace_depth_mm": 1141.0, "n_frames": 1, "n_objects": 2, "image": "20260603_165826_428448.jpg", "objects": [{"depth_mm": 1063.0, "height_cm": 7.8, "width_cm": 14.47480022907257, "length_cm": 37.73081600666046, "volume_m3": 0.00425993898857517}, {"depth_mm": 1057.0, "height_cm": 8.4, "width_cm": 14.300346374511719, "length_cm": 37.483760714530945, "volume_m3": 0.004502658397751703}]}
+{"timestamp": "2026-06-03T16:58:51.495448", "workspace_depth_mm": 1141.0, "n_frames": 3, "n_objects": 1, "image": "20260603_165851_495448.jpg", "objects": [{"depth_mm": 1063.0, "height_cm": 7.8, "width_cm": 14.46305364370346, "length_cm": 37.729766964912415, "volume_m3": 0.00425636361990808}]}
+{"timestamp": "2026-06-03T17:00:44.238256", "workspace_depth_mm": 1141.0, "n_frames": 3, "n_objects": 1, "image": "20260603_170044_238256.jpg", "objects": [{"depth_mm": 1063.0, "height_cm": 7.8, "width_cm": 14.463506639003754, "length_cm": 37.81943917274475, "volume_m3": 0.00426661333455546}]}
+{"timestamp": "2026-06-03T17:01:06.177723", "workspace_depth_mm": 1141.0, "n_frames": 1, "n_objects": 3, "image": "20260603_170106_177723.jpg", "objects": [{"depth_mm": 1063.0, "height_cm": 7.8, "width_cm": 14.457504451274872, "length_cm": 37.848877906799316, "volume_m3": 0.00426816250234382}, {"depth_mm": 1063.0, "height_cm": 7.8, "width_cm": 27.21371352672577, "length_cm": 39.299413561820984, "volume_m3": 0.0083419672630298}, {"depth_mm": 1063.0, "height_cm": 7.8, "width_cm": 27.21371352672577, "length_cm": 39.299413561820984, "volume_m3": 0.0083419672630298}]}
+{"timestamp": "2026-06-03T17:09:14.483727", "workspace_depth_mm": 1141.0, "n_frames": 3, "n_objects": 1, "image": "20260603_170914_483727.jpg", "objects": [{"depth_mm": 1059.0, "height_cm": 8.200000000000001, "width_cm": 15.216277539730072, "length_cm": 25.1532644033432, "volume_m3": 0.0031384602279701614}]}
+{"timestamp": "2026-06-03T17:11:13.504621", "workspace_depth_mm": 1141.0, "n_frames": 3, "n_objects": 1, "image": "20260603_171113_504621.jpg", "objects": [{"depth_mm": 1059.0, "height_cm": 8.200000000000001, "width_cm": 22.562871873378754, "length_cm": 28.0527263879776, "volume_m3": 0.005190190583765296}]}
+{"timestamp": "2026-06-03T17:11:18.882997", "workspace_depth_mm": 1141.0, "n_frames": 3, "n_objects": 1, "image": "20260603_171118_882997.jpg", "objects": [{"depth_mm": 1059.0, "height_cm": 8.200000000000001, "width_cm": 15.322491526603699, "length_cm": 24.965815246105194, "volume_m3": 0.0031368156390182422}]}
+{"timestamp": "2026-06-03T17:11:42.716035", "workspace_depth_mm": 1141.0, "n_frames": 3, "n_objects": 1, "image": "20260603_171142_716035.jpg", "objects": [{"depth_mm": 1059.0, "height_cm": 8.200000000000001, "width_cm": 15.214623510837555, "length_cm": 24.70708191394806, "volume_m3": 0.0030824533848515766}]}

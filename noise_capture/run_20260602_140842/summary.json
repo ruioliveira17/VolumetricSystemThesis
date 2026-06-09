@@ -1,0 +1,142 @@
+{
+  "timestamp": "20260602_140842",
+  "n_frames": 10,
+  "configs": {
+    "fixed_30us": {
+      "roi_mean_depth": 1309.1177978515625,
+      "roi_std_mean": 105.12290954589844,
+      "roi_std_max": 2406.5,
+      "roi_std_p95": 615.0,
+      "roi_zeros_per_frame": 6.498649420809309,
+      "n_frames": 10
+    },
+    "fixed_195us": {
+      "roi_mean_depth": 1128.457763671875,
+      "roi_std_mean": 13.283516883850098,
+      "roi_std_max": 1170.0,
+      "roi_std_p95": 45.181434631347656,
+      "roi_zeros_per_frame": 1.2624538984987792,
+      "n_frames": 10
+    },
+    "fixed_360us": {
+      "roi_mean_depth": 1124.7000732421875,
+      "roi_std_mean": 5.725179672241211,
+      "roi_std_max": 538.0,
+      "roi_std_p95": 31.08858299255371,
+      "roi_zeros_per_frame": 0.4774557165861514,
+      "n_frames": 10
+    },
+    "fixed_525us": {
+      "roi_mean_depth": 1124.2501220703125,
+      "roi_std_mean": 3.489899158477783,
+      "roi_std_max": 372.0,
+      "roi_std_p95": 21.546512603759766,
+      "roi_zeros_per_frame": 0.21535244922341695,
+      "n_frames": 10
+    },
+    "fixed_690us": {
+      "roi_mean_depth": 1124.5286865234375,
+      "roi_std_mean": 2.3487439155578613,
+      "roi_std_max": 297.2224426269531,
+      "roi_std_p95": 14.121845245361328,
+      "roi_zeros_per_frame": 0.13712274687029244,
+      "n_frames": 10
+    },
+    "fixed_855us": {
+      "roi_mean_depth": 1125.265625,
+      "roi_std_mean": 1.578047513961792,
+      "roi_std_max": 64.32145690917969,
+      "roi_std_p95": 8.391424179077148,
+      "roi_zeros_per_frame": 0.10012466884837151,
+      "n_frames": 10
+    },
+    "fixed_1020us": {
+      "roi_mean_depth": 1125.4114990234375,
+      "roi_std_mean": 1.1676437854766846,
+      "roi_std_max": 393.5,
+      "roi_std_p95": 5.043025493621826,
+      "roi_zeros_per_frame": 0.07878811490312192,
+      "n_frames": 10
+    },
+    "fixed_1185us": {
+      "roi_mean_depth": 1125.8704833984375,
+      "roi_std_mean": 0.8624632358551025,
+      "roi_std_max": 33.9365234375,
+      "roi_std_p95": 3.505709409713745,
+      "roi_zeros_per_frame": 0.06872370266479663,
+      "n_frames": 10
+    },
+    "fixed_1350us": {
+      "roi_mean_depth": 1126.5521240234375,
+      "roi_std_mean": 0.7491124272346497,
+      "roi_std_max": 40.282596588134766,
+      "roi_std_p95": 2.6907248497009277,
+      "roi_zeros_per_frame": 0.06280193236714976,
+      "n_frames": 10
+    },
+    "fixed_1515us": {
+      "roi_mean_depth": 1126.4217529296875,
+      "roi_std_mean": 0.570425271987915,
+      "roi_std_max": 250.0421905517578,
+      "roi_std_p95": 2.1540658473968506,
+      "roi_zeros_per_frame": 0.05869824944158745,
+      "n_frames": 10
+    },
+    "fixed_1750us": {
+      "roi_mean_depth": 1127.2308349609375,
+      "roi_std_mean": 0.4823627173900604,
+      "roi_std_max": 38.05551528930664,
+      "roi_std_p95": 1.7349350452423096,
+      "roi_zeros_per_frame": 0.056256817827645314,
+      "n_frames": 10
+    },
+    "fixed_2000us": {
+      "roi_mean_depth": 1127.7236328125,
+      "roi_std_mean": 0.40112021565437317,
+      "roi_std_max": 27.952585220336914,
+      "roi_std_p95": 1.4000000953674316,
+      "roi_zeros_per_frame": 0.05516596540439458,
+      "n_frames": 10
+    },
+    "fixed_4000us": {
+      "roi_mean_depth": 1128.1788330078125,
+      "roi_std_mean": 0.3873976171016693,
+      "roi_std_max": 24.526628494262695,
+      "roi_std_p95": 1.399999976158142,
+      "roi_zeros_per_frame": 0.0546984572230014,
+      "n_frames": 10
+    },
+    "hdr_Low": {
+      "roi_mean_depth": 1138.15087890625,
+      "roi_std_mean": 66.76094818115234,
+      "roi_std_max": 1412.3602294921875,
+      "roi_std_p95": 330.32464599609375,
+      "roi_zeros_per_frame": 8.422809204716637,
+      "n_frames": 40
+    },
+    "hdr_Medium": {
+      "roi_mean_depth": 1126.349609375,
+      "roi_std_mean": 2.0504472255706787,
+      "roi_std_max": 384.3480529785156,
+      "roi_std_p95": 10.155998229980469,
+      "roi_zeros_per_frame": 0.37675964884941043,
+      "n_frames": 40
+    },
+    "hdr_High": {
+      "roi_mean_depth": 1127.5386962890625,
+      "roi_std_mean": 0.9652267098426819,
+      "roi_std_max": 118.68768310546875,
+      "roi_std_p95": 2.5669217109680176,
+      "roi_zeros_per_frame": 0.23241649784426782,
+      "n_frames": 40
+    },
+    "hdr_final": {
+      "roi_mean_depth": 1126.317138671875,
+      "roi_std_mean": 0.0,
+      "roi_std_max": 0.0,
+      "roi_std_p95": 0.0,
+      "roi_zeros_per_frame": 0.00016882239883642407,
+      "n_frames": 1
+    }
+  }
+}
