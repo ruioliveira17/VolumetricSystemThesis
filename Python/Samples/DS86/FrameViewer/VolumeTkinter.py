@@ -155,7 +155,7 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
             width_meters, length_meters = length_meters, width_meters
 
         # Minimum footprint filter: reject noise/edge artefacts with tiny footprint
-        MIN_FOOTPRINT_CM2 = 100  # real boxes always >> 100 cm²
+        MIN_FOOTPRINT_CM2 = 30  # real boxes always >> 100 cm²
         footprint_cm2 = width_meters * 100 * length_meters * 100
         if footprint_cm2 < MIN_FOOTPRINT_CM2:
             print(f"Skipping tiny object {idx}: footprint={footprint_cm2:.1f}cm² (W={width_meters*100:.1f} L={length_meters*100:.1f})")
