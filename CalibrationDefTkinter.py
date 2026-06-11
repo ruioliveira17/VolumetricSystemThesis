@@ -74,21 +74,13 @@ def maskAPI(colorToDepthFrame, lower, upper, color, cx_d, cy_d):
                 if hierarchy[i][3] != -1:
                     inner_contours.append(contour)
 
-            # Use inner contour only if it covers >= 30% of the outer contour
-            outer_area = cv2.contourArea(largest_contour) if detection_area is not None else 0
             if len(inner_contours) > 0:
                 largest_inner = max(inner_contours, key=cv2.contourArea)
-                inner_area = cv2.contourArea(largest_inner)
-                if outer_area > 0 and inner_area / outer_area >= 0.3:
-                    rect = cv2.minAreaRect(largest_inner)
-                    workspace_warning = cv2.boxPoints(rect)
-                    workspace_warning = numpy.int32(workspace_warning)
-                else:
-                    print(f"workspace_warning: inner contour too small ({inner_area/outer_area*100:.1f}%), using detection_area")
-                    workspace_warning = detection_area.copy()
-            else:
-                workspace_warning = detection_area.copy()
+                rect = cv2.minAreaRect(largest_inner)
 
+                workspace_warning = cv2.boxPoints(rect)
+                workspace_warning = numpy.int32(workspace_warning)
+                
 
         # PONTO CENTRAL
         
@@ -299,18 +291,16 @@ def calibrateAPI(colorToDepthFrame, depthFrame, colorFrame, detection_area, lowe
         workspace_center_neighbors = depth_copy2[max(0, cy_d-3):cy_d+4, max(0, cx_d-3):cx_d+4]
         centerDepth_valid_values = workspace_center_neighbors[(workspace_center_neighbors >= 150) & (workspace_center_neighbors <= colorSlope)]
         if centerDepth_valid_values.size > 0:
-            workspace_depth = float(numpy.median(centerDepth_valid_values))
+            workspace_depth = numpy.mean(centerDepth_valid_values)
         
-        # Filter: only pixels near the expected platform depth (exclude outliers like 65535)
-        depth_lo = (workspace_depth - 200) if workspace_depth is not None else 150
-        depth_hi = (workspace_depth + 200) if workspace_depth is not None else colorSlope
-        valid_values = workspace_region[(workspace_region >= depth_lo) & (workspace_region <= depth_hi)]
+        valid_values = workspace_region[(workspace_region >= 15) & (workspace_region <= colorSlope)]
         
         if valid_values.size > 0:
             avg_depth = numpy.mean(valid_values) # média da profundidade
             print("Avg Depth:", avg_depth)
             print("Workspace Depth", workspace_depth)
-            count = numpy.sum(numpy.abs(valid_values - workspace_depth) <= 15)
+            #count = numpy.sum(numpy.abs(valid_values - workspace_depth) <= 10)
+            count = numpy.sum(numpy.abs(valid_values - workspace_depth) <= 50)
             print("Count:", count)
             print("Size:", valid_values.size)
             proportion_valid = round(count / valid_values.size, 2)
@@ -318,7 +308,7 @@ def calibrateAPI(colorToDepthFrame, depthFrame, colorFrame, detection_area, lowe
 
             if proportion_valid >= 0.95:
                 workspace_free = True
-                workspace_depth = float(numpy.median(valid_values))
+                #workspace_depth = avg_depth
             else:
                 workspace_free = False
                 

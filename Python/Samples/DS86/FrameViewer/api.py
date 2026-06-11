@@ -2,7 +2,7 @@
 
 from aiortc import RTCPeerConnection, RTCSessionDescription
 from contextlib import asynccontextmanager
-from datetime import datetime, timedelta
+from datetime import timedelta
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, HTTPException, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -22,9 +22,6 @@ import numpy
 import os
 import time
 import threading
-
-LOG_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "..", "detection_logs")
-os.makedirs(LOG_DIR, exist_ok=True)
 
 #------------------------------------------------------   Classes    -------------------------------------------------------
 
@@ -54,7 +51,6 @@ from VolumeTkinter import volumeBundleAPI, volumeRealAPI
 #------------------------------------------------------   Services    ------------------------------------------------------
 
 from services.saveCalibration import save_WS_calibration
-from services.saveConfiguration import save_configuration
 from services.stream import generateRGB_Stream, generateCalibrationCTD_Stream, generateCalibrationMask_Stream, CameraTrack, CTDTrack
 from services.utils import rgb_to_hsv
 from services.users import load_users, save_users
@@ -204,7 +200,6 @@ pcs = set()
 async def lifespan(app: FastAPI):
     # STARTUP
     path = "config/workspace_calibration.json"
-    conf_path = "config/last_configurations.json"
 
     if os.path.exists(path):
         try:
@@ -226,7 +221,7 @@ async def lifespan(app: FastAPI):
             frameState.calibrationColorFrame = cv2.imread(calib["calibrationColorFrame_path"])
             frameState.calibrationDepthFrame = numpy.load(calib["calibrationDepthFrame_path"])
             
-            print("Calibration loaded successfully!")
+            print("Calibração carregada!")
 
         except Exception as e:
             print("Error loading calibration:", e)
@@ -235,41 +230,12 @@ async def lifespan(app: FastAPI):
         print("É necessário realizar calibração!")
         calib = None
 
-    saved_config = {}
-    if os.path.exists(conf_path):
-        try:
-            with open(conf_path, "r") as f:
-                config = json.load(f)
-
-            modeState.expositionMode = config.get("expositionMode", modeState.expositionMode)
-            modeState.volumeMode     = config.get("volumeMode",     modeState.volumeMode)
-            modeState.mode           = config.get("workingMode",    modeState.mode)
-            modeState.debugMode      = config.get("debugMode",      modeState.debugMode)
-            if "exposureTime" in config: camState.exposureTime = config["exposureTime"]
-            if "colorSlope"   in config: camState.colorSlope   = config["colorSlope"]
-            if "fps"          in config: camState.fps          = config["fps"]
-            camState.hdrEnabled = (modeState.expositionMode == "HDR")
-            saved_config = config
-            print("Last configurations loaded successfully!")
-
-        except Exception as e:
-            print("Error loading last configurations:", e)
-    else:
-        print("No last configurations found.")
-
     startCamera()
-
-    if saved_config and camState.fx_d != 0:
-        if "flyingPixelFilter" in saved_config: setFlyingPixelFilter(saved_config["flyingPixelFilter"])
-        if "fillHoleFilter"    in saved_config: setFillHoleFilter(saved_config["fillHoleFilter"])
-        if "spatialFilter"     in saved_config: setSpatialFilter(saved_config["spatialFilter"])
-        if "confidenceFilter"  in saved_config: setConfidenceFilter(saved_config["confidenceFilter"])
 
     yield
 
     #SHUTDOWN
     print("API a desligar")
-    save_configuration()
     stopCamera()
 
 #----------------------------------------------------   Criar App   -------------------------------------------------------
@@ -282,7 +248,7 @@ app = FastAPI(lifespan=lifespan, swagger_ui_init_oauth={
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://10.0.30.151:5173", "http://localhost:5173"],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -519,17 +485,6 @@ def getDepthFrame(current_user: dict = Depends(get_current_user)):
 
     return Response(buf.read(), media_type="image/png")
     #return Response(content=frameState.depthFrame.tobytes(), media_type="application/octet-stream")
-
-@app.get("/getFrame/rawDepth", summary="Get Raw Depth Frame", tags=["Frame"])
-def getRawDepthFrame(current_user: dict = Depends(get_current_user)):
-    depthFrame = frameState.depthFrame
-    if depthFrame is None:
-        return {"error": "No depth frame available"}
-    arr = numpy.array(depthFrame, dtype=numpy.float32)
-    buf = io.BytesIO()
-    numpy.save(buf, arr)
-    buf.seek(0)
-    return Response(buf.read(), media_type="application/octet-stream")
 
 @app.get("/getFrame/workspaceDetectedFrame", summary="Get Workspace Detected Frame",
          description="""
@@ -1024,7 +979,6 @@ def fixedExp(current_user: dict = Depends(require_admin)):
     modeState.expositionMode = "Fixed Exposition"
     camState.hdrEnabled = False
     camState.camera.VZ_SetExposureTime(VzSensorType.VzToFSensor, c_int32(camState.exposureTime))
-    save_configuration()
     return {"Exposition Mode:": modeState.expositionMode}
 
 @app.post("/exposition/mode/hdr", summary="Sets the Exposition Mode to HDR",
@@ -1037,7 +991,6 @@ def hdrExp(current_user: dict = Depends(require_admin)):
     
     camState.hdrEnabled = True
 
-    save_configuration()
     return {"Exposition Mode:": modeState.expositionMode}
 
 #---------------------------------------------------- Volume Mode -----------------------------------------------------
@@ -1059,7 +1012,6 @@ def get_mode(current_user: dict = Depends(get_current_user)):
          tags=["Using Modes"])
 def bundle(current_user: dict = Depends(require_admin)):
     modeState.volumeMode = "Bundle"
-    save_configuration()
     return {"mode:": modeState.volumeMode}
 
 @app.post("/volume/mode/real", summary="Sets the Volume Mode to Real",
@@ -1069,7 +1021,6 @@ def bundle(current_user: dict = Depends(require_admin)):
          tags=["Using Modes"])
 def real(current_user: dict = Depends(require_admin)):
     modeState.volumeMode = "Real"
-    save_configuration()
     return {"mode:": modeState.volumeMode}
 
 #------------------------------------------------------- Debug -------------------------------------------------------
@@ -1116,134 +1067,75 @@ def close_volume_menu():
 
     return {"status": "ok"}
 
-def _get_current_frames():
-    use_hdr = (frameState.colorToDepthFrameHDR is not None and
-               modeState.expositionMode != "Fixed Exposition")
-    color          = frameState.colorFrameHDR        if use_hdr else frameState.colorFrame
-    color_to_depth = frameState.colorToDepthFrameHDR if use_hdr else frameState.colorToDepthFrame
-    depth          = frameState.depthFrameHDR        if use_hdr else frameState.depthFrame
-    return color, color_to_depth, depth
-
 @app.post("/volume/bundle", summary="Starts the Bundle Volume Algorithm",
          description="""
          Starts the bundle volume algorithm.
          """,
          tags=["Volume"])
 def volume_Bundle(current_user: dict = Depends(get_current_user)):
-    N_FRAMES     = 3
-    WAIT_TIMEOUT = 3.0
-
-    widths, lengths, heights = [], [], []
-    last_depths, last_box_limits = [], []
-
-    for _fi in range(N_FRAMES):
-        t_deadline = time.time() + WAIT_TIMEOUT
-        while depthState.not_set != 0 and time.time() < t_deadline:
-            time.sleep(0.05)
-        if depthState.not_set != 0:
-            print(f"Frame {_fi+1}/{N_FRAMES}: timeout, skipping")
-            continue
-
-        colorFrame, colorToDepthFrame, depthFrame = _get_current_frames()
-        if depthFrame is None:
-            continue
-
-        _min_val, _not_set, _box_ws, _box_limits, _depths, _out_of_line = objIdentifier(
-            colorFrame, colorToDepthFrame, depthFrame,
-            frameState.calibrationColorFrame, frameState.calibrationDepthFrame,
-            modeState.volumeMode, depthState.objects_info,
-            workspaceState.workspace_depth, depthState.threshold,
-            camState.colorSlope, camState.cx_d, camState.cy_d,
-            camState.cx_rgb, camState.cy_rgb,
-            camState.fx_d, camState.fy_d, camState.fx_rgb, camState.fy_rgb
-        )
-        depthState.not_set = _not_set
-
-        if not _box_limits or not _depths:
-            continue
-
-        _min_depth = min(_depths)
-        _vol, _w, _l, _h = volumeBundleAPI(
-            depthFrame, workspaceState.workspace_depth, _min_depth,
-            _box_limits, _depths,
-            camState.fx_d, camState.fy_d, camState.cx_d, camState.cy_d
-        )
-
-        if _w > 0 and _l > 0 and _h > 0:
-            widths.append(_w)
-            lengths.append(_l)
-            heights.append(_h)
-            last_depths        = _depths
-            last_box_limits    = _box_limits
-            last_out_of_line   = _out_of_line
-            print(f"Frame {_fi+1}/{N_FRAMES}: W={_w*100:.1f}cm  L={_l*100:.1f}cm  H={_h*100:.1f}cm")
-
-    if widths:
-        w_med = float(numpy.median(widths))
-        l_med = float(numpy.median(lengths))
-        h_med = float(numpy.median(heights))
-        volumeState.width_meters  = w_med * 100
-        volumeState.length_meters = l_med * 100
-        volumeState.height_meters = h_med * 100
-        volumeState.volume        = w_med * l_med * h_med
-        volumeState.depths           = last_depths
-        volumeState.box_limits       = last_box_limits
-        volumeState.objects_outOfLine = last_out_of_line if 'last_out_of_line' in dir() else []
-        depthState.minimum_depth     = min(last_depths)
+    if frameState.colorToDepthFrameHDR is None or modeState.expositionMode == "Fixed Exposition":
+        colorFrame = frameState.colorFrame
     else:
-        volumeState.volume        = 0
-        volumeState.width_meters  = 0
+        colorFrame = frameState.colorFrameHDR
+
+    if frameState.colorToDepthFrameHDR is None or modeState.expositionMode == "Fixed Exposition":
+        colorToDepthFrame = frameState.colorToDepthFrame
+    else:
+        colorToDepthFrame = frameState.colorToDepthFrameHDR
+
+    if frameState.depthFrameHDR is None or modeState.expositionMode == "Fixed Exposition":
+        depthFrame = frameState.depthFrame
+    else:
+        depthFrame = frameState.depthFrameHDR
+
+    #depthState.not_set, depthState.objects_info = MinDepthAPI(depthFrame, workspaceState.detection_area, workspaceState.workspace_warning, workspaceState.workspace_depth, depthState.threshold, depthState.not_set, camState.cx_d, camState.cy_d, camState.fx_d, camState.fy_d)
+
+    #if depthState.objects_info is not None and len(depthState.objects_info) != 0:
+    #    depthState.minimum_value = depthState.objects_info[0]["depth"]
+
+    #    print("New Min Value", depthState.minimum_value)
+
+    if depthState.not_set == 0:
+        depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine = objIdentifier(colorFrame, colorToDepthFrame, depthFrame, frameState.calibrationColorFrame, frameState.calibrationDepthFrame, modeState.volumeMode, depthState.objects_info, workspaceState.workspace_depth, depthState.threshold, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb, camState.fx_d, camState.fy_d)
+        depthState.minimum_depth = min(volumeState.depths)
+        if volumeState.box_limits is not None and len(volumeState.box_limits) > 0:
+            volumeState.volume, volumeState.width_meters, volumeState.length_meters, volumeState.height_meters = volumeBundleAPI(depthFrame, workspaceState.workspace_depth, depthState.minimum_depth, volumeState.box_limits, volumeState.depths, camState.fx_d, camState.fy_d, camState.cx_d, camState.cy_d)
+        else:
+            volumeState.volume = 0
+            volumeState.width_meters = 0
+            volumeState.length_meters = 0
+            volumeState.height_meters = 0
+            depthState.minimum_depth = workspaceState.workspace_depth
+    else:
+        volumeState.volume = 0
+        volumeState.width_meters = 0
         volumeState.length_meters = 0
-        volumeState.height_meters = 0
-        volumeState.depths        = []
-        depthState.minimum_depth  = workspaceState.workspace_depth
+        depthState.minimum_depth = workspaceState.workspace_depth
 
-    try:
-        _widths_log  = [volumeState.width_meters]  if widths else []
-        _lengths_log = [volumeState.length_meters] if widths else []
-        _heights_log = [volumeState.height_meters] if widths else []
-        _volumes_log = [volumeState.volume]        if widths else []
-        def _sf(v):
-            try:
-                f = float(v); return None if f != f else f
-            except: return None
-        _ts = datetime.now()
-        _img_file = None
-        if frameState.detectedObjectsFrame is not None:
-            _img_name = _ts.strftime("%Y%m%d_%H%M%S_%f") + ".jpg"
-            _img_path = os.path.join(LOG_DIR, _img_name)
-            cv2.imwrite(_img_path, frameState.detectedObjectsFrame)
-            _img_file = _img_name
-        _log = {
-            "timestamp": _ts.isoformat(),
-            "workspace_depth_mm": float(workspaceState.workspace_depth),
-            "n_frames": len(widths),
-            "n_objects": len(last_depths),
-            "image": _img_file,
-            "objects": [
-                {
-                    "depth_mm":  _sf(last_depths[_i])  if _i < len(last_depths)  else None,
-                    "height_cm": _sf(_heights_log[_i]) if _i < len(_heights_log) else None,
-                    "width_cm":  _sf(_widths_log[_i])  if _i < len(_widths_log)  else None,
-                    "length_cm": _sf(_lengths_log[_i]) if _i < len(_lengths_log) else None,
-                    "volume_m3": _sf(_volumes_log[_i]) if _i < len(_volumes_log) else None,
-                }
-                for _i in range(max(len(last_depths), 1) if widths else 0)
-            ]
-        }
-        with open(os.path.join(LOG_DIR, "detections.jsonl"), "a") as _lf:
-            _lf.write(json.dumps(_log) + "\n")
-    except Exception as _log_err:
-        print("Log error:", _log_err)
+    if isinstance(volumeState.width_meters, list):
+        volumeState.width_meters = [w * 100 for w in volumeState.width_meters]
+    else:
+        volumeState.width_meters = volumeState.width_meters * 100
 
-    return {
+    if isinstance(volumeState.length_meters, list):
+        volumeState.length_meters = [w * 100 for w in volumeState.length_meters]
+    else:
+        volumeState.length_meters = volumeState.length_meters * 100
+
+    if isinstance(volumeState.height_meters, list):
+        volumeState.height_meters = [h * 100 for h in volumeState.height_meters]
+    else:
+        volumeState.height_meters = volumeState.height_meters * 100
+
+    return{
         "volume": volumeState.volume,
-        "width":  volumeState.width_meters,
+        "width": volumeState.width_meters,
         "length": volumeState.length_meters,
         "height": volumeState.height_meters,
-        "depth":  depthState.minimum_depth / 10,
+        "depth": depthState.minimum_depth / 10,
         "ws_depth": workspaceState.workspace_depth / 10
     }
+
 @app.get("/volume/bundle/results", summary="Gets the Bundle Volume Algorithm Results",
          description="""
          Gets the results of the bundle volume algorithm.
@@ -1268,151 +1160,77 @@ def get_Volume_Bundle(current_user: dict = Depends(get_current_user)):
          """,
          tags=["Volume"])
 def volume_Real(current_user: dict = Depends(get_current_user)):
-    N_FRAMES     = 3
-    WAIT_TIMEOUT = 3.0
     t0 = time.perf_counter()
+    if frameState.colorToDepthFrameHDR is None or modeState.expositionMode == "Fixed Exposition":
+        colorFrame = frameState.colorFrame
+    else:
+        colorFrame = frameState.colorFrameHDR
 
-    # Per-object accumulators: {obj_idx: [values]}
-    acc_w, acc_l, acc_h, acc_d = {}, {}, {}, {}
-    last_depths, last_box_limits = [], []
+    if frameState.colorToDepthFrameHDR is None or modeState.expositionMode == "Fixed Exposition":
+        colorToDepthFrame = frameState.colorToDepthFrame
+    else:
+        colorToDepthFrame = frameState.colorToDepthFrameHDR
 
-    for _fi in range(N_FRAMES):
-        t_deadline = time.time() + WAIT_TIMEOUT
-        while depthState.not_set != 0 and time.time() < t_deadline:
-            time.sleep(0.05)
-        if depthState.not_set != 0:
-            print(f"Real frame {_fi+1}/{N_FRAMES}: timeout, skipping")
-            continue
+    if frameState.depthFrameHDR is None or modeState.expositionMode == "Fixed Exposition":
+        depthFrame = frameState.depthFrame
+    else:
+        depthFrame = frameState.depthFrameHDR
 
-        colorFrame, colorToDepthFrame, depthFrame = _get_current_frames()
-        if depthFrame is None:
-            continue
+    #depthState.not_set, depthState.objects_info = MinDepthAPI(depthFrame, workspaceState.detection_area, workspaceState.workspace_warning, workspaceState.workspace_depth, depthState.threshold, depthState.not_set, camState.cx_d, camState.cy_d, camState.fx_d, camState.fy_d)
 
-        _min_val, _not_set, _box_ws, _box_limits, _depths, _out_of_line = objIdentifier(
-            colorFrame, colorToDepthFrame, depthFrame,
-            frameState.calibrationColorFrame, frameState.calibrationDepthFrame,
-            modeState.volumeMode, depthState.objects_info,
-            workspaceState.workspace_depth, depthState.threshold,
-            camState.colorSlope, camState.cx_d, camState.cy_d,
-            camState.cx_rgb, camState.cy_rgb,
-            camState.fx_d, camState.fy_d, camState.fx_rgb, camState.fy_rgb
-        )
-        depthState.not_set = _not_set
+    #if depthState.objects_info is not None and len(depthState.objects_info) != 0:
+    #    depthState.minimum_depth = depthState.objects_info[0]["depth"]
+    #    depthState.minimum_value = depthState.minimum_depth
 
-        if not _box_limits or not _depths:
-            continue
+    #    print("New Min Value", depthState.minimum_value)
 
-        _vol_list, _w_list, _l_list, _h_list = volumeRealAPI(
-            depthFrame, frameState.calibrationDepthFrame,
-            workspaceState.workspace_depth, _box_limits, _depths,
-            camState.fx_d, camState.fy_d, camState.cx_d, camState.cy_d
-        )
+    if depthState.not_set == 0:
+        depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine = objIdentifier(colorFrame, colorToDepthFrame, depthFrame, frameState.calibrationColorFrame, frameState.calibrationDepthFrame, modeState.volumeMode, depthState.objects_info, workspaceState.workspace_depth, depthState.threshold, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb, camState.fx_d, camState.fy_d)
+        t2 = time.perf_counter()
+        print("objIdentifier:", (t2 - t0) * 1000, "ms")
+        if volumeState.box_limits is not None and len(volumeState.box_limits) > 0:
+            volumeState.volume, volumeState.width_meters, volumeState.length_meters, volumeState.height_meters = volumeRealAPI(depthFrame, frameState.calibrationDepthFrame, workspaceState.workspace_depth, volumeState.box_limits, volumeState.depths, camState.fx_d, camState.fy_d, camState.cx_d, camState.cy_d)
+            t3 = time.perf_counter()
+            print("volumeRealAPI:", (t3 - t2) * 1000, "ms")
+        else:
+            volumeState.volume = 0
+            volumeState.width_meters = 0
+            volumeState.length_meters = 0
+            volumeState.height_meters = 0
+            depthState.minimum_depth = workspaceState.workspace_depth
+    else:
+        volumeState.volume = 0
+        volumeState.width_meters = 0
+        volumeState.length_meters = 0
+        depthState.minimum_depth = workspaceState.workspace_depth
 
-        # _vol_list has totalVolume appended at end; _w/_l/_h are per-object
-        n_obj = len(_w_list)
-        if n_obj == 0:
-            continue
+    if isinstance(volumeState.width_meters, list):
+        volumeState.width_meters = [w * 100 for w in volumeState.width_meters]
+    else:
+        volumeState.width_meters = volumeState.width_meters * 100
 
-        last_depths     = _depths
-        last_box_limits = _box_limits
-        last_out_of_line = _out_of_line
+    if isinstance(volumeState.length_meters, list):
+        volumeState.length_meters = [w * 100 for w in volumeState.length_meters]
+    else:
+        volumeState.length_meters = volumeState.length_meters * 100
 
-        for obj_i in range(n_obj):
-            if _w_list[obj_i] > 0 and _l_list[obj_i] > 0 and _h_list[obj_i] > 0:
-                acc_w.setdefault(obj_i, []).append(_w_list[obj_i])
-                acc_l.setdefault(obj_i, []).append(_l_list[obj_i])
-                acc_h.setdefault(obj_i, []).append(_h_list[obj_i])
-                acc_d.setdefault(obj_i, []).append(_depths[obj_i] if obj_i < len(_depths) else 0)
-        print(f"Real frame {_fi+1}/{N_FRAMES}: {n_obj} obj(s) detected")
+    if isinstance(volumeState.height_meters, list):
+        volumeState.height_meters = [h * 100 for h in volumeState.height_meters]
+    else:
+        volumeState.height_meters = volumeState.height_meters * 100
 
     t4 = time.perf_counter()
-    print(f"TOTAL /volume/real: {(t4-t0)*1000:.1f} ms")
+    print("TOTAL /volume/real:", (t4 - t0) * 1000, "ms")
 
-    if acc_w:
-        n_objs = max(acc_w.keys()) + 1
-        final_w = [float(numpy.median(acc_w[i])) if i in acc_w else 0.0 for i in range(n_objs)]
-        final_l = [float(numpy.median(acc_l[i])) if i in acc_l else 0.0 for i in range(n_objs)]
-        final_h = [float(numpy.median(acc_h[i])) if i in acc_h else 0.0 for i in range(n_objs)]
-        final_d = [float(numpy.median(acc_d[i])) if i in acc_d else 0.0 for i in range(n_objs)]
-
-        # Filter ghost objects: footprint-filtered objects accumulate as 0.0
-        MIN_DIM_M  = 0.01   # 1 cm minimum footprint dimension
-        MIN_HEIGHT_M = 0.04  # 4 cm minimum height (filters workspace-edge artefacts)
-        valid_idx = [i for i in range(n_objs) if final_w[i] > MIN_DIM_M and final_l[i] > MIN_DIM_M and final_h[i] > MIN_HEIGHT_M]
-        if valid_idx:
-            final_w = [final_w[i] for i in valid_idx]
-            final_l = [final_l[i] for i in valid_idx]
-            final_h = [final_h[i] for i in valid_idx]
-            final_d = [final_d[i] for i in valid_idx]
-            print(f"Ghost filter: {n_objs} -> {len(valid_idx)} object(s)")
-
-        final_v = [final_w[i] * final_l[i] * final_h[i] for i in range(len(final_w))]
-        total_v  = sum(final_v)
-        final_v.append(total_v)
-
-        volumeState.volume        = final_v
-        volumeState.width_meters  = [w * 100 for w in final_w]
-        volumeState.length_meters = [l * 100 for l in final_l]
-        volumeState.height_meters = [h * 100 for h in final_h]
-        volumeState.depths           = final_d
-        volumeState.box_limits       = last_box_limits
-        volumeState.objects_outOfLine = last_out_of_line if 'last_out_of_line' in dir() else []
-        depthState.minimum_depth     = min(final_d) if final_d else workspaceState.workspace_depth
-    else:
-        volumeState.volume        = 0
-        volumeState.width_meters  = 0
-        volumeState.length_meters = 0
-        volumeState.height_meters = 0
-        volumeState.depths        = []
-        depthState.minimum_depth  = workspaceState.workspace_depth
-
-    try:
-        _depths_log  = volumeState.depths        if isinstance(volumeState.depths,        list) else []
-        _widths_log  = volumeState.width_meters  if isinstance(volumeState.width_meters,  list) else []
-        _lengths_log = volumeState.length_meters if isinstance(volumeState.length_meters, list) else []
-        _heights_log = volumeState.height_meters if isinstance(volumeState.height_meters, list) else []
-        _volumes_log = volumeState.volume        if isinstance(volumeState.volume,        list) else []
-        def _sf(v):
-            try:
-                f = float(v); return None if f != f else f
-            except: return None
-        _ts = datetime.now()
-        _img_file = None
-        if frameState.detectedObjectsFrame is not None:
-            _img_name = _ts.strftime("%Y%m%d_%H%M%S_%f") + ".jpg"
-            _img_path = os.path.join(LOG_DIR, _img_name)
-            cv2.imwrite(_img_path, frameState.detectedObjectsFrame)
-            _img_file = _img_name
-        _log = {
-            "timestamp": _ts.isoformat(),
-            "workspace_depth_mm": float(workspaceState.workspace_depth),
-            "n_frames": len(acc_w.get(0, [])),
-            "n_objects": len(_depths_log),
-            "image": _img_file,
-            "objects": [
-                {
-                    "depth_mm":  _sf(_depths_log[_i])  if _i < len(_depths_log)  else None,
-                    "height_cm": _sf(_heights_log[_i]) if _i < len(_heights_log) else None,
-                    "width_cm":  _sf(_widths_log[_i])  if _i < len(_widths_log)  else None,
-                    "length_cm": _sf(_lengths_log[_i]) if _i < len(_lengths_log) else None,
-                    "volume_m3": _sf(_volumes_log[_i]) if _i < len(_volumes_log) else None,
-                }
-                for _i in range(len(_depths_log))
-            ]
-        }
-        with open(os.path.join(LOG_DIR, "detections.jsonl"), "a") as _lf:
-            _lf.write(json.dumps(_log) + "\n")
-    except Exception as _log_err:
-        print("Log error:", _log_err)
-
-    return {
+    return{
         "volume": volumeState.volume,
-        "width":  volumeState.width_meters,
+        "width": volumeState.width_meters,
         "length": volumeState.length_meters,
         "height": volumeState.height_meters,
-        "depth":  depthState.minimum_depth / 10,
+        "depth": depthState.minimum_depth / 10,
         "ws_depth": workspaceState.workspace_depth / 10
     }
+
 @app.get("/volume/real/results", summary="Gets the Real Volume Algorithm Results",
          description="""
          Gets the results of the real volume algorithm.
@@ -1529,29 +1347,4 @@ def update_systemInfo(info: SystemUpdate, current_user: dict = Depends(require_a
         camState.fps = info.fps
         setFPS(info.fps)
 
-    save_configuration()
     return {"status": "updated"}
-
-# --------------------------------------- Config Status ---------------------------------------
-@app.get("/configuration/status", summary="Obtains the information about the configurations",
-         description="""
-         Checks if the file that saves the configurations has some information about the last configuration.
-         """,
-         tags=["Configuration"])
-def get_configuration_status(current_user: dict = Depends(get_current_user)):
-    path = "config/last_configurations.json"
-
-    if not os.path.exists(path):
-        return {"configured": False}
-
-    try:
-        with open(path, "r") as f:
-            data = json.load(f)
-
-        if "expositionMode" not in data or "volumeMode" not in data:
-            return {"configured": False}
-
-        return {"configured": True, "expositionMode": data["expositionMode"], "volumeMode": data["volumeMode"]}
-
-    except:
-        return {"configured": False}

@@ -113,7 +113,7 @@ def comparisonCaliImageCurrImage(colorFrame, calibrationColorFrame, depthFrame, 
 
     validMask = depth_mask > 0
 
-    depthScore = numpy.sum((depthDiff > 30) & validMask) / total_pixels_depth
+    depthScore = numpy.sum((depthDiff > 15) & validMask) / total_pixels_depth
 
     # ---------------- DECISION ----------------
     w_color = 0.5
@@ -127,7 +127,7 @@ def comparisonCaliImageCurrImage(colorFrame, calibrationColorFrame, depthFrame, 
 
     return finalScore >= 0.60
 
-def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFrame, calibrationDepthFrame, volumeMode, objects_info, workspace_depth, threshold, colorSlope, cx_d, cy_d, cx_rgb, cy_rgb, fx_d, fy_d, fx_rgb, fy_rgb):
+def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFrame, calibrationDepthFrame, volumeMode, objects_info, workspace_depth, threshold, colorSlope, cx_d, cy_d, cx_rgb, cy_rgb, fx_d, fy_d):
     contours = []
     box_ws = []
     box_limits = []
@@ -143,8 +143,8 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
     colorToDepth_copy3 = colorToDepthFrame.copy()
     depth_copy = depthFrame.copy()
 
-    Sx = fx_rgb / fx_d
-    Sy = fy_rgb / fy_d
+    Sx = ((1600/2) / numpy.tan(numpy.radians(70/2))) / ((640/2) / numpy.tan(numpy.radians(60/2)))
+    Sy = ((1200/2) / numpy.tan(numpy.radians(50/2))) / ((480/2) / numpy.tan(numpy.radians(45/2)))
 
     #ys, xs = numpy.indices(depth_copy.shape)
 
@@ -189,7 +189,7 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
             binary = cv2.morphologyEx(binary, cv2.MORPH_OPEN, element_open)
 
             # Fecha buracos e regulariza a forma
-            element_close = numpy.ones((3, 3), numpy.uint8)
+            element_close = numpy.ones((7, 7), numpy.uint8)
             binary = cv2.morphologyEx(binary, cv2.MORPH_CLOSE, element_close)
 
             contour, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -236,13 +236,6 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
                     #print("Contornos Inválidos")
                     continue
 
-                _rw, _rh = cv2.minAreaRect(c)[1]
-                _max_dim_mm = max(_rw * float(obj["depth"]) / fx_d,
-                                  _rh * float(obj["depth"]) / fy_d)
-                if _max_dim_mm > 600:
-                    print(f"Contorno demasiado grande ({_max_dim_mm/10:.1f}cm), ignorado")
-                    continue
-
                 bbox_c = get_bbox(c)
 
                 for i_prev_obj, prev_list in enumerate(contours):
@@ -274,26 +267,56 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
                     if belongs_to_previous:
                         break
                 if not belongs_to_previous:
-                    print("Adicionar ao Conjunto")
-                    all_shifted_contours = numpy.vstack([c])
-                    contours.append([all_shifted_contours])
-                    box_ws.append(obj["workspace_limits"])
+                    print("New")
+                    workspace_warning = obj["workspace_warning"]
+                    ws_poly = numpy.array(workspace_warning, dtype = numpy.int32)
+                    value = False
 
-                    contour_mask = numpy.zeros(depth_copy.shape, dtype=numpy.uint8)
-                    cv2.drawContours(contour_mask, [c], -1, 255, -1)
-                    valid_mask = (
-                        (contour_mask == 255) &
-                        (depth_copy > 150) &
-                        (depth_copy < workspace_depth - threshold)
-                    )
+                    for pt in box:
+                        x, y = int(pt[0]), int(pt[1])
 
-                    depth_values = depth_copy[valid_mask]
-                    mean_depth = float(numpy.median(depth_values)) if depth_values.size > 0 else float(obj["depth"])
-                    print("Mean Depth:", mean_depth)
+                        if cv2.pointPolygonTest(ws_poly, (x, y), False) < 0:
+                            value = True
+                            print("Out of Line")
+                            break
 
-                    depths.append(mean_depth)
-                    curr_index += 1
-                    object_outOfLine.append(False)
+                    if not value:
+                        correct_shifted_contours = []
+                        correct_shifted_contours.append(c)
+                        print("Adicionar ao Conjunto")
+                        belongs_to_previous = False
+                        all_shifted_contours = numpy.vstack(correct_shifted_contours)
+                        contours.append([all_shifted_contours])
+                        box_ws.append(obj["workspace_limits"])
+
+                        # mask = numpy.zeros(depthFrame.shape, dtype=numpy.uint8)
+                        # kernel = numpy.ones((10, 10), dtype=numpy.uint8)
+                        # mask = cv2.erode(mask, kernel, iterations=1)
+                        # cv2.drawContours(mask, [c], contourIdx=-1, color=1, thickness=-1)
+
+                        previous_mask = numpy.zeros(depth_copy.shape, dtype=numpy.uint8)
+
+                        # for prev_list in contours[:-1]:
+                        #     for prev_c in prev_list:
+                        #         cv2.drawContours(previous_mask, [prev_c], contourIdx=-1, color=1, thickness=-1)
+
+                        valid_mask = (
+                            (mask == 1) &
+                            (previous_mask == 0) &
+                            (depth_copy > 150) &
+                            (depth_copy < workspace_depth - threshold)
+                        )
+
+                        depth_values = depth_copy[valid_mask]
+                        mean_depth = numpy.median(depth_values)
+                        #DAR MAIOR VALOR AOS QUE ESTÃO MAIS PERTO DO CENTRO ÓTICO
+                        print("Mean Depth:", mean_depth)
+
+                        depths.append(mean_depth)
+                        #depths.append(obj["depth"])
+                        curr_index += 1
+
+                    object_outOfLine.append(value)
 
         if len(pending_merges) > 0:
             to_delete = set()
@@ -361,36 +384,6 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
             print("-------------------------------------------------------------------")    
 
     if volumeMode == "Bundle":
-        # Depth-aware dedup: objects at the same depth are sub-detections of
-        # the same physical box (keep largest); different depths = different boxes
-        if len(contours) > 1:
-            SAME_DEPTH_THRESH_MM = 25
-            merged_c, merged_d, merged_bw, merged_ol = [], [], [], []
-            used = [False] * len(contours)
-            for i in range(len(contours)):
-                if used[i]:
-                    continue
-                group = [i]
-                for j in range(i + 1, len(contours)):
-                    if not used[j] and abs(depths[i] - depths[j]) <= SAME_DEPTH_THRESH_MM:
-                        group.append(j)
-                        used[j] = True
-                used[i] = True
-                if len(group) > 1:
-                    areas = [cv2.contourArea(contours[k][0]) for k in group]
-                    best = group[int(numpy.argmax(areas))]
-                    print(f"Bundle dedup: merging group {group} depths={[depths[k] for k in group]} -> keep {best}")
-                else:
-                    best = group[0]
-                merged_c.append(contours[best])
-                merged_d.append(depths[best])
-                merged_bw.append(box_ws[best])
-                merged_ol.append(object_outOfLine[best])
-            contours         = merged_c
-            depths           = merged_d
-            box_ws           = merged_bw
-            object_outOfLine = merged_ol
-            print(f"Bundle: {len(depths)} unique object(s) after dedup")
         box_limits = [c for contour_list in contours for c in contour_list if c.size > 0]
 
         if len(box_limits) > 0:

@@ -74,7 +74,7 @@ def MinDepthAPI(depthFrame, detection_area, workspace_warning, workspace_depth, 
         flag = False
 
         while True:
-            valid_values = depth_copy[(depth_copy > 600 ) & (depth_copy < workspace_depth - 20) & (mask > 0)]
+            valid_values = depth_copy[(depth_copy > 600 ) & (depth_copy < workspace_depth) & (mask > 0)]
             if valid_values.size  == 0:
                 break
 
@@ -106,12 +106,7 @@ def MinDepthAPI(depthFrame, detection_area, workspace_warning, workspace_depth, 
                     neighbors = neighbors[(neighbors > (min_value - threshold)) & (neighbors < (min_value + threshold))]
                     depth_value = round(float(numpy.median(neighbors)), 1)
 
-                    is_new_object = (
-                        (len(objects_info) == 0 or abs(depth_value - objects_info[-1]["depth"]) > threshold)
-                        and workspace_depth - depth_value >= 50
-                    )
-
-                    if is_new_object:
+                    if len(objects_info) == 0 or abs(depth_value - objects_info[-1]["depth"]) > threshold:
                         print(f"Ponto ({x},{y}) válido | depth={depth_value} | min={min_value}")
                         print("Profundidade:", depth_value)
                         print("Min Value", min_value)
@@ -131,22 +126,10 @@ def MinDepthAPI(depthFrame, detection_area, workspace_warning, workspace_depth, 
                             "workspace_warning": objectWorkspace_warning,
                         })
 
-                        # Suppress entire depth-band + 51px border to kill edge artefacts
-                        # (visible box sides when rotated appear just outside top contour)
-                        surface_band = (
-                            (depth_copy >= min_value - threshold) &
-                            (depth_copy <= min_value + threshold) &
-                            (mask > 0)
-                        ).astype(numpy.uint8) * 255
-                        big_kernel = numpy.ones((51, 51), dtype=numpy.uint8)
-                        dilated = cv2.dilate(surface_band, big_kernel)
-                        depth_copy[dilated > 0] = 9999
-                    else:
-                        suppress = numpy.zeros_like(depth_copy, dtype=numpy.uint8)
-                        suppress[y, x] = 1
-                        suppress = cv2.dilate(suppress, kernel)
-                        depth_copy[suppress > 0] = 9999
-
+                    suppress = numpy.zeros_like(depth_copy, dtype=numpy.uint8)
+                    suppress[y, x] = 1
+                    suppress = cv2.dilate(suppress, kernel)
+                    depth_copy[suppress > 0] = 9999
                     suppressed_any = True
                     break
 
