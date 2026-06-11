@@ -106,30 +106,39 @@ def MinDepthAPI(depthFrame, detection_area, workspace_warning, workspace_depth, 
                     neighbors = neighbors[(neighbors > (min_value - threshold)) & (neighbors < (min_value + threshold))]
                     depth_value = round(float(numpy.median(neighbors)), 1)
 
-                    if len(objects_info) == 0 or abs(depth_value - objects_info[-1]["depth"]) > threshold:
-                        print(f"Ponto ({x},{y}) válido | depth={depth_value} | min={min_value}")
-                        print("Profundidade:", depth_value)
-                        print("Min Value", min_value)
+                    if (len(objects_info) == 0 or abs(depth_value - objects_info[-1]["depth"]) > threshold) and workspace_depth - depth_value >= 50:
+                        #print(f"Ponto ({x},{y}) válido | depth={depth_value} | min={min_value}")
+                        #print("Profundidade:", depth_value)
+                        #print("Min Value", min_value)
 
                         prev_lower = depth_value - threshold
                             
                         workspace_limits     = project_points(
                             detection_area, workspace_depth, object_depth,
                             cx_d, cy_d, fx_d, fy_d)
-                        objectWorkspace_warning = project_points(
-                            workspace_warning, workspace_depth, object_depth,
-                            cx_d, cy_d, fx_d, fy_d)
 
                         objects_info.append({
                             "depth": depth_value,
-                            "workspace_limits": workspace_limits,
-                            "workspace_warning": objectWorkspace_warning,
+                            "workspace_limits": workspace_limits
                         })
 
-                    suppress = numpy.zeros_like(depth_copy, dtype=numpy.uint8)
-                    suppress[y, x] = 1
-                    suppress = cv2.dilate(suppress, kernel)
-                    depth_copy[suppress > 0] = 9999
+                        # Suppress entire depth-band + 51px border to kill edge artefacts
+                        # (visible box sides when rotated appear just outside top contour)
+                        surface_band = (
+                            (depth_copy >= min_value - threshold) &
+                            (depth_copy <= min_value + threshold) &
+                            (mask > 0)
+                        ).astype(numpy.uint8) * 255
+                        big_kernel = numpy.ones((51, 51), dtype=numpy.uint8)
+                        dilated = cv2.dilate(surface_band, big_kernel)
+                        depth_copy[dilated > 0] = 9999
+
+                    else:
+                        suppress = numpy.zeros_like(depth_copy, dtype=numpy.uint8)
+                        suppress[y, x] = 1
+                        suppress = cv2.dilate(suppress, kernel)
+                        depth_copy[suppress > 0] = 9999
+
                     suppressed_any = True
                     break
 
@@ -141,7 +150,7 @@ def MinDepthAPI(depthFrame, detection_area, workspace_warning, workspace_depth, 
 
         if objects_info:
             objects_info = sorted(objects_info, key=lambda obj: obj["depth"])
-            print("Profundidade mínima:", objects_info[0]["depth"]/10, 'cm')
+            #print("Profundidade mínima:", objects_info[0]["depth"]/10, 'cm')
             not_set = 0
 
         else:
@@ -149,7 +158,7 @@ def MinDepthAPI(depthFrame, detection_area, workspace_warning, workspace_depth, 
 
     except Exception as e :
         print(e)
-    finally :
-        print('Min Depth end')
+    #finally :
+        #print('Min Depth end')
 
     return not_set, objects_info

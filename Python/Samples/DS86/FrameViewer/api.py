@@ -51,6 +51,7 @@ from VolumeTkinter import volumeBundleAPI, volumeRealAPI
 #------------------------------------------------------   Services    ------------------------------------------------------
 
 from services.saveCalibration import save_WS_calibration
+from services.saveConfiguration import save_configuration
 from services.stream import generateRGB_Stream, generateCalibrationCTD_Stream, generateCalibrationMask_Stream, CameraTrack, CTDTrack
 from services.utils import rgb_to_hsv
 from services.users import load_users, save_users
@@ -88,15 +89,18 @@ def require_admin(user: dict = Depends(get_current_user)):
 #--------------------------------------------------   Object Processing   -------------------------------------------------
 
 objProcessing_thread = None
-objProcessing_thread_running = False
+thread_state = "STOPPED"
+objProcessingStop_event = threading.Event()
+objProcessingPause_event = threading.Event()
+objProcessingPause_event.set()
 
 def object_processing():
-    global objProcessing_thread_running
-
     print("THREAD START:", threading.get_ident())
 
-    while objProcessing_thread_running:
-        print("RUNNING:", threading.get_ident())
+    while not objProcessingStop_event.is_set():
+        objProcessingPause_event.wait()
+
+        #print("RUNNING:", threading.get_ident())
         if frameState.depthFrameHDR is None or modeState.expositionMode == "Fixed Exposition":
             depthFrame = frameState.depthFrame
         else:
@@ -108,18 +112,20 @@ def object_processing():
             depthState.minimum_depth = depthState.objects_info[0]["depth"]
             depthState.minimum_value = depthState.minimum_depth
 
-            print("New Min Value", depthState.minimum_value)
+            #print("New Min Value", depthState.minimum_value)
 
         time.sleep(0.01)
 
 def start_ObjProcessing():
-    global objProcessing_thread
-    global objProcessing_thread_running
+    global objProcessing_thread, thread_state
 
-    if objProcessing_thread_running:
+    if thread_state in ["RUNNING", "PAUSED"]:
         return
-    
-    objProcessing_thread_running = True
+
+    objProcessingStop_event.clear()
+    objProcessingPause_event.set()
+
+    thread_state = "RUNNING"
 
     objProcessing_thread = threading.Thread(
         target=object_processing,
@@ -130,15 +136,45 @@ def start_ObjProcessing():
 
     print("Volume thread started")
 
-def stop_ObjProcessing():
-    global objProcessing_thread
-    global objProcessing_thread_running
+def pause_ObjProcessing():
+    global thread_state
 
-    objProcessing_thread_running = False
+    if thread_state != "RUNNING":
+        return
+
+    objProcessingPause_event.clear()
+
+    thread_state = "PAUSED"
+
+    print("Thread paused")
+
+def resume_ObjProcessing():
+    global thread_state
+
+    if thread_state in ["STOPPING", "STOPPED"]:
+        return
+
+    objProcessingPause_event.set()
+
+    thread_state = "RUNNING"
+
+    print("Thread resumed")
+
+def stop_ObjProcessing():
+    global objProcessing_thread, thread_state
+
+    print("Stopping volume thread...")
+
+    thread_state = "STOPPING"
+
+    objProcessingStop_event.set()
+    objProcessingPause_event.set()
 
     if objProcessing_thread is not None:
         objProcessing_thread.join()
         objProcessing_thread = None
+
+    thread_state = "STOPPED"
 
     print("Volume thread stopped")
 #----------------------------------------------------   Base Models    ----------------------------------------------------
@@ -200,6 +236,7 @@ pcs = set()
 async def lifespan(app: FastAPI):
     # STARTUP
     path = "config/workspace_calibration.json"
+    config_path = "config/last_configurations.json"
 
     if os.path.exists(path):
         try:
@@ -207,7 +244,6 @@ async def lifespan(app: FastAPI):
                 calib = json.load(f)
 
             workspaceState.detection_area = calib["detection_area"]
-            workspaceState.workspace_warning = calib["workspace_warning"]
             workspaceState.workspace_depth = calib["workspace_depth"]
             maskState.hmin = calib["hmin"]
             maskState.hmax = calib["hmax"]
@@ -217,7 +253,6 @@ async def lifespan(app: FastAPI):
             maskState.vmax = calib["vmax"]
             maskState.color = calib["color"]
             camState.colorSlope = calib["colorSlope"]
-            camState.exposureTime = calib["exposureTime"]
             frameState.calibrationColorFrame = cv2.imread(calib["calibrationColorFrame_path"])
             frameState.calibrationDepthFrame = numpy.load(calib["calibrationDepthFrame_path"])
             
@@ -230,12 +265,39 @@ async def lifespan(app: FastAPI):
         print("É necessário realizar calibração!")
         calib = None
 
+    if os.path.exists(config_path):
+        try:
+            with open(config_path, "r") as f:
+                config = json.load(f)
+
+            modeState.expositionMode = config["expositionMode"]
+            modeState.volumeMode = config["volumeMode"]
+            modeState.workingMode = config["workingMode"]
+            modeState.debugMode = config["debugMode"]
+            camState.exposureTime = config["exposureTime"]
+            camState.fps = config["fps"]
+            camState.flyingPixelFilter = config["flyingPixelFilter"]
+            camState.fillHoleFilter = config["fillHoleFilter"]
+            camState.spatialFilter = config["spatialFilter"]
+            camState.confidenceFilter = config["confidenceFilter"]
+            
+            print("Calibração carregada!")
+
+        except Exception as e:
+            print("Error loading calibration:", e)
+            config = None
+    else:
+        print("É necessário realizar calibração!")
+        config = None
+
     startCamera()
 
     yield
 
     #SHUTDOWN
     print("API a desligar")
+    save_configuration()
+    stop_ObjProcessing()
     stopCamera()
 
 #----------------------------------------------------   Criar App   -------------------------------------------------------
@@ -804,7 +866,7 @@ def get_calibration_status(current_user: dict = Depends(get_current_user)):
         with open(path, "r") as f:
             data = json.load(f)
 
-        if "detection_area" not in data or "workspace_warning" not in data:
+        if "detection_area" not in data:
             return {"calibrated": False}
 
         return {"calibrated": True}
@@ -1057,13 +1119,21 @@ def debugOn(current_user: dict = Depends(require_admin)):
 
 @app.post("/menu/volume/open")
 def open_volume_menu():
-    start_ObjProcessing()
+    global objProcessing_thread
+
+    if objProcessing_thread is None or not objProcessing_thread.is_alive():
+        start_ObjProcessing()
+    else:
+        resume_ObjProcessing() 
 
     return {"status": "ok"}
 
 @app.post("/menu/volume/close")
 def close_volume_menu():
-    stop_ObjProcessing()
+    global objProcessing_thread
+
+    if objProcessing_thread is not None and objProcessing_thread.is_alive():
+        pause_ObjProcessing()
 
     return {"status": "ok"}
 
@@ -1096,7 +1166,7 @@ def volume_Bundle(current_user: dict = Depends(get_current_user)):
     #    print("New Min Value", depthState.minimum_value)
 
     if depthState.not_set == 0:
-        depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine = objIdentifier(colorFrame, colorToDepthFrame, depthFrame, frameState.calibrationColorFrame, frameState.calibrationDepthFrame, modeState.volumeMode, depthState.objects_info, workspaceState.workspace_depth, depthState.threshold, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb, camState.fx_d, camState.fy_d)
+        depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine = objIdentifier(colorFrame, colorToDepthFrame, depthFrame, frameState.calibrationColorFrame, frameState.calibrationDepthFrame, modeState.volumeMode, depthState.objects_info, workspaceState.workspace_depth, depthState.threshold, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb, camState.fx_d, camState.fy_d, camState.fx_rgb, camState.fy_rgb)
         depthState.minimum_depth = min(volumeState.depths)
         if volumeState.box_limits is not None and len(volumeState.box_limits) > 0:
             volumeState.volume, volumeState.width_meters, volumeState.length_meters, volumeState.height_meters = volumeBundleAPI(depthFrame, workspaceState.workspace_depth, depthState.minimum_depth, volumeState.box_limits, volumeState.depths, camState.fx_d, camState.fy_d, camState.cx_d, camState.cy_d)
@@ -1185,7 +1255,7 @@ def volume_Real(current_user: dict = Depends(get_current_user)):
     #    print("New Min Value", depthState.minimum_value)
 
     if depthState.not_set == 0:
-        depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine = objIdentifier(colorFrame, colorToDepthFrame, depthFrame, frameState.calibrationColorFrame, frameState.calibrationDepthFrame, modeState.volumeMode, depthState.objects_info, workspaceState.workspace_depth, depthState.threshold, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb, camState.fx_d, camState.fy_d)
+        depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine = objIdentifier(colorFrame, colorToDepthFrame, depthFrame, frameState.calibrationColorFrame, frameState.calibrationDepthFrame, modeState.volumeMode, depthState.objects_info, workspaceState.workspace_depth, depthState.threshold, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb, camState.fx_d, camState.fy_d, camState.fx_rgb, camState.fy_rgb)
         t2 = time.perf_counter()
         print("objIdentifier:", (t2 - t0) * 1000, "ms")
         if volumeState.box_limits is not None and len(volumeState.box_limits) > 0:
@@ -1348,3 +1418,27 @@ def update_systemInfo(info: SystemUpdate, current_user: dict = Depends(require_a
         setFPS(info.fps)
 
     return {"status": "updated"}
+
+# --------------------------------------- Config Status ---------------------------------------
+@app.get("/configuration/status", summary="Obtains the information about the configurations",
+         description="""
+         Checks if the file that saves the configurations has some information about the last configuration.
+         """,
+         tags=["Configuration"])
+def get_configuration_status(current_user: dict = Depends(get_current_user)):
+    path = "config/last_configurations.json"
+
+    if not os.path.exists(path):
+        return {"configured": False}
+
+    try:
+        with open(path, "r") as f:
+            data = json.load(f)
+
+        if "expositionMode" not in data or "volumeMode" not in data:
+            return {"configured": False}
+
+        return {"configured": True, "expositionMode": data["expositionMode"], "volumeMode": data["volumeMode"]}
+
+    except:
+        return {"configured": False}

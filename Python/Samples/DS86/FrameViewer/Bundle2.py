@@ -95,15 +95,15 @@ def comparisonCaliImageCurrImage(colorFrame, calibrationColorFrame, depthFrame, 
     total_pixels_depth = numpy.count_nonzero(depth_mask)
 
     # ---------------- COLOR ----------------
-    current = cv2.bitwise_and(colorFrame, colorFrame, mask=mask)
-    cali = cv2.bitwise_and(calibrationColorFrame, calibrationColorFrame, mask=mask)
+    #current = cv2.bitwise_and(colorFrame, colorFrame, mask=mask)
+    #cali = cv2.bitwise_and(calibrationColorFrame, calibrationColorFrame, mask=mask)
 
-    currentGray = cv2.cvtColor(current, cv2.COLOR_BGR2GRAY)
-    caliGray = cv2.cvtColor(cali, cv2.COLOR_BGR2GRAY)
+    #currentGray = cv2.cvtColor(current, cv2.COLOR_BGR2GRAY)
+    #caliGray = cv2.cvtColor(cali, cv2.COLOR_BGR2GRAY)
 
-    diff = cv2.absdiff(currentGray, caliGray)
+    #diff = cv2.absdiff(currentGray, caliGray)
 
-    colorScore = numpy.sum(diff>20) / total_pixels
+    #colorScore = numpy.sum(diff>20) / total_pixels
 
     # ---------------- DEPTH ----------------
     depthDiff = cv2.absdiff(
@@ -113,26 +113,25 @@ def comparisonCaliImageCurrImage(colorFrame, calibrationColorFrame, depthFrame, 
 
     validMask = depth_mask > 0
 
-    depthScore = numpy.sum((depthDiff > 15) & validMask) / total_pixels_depth
+    depthScore = numpy.sum((depthDiff > 30) & validMask) / total_pixels_depth
 
     # ---------------- DECISION ----------------
     w_color = 0.5
     w_depth = 0.5
 
-    finalScore = (w_color * colorScore) + (w_depth * depthScore)
+    #finalScore = (w_color * colorScore) + (w_depth * depthScore)
 
-    print("Color Score:", colorScore)
+    #print("Color Score:", colorScore)
     print("Depth Score:", depthScore)
-    print("Final Score:", finalScore)
+    #print("Final Score:", finalScore)
 
-    return finalScore >= 0.60
+    #return finalScore >= 0.60
+    return depthScore >= 0.90
 
-def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFrame, calibrationDepthFrame, volumeMode, objects_info, workspace_depth, threshold, colorSlope, cx_d, cy_d, cx_rgb, cy_rgb, fx_d, fy_d):
+def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFrame, calibrationDepthFrame, volumeMode, objects_info, workspace_depth, threshold, colorSlope, cx_d, cy_d, cx_rgb, cy_rgb, fx_d, fy_d, fx_rgb, fy_rgb):
     contours = []
     box_ws = []
     box_limits = []
-    shifted_contours = []
-    correct_shifted_contours = []
     depths = []
     object_outOfLine = []
     belongs_to_previous = False
@@ -143,8 +142,8 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
     colorToDepth_copy3 = colorToDepthFrame.copy()
     depth_copy = depthFrame.copy()
 
-    Sx = ((1600/2) / numpy.tan(numpy.radians(70/2))) / ((640/2) / numpy.tan(numpy.radians(60/2)))
-    Sy = ((1200/2) / numpy.tan(numpy.radians(50/2))) / ((480/2) / numpy.tan(numpy.radians(45/2)))
+    Sx = fx_rgb / fx_d
+    Sy = fy_rgb / fy_d
 
     #ys, xs = numpy.indices(depth_copy.shape)
 
@@ -164,7 +163,6 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
 
             mask = numpy.zeros(depth_copy.shape, dtype = numpy.uint8)
             print("Obj Workspace Limits:", obj["workspace_limits"])
-            print("Obj Workspace Warning:", obj["workspace_warning"])
 
             box = numpy.array(obj["workspace_limits"], dtype=numpy.int32)
 
@@ -195,15 +193,6 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
             contour, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
             
             shifted_contours_sorted = sorted(contour, key=lambda x: len(x), reverse=True)
-
-            #cv2.imwrite(f"debug_morf{i}.png", morf)
-            #cv2.imwrite(f"debug_depth{i}.png", depth_filtered)
-            #cv2.imwrite(f"debug_depthcolored{i}.png", depth_img)
-            #cv2.imwrite(f"debug_binary{i}.png", binary)
-            #cv2.imwrite(f"debug_inv{i}.png", invBinary)
-            #debug_contours = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
-            #cv2.drawContours(debug_contours, contour, -1, (0,255,0), 2)
-            #cv2.imwrite(f"debug_contours{i}.png", debug_contours)
             
             for j, c in enumerate(contour):
                 colorToDepth_copy4 = colorToDepthFrame.copy()
@@ -268,7 +257,7 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
                         break
                 if not belongs_to_previous:
                     print("New")
-                    workspace_warning = obj["workspace_warning"]
+                    workspace_warning = obj["workspace_limits"]
                     ws_poly = numpy.array(workspace_warning, dtype = numpy.int32)
                     value = False
 
@@ -281,35 +270,23 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
                             break
 
                     if not value:
-                        correct_shifted_contours = []
-                        correct_shifted_contours.append(c)
                         print("Adicionar ao Conjunto")
                         belongs_to_previous = False
-                        all_shifted_contours = numpy.vstack(correct_shifted_contours)
+                        all_shifted_contours = numpy.vstack([c])
                         contours.append([all_shifted_contours])
                         box_ws.append(obj["workspace_limits"])
 
-                        # mask = numpy.zeros(depthFrame.shape, dtype=numpy.uint8)
-                        # kernel = numpy.ones((10, 10), dtype=numpy.uint8)
-                        # mask = cv2.erode(mask, kernel, iterations=1)
-                        # cv2.drawContours(mask, [c], contourIdx=-1, color=1, thickness=-1)
-
                         previous_mask = numpy.zeros(depth_copy.shape, dtype=numpy.uint8)
 
-                        # for prev_list in contours[:-1]:
-                        #     for prev_c in prev_list:
-                        #         cv2.drawContours(previous_mask, [prev_c], contourIdx=-1, color=1, thickness=-1)
-
                         valid_mask = (
-                            (mask == 1) &
+                            (mask == 255) &
                             (previous_mask == 0) &
                             (depth_copy > 150) &
                             (depth_copy < workspace_depth - threshold)
                         )
 
                         depth_values = depth_copy[valid_mask]
-                        mean_depth = numpy.median(depth_values)
-                        #DAR MAIOR VALOR AOS QUE ESTÃO MAIS PERTO DO CENTRO ÓTICO
+                        mean_depth = float(numpy.median(depth_values)) if depth_values.size > 0 else float(obj["depth"])
                         print("Mean Depth:", mean_depth)
 
                         depths.append(mean_depth)

@@ -144,6 +144,32 @@ function App() {
         setLockMenu(false);
       }
 
+      const config_res = await fetch(`${API_URL}/configuration/status`, {
+        headers: {
+          "Authorization": `Bearer ${access_token}`
+        }
+      });
+
+      if (config_res.status === 401) {
+        return;
+      }
+
+      const config_data = await config_res.json();
+
+      if (config_data.configured) {
+        if (config_data.expositionMode === "HDR") {
+          await handleExpHDR_toggle({ target: { value: "true" } });
+        } else if (config_data.expositionMode === "Fixed") {
+          await handleExpHDR_toggle({ target: { value: "false" } });
+        }
+        
+        if (config_data.volumeMode === "Bundle") {
+          await handleBundleReal_toggle( { target: { value: "false" } });
+        } else if (config_data.volumeMode === "Real") {
+          await handleBundleReal_toggle({ target: { value: "true" } });
+        }
+      }
+
     } catch (err) {
       setCurrentMenu("login-menu");
     }

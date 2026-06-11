@@ -19,8 +19,7 @@ os.makedirs(output_dir, exist_ok=True)
 
 hdrGroups = [
     camState.hdrExposuresLow,
-    camState.hdrExposuresMedium,
-    camState.hdrExposuresHigh
+    camState.hdrExposuresMedium
 ]
 
 colorArray = []
@@ -134,13 +133,13 @@ def startCamera():
         else:
             print("VZ_SetTransformColorImgToDepthSensorEnabled failed:",ret)    
 
-        setFlyingPixelFilter(value = False) 
+        setFlyingPixelFilter(value = camState.flyingPixelFilter) 
 
-        setFillHoleFilter(value = True)
+        setFillHoleFilter(value = camState.fillHoleFilter)
 
-        setSpatialFilter(value = True)
-
-        setConfidenceFilter(value = False)  
+        setSpatialFilter(value = camState.spatialFilter)
+        
+        setConfidenceFilter(value = camState.confidenceFilter)  
     
         ret, intrParam = camState.camera.VZ_GetSensorIntrinsicParameters(VzSensorType.VzToFSensor)
         if ret != 0:
@@ -421,9 +420,6 @@ def processHDR(colorToDepthFrame, depthFrame, colorFrame):
             if hdrGroupIndex == 1:
                 cv2.imwrite(os.path.join(output_dir, f"MediumHDRcolor_{final_index}.png"), hdrColor)
                 numpy.save(os.path.join(output_dir, f"MediumHDRdepth_{final_index}.npy"), hdrDepth)
-            if hdrGroupIndex == 2:
-                cv2.imwrite(os.path.join(output_dir, f"HighHDRcolor_{final_index}.png"), hdrColor)
-                numpy.save(os.path.join(output_dir, f"HighHDRdepth_{final_index}.npy"), hdrDepth)
 
         colorArray = []
         depthArray = []
@@ -432,19 +428,38 @@ def processHDR(colorToDepthFrame, depthFrame, colorFrame):
         hdrGroupIndex += 1
 
         # terminou Low + Medium + High
-        if hdrGroupIndex >= 3:
+        if hdrGroupIndex >= len(hdrGroups):
 
             finalColor = buildHDRColor(hdrColorArray)
             finalDepth = buildHDRDepth(hdrDepthArray)
 
-            if final_index <= 4:
-                cv2.imwrite(os.path.join(output_dir, f"HDRcolorFinal_{final_index}.png"), finalColor)
-                numpy.save(os.path.join(output_dir, f"HDRdepthFinal_{final_index}.npy"), finalDepth)
+            print("HDR Processed")
 
-                final_index += 1
+            #if final_index <= 4:
+            #    cv2.imwrite(os.path.join(output_dir, f"HDRcolorFinal_{final_index}.png"), finalColor)
+            #    numpy.save(os.path.join(output_dir, f"HDRdepthFinal_{final_index}.npy"), finalDepth)
+
+            #    final_index += 1
 
             frameState.colorToDepthFrameHDR = finalColor
             frameState.depthFrameHDR = finalDepth
+
+            #depth = finalDepth.astype(numpy.float32)
+
+            #mask = (depth >= 800) & (depth <= 900)
+
+            #depth_norm = numpy.zeros_like(depth, dtype=numpy.uint8)
+
+            #depth_norm[mask] = ((depth[mask] - 800) * (255.0 / (900 - 800))).astype(numpy.uint8)
+
+            #depth_color = cv2.applyColorMap(
+            #    depth_norm,
+            #    cv2.COLORMAP_TURBO
+            #)
+
+            #depth_color[~mask] = (0, 0, 0)
+
+            #cv2.imwrite("depth_color.png", depth_color)
 
             hdrColorArray = []
             hdrDepthArray = []

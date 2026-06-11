@@ -300,7 +300,7 @@ def calibrateAPI(colorToDepthFrame, depthFrame, colorFrame, detection_area, lowe
             print("Avg Depth:", avg_depth)
             print("Workspace Depth", workspace_depth)
             #count = numpy.sum(numpy.abs(valid_values - workspace_depth) <= 10)
-            count = numpy.sum(numpy.abs(valid_values - workspace_depth) <= 50)
+            count = numpy.sum(numpy.abs(valid_values - workspace_depth) <= 15)
             print("Count:", count)
             print("Size:", valid_values.size)
             proportion_valid = round(count / valid_values.size, 2)
@@ -308,6 +308,7 @@ def calibrateAPI(colorToDepthFrame, depthFrame, colorFrame, detection_area, lowe
 
             if proportion_valid >= 0.95:
                 workspace_free = True
+                workspace_depth = float(numpy.median(valid_values))
                 #workspace_depth = avg_depth
             else:
                 workspace_free = False
