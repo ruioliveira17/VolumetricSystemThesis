@@ -9,7 +9,10 @@ import cv2
 import numpy
 from FrameState import frameState
 
-def volumeBundleAPI(depthFrame, workspace_depth, minimum_depth, box_limits, depths, fx_d, fy_d, cx_d, cy_d): 
+
+OVERLAP_RATIO = 0.05
+
+def volumeSingleBundleAPI(depthFrame, workspace_depth, minimum_depth, box_limits, depths, fx_d, fy_d, cx_d, cy_d): 
     volume = 0
     width_meters = 0
     length_meters = 0
@@ -79,7 +82,273 @@ def volumeBundleAPI(depthFrame, workspace_depth, minimum_depth, box_limits, dept
 
     return volume, width_meters, length_meters, height_meters
 
+def volumeMultiBundleAPI(depthFrame, calibrationDepthFrame, workspace_depth, minimum_depth, box_limits, depths, fx_d, fy_d, cx_d, cy_d): 
+    volume = 0
+    width_meters = 0
+    length_meters = 0
+    i = 0
+
+    allObj_pts_m = []
+    bolume = []
+    uidth = []
+    ength = []
+    eight = []
+    totalVolume = 0
+
+    pts_m = []
+    groups = []
+    used = set()
+    depthsObj = []
+
+    MIN_OBJ_HEIGHT_MM = 30
+
+    calibrationDepthFrame_copy = calibrationDepthFrame.copy()
+
+    print("Box Limits Len:", len(box_limits))
+
+    for i in range(len(box_limits)):
+        if i in used:
+            continue
+
+        stack = [i]
+        group = []
+
+        while stack:
+            idx = stack.pop()
+
+            if idx in used:
+                continue
+
+            used.add(idx)
+            group.append((box_limits[idx], depths[idx]))
+
+            for j in range(len(box_limits)):
+                if j in used:
+                    continue
+
+                box_i = cv2.boxPoints(cv2.minAreaRect(box_limits[idx]))
+                box_j = cv2.boxPoints(cv2.minAreaRect(box_limits[j]))
+
+                if overlap_ratio(box_i, box_j) > OVERLAP_RATIO:
+                    stack.append(j)
+
+        groups.append(group)
+
+    print("Number of groups:", len(groups))
+
+    for i in range((len(groups))):
+        group = groups[i]
+        min_depth = min(depth for _, depth in group)
+        obj_height_mm = workspace_depth - min_depth
+        if obj_height_mm < MIN_OBJ_HEIGHT_MM:
+            print("Skipping ghost object", i, ": height", obj_height_mm, "mm")
+            continue
+        
+        all_points = numpy.vstack([contour for contour, _ in group])
+        pts_flat = all_points.reshape(-1,2)
+
+        fill_img = numpy.zeros((480, 640), dtype=numpy.uint8)
+        cv2.fillPoly(fill_img, [pts_flat.astype(numpy.int32)], 255)
+        
+        rect_px = cv2.minAreaRect(pts_flat.astype(numpy.float32))
+        box_px = cv2.boxPoints(rect_px)
+        #Z = (depths[i] / 1000)
+        cv2.drawContours(frameState.colorToDepthFrame, [numpy.int32(box_px)], 0, (0, 255, 0), 2)
+        cv2.imwrite(f"colorToDepthFrame{i}.png", frameState.colorToDepthFrame)
+
+        ys_all, xs_all = numpy.where(fill_img > 0)
+        if len(xs_all) == 0 or len(ys_all) == 0:
+            continue
+
+        #DEPTH_TOL_MM = 40
+        zs_all = depthFrame[ys_all, xs_all].astype(numpy.float32)
+        valid = (zs_all > 0) & (zs_all < workspace_depth)
+        xs_v, ys_v, zs_v = xs_all[valid], ys_all[valid], zs_all[valid]
+
+        Z = zs_v / 1000.0
+        X = (xs_v - cx_d) * Z / fx_d
+        Y = (ys_v - cy_d) * Z / fy_d
+        allObj_pts_m.append(numpy.column_stack([X, Y]).tolist())
+        depthsObj.append(min_depth)
+      
+    for idx, obj in enumerate(allObj_pts_m):
+        allObj_pts_m = [numpy.array(obj, dtype=numpy.float32) for obj in allObj_pts_m]
+        rect_m = cv2.minAreaRect(allObj_pts_m[idx])
+        width_meters, length_meters = rect_m[1]
+        if width_meters > length_meters:
+            width_meters, length_meters = length_meters, width_meters
+
+        pts_flat_h = allObj_pts_m[idx].reshape(-1, 2)
+        mask_h = numpy.zeros(calibrationDepthFrame_copy.shape, dtype=numpy.uint8)
+        cv2.fillPoly(mask_h, [pts_flat_h.astype(numpy.int32)], 255)
+        ws_vals_h = calibrationDepthFrame_copy[mask_h == 255].astype(numpy.float32)
+        ws_vals_h = ws_vals_h[(ws_vals_h >= 150) & (ws_vals_h <= workspace_depth + 15)]
+        ws_d_h = float(numpy.median(ws_vals_h)) if ws_vals_h.size > 0 else float(workspace_depth)
+        height_meters = (ws_d_h - depthsObj[idx]) / 1000
+
+        volume = width_meters * length_meters * height_meters
+        uidth.append(width_meters)
+        ength.append(length_meters)
+        eight.append(height_meters)
+        bolume.append(volume)
+        totalVolume += volume
+
+    bolume.append(totalVolume)
+    volume = bolume
+    width_meters = uidth
+    length_meters = ength
+    height_meters = eight
+
+    print("Volume:", volume)
+
+    return volume, width_meters, length_meters, height_meters
+
 def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits, depths, fx_d, fy_d, cx_d, cy_d): 
+    volume = 0
+    width_meters = 0
+    length_meters = 0
+    i = 0
+
+    bolume = []
+    uidth = []
+    ength = []
+    eight = []
+    totalVolume = 0
+
+    pts_m = []
+    groups = []
+    used = set()
+
+    MIN_OBJ_HEIGHT_MM = 30
+
+    calibrationDepthFrame_copy = calibrationDepthFrame.copy()
+
+    print("Box Limits Len:", len(box_limits))
+
+    for i in range(len(box_limits)):
+        if i in used:
+            continue
+
+        stack = [i]
+        group = []
+
+        while stack:
+            idx = stack.pop()
+
+            if idx in used:
+                continue
+
+            used.add(idx)
+            group.append((box_limits[idx], depths[idx]))
+
+            for j in range(len(box_limits)):
+                if j in used:
+                    continue
+
+                box_i = cv2.boxPoints(cv2.minAreaRect(box_limits[idx]))
+                box_j = cv2.boxPoints(cv2.minAreaRect(box_limits[j]))
+
+                if overlap_ratio(box_i, box_j) > OVERLAP_RATIO:
+                    stack.append(j)
+
+        groups.append(group)
+
+    print("Number of groups:", len(groups))
+    
+    print("Depths Len:", len(depths))
+    print("Box Limits Len:", len(box_limits))
+
+    for i in range((len(groups))):
+        group = groups[i]
+        group.sort(key=lambda x: x[1], reverse=False)
+        allObj_pts_m = []
+        depthsObj = []
+        realVolume = 0
+        for j in range(len(group)):
+            print("Tamanho do grupo:", len(group))
+            contour, depth = group[j]
+            pts_flat = contour.reshape(-1,2)
+
+            mask = numpy.zeros(calibrationDepthFrame_copy.shape, dtype=numpy.uint8)
+            cv2.fillPoly(mask, [pts_flat.astype(numpy.int32)], 255)
+            ws_values = calibrationDepthFrame_copy[mask == 255].astype(numpy.float32)
+            ws_values = ws_values[(ws_values >= 150) & (ws_values < workspace_depth + 15)]
+            ws_depth = numpy.median(ws_values)
+            print("Workspace Depth:", ws_depth)
+
+            obj_height_mm = workspace_depth - depth
+            if obj_height_mm < MIN_OBJ_HEIGHT_MM:
+                print("Skipping ghost object", i, ": height", obj_height_mm, "mm")
+                continue
+
+            fill_img = numpy.zeros((480, 640), dtype=numpy.uint8)
+            cv2.fillPoly(fill_img, [pts_flat.astype(numpy.int32)], 255)
+
+            rect_px = cv2.minAreaRect(pts_flat.astype(numpy.float32))
+            box_px = cv2.boxPoints(rect_px)
+            cv2.drawContours(frameState.colorToDepthFrame, [numpy.int32(box_px)], 0, (0, 255, 0), 2)
+            #cv2.imwrite(f"colorToDepthFrame{i}.png", frameState.colorToDepthFrame)
+
+            #ws_values = calibrationDepthFrame[mask == 255].astype(numpy.float32)
+            #ws_values = ws_values[(ws_values >= 150) & (ws_values < workspace_depth + 15)]
+            #ws_depth = numpy.mean(ws_values)
+
+            ys_all, xs_all = numpy.where(fill_img > 0)
+            if len(xs_all) == 0 or len(ys_all) == 0:
+                continue
+
+            DEPTH_TOL_MM = 40
+            zs_all = depthFrame[ys_all, xs_all].astype(numpy.float32)
+            valid = (zs_all > 0) & (zs_all < workspace_depth) #& (numpy.abs(zs_all - depth) <= DEPTH_TOL_MM)
+            xs_v, ys_v, zs_v = xs_all[valid], ys_all[valid], zs_all[valid]
+
+            Z = zs_v / 1000.0
+            X = (xs_v - cx_d) * Z / fx_d
+            Y = (ys_v - cy_d) * Z / fy_d
+            allObj_pts_m.append(numpy.column_stack([X, Y]).tolist())
+            depthsObj.append(depth)
+
+        for idx, obj in enumerate(allObj_pts_m):
+            allObj_pts_m = [numpy.array(obj, dtype=numpy.float32) for obj in allObj_pts_m]
+            rect_m = cv2.minAreaRect(allObj_pts_m[idx])
+            width_meters, length_meters = rect_m[1]
+            if width_meters > length_meters:
+                width_meters, length_meters = length_meters, width_meters
+
+            pts_flat_h = allObj_pts_m[idx].reshape(-1, 2)
+            mask_h = numpy.zeros(calibrationDepthFrame_copy.shape, dtype=numpy.uint8)
+            cv2.fillPoly(mask_h, [pts_flat_h.astype(numpy.int32)], 255)
+            ws_vals_h = calibrationDepthFrame_copy[mask_h == 255].astype(numpy.float32)
+            ws_vals_h = ws_vals_h[(ws_vals_h >= 150) & (ws_vals_h <= workspace_depth + 15)]
+            ws_d_h = float(numpy.median(ws_vals_h)) if ws_vals_h.size > 0 else float(workspace_depth)
+            height_meters = (ws_d_h - depthsObj[idx]) / 1000
+
+            print("Verifying object ")
+            for j in range(idx + 1, len(allObj_pts_m)):
+                if isInside(allObj_pts_m[idx], allObj_pts_m[j]):
+                    print("Inside")
+                    height_meters = (depthsObj[j] - depthsObj[idx]) / 1000
+                    break
+
+            volume = width_meters * length_meters * height_meters
+            totalVolume += volume
+            realVolume += volume
+
+        print("------------------------------")
+        uidth.append(width_meters)
+        ength.append(length_meters)
+        eight.append(height_meters)
+        bolume.append(realVolume)
+            
+    bolume.append(totalVolume)
+    volume = bolume
+    width_meters = uidth
+    length_meters = ength
+    height_meters = eight
+
+    return volume, width_meters, length_meters, height_meters
+
+def volumeIndividualAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits, depths, fx_d, fy_d, cx_d, cy_d): 
     MIN_OBJ_HEIGHT_MM = 30
 
     volume = 0
@@ -180,6 +449,7 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
 
 def isInside(box1, box2):
     box1 = box1.reshape(-1, 2).astype(numpy.float32)
+    box2 = box2.reshape(-1, 2).astype(numpy.float32)
     box2 = to_hull(box2)
     inside = 0
 
@@ -188,7 +458,7 @@ def isInside(box1, box2):
             inside += 1
 
     result = inside / len(box1)
-    
+
     if result > 0.15:
         return True
     else:
@@ -198,3 +468,17 @@ def to_hull(points):
     points = numpy.array(points, dtype=numpy.float32)
     hull = cv2.convexHull(points)
     return hull
+
+def overlap_ratio(b1, b2):
+    inter, _ = cv2.intersectConvexConvex(
+        b1.astype(numpy.float32),
+        b2.astype(numpy.float32)
+    )
+
+    a1 = cv2.contourArea(b1)
+    a2 = cv2.contourArea(b2)
+
+    if a1 + a2 == 0:
+        return 0
+
+    return inter / min(a1, a2)

@@ -14,6 +14,8 @@ offset_x_959mm_depth = 40
 offset_y_959mm_depth = -15
 or_depth_offset = 959.548329678014
 
+OVERLAP_RATIO = 0.05
+
 def depthImg(depthFrame, colorSlope):
     img = numpy.int32(depthFrame)
     img = img*255/colorSlope
@@ -57,7 +59,7 @@ def contours_overlap_by_points(c, prev_c, colorToDepth_copy):
     total = len(c)
     print("Total", total)
 
-    hull = cv2.convexHull(prev_c)
+    #hull = cv2.convexHull(prev_c)
 
     #cv2.drawContours(colorToDepth_copy, [hull], 0, (255, 0, 0), 2)
 
@@ -65,7 +67,7 @@ def contours_overlap_by_points(c, prev_c, colorToDepth_copy):
         x = int(p[0][0])
         y = int(p[0][1])
 
-        if cv2.pointPolygonTest(hull, (x, y), False) >= 0:
+        if cv2.pointPolygonTest(prev_c, (x, y), False) >= 0:
             inside += 1
             
     print("Inside", inside)
@@ -128,6 +130,20 @@ def comparisonCaliImageCurrImage(colorFrame, calibrationColorFrame, depthFrame, 
     #return finalScore >= 0.60
     return depthScore >= 0.90
 
+def overlap_ratio(b1, b2):
+    inter, _ = cv2.intersectConvexConvex(
+        b1.astype(numpy.float32),
+        b2.astype(numpy.float32)
+    )
+
+    a1 = cv2.contourArea(b1)
+    a2 = cv2.contourArea(b2)
+
+    if a1 + a2 == 0:
+        return 0
+
+    return inter / min(a1, a2)
+
 def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFrame, calibrationDepthFrame, volumeMode, objects_info, workspace_depth, threshold, colorSlope, cx_d, cy_d, cx_rgb, cy_rgb, fx_d, fy_d, fx_rgb, fy_rgb):
     contours = []
     box_ws = []
@@ -171,24 +187,35 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
             workspace_area2 = cv2.bitwise_and(depth_copy, depth_copy, mask=mask)
 
             if i == 0:
-                mask = (workspace_area2 >= (obj["depth"] - threshold)) & (workspace_area2 <= (obj["depth"] + threshold))
+                mask2 = (workspace_area2 >= (obj["depth"] - threshold)) & (workspace_area2 <= (obj["depth"] + threshold))
+            #    print("Limite Superior", obj["depth"] + threshold)
+            #    print("Limite Inferior", obj["depth"] - threshold)
             else:
                 if (obj["depth"] - threshold) < (objects_info[i-1]["depth"] + threshold):
                     print("Limite Inferior")
-                    mask = (workspace_area2 >= (objects_info[i-1]["depth"] + threshold)) & (workspace_area2 <= (obj["depth"] + threshold))
+                    mask2 = (workspace_area2 >= (objects_info[i-1]["depth"] + threshold)) & (workspace_area2 <= (obj["depth"] + threshold))
                 else:
                     print("É igual")
-                    mask = (workspace_area2 >= (obj["depth"] - threshold)) & (workspace_area2 <= (obj["depth"] + threshold))
+                    mask2 = (workspace_area2 >= (obj["depth"] - threshold)) & (workspace_area2 <= (obj["depth"] + threshold))
             
-            binary = mask.astype(numpy.uint8) * 255
+            binary = mask2.astype(numpy.uint8) * 255
+
+            #if i == 0:
+            #    cv2.imwrite("binary_before.png", binary)
 
             # Remove ruído pequeno
             element_open = numpy.ones((3, 3), numpy.uint8)
             binary = cv2.morphologyEx(binary, cv2.MORPH_OPEN, element_open)
 
+            #if i == 0:
+            #    cv2.imwrite("binary_after_open.png", binary)
+
             # Fecha buracos e regulariza a forma
             element_close = numpy.ones((7, 7), numpy.uint8)
             binary = cv2.morphologyEx(binary, cv2.MORPH_CLOSE, element_close)
+
+            #if i == 0:
+            #    cv2.imwrite("binary_after_close.png", binary)
 
             contour, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
             
@@ -279,7 +306,7 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
                         previous_mask = numpy.zeros(depth_copy.shape, dtype=numpy.uint8)
 
                         valid_mask = (
-                            (mask == 255) &
+                            (mask2 == 255) &
                             (previous_mask == 0) &
                             (depth_copy > 150) &
                             (depth_copy < workspace_depth - threshold)
@@ -314,42 +341,28 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
                 A = cv2.contourArea(c)
                 B = cv2.contourArea(prev_c)
 
-                all_pts = numpy.vstack([
-                    c.reshape(-1, 2),
-                    prev_c.reshape(-1, 2)
-                ])
+                all_pts = numpy.vstack([c.reshape(-1, 2), prev_c.reshape(-1, 2)])
 
                 merged_contour = cv2.convexHull(all_pts)
 
                 if A > B:
-
                     contours[current_index] = [merged_contour]
 
-                    depths[current_index] = min(
-                        depths[current_index],
-                        depths[prev_index]
-                    )
+                    depths[current_index] = min(depths[current_index], depths[prev_index])
 
                     to_delete.add(prev_index)
 
-                    print(
-                        f"Merged previous {prev_index} into current {current_index}"
-                    )
+                    print(f"Merged previous {prev_index} into current {current_index}")
 
                 else:
 
                     contours[prev_index] = [merged_contour]
 
-                    depths[prev_index] = min(
-                        depths[current_index],
-                        depths[prev_index]
-                    )
+                    depths[prev_index] = min(depths[current_index], depths[prev_index])
 
                     to_delete.add(current_index)
 
-                    print(
-                        f"Merged current {current_index} into previous {prev_index}"
-                    )
+                    print(f"Merged current {current_index} into previous {prev_index}")
 
             for idx in sorted(to_delete, reverse=True):
                 del contours[idx]
@@ -360,7 +373,7 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
 
             print("-------------------------------------------------------------------")    
 
-    if volumeMode == "Bundle":
+    if volumeMode == "Single Bundle":
         box_limits = [c for contour_list in contours for c in contour_list if c.size > 0]
 
         if len(box_limits) > 0:
@@ -374,10 +387,68 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
             box_scaled = numpy.round(box_scaled).astype(numpy.int32)
             #box = numpy.round(box).astype(numpy.int32)
 
-            cv2.drawContours(colorToDepth_copy2, [box_scaled + [int(abs((cx_rgb) - cx_d*2.5)), int(abs((cy_rgb) - cy_d*2.5))]], 0, (0, 0, 0), 16)
-            cv2.drawContours(colorToDepth_copy2, [box_scaled + [int(abs((cx_rgb) - cx_d*2.5)), int(abs((cy_rgb) - cy_d*2.5))]], 0, (255, 255, 0), 8)
+            cv2.drawContours(colorToDepth_copy2, [box_scaled], 0, (0, 0, 0), 16)
+            cv2.drawContours(colorToDepth_copy2, [box_scaled], 0, (255, 255, 0), 8)
             #cv2.drawContours(colorToDepth_copy, [box], 0,  (0, 255, 0), 2)
-    elif volumeMode == "Real":
+    elif volumeMode == "Real" or volumeMode == "Multi Bundle":
+        all_contours = [c for contour_list in contours for c in contour_list if c.size > 0]
+
+        groups = []
+        used = set()
+
+        for i in range(len(all_contours)):
+            if i in used:
+                continue
+
+            stack = [i]
+            group = []
+
+            while stack:
+                idx = stack.pop()
+
+                if idx in used:
+                    continue
+
+                used.add(idx)
+                group.append(all_contours[idx])
+
+                for j in range(len(all_contours)):
+                    if j in used:
+                        continue
+
+                    box_i = cv2.boxPoints(cv2.minAreaRect(all_contours[idx]))
+                    box_j = cv2.boxPoints(cv2.minAreaRect(all_contours[j]))
+
+                    if overlap_ratio(box_i, box_j) > OVERLAP_RATIO:
+                        stack.append(j)
+
+            groups.append(group)
+
+        for obj_id, group in enumerate(groups, start=1):
+            all_points = numpy.vstack(group)
+            rect = cv2.minAreaRect(all_points)
+            box = cv2.boxPoints(rect)
+            box = numpy.round(box).astype(numpy.int32)
+            box_scaled = numpy.copy(box)
+            box_scaled[:,0] = (box[:,0] - cx_d) * Sx + cx_rgb + (offset_x_959mm_depth * or_depth_offset)/workspace_depth
+            box_scaled[:,1] = (box[:,1] - cy_d) * Sy + cy_rgb
+            box_scaled = numpy.round(box_scaled).astype(numpy.int32)
+            
+            cv2.drawContours(colorToDepth_copy2, [box_scaled], 0, (0, 0, 0), 16)
+            cv2.drawContours(colorToDepth_copy2, [box_scaled], 0, (255, 255, 0), 8)
+
+            box = numpy.round(box).astype(numpy.int32)
+            cv2.drawContours(colorToDepth_copy3, [box], 0, (0, 0, 0), 2)
+            cv2.drawContours(colorToDepth_copy3, [box], 0, (255, 255, 0), 1)
+
+            idx_x = numpy.argmax(box_scaled[:,0])
+            x, y = box_scaled[idx_x]
+
+            cv2.putText(colorToDepth_copy2, str(obj_id), (x + 15, y + 40), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 0), 14, cv2.LINE_AA)
+            cv2.putText(colorToDepth_copy2, str(obj_id), (x + 15, y + 40), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (255, 255, 255), 7, cv2.LINE_AA)    
+
+
+    elif volumeMode == "Individual":
         for obj_id, contour_list in enumerate(contours, start=1):
             for c in contour_list:
                 rect = cv2.minAreaRect(c)

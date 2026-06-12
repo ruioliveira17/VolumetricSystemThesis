@@ -1,6 +1,6 @@
 {
     "expositionMode": "HDR",
-    "volumeMode": "Real",
+    "volumeMode": "Individual",
     "workingMode": "Static",
     "debugMode": "Off",
     "exposureTime": 4000,

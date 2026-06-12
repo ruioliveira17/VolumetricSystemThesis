@@ -2,7 +2,7 @@ class ModeState:
     def __init__(self):
         self.mode = "Static"
         self.expositionMode = "HDR"
-        self.volumeMode = "Bundle"
+        self.volumeMode = "Single Bundle"
         self.calibrationMode = "Automatic"
         self.debugMode = "Off"
 

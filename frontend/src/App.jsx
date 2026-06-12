@@ -55,7 +55,7 @@ function App() {
   const [regCode, setRegCode] = useState("");
 
   const [ExpHDR_toggle, setExpHDR] = useState(true);
-  const [BundleReal_toggle, setBundleReal] = useState(false);
+  const [volumeMode, setVolumeMode] = useState();
   const [StaticDynamic_toggle, setStaticDynamic] = useState(false);
   const [DebugMode_toggle, setDebugMode] = useState(false);
 
@@ -67,7 +67,7 @@ function App() {
 
   const [objectList, setObjectList] = useState([]);
   const [selectedObject, setSelectedObject] = useState("");
-  const [realVolumeData, setVolumeData] = useState(null);
+  const [individualVolumeData, setVolumeData] = useState(null);
 
   const [savedUser, setSavedUser] = useState(null);
 
@@ -163,10 +163,14 @@ function App() {
           await handleExpHDR_toggle({ target: { value: "false" } });
         }
         
-        if (config_data.volumeMode === "Bundle") {
-          await handleBundleReal_toggle( { target: { value: "false" } });
+        if (config_data.volumeMode === "Single Bundle") {
+          await handleVolumeMode({ target: { value: "single_bundle" } });
+        } else if (config_data.volumeMode === "Multi Bundle") {
+          await handleVolumeMode({ target: { value: "multi_bundle" } });
         } else if (config_data.volumeMode === "Real") {
-          await handleBundleReal_toggle({ target: { value: "true" } });
+          await handleVolumeMode({ target: { value: "real" } });
+        } else if (config_data.volumeMode === "Individual") {
+          await handleVolumeMode({ target: { value: "individual" } });
         }
       }
 
@@ -379,10 +383,14 @@ function App() {
         setLoadingVolume(true);
 
         let volumeMode = await response.json();
-        if (volumeMode["Volume Mode"] === "Bundle"){
-          await volumeBundle(access_token);
+        if (volumeMode["Volume Mode"] === "Single Bundle"){
+          await volumeSingleBundle(access_token);
+        } else if (volumeMode["Volume Mode"] === "Multi Bundle"){
+          await volumeMultiBundle(access_token);
         } else if (volumeMode["Volume Mode"] === "Real"){
           await volumeReal(access_token);
+        } else if (volumeMode["Volume Mode"] === "Individual"){
+          await volumeIndividual(access_token);
         }
         const end = performance.now();
         console.log("TOTAL UI TIME:", end - start, "ms");
@@ -391,9 +399,9 @@ function App() {
       }
   }
 
-  async function volumeBundle(access_token) {
+  async function volumeSingleBundle(access_token) {
     try {
-      await fetch(`${API_URL}/volume/bundle`, { method: 'POST', headers: { "Authorization": `Bearer ${access_token}` } });
+      await fetch(`${API_URL}/volume/singleBundle`, { method: 'POST', headers: { "Authorization": `Bearer ${access_token}` } });
 
       const response = await fetch(`${API_URL}/getObjectsOutOfLine`, {headers: { "Authorization": `Bearer ${access_token}`}});
       const data = await response.json();
@@ -403,7 +411,7 @@ function App() {
       } else {
           setError([TextClear]);
 
-          const dataResponse = await fetch(`${API_URL}/volume/bundle/results`, {headers: { "Authorization": `Bearer ${access_token}`}});
+          const dataResponse = await fetch(`${API_URL}/volume/singleBundle/results`, {headers: { "Authorization": `Bearer ${access_token}`}});
           const volumeData = await dataResponse.json();
 
           setVolInfo({
@@ -433,9 +441,9 @@ function App() {
 
   // Show Volume Depending of the selected object
   useEffect(() => {
-    if (!selectedObject || !realVolumeData) return;
+    if (!selectedObject || !individualVolumeData) return;
 
-    const objData = realVolumeData[selectedObject];
+    const objData = individualVolumeData[selectedObject];
     if (!objData) return;
 
     setVolInfo({
@@ -445,63 +453,174 @@ function App() {
       length: objData.y,
       height: objData.z
     });
-  }, [selectedObject, realVolumeData]);
+  }, [selectedObject, individualVolumeData]);
+
+  async function volumeMultiBundle(access_token) {
+    try {
+      await fetch(`${API_URL}/volume/multiBundle`, { method: 'POST', headers: { "Authorization": `Bearer ${access_token}` } });
+      const response = await fetch(`${API_URL}/getObjectsOutOfLine`, {headers: { "Authorization": `Bearer ${access_token}`}});
+      const data = await response.json();
+      const objectsOutOfLine = data.objects_outOfLine.map((val, i) => val ? i + 1 : null).filter(v => v !== null);
+      if (objectsOutOfLine.length > 0) {
+          setError([TextOutOfLine]);
+      } else {
+          setError([TextClear]);
+      }
+
+      const dataResponse = await fetch(`${API_URL}/volume/multiBundle/results`, {headers: { "Authorization": `Bearer ${access_token}`}});
+      const volumeData = await dataResponse.json();
+
+      setVolumeData(volumeData);
+
+      const imgResp = await fetch(`${API_URL}/getFrame/detectedObjectsFrame`, {headers: { "Authorization": `Bearer ${access_token}` }});
+      if (imgResp.status === 404) throw new Error("Frame not Available");
+
+      const blob = await imgResp.blob();
+      const url = URL.createObjectURL(blob);
+      setObjectImage(url);
+      //document.getElementById("object-img").removeAttribute("hidden");
+
+      const objIdentified = Object.keys(volumeData).filter(key => key !== "Total");
+      
+      if (objIdentified.length === 1) {
+        
+        const key = objIdentified[0];
+        const objData = volumeData[key];
+
+        setSelectedObject(key);
+
+        setObjectList([key]);
+        setVolInfo({
+          volume_m: objData.volume_m,
+          volume_cm: objData.volume_cm,
+          width: objData.x,
+          length: objData.y,
+          height: objData.z
+        })
+      } else if (objIdentified.length > 1) {
+        setObjectList(objIdentified);
+        setSelectedObject("");
+        setVolInfo(null);
+      }
+    } catch (error) {
+      setVolInfo(null);
+      setError([TextError]);
+      console.error(error);
+    } finally {
+      setLoadingVolume(false);
+    }
+  }
 
   async function volumeReal(access_token) {
-      try {
-        await fetch(`${API_URL}/volume/real`, { method: 'POST', headers: { "Authorization": `Bearer ${access_token}` } });
-
-        const response = await fetch(`${API_URL}/getObjectsOutOfLine`, {headers: { "Authorization": `Bearer ${access_token}`}});
-        const data = await response.json();
-        const objectsOutOfLine = data.objects_outOfLine.map((val, i) => val ? i + 1 : null).filter(v => v !== null);
-        if (objectsOutOfLine.length > 0) {
-            setError([TextOutOfLine]);
-        } else {
-            setError([TextClear]);
-        }
-
-        const dataResponse = await fetch(`${API_URL}/volume/real/results`, {headers: { "Authorization": `Bearer ${access_token}`}});
-        const volumeData = await dataResponse.json();
-
-        setVolumeData(volumeData);
-
-        const imgResp = await fetch(`${API_URL}/getFrame/detectedObjectsFrame`, {headers: { "Authorization": `Bearer ${access_token}` }});
-        if (imgResp.status === 404) throw new Error("Frame not Available");
-
-        const blob = await imgResp.blob();
-        const url = URL.createObjectURL(blob);
-        setObjectImage(url);
-        //document.getElementById("object-img").removeAttribute("hidden");
-
-        const objIdentified = Object.keys(volumeData).filter(key => key !== "Total");
-        
-        if (objIdentified.length === 1) {
-          
-          const key = objIdentified[0];
-          const objData = volumeData[key];
-
-          setSelectedObject(key);
-
-          setObjectList([key]);
-          setVolInfo({
-            volume_m: objData.volume_m,
-            volume_cm: objData.volume_cm,
-            width: objData.x,
-            length: objData.y,
-            height: objData.z
-          })
-        } else if (objIdentified.length > 1) {
-          setObjectList(objIdentified);
-          setSelectedObject("");
-          setVolInfo(null);
-        }
-      } catch (error) {
-        setVolInfo(null);
-        setError([TextError]);
-        console.error(error);
-      } finally {
-        setLoadingVolume(false);
+    try {
+      await fetch(`${API_URL}/volume/real`, { method: 'POST', headers: { "Authorization": `Bearer ${access_token}` } });
+      const response = await fetch(`${API_URL}/getObjectsOutOfLine`, {headers: { "Authorization": `Bearer ${access_token}`}});
+      const data = await response.json();
+      const objectsOutOfLine = data.objects_outOfLine.map((val, i) => val ? i + 1 : null).filter(v => v !== null);
+      if (objectsOutOfLine.length > 0) {
+          setError([TextOutOfLine]);
+      } else {
+          setError([TextClear]);
       }
+
+      const dataResponse = await fetch(`${API_URL}/volume/real/results`, {headers: { "Authorization": `Bearer ${access_token}`}});
+      const volumeData = await dataResponse.json();
+
+      setVolumeData(volumeData);
+
+      const imgResp = await fetch(`${API_URL}/getFrame/detectedObjectsFrame`, {headers: { "Authorization": `Bearer ${access_token}` }});
+      if (imgResp.status === 404) throw new Error("Frame not Available");
+
+      const blob = await imgResp.blob();
+      const url = URL.createObjectURL(blob);
+      setObjectImage(url);
+      //document.getElementById("object-img").removeAttribute("hidden");
+
+      const objIdentified = Object.keys(volumeData).filter(key => key !== "Total");
+      
+      if (objIdentified.length === 1) {
+        
+        const key = objIdentified[0];
+        const objData = volumeData[key];
+
+        setSelectedObject(key);
+
+        setObjectList([key]);
+        setVolInfo({
+          volume_m: objData.volume_m,
+          volume_cm: objData.volume_cm,
+          width: objData.x,
+          length: objData.y,
+          height: objData.z
+        })
+      } else if (objIdentified.length > 1) {
+        setObjectList(objIdentified);
+        setSelectedObject("");
+        setVolInfo(null);
+      }
+    } catch (error) {
+      setVolInfo(null);
+      setError([TextError]);
+      console.error(error);
+    } finally {
+      setLoadingVolume(false);
+    }
+  }
+
+  async function volumeIndividual(access_token) {
+    try {
+      await fetch(`${API_URL}/volume/individual`, { method: 'POST', headers: { "Authorization": `Bearer ${access_token}` } });
+      const response = await fetch(`${API_URL}/getObjectsOutOfLine`, {headers: { "Authorization": `Bearer ${access_token}`}});
+      const data = await response.json();
+      const objectsOutOfLine = data.objects_outOfLine.map((val, i) => val ? i + 1 : null).filter(v => v !== null);
+      if (objectsOutOfLine.length > 0) {
+          setError([TextOutOfLine]);
+      } else {
+          setError([TextClear]);
+      }
+
+      const dataResponse = await fetch(`${API_URL}/volume/individual/results`, {headers: { "Authorization": `Bearer ${access_token}`}});
+      const volumeData = await dataResponse.json();
+
+      setVolumeData(volumeData);
+
+      const imgResp = await fetch(`${API_URL}/getFrame/detectedObjectsFrame`, {headers: { "Authorization": `Bearer ${access_token}` }});
+      if (imgResp.status === 404) throw new Error("Frame not Available");
+
+      const blob = await imgResp.blob();
+      const url = URL.createObjectURL(blob);
+      setObjectImage(url);
+      //document.getElementById("object-img").removeAttribute("hidden");
+
+      const objIdentified = Object.keys(volumeData).filter(key => key !== "Total");
+      
+      if (objIdentified.length === 1) {
+        
+        const key = objIdentified[0];
+        const objData = volumeData[key];
+
+        setSelectedObject(key);
+
+        setObjectList([key]);
+        setVolInfo({
+          volume_m: objData.volume_m,
+          volume_cm: objData.volume_cm,
+          width: objData.x,
+          length: objData.y,
+          height: objData.z
+        })
+      } else if (objIdentified.length > 1) {
+        setObjectList(objIdentified);
+        setSelectedObject("");
+        setVolInfo(null);
+      }
+    } catch (error) {
+      setVolInfo(null);
+      setError([TextError]);
+      console.error(error);
+    } finally {
+      setLoadingVolume(false);
+    }
   }
 
   // 3D Box
@@ -513,7 +632,7 @@ function App() {
     }
 
     if(volBundleMode){
-      if(realVolumeData) return;
+      if(individualVolumeData) return;
     }
 
     const canvas = canvasRef.current;
@@ -764,21 +883,32 @@ function App() {
     }
   }
 
-  async function handleBundleReal_toggle(e) {
-    const checked = e.target.value === "true";
-    setBundleReal(checked);
+  async function handleVolumeMode(e) {
+    const mode = e.target.value;
+    setVolumeMode(mode);
     setObjectImage(null);
 
     refreshAccessToken();
     const access_token = localStorage.getItem("access_token");
 
-    if (checked) {
-        await fetch(`${API_URL}/volume/mode/real`, { method: "POST", headers: { "Authorization": `Bearer ${access_token}`} });
-        setVolBundleMode(false);
-    } else {
-        await fetch(`${API_URL}/volume/mode/bundle`, { method: "POST", headers: { "Authorization": `Bearer ${access_token}`} });
-        setVolBundleMode(true);
-        setSelectedObject("");
+    switch (mode) {
+      case "single_bundle":
+          await fetch(`${API_URL}/volume/mode/singleBundle`, { method: "POST", headers: { "Authorization": `Bearer ${access_token}`} });
+          setVolBundleMode(true);
+          setSelectedObject("");
+          break;
+      case "multi_bundle":
+          await fetch(`${API_URL}/volume/mode/multiBundle`, { method: "POST", headers: { "Authorization": `Bearer ${access_token}`} });
+          setVolBundleMode(false);
+          break;
+      case "real":
+          await fetch(`${API_URL}/volume/mode/real`, { method: "POST", headers: { "Authorization": `Bearer ${access_token}`} });
+          setVolBundleMode(false);
+          break;
+      case "individual":
+          await fetch(`${API_URL}/volume/mode/individual`, { method: "POST", headers: { "Authorization": `Bearer ${access_token}`} });
+          setVolBundleMode(false);
+          break;
     }
   }
 
@@ -901,7 +1031,7 @@ function App() {
           const r2 = await fetch(`${API_URL}/volume/mode`, {headers: { "Authorization": `Bearer ${access_token}`}});
           const volumeData = await r2.json();
 
-          setBundleReal(volumeData["Volume Mode"] === "Real");
+          setVolumeMode(volumeData["Volume Mode"]);
 
          // MODE (Static / Dynamic)
           const r3 = await fetch(`${API_URL}/working/mode`, {headers: { "Authorization": `Bearer ${access_token}`}});
@@ -1710,7 +1840,7 @@ function App() {
                 <div className="boxBundleInfo-container">
                   <div className="background"></div>
 
-                  {volInfo && !realVolumeData && (
+                  {volInfo && !individualVolumeData && (
                     <>
                       <canvas ref={canvasRef} className="volumeBundle-canvas"/>
                       <div className="boxBundleInfoText-container">
@@ -1798,11 +1928,11 @@ function App() {
                   </div>
 
                   <div className="object-total">
-                    {realVolumeData ? (
+                    {individualVolumeData ? (
                       <> 
                         <div>TOTAL:</div>
                         <div className="total-value">
-                          {realVolumeData?.Total?.volume_m ?? 0} m³
+                          {individualVolumeData?.Total?.volume_m ?? 0} m³
                         </div>
                       </>
                     ) : null}
@@ -2033,15 +2163,25 @@ function App() {
               </div>
 
               {/* Bundle Mode */}
-              <span className="text">Bundle Mode</span>
+              <span className="text">Volume Mode</span>
               <div className="radio-group">
                 <label className="radio-option">
-                  <input type="radio" name="volumeMode" value="false" checked={!BundleReal_toggle} onChange={handleBundleReal_toggle}/>
-                  <span className="label">Bundle</span>
+                  <input type="radio" name="volumeMode" value="single_bundle" checked={volumeMode === "single_bundle"} onChange={handleVolumeMode}/>
+                  <span className="label">Single Bundle</span>
                 </label>
 
                 <label className="radio-option">
-                  <input type="radio" name="volumeMode" value="true" checked={BundleReal_toggle} onChange={handleBundleReal_toggle}/>
+                  <input type="radio" name="volumeMode" value="multi_bundle" checked={volumeMode === "multi_bundle"} onChange={handleVolumeMode}/>
+                  <span className="label">Multi Bundle</span>
+                </label>
+
+                <label className="radio-option">
+                  <input type="radio" name="volumeMode" value="real" checked={volumeMode === "real"} onChange={handleVolumeMode}/>
+                  <span className="label">Real</span>
+                </label>
+
+                <label className="radio-option">
+                  <input type="radio" name="volumeMode" value="individual" checked={volumeMode === "individual"} onChange={handleVolumeMode}/>
                   <span className="label">Individual</span>
                 </label>
               </div>

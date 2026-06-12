@@ -46,7 +46,7 @@ from Bundle2 import objIdentifier
 from CalibrationDefTkinter import calibrateAPI, maskAPI, manualWorkspaceDraw
 from CameraOptions import startCamera, stopCamera, setFPS, setFlyingPixelFilter, setFillHoleFilter, setSpatialFilter, setConfidenceFilter
 from MinDepth2 import MinDepthAPI
-from VolumeTkinter import volumeBundleAPI, volumeRealAPI
+from VolumeTkinter import volumeSingleBundleAPI, volumeMultiBundleAPI, volumeRealAPI, volumeIndividualAPI
 
 #------------------------------------------------------   Services    ------------------------------------------------------
 
@@ -1059,7 +1059,7 @@ def hdrExp(current_user: dict = Depends(require_admin)):
 
 @app.get("/volume/mode", summary="Gets the Volume Mode",
          description="""
-         Retrieves the current volume mode. The volume mode can be either "Static" or "Real".
+         Retrieves the current volume mode. The volume mode can be either "Single Bundle", "Multi Bundle", "Real" or "Individual".
          """,
          tags=["Using Modes"])
 def get_mode(current_user: dict = Depends(get_current_user)):
@@ -1067,13 +1067,22 @@ def get_mode(current_user: dict = Depends(get_current_user)):
         "Volume Mode": modeState.volumeMode,
     }
 
-@app.post("/volume/mode/bundle", summary="Sets the Volume Mode to Bundle",
+@app.post("/volume/mode/singleBundle", summary="Sets the Volume Mode to Single Bundle",
          description="""
-         Sets the volume mode to "Bundle".
+         Sets the volume mode to "Single Bundle".
          """,
          tags=["Using Modes"])
-def bundle(current_user: dict = Depends(require_admin)):
-    modeState.volumeMode = "Bundle"
+def single_bundle(current_user: dict = Depends(require_admin)):
+    modeState.volumeMode = "Single Bundle"
+    return {"mode:": modeState.volumeMode}
+
+@app.post("/volume/mode/multiBundle", summary="Sets the Volume Mode to Multi Bundle",
+         description="""
+         Sets the volume mode to "Multi Bundle".
+         """,
+         tags=["Using Modes"])
+def multi_bundle(current_user: dict = Depends(require_admin)):
+    modeState.volumeMode = "Multi Bundle"
     return {"mode:": modeState.volumeMode}
 
 @app.post("/volume/mode/real", summary="Sets the Volume Mode to Real",
@@ -1083,6 +1092,15 @@ def bundle(current_user: dict = Depends(require_admin)):
          tags=["Using Modes"])
 def real(current_user: dict = Depends(require_admin)):
     modeState.volumeMode = "Real"
+    return {"mode:": modeState.volumeMode}
+
+@app.post("/volume/mode/individual", summary="Sets the Volume Mode to Individual",
+         description="""
+         Sets the volume mode to "Individual".
+         """,
+         tags=["Using Modes"])
+def individual(current_user: dict = Depends(require_admin)):
+    modeState.volumeMode = "Individual"
     return {"mode:": modeState.volumeMode}
 
 #------------------------------------------------------- Debug -------------------------------------------------------
@@ -1137,12 +1155,12 @@ def close_volume_menu():
 
     return {"status": "ok"}
 
-@app.post("/volume/bundle", summary="Starts the Bundle Volume Algorithm",
+@app.post("/volume/singleBundle", summary="Starts the SingleBundle Volume Algorithm",
          description="""
          Starts the bundle volume algorithm.
          """,
          tags=["Volume"])
-def volume_Bundle(current_user: dict = Depends(get_current_user)):
+def volume_SingleBundle(current_user: dict = Depends(get_current_user)):
     if frameState.colorToDepthFrameHDR is None or modeState.expositionMode == "Fixed Exposition":
         colorFrame = frameState.colorFrame
     else:
@@ -1169,7 +1187,7 @@ def volume_Bundle(current_user: dict = Depends(get_current_user)):
         depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine = objIdentifier(colorFrame, colorToDepthFrame, depthFrame, frameState.calibrationColorFrame, frameState.calibrationDepthFrame, modeState.volumeMode, depthState.objects_info, workspaceState.workspace_depth, depthState.threshold, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb, camState.fx_d, camState.fy_d, camState.fx_rgb, camState.fy_rgb)
         depthState.minimum_depth = min(volumeState.depths)
         if volumeState.box_limits is not None and len(volumeState.box_limits) > 0:
-            volumeState.volume, volumeState.width_meters, volumeState.length_meters, volumeState.height_meters = volumeBundleAPI(depthFrame, workspaceState.workspace_depth, depthState.minimum_depth, volumeState.box_limits, volumeState.depths, camState.fx_d, camState.fy_d, camState.cx_d, camState.cy_d)
+            volumeState.volume, volumeState.width_meters, volumeState.length_meters, volumeState.height_meters = volumeSingleBundleAPI(depthFrame, workspaceState.workspace_depth, depthState.minimum_depth, volumeState.box_limits, volumeState.depths, camState.fx_d, camState.fy_d, camState.cx_d, camState.cy_d)
         else:
             volumeState.volume = 0
             volumeState.width_meters = 0
@@ -1206,12 +1224,12 @@ def volume_Bundle(current_user: dict = Depends(get_current_user)):
         "ws_depth": workspaceState.workspace_depth / 10
     }
 
-@app.get("/volume/bundle/results", summary="Gets the Bundle Volume Algorithm Results",
+@app.get("/volume/singleBundle/results", summary="Gets the Single Bundle Volume Algorithm Results",
          description="""
          Gets the results of the bundle volume algorithm.
          """,
          tags=["Volume"])
-def get_Volume_Bundle(current_user: dict = Depends(get_current_user)):
+def get_Volume_SingleBundle(current_user: dict = Depends(get_current_user)):
     response = {}
 
     response["Bundle"] = {
@@ -1223,6 +1241,114 @@ def get_Volume_Bundle(current_user: dict = Depends(get_current_user)):
         }
     
     return response
+
+@app.post("/volume/multiBundle", summary="Starts the Multi Bundle Volume Algorithm",
+         description="""
+         Starts the multi bundle volume algorithm.
+         """,
+         tags=["Volume"])
+def volume_MultiBundle(current_user: dict = Depends(get_current_user)):
+    if frameState.colorToDepthFrameHDR is None or modeState.expositionMode == "Fixed Exposition":
+        colorFrame = frameState.colorFrame
+    else:
+        colorFrame = frameState.colorFrameHDR
+
+    if frameState.colorToDepthFrameHDR is None or modeState.expositionMode == "Fixed Exposition":
+        colorToDepthFrame = frameState.colorToDepthFrame
+    else:
+        colorToDepthFrame = frameState.colorToDepthFrameHDR
+
+    if frameState.depthFrameHDR is None or modeState.expositionMode == "Fixed Exposition":
+        depthFrame = frameState.depthFrame
+    else:
+        depthFrame = frameState.depthFrameHDR
+
+    #depthState.not_set, depthState.objects_info = MinDepthAPI(depthFrame, workspaceState.detection_area, workspaceState.workspace_warning, workspaceState.workspace_depth, depthState.threshold, depthState.not_set, camState.cx_d, camState.cy_d, camState.fx_d, camState.fy_d)
+
+    #if depthState.objects_info is not None and len(depthState.objects_info) != 0:
+    #    depthState.minimum_value = depthState.objects_info[0]["depth"]
+
+    #    print("New Min Value", depthState.minimum_value)
+
+    if depthState.not_set == 0:
+        depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine = objIdentifier(colorFrame, colorToDepthFrame, depthFrame, frameState.calibrationColorFrame, frameState.calibrationDepthFrame, modeState.volumeMode, depthState.objects_info, workspaceState.workspace_depth, depthState.threshold, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb, camState.fx_d, camState.fy_d, camState.fx_rgb, camState.fy_rgb)
+        depthState.minimum_depth = min(volumeState.depths)
+        if volumeState.box_limits is not None and len(volumeState.box_limits) > 0:
+            volumeState.volume, volumeState.width_meters, volumeState.length_meters, volumeState.height_meters = volumeMultiBundleAPI(depthFrame, frameState.calibrationDepthFrame, workspaceState.workspace_depth, depthState.minimum_depth, volumeState.box_limits, volumeState.depths, camState.fx_d, camState.fy_d, camState.cx_d, camState.cy_d)
+        else:
+            volumeState.volume = 0
+            volumeState.width_meters = 0
+            volumeState.length_meters = 0
+            volumeState.height_meters = 0
+            depthState.minimum_depth = workspaceState.workspace_depth
+    else:
+        volumeState.volume = 0
+        volumeState.width_meters = 0
+        volumeState.length_meters = 0
+        depthState.minimum_depth = workspaceState.workspace_depth
+
+    if isinstance(volumeState.width_meters, list):
+        volumeState.width_meters = [w * 100 for w in volumeState.width_meters]
+    else:
+        volumeState.width_meters = volumeState.width_meters * 100
+
+    if isinstance(volumeState.length_meters, list):
+        volumeState.length_meters = [w * 100 for w in volumeState.length_meters]
+    else:
+        volumeState.length_meters = volumeState.length_meters * 100
+
+    if isinstance(volumeState.height_meters, list):
+        volumeState.height_meters = [h * 100 for h in volumeState.height_meters]
+    else:
+        volumeState.height_meters = volumeState.height_meters * 100
+
+    return{
+        "volume": volumeState.volume,
+        "width": volumeState.width_meters,
+        "length": volumeState.length_meters,
+        "height": volumeState.height_meters,
+        "depth": depthState.minimum_depth / 10,
+        "ws_depth": workspaceState.workspace_depth / 10
+    }
+
+@app.get("/volume/multiBundle/results", summary="Gets the Multi Bundle Volume Algorithm Results",
+         description="""
+         Gets the results of the multi bundle volume algorithm.
+         """,
+         tags=["Volume"])
+def get_Volume_MultiBundle(current_user: dict = Depends(get_current_user)):
+    response = {}
+
+    volumes = volumeState.volume if isinstance(volumeState.volume, list) else [volumeState.volume]
+    widths = volumeState.width_meters if isinstance(volumeState.width_meters, list) else [volumeState.width_meters]
+    lengths = volumeState.length_meters if isinstance(volumeState.length_meters, list) else [volumeState.length_meters]
+    heights = volumeState.height_meters if isinstance(volumeState.height_meters, list) else [volumeState.height_meters]
+    depths = volumeState.depths if isinstance(volumeState.depths, list) else [volumeState.depths]
+
+    num_objects = min(
+        len(volumes),
+        len(widths),
+        len(lengths),
+        len(heights),
+        len(depths)
+    )
+
+    for i in range(num_objects):
+        response[f"{i+1}"] = {
+            "volume_m": round(float(volumes[i]), 6),
+            "volume_cm": round(float(volumes[i] * 1000000), 2),
+            "x": round(float(widths[i]), 1),
+            "y": round(float(lengths[i]), 1),
+            "z": round(float(heights[i]), 1)
+        }
+
+    response["Total"] = {
+        "volume_m": round(float(volumes[-1]), 6),
+        "volume_cm": round(float(volumes[-1] * 1000000), 2)
+    }
+    
+    return response
+
 
 @app.post("/volume/real", summary="Starts the Real Volume Algorithm",
          description="""
@@ -1307,6 +1433,121 @@ def volume_Real(current_user: dict = Depends(get_current_user)):
          """,
          tags=["Volume"])
 def get_Volume_Real(current_user: dict = Depends(get_current_user)):
+    response = {}
+
+    volumes = volumeState.volume if isinstance(volumeState.volume, list) else [volumeState.volume]
+    widths = volumeState.width_meters if isinstance(volumeState.width_meters, list) else [volumeState.width_meters]
+    lengths = volumeState.length_meters if isinstance(volumeState.length_meters, list) else [volumeState.length_meters]
+    heights = volumeState.height_meters if isinstance(volumeState.height_meters, list) else [volumeState.height_meters]
+    depths = volumeState.depths if isinstance(volumeState.depths, list) else [volumeState.depths]
+
+    num_objects = min(
+        len(volumes),
+        len(widths),
+        len(lengths),
+        len(heights),
+        len(depths)
+    )
+
+    for i in range(num_objects):
+        response[f"{i+1}"] = {
+            "volume_m": round(float(volumes[i]), 6),
+            "volume_cm": round(float(volumes[i] * 1000000), 2),
+            "x": round(float(widths[i]), 1),
+            "y": round(float(lengths[i]), 1),
+            "z": round(float(heights[i]), 1)
+        }
+
+    response["Total"] = {
+        "volume_m": round(float(volumes[-1]), 6),
+        "volume_cm": round(float(volumes[-1] * 1000000), 2)
+    }
+    
+    return response
+
+@app.post("/volume/individual", summary="Starts the Individual Volume Algorithm",
+         description="""
+         Starts the individual volume algorithm.
+         """,
+         tags=["Volume"])
+def volume_Individual(current_user: dict = Depends(get_current_user)):
+    t0 = time.perf_counter()
+    if frameState.colorToDepthFrameHDR is None or modeState.expositionMode == "Fixed Exposition":
+        colorFrame = frameState.colorFrame
+    else:
+        colorFrame = frameState.colorFrameHDR
+
+    if frameState.colorToDepthFrameHDR is None or modeState.expositionMode == "Fixed Exposition":
+        colorToDepthFrame = frameState.colorToDepthFrame
+    else:
+        colorToDepthFrame = frameState.colorToDepthFrameHDR
+
+    if frameState.depthFrameHDR is None or modeState.expositionMode == "Fixed Exposition":
+        depthFrame = frameState.depthFrame
+    else:
+        depthFrame = frameState.depthFrameHDR
+
+    #depthState.not_set, depthState.objects_info = MinDepthAPI(depthFrame, workspaceState.detection_area, workspaceState.workspace_warning, workspaceState.workspace_depth, depthState.threshold, depthState.not_set, camState.cx_d, camState.cy_d, camState.fx_d, camState.fy_d)
+
+    #if depthState.objects_info is not None and len(depthState.objects_info) != 0:
+    #    depthState.minimum_depth = depthState.objects_info[0]["depth"]
+    #    depthState.minimum_value = depthState.minimum_depth
+
+    #    print("New Min Value", depthState.minimum_value)
+
+    if depthState.not_set == 0:
+        depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine = objIdentifier(colorFrame, colorToDepthFrame, depthFrame, frameState.calibrationColorFrame, frameState.calibrationDepthFrame, modeState.volumeMode, depthState.objects_info, workspaceState.workspace_depth, depthState.threshold, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb, camState.fx_d, camState.fy_d, camState.fx_rgb, camState.fy_rgb)
+        t2 = time.perf_counter()
+        print("objIdentifier:", (t2 - t0) * 1000, "ms")
+        if volumeState.box_limits is not None and len(volumeState.box_limits) > 0:
+            volumeState.volume, volumeState.width_meters, volumeState.length_meters, volumeState.height_meters = volumeIndividualAPI(depthFrame, frameState.calibrationDepthFrame, workspaceState.workspace_depth, volumeState.box_limits, volumeState.depths, camState.fx_d, camState.fy_d, camState.cx_d, camState.cy_d)
+            t3 = time.perf_counter()
+            print("volumeIndividualAPI:", (t3 - t2) * 1000, "ms")
+        else:
+            volumeState.volume = 0
+            volumeState.width_meters = 0
+            volumeState.length_meters = 0
+            volumeState.height_meters = 0
+            depthState.minimum_depth = workspaceState.workspace_depth
+    else:
+        volumeState.volume = 0
+        volumeState.width_meters = 0
+        volumeState.length_meters = 0
+        depthState.minimum_depth = workspaceState.workspace_depth
+
+    if isinstance(volumeState.width_meters, list):
+        volumeState.width_meters = [w * 100 for w in volumeState.width_meters]
+    else:
+        volumeState.width_meters = volumeState.width_meters * 100
+
+    if isinstance(volumeState.length_meters, list):
+        volumeState.length_meters = [w * 100 for w in volumeState.length_meters]
+    else:
+        volumeState.length_meters = volumeState.length_meters * 100
+
+    if isinstance(volumeState.height_meters, list):
+        volumeState.height_meters = [h * 100 for h in volumeState.height_meters]
+    else:
+        volumeState.height_meters = volumeState.height_meters * 100
+
+    t4 = time.perf_counter()
+    print("TOTAL /volume/individual:", (t4 - t0) * 1000, "ms")
+
+    return{
+        "volume": volumeState.volume,
+        "width": volumeState.width_meters,
+        "length": volumeState.length_meters,
+        "height": volumeState.height_meters,
+        "depth": depthState.minimum_depth / 10,
+        "ws_depth": workspaceState.workspace_depth / 10
+    }
+
+@app.get("/volume/individual/results", summary="Gets the Individual Volume Algorithm Results",
+         description="""
+         Gets the results of the individual volume algorithm.
+         """,
+         tags=["Volume"])
+def get_Volume_Individual(current_user: dict = Depends(get_current_user)):
     response = {}
 
     volumes = volumeState.volume if isinstance(volumeState.volume, list) else [volumeState.volume]
