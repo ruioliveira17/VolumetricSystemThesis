@@ -177,6 +177,11 @@ def stop_ObjProcessing():
     thread_state = "STOPPED"
 
     print("Volume thread stopped")
+
+def scale_nested(data, factor):
+    if isinstance(data, list):
+        return [scale_nested(x, factor) for x in data]
+    return data * factor
 #----------------------------------------------------   Base Models    ----------------------------------------------------
 
 class CamValues(BaseModel):
@@ -1185,15 +1190,22 @@ def volume_SingleBundle(current_user: dict = Depends(get_current_user)):
 
     if depthState.not_set == 0:
         depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine = objIdentifier(colorFrame, colorToDepthFrame, depthFrame, frameState.calibrationColorFrame, frameState.calibrationDepthFrame, modeState.volumeMode, depthState.objects_info, workspaceState.workspace_depth, depthState.threshold, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb, camState.fx_d, camState.fy_d, camState.fx_rgb, camState.fy_rgb)
-        depthState.minimum_depth = min(volumeState.depths)
-        if volumeState.box_limits is not None and len(volumeState.box_limits) > 0:
-            volumeState.volume, volumeState.width_meters, volumeState.length_meters, volumeState.height_meters = volumeSingleBundleAPI(depthFrame, workspaceState.workspace_depth, depthState.minimum_depth, volumeState.box_limits, volumeState.depths, camState.fx_d, camState.fy_d, camState.cx_d, camState.cy_d)
+        if volumeState.depths:
+            depthState.minimum_depth = min(volumeState.depths)
+            if volumeState.box_limits is not None and len(volumeState.box_limits) > 0:
+                volumeState.volume, volumeState.width_meters, volumeState.length_meters, volumeState.height_meters = volumeSingleBundleAPI(depthFrame, workspaceState.workspace_depth, depthState.minimum_depth, volumeState.box_limits, volumeState.depths, camState.fx_d, camState.fy_d, camState.cx_d, camState.cy_d)
+            else:
+                volumeState.volume = 0
+                volumeState.width_meters = 0
+                volumeState.length_meters = 0
+                volumeState.height_meters = 0
+                depthState.minimum_depth = workspaceState.workspace_depth
         else:
-            volumeState.volume = 0
-            volumeState.width_meters = 0
-            volumeState.length_meters = 0
-            volumeState.height_meters = 0
-            depthState.minimum_depth = workspaceState.workspace_depth
+                volumeState.volume = 0
+                volumeState.width_meters = 0
+                volumeState.length_meters = 0
+                volumeState.height_meters = 0
+                depthState.minimum_depth = workspaceState.workspace_depth
     else:
         volumeState.volume = 0
         volumeState.width_meters = 0
@@ -1272,9 +1284,8 @@ def volume_MultiBundle(current_user: dict = Depends(get_current_user)):
 
     if depthState.not_set == 0:
         depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine = objIdentifier(colorFrame, colorToDepthFrame, depthFrame, frameState.calibrationColorFrame, frameState.calibrationDepthFrame, modeState.volumeMode, depthState.objects_info, workspaceState.workspace_depth, depthState.threshold, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb, camState.fx_d, camState.fy_d, camState.fx_rgb, camState.fy_rgb)
-        depthState.minimum_depth = min(volumeState.depths)
         if volumeState.box_limits is not None and len(volumeState.box_limits) > 0:
-            volumeState.volume, volumeState.width_meters, volumeState.length_meters, volumeState.height_meters = volumeMultiBundleAPI(depthFrame, frameState.calibrationDepthFrame, workspaceState.workspace_depth, depthState.minimum_depth, volumeState.box_limits, volumeState.depths, camState.fx_d, camState.fy_d, camState.cx_d, camState.cy_d)
+            volumeState.volume, volumeState.width_meters, volumeState.length_meters, volumeState.height_meters = volumeMultiBundleAPI(depthFrame, frameState.calibrationDepthFrame, workspaceState.workspace_depth, volumeState.box_limits, volumeState.depths, camState.fx_d, camState.fy_d, camState.cx_d, camState.cy_d)
         else:
             volumeState.volume = 0
             volumeState.width_meters = 0
@@ -1293,7 +1304,7 @@ def volume_MultiBundle(current_user: dict = Depends(get_current_user)):
         volumeState.width_meters = volumeState.width_meters * 100
 
     if isinstance(volumeState.length_meters, list):
-        volumeState.length_meters = [w * 100 for w in volumeState.length_meters]
+        volumeState.length_meters = [l * 100 for l in volumeState.length_meters]
     else:
         volumeState.length_meters = volumeState.length_meters * 100
 
@@ -1400,20 +1411,9 @@ def volume_Real(current_user: dict = Depends(get_current_user)):
         volumeState.length_meters = 0
         depthState.minimum_depth = workspaceState.workspace_depth
 
-    if isinstance(volumeState.width_meters, list):
-        volumeState.width_meters = [w * 100 for w in volumeState.width_meters]
-    else:
-        volumeState.width_meters = volumeState.width_meters * 100
-
-    if isinstance(volumeState.length_meters, list):
-        volumeState.length_meters = [w * 100 for w in volumeState.length_meters]
-    else:
-        volumeState.length_meters = volumeState.length_meters * 100
-
-    if isinstance(volumeState.height_meters, list):
-        volumeState.height_meters = [h * 100 for h in volumeState.height_meters]
-    else:
-        volumeState.height_meters = volumeState.height_meters * 100
+    volumeState.width_meters = scale_nested(volumeState.width_meters, 100)
+    volumeState.length_meters = scale_nested(volumeState.length_meters, 100)
+    volumeState.height_meters = scale_nested(volumeState.height_meters, 100)
 
     t4 = time.perf_counter()
     print("TOTAL /volume/real:", (t4 - t0) * 1000, "ms")
@@ -1439,23 +1439,21 @@ def get_Volume_Real(current_user: dict = Depends(get_current_user)):
     widths = volumeState.width_meters if isinstance(volumeState.width_meters, list) else [volumeState.width_meters]
     lengths = volumeState.length_meters if isinstance(volumeState.length_meters, list) else [volumeState.length_meters]
     heights = volumeState.height_meters if isinstance(volumeState.height_meters, list) else [volumeState.height_meters]
-    depths = volumeState.depths if isinstance(volumeState.depths, list) else [volumeState.depths]
 
     num_objects = min(
         len(volumes),
         len(widths),
         len(lengths),
-        len(heights),
-        len(depths)
+        len(heights)
     )
 
     for i in range(num_objects):
         response[f"{i+1}"] = {
             "volume_m": round(float(volumes[i]), 6),
             "volume_cm": round(float(volumes[i] * 1000000), 2),
-            "x": round(float(widths[i]), 1),
-            "y": round(float(lengths[i]), 1),
-            "z": round(float(heights[i]), 1)
+            "x": [round(float(v), 1) for v in widths[i]],
+            "y": [round(float(v), 1) for v in lengths[i]],
+            "z": [round(float(v), 1) for v in heights[i]],
         }
 
     response["Total"] = {

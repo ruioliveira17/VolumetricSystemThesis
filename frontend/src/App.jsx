@@ -67,7 +67,7 @@ function App() {
 
   const [objectList, setObjectList] = useState([]);
   const [selectedObject, setSelectedObject] = useState("");
-  const [individualVolumeData, setVolumeData] = useState(null);
+  const [multipleVolumeData, setVolumeData] = useState(null);
 
   const [savedUser, setSavedUser] = useState(null);
 
@@ -441,9 +441,9 @@ function App() {
 
   // Show Volume Depending of the selected object
   useEffect(() => {
-    if (!selectedObject || !individualVolumeData) return;
+    if (!selectedObject || !multipleVolumeData) return;
 
-    const objData = individualVolumeData[selectedObject];
+    const objData = multipleVolumeData[selectedObject];
     if (!objData) return;
 
     setVolInfo({
@@ -453,7 +453,7 @@ function App() {
       length: objData.y,
       height: objData.z
     });
-  }, [selectedObject, individualVolumeData]);
+  }, [selectedObject, multipleVolumeData]);
 
   async function volumeMultiBundle(access_token) {
     try {
@@ -632,7 +632,7 @@ function App() {
     }
 
     if(volBundleMode){
-      if(individualVolumeData) return;
+      if(multipleVolumeData) return;
     }
 
     const canvas = canvasRef.current;
@@ -887,6 +887,10 @@ function App() {
     const mode = e.target.value;
     setVolumeMode(mode);
     setObjectImage(null);
+    setObjectList([]);
+    setSelectedObject("");
+    setVolInfo(null);
+    setVolumeData(null);
 
     refreshAccessToken();
     const access_token = localStorage.getItem("access_token");
@@ -895,7 +899,6 @@ function App() {
       case "single_bundle":
           await fetch(`${API_URL}/volume/mode/singleBundle`, { method: "POST", headers: { "Authorization": `Bearer ${access_token}`} });
           setVolBundleMode(true);
-          setSelectedObject("");
           break;
       case "multi_bundle":
           await fetch(`${API_URL}/volume/mode/multiBundle`, { method: "POST", headers: { "Authorization": `Bearer ${access_token}`} });
@@ -1840,7 +1843,7 @@ function App() {
                 <div className="boxBundleInfo-container">
                   <div className="background"></div>
 
-                  {volInfo && !individualVolumeData && (
+                  {volInfo && !multipleVolumeData && (
                     <>
                       <canvas ref={canvasRef} className="volumeBundle-canvas"/>
                       <div className="boxBundleInfoText-container">
@@ -1928,11 +1931,11 @@ function App() {
                   </div>
 
                   <div className="object-total">
-                    {individualVolumeData ? (
+                    {multipleVolumeData ? (
                       <> 
                         <div>TOTAL:</div>
                         <div className="total-value">
-                          {individualVolumeData?.Total?.volume_m ?? 0} m³
+                          {multipleVolumeData?.Total?.volume_m ?? 0} m³
                         </div>
                       </>
                     ) : null}
@@ -1949,23 +1952,24 @@ function App() {
                 {/* Info Objects */}
                 <div className="boxInfo-container">
                   <div className="background"></div>
-                  {volInfo && selectedObject && (
+                  
+                  {volInfo && selectedObject &&(
                     <>
                       <canvas ref={canvasRef} className="volume-canvas"/>
                       <div className="boxInfoText-container">
                         <div style={{ color: "#6CD08A" }} className="boxInfo-text">
                           <span className="label">Width (cm):</span>
-                          <span className="value">{volInfo.width.toFixed(1)}</span>
+                          <span className="value">{(volumeMode === "real" ? volInfo.width?.[0] : volInfo.width).toFixed(1)}</span>
                         </div>
 
                         <div style={{ color: "#C66D6D" }} className="boxInfo-text">
                           <span className="label">Length (cm):</span>
-                          <span className="value">{volInfo.length.toFixed(1)}</span>
+                          <span className="value">{(volumeMode === "real" ? volInfo.length?.[0] : volInfo.length).toFixed(1)}</span>
                         </div>
 
                         <div style={{ color: "#9EB0FD" }} className="boxInfo-text">
                           <span className="label">Height (cm):</span>
-                          <span className="value">{volInfo.height.toFixed(1)}</span>
+                          <span className="value">{(volumeMode === "real" ? volInfo.height?.[0] : volInfo.height).toFixed(1)}</span>
                         </div>
 
                         <div style={{ color: "#FFFFFF" }} className="boxInfo-text">
@@ -2180,10 +2184,10 @@ function App() {
                   <span className="label">Real</span>
                 </label>
 
-                <label className="radio-option">
+                {/*<label className="radio-option">
                   <input type="radio" name="volumeMode" value="individual" checked={volumeMode === "individual"} onChange={handleVolumeMode}/>
                   <span className="label">Individual</span>
-                </label>
+                </label>*/}
               </div>
 
             </div>

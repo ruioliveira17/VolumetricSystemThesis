@@ -75,7 +75,7 @@ def contours_overlap_by_points(c, prev_c, colorToDepth_copy):
     
     return (inside / total) >= min_ratio, colorToDepth_copy
 
-def is_valid_area(c, min_area = 150):
+def is_valid_area(c, min_area = 320):
     a = cv2.contourArea(c)
     print("Area", a)
 
@@ -128,7 +128,7 @@ def comparisonCaliImageCurrImage(colorFrame, calibrationColorFrame, depthFrame, 
     #print("Final Score:", finalScore)
 
     #return finalScore >= 0.60
-    return depthScore >= 0.90
+    return depthScore >= 0.80
 
 def overlap_ratio(b1, b2):
     inter, _ = cv2.intersectConvexConvex(
@@ -364,12 +364,19 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
 
                     print(f"Merged current {current_index} into previous {prev_index}")
 
+            print("Size Contours:", len(contours))
+            print("Size Depths:", len(depths))
+            print("Size BoxWS:", len(box_ws))
+            print("Size ObjOutOfLine:", len(object_outOfLine))
+            shift = 0
             for idx in sorted(to_delete, reverse=True):
-                del contours[idx]
-                del depths[idx]
-                del objects_info[idx]
-                del box_ws[idx]
-                del object_outOfLine[idx]
+                real_idx = idx - shift
+                del contours[real_idx]
+                del depths[real_idx]
+                del box_ws[real_idx]
+                del object_outOfLine[real_idx]
+                shift += 1
+                print("Deleted idx:", real_idx)
 
             print("-------------------------------------------------------------------")    
 
@@ -446,7 +453,6 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
 
             cv2.putText(colorToDepth_copy2, str(obj_id), (x + 15, y + 40), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 0), 14, cv2.LINE_AA)
             cv2.putText(colorToDepth_copy2, str(obj_id), (x + 15, y + 40), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (255, 255, 255), 7, cv2.LINE_AA)    
-
 
     elif volumeMode == "Individual":
         for obj_id, contour_list in enumerate(contours, start=1):

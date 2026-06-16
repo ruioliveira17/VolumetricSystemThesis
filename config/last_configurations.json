@@ -1,6 +1,6 @@
 {
     "expositionMode": "HDR",
-    "volumeMode": "Individual",
+    "volumeMode": "Multi Bundle",
     "workingMode": "Static",
     "debugMode": "Off",
     "exposureTime": 4000,

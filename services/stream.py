@@ -13,7 +13,7 @@ class CameraTrack(VideoStreamTrack):
     async def recv(self):
         frame = frameState.colorFrame
         while frame is None:
-            await asyncio.sleep(0.05)
+            #await asyncio.sleep(0.05)
             frame = frameState.colorFrame
 
         if frame.dtype != numpy.uint8:
@@ -25,7 +25,7 @@ class CTDTrack(VideoStreamTrack):
     async def recv(self):
         frame = frameState.workspaceDetectedFrame
         while frame is None:
-            await asyncio.sleep(0.05)
+            #await asyncio.sleep(0.05)
             frame = frameState.workspaceDetectedFrame
         
         if frame.dtype != numpy.uint8:
