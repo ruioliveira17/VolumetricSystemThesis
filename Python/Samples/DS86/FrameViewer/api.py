@@ -1360,7 +1360,6 @@ def get_Volume_MultiBundle(current_user: dict = Depends(get_current_user)):
     
     return response
 
-
 @app.post("/volume/real", summary="Starts the Real Volume Algorithm",
          description="""
          Starts the real volume algorithm.
@@ -1396,7 +1395,7 @@ def volume_Real(current_user: dict = Depends(get_current_user)):
         t2 = time.perf_counter()
         print("objIdentifier:", (t2 - t0) * 1000, "ms")
         if volumeState.box_limits is not None and len(volumeState.box_limits) > 0:
-            volumeState.volume, volumeState.width_meters, volumeState.length_meters, volumeState.height_meters = volumeRealAPI(depthFrame, frameState.calibrationDepthFrame, workspaceState.workspace_depth, volumeState.box_limits, volumeState.depths, camState.fx_d, camState.fy_d, camState.cx_d, camState.cy_d)
+            volumeState.volume, volumeState.width_meters, volumeState.length_meters, volumeState.height_meters, volumeState.obj_center = volumeRealAPI(depthFrame, frameState.calibrationDepthFrame, workspaceState.workspace_depth, volumeState.box_limits, volumeState.depths, camState.fx_d, camState.fy_d, camState.cx_d, camState.cy_d)
             t3 = time.perf_counter()
             print("volumeRealAPI:", (t3 - t2) * 1000, "ms")
         else:
@@ -1404,11 +1403,13 @@ def volume_Real(current_user: dict = Depends(get_current_user)):
             volumeState.width_meters = 0
             volumeState.length_meters = 0
             volumeState.height_meters = 0
+            volumeState.obj_center = 0
             depthState.minimum_depth = workspaceState.workspace_depth
     else:
         volumeState.volume = 0
         volumeState.width_meters = 0
         volumeState.length_meters = 0
+        volumeState.obj_center = 0
         depthState.minimum_depth = workspaceState.workspace_depth
 
     volumeState.width_meters = scale_nested(volumeState.width_meters, 100)
@@ -1424,7 +1425,8 @@ def volume_Real(current_user: dict = Depends(get_current_user)):
         "length": volumeState.length_meters,
         "height": volumeState.height_meters,
         "depth": depthState.minimum_depth / 10,
-        "ws_depth": workspaceState.workspace_depth / 10
+        "ws_depth": workspaceState.workspace_depth / 10,
+        "objCenter": volumeState.obj_center
     }
 
 @app.get("/volume/real/results", summary="Gets the Real Volume Algorithm Results",
@@ -1439,6 +1441,7 @@ def get_Volume_Real(current_user: dict = Depends(get_current_user)):
     widths = volumeState.width_meters if isinstance(volumeState.width_meters, list) else [volumeState.width_meters]
     lengths = volumeState.length_meters if isinstance(volumeState.length_meters, list) else [volumeState.length_meters]
     heights = volumeState.height_meters if isinstance(volumeState.height_meters, list) else [volumeState.height_meters]
+    obj_center = volumeState.obj_center if isinstance(volumeState.obj_center, list) else [volumeState.obj_center]
 
     num_objects = min(
         len(volumes),
@@ -1454,6 +1457,7 @@ def get_Volume_Real(current_user: dict = Depends(get_current_user)):
             "x": [round(float(v), 1) for v in widths[i]],
             "y": [round(float(v), 1) for v in lengths[i]],
             "z": [round(float(v), 1) for v in heights[i]],
+            "obj_center": [[round(float(x), 3), round(float(y), 3)] for (x, y) in obj_center[i]],
         }
 
     response["Total"] = {

@@ -63,6 +63,7 @@ function App() {
   const toggleMenu = () => setMenuSideNavOpen(prev => !prev);
 
   const [volInfo, setVolInfo] = useState(null);
+  const [objCenters, setObjCenters] = useState([]);
   const [objectImage, setObjectImage] = useState(null);
 
   const [objectList, setObjectList] = useState([]);
@@ -453,6 +454,8 @@ function App() {
       length: objData.y,
       height: objData.z
     });
+
+    setObjCenters(objData.obj_center ?? []);
   }, [selectedObject, multipleVolumeData]);
 
   async function volumeMultiBundle(access_token) {
@@ -537,11 +540,13 @@ function App() {
       //document.getElementById("object-img").removeAttribute("hidden");
 
       const objIdentified = Object.keys(volumeData).filter(key => key !== "Total");
-      
+
       if (objIdentified.length === 1) {
         
         const key = objIdentified[0];
         const objData = volumeData[key];
+
+        setObjCenters(objData.obj_center ?? []);
 
         setSelectedObject(key);
 
@@ -738,98 +743,136 @@ function App() {
 
       ctx.clearRect(0, 0, W, H);
 
-      const w = volInfo.width;
-      const d = volInfo.length;
-      const h = volInfo.height;
+      const boxes = volumeMode === "real"
+        ? volInfo.width.slice(1).map((_, i) => ({
+            width: volInfo.width[i + 1],
+            length: volInfo.length[i + 1],
+            height: volInfo.height[i + 1],
+          })).reverse()
+        : [volInfo];
 
-      const maxDim = Math.max(w, d, h);
+      const centers = volumeMode === "real"
+        ? objCenters.slice().reverse()
+        : objCenters;
 
-      const nw = w / maxDim;
-      const nd = d / maxDim;
-      const nh = h / maxDim;
+      //console.log(objCenters)
+      //console.log(centers)
+
+      const maxWidth = Math.max(...boxes.map(b => b.width));
+      const maxLength = Math.max(...boxes.map(b => b.length));
+      const totalHeight = boxes.reduce((sum, b) => sum + b.height, 0);
+      //console.log(maxWidth);
+      //console.log(maxLength);
+      //console.log(totalHeight);
+
+      const maxDim = Math.max(maxWidth, maxLength, totalHeight);
 
       const scale = Math.min(W, H) * 0.7;
       const fontSize = Math.max(15, Math.min(22, scale * 0.04));
       ctx.font = `${fontSize}px Inter Regular`;
 
-      const hw = nw / 2;
-      const hd = nd / 2;
-      const hh = nh / 2;
-
       const cx = W / 2;
       const cy = H / 2;
 
-      const v = [
-        project(-hw, -hd, -hh, cx, cy, scale),
-        project(hw, -hd, -hh, cx, cy, scale),
-        project(hw, hd, -hh, cx, cy, scale),
-        project(-hw, hd, -hh, cx, cy, scale),
-        project(-hw, -hd, hh, cx, cy, scale),
-        project(hw, -hd, hh, cx, cy, scale),
-        project(hw, hd, hh, cx, cy, scale),
-        project(-hw, hd, hh, cx, cy, scale),
-      ];
+      const rotCenter = centers[0] ?? [0, 0];
+      const pivot_cy = rotCenter[0] / maxDim
+      const pivot_cx = rotCenter[1] / maxDim
 
-      const X = "#6CD08A"; // width
-      const Y = "#C66D6D"; // length
-      const Z = "#9EB0FD"; // height
+      let accumulatedHeight = -totalHeight / 2;
 
-      const faces = [
-        [0,1,2,3],
-        [4,5,6,7],
-        [0,1,5,4],
-        [2,3,7,6],
-        [1,2,6,5],
-        [0,3,7,4],
-      ];
+      boxes.forEach((box, i) => {
+        const [center_y, center_x] = centers[i] ?? [0, 0];
+        //console.log(center_x, center_y);
 
-      const faceDepth = faces.map(face => ({
-        face,
-        z: face.reduce((s, i) => s + v[i].z, 0) / 4
-      }));
+        const w = box.width;
+        const d = box.length;
+        const h = box.height;
 
-      faceDepth.sort((a, b) => a.z - b.z);
+        const nw = w / maxDim;
+        const nd = d / maxDim;
 
-      faceDepth.forEach(({ face }) => {
-        const [a,b,c,d] = face;
+        const hw = nw / 2;
+        const hd = nd / 2;
 
-        ctx.beginPath();
-        ctx.moveTo(v[a].x, v[a].y);
-        ctx.lineTo(v[b].x, v[b].y);
-        ctx.lineTo(v[c].x, v[c].y);
-        ctx.lineTo(v[d].x, v[d].y);
-        ctx.closePath();
+        const bottom = accumulatedHeight / maxDim;
+        const top = (accumulatedHeight + h) / maxDim;
 
-        ctx.fillStyle = "rgba(186,186,231,0.03)";
-        ctx.fill();
+        const v = [
+          project(-hw + (center_x / maxDim) - pivot_cx, -hd - (center_y / maxDim) + pivot_cy, bottom, cx , cy, scale),
+          project(hw + (center_x / maxDim) - pivot_cx, -hd - (center_y / maxDim) + pivot_cy, bottom, cx, cy, scale),
+          project(hw + (center_x / maxDim) - pivot_cx, hd - (center_y / maxDim) + pivot_cy, bottom, cx, cy, scale),
+          project(-hw + (center_x / maxDim) - pivot_cx, hd - (center_y / maxDim) + pivot_cy, bottom, cx, cy, scale),
 
-        ctx.strokeStyle = "#aaa";
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
-      });
+          project(-hw + (center_x / maxDim) - pivot_cx, -hd - (center_y / maxDim) + pivot_cy, top, cx, cy, scale),
+          project(hw + (center_x / maxDim) - pivot_cx, -hd - (center_y / maxDim) + pivot_cy, top, cx, cy, scale),
+          project(hw + (center_x / maxDim) - pivot_cx, hd - (center_y / maxDim) + pivot_cy, top, cx, cy, scale),
+          project(-hw + (center_x / maxDim) - pivot_cx, hd - (center_y / maxDim) + pivot_cy, top, cx, cy, scale),
+        ];
 
-      const edges = [
-        [0,1,X,"Width"], [3,2,X], [4,5,X], [7,6,X],
-        [0,3,Y,"Length"], [1,2,Y], [4,7,Y], [5,6,Y],
-        [0,4,Z,"Height"], [1,5,Z], [2,6,Z], [3,7,Z],
-      ];
+        const X = "#6CD08A"; // width
+        const Y = "#C66D6D"; // length
+        const Z = "#9EB0FD"; // height
 
-      edges.forEach(([a,b,color,type]) => {
-        drawEdge(v[a], v[b], color);
+        const faces = [
+          [0,1,2,3],
+          [4,5,6,7],
+          [0,1,5,4],
+          [2,3,7,6],
+          [1,2,6,5],
+          [0,3,7,4],
+        ];
 
-        const value =
-          type === "Width" ? volInfo.width :
-          type === "Length" ? volInfo.length:
-          type === "Height" ? volInfo.height :
-          ""
+        const faceDepth = faces.map(face => ({
+          face,
+          z: face.reduce((s, i) => s + v[i].z, 0) / 4
+        }));
 
-        if (type == "Width"){
-          drawLabel(v[a], v[b], `${value} cm`, color, "width");
-        } else if (type == "Length"){
-          drawLabel(v[a], v[b], `${value} cm`, color, "length");
-        } else if (type == "Height"){
-          drawLabel(v[a], v[b], `${value} cm`, color, "height");
-        }
+        faceDepth.sort((a, b) => a.z - b.z);
+
+        faceDepth.forEach(({ face }) => {
+          const [a,b,c,d] = face;
+
+          ctx.beginPath();
+          ctx.moveTo(v[a].x, v[a].y);
+          ctx.lineTo(v[b].x, v[b].y);
+          ctx.lineTo(v[c].x, v[c].y);
+          ctx.lineTo(v[d].x, v[d].y);
+          ctx.closePath();
+
+          ctx.fillStyle = "rgba(186,186,231,0.03)";
+          ctx.fill();
+
+          ctx.strokeStyle = "#aaa";
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+        });
+
+        const edges = [
+          [0,1,X,"Width"], [3,2,X], [4,5,X], [7,6,X],
+          [0,3,Y,"Length"], [1,2,Y], [4,7,Y], [5,6,Y],
+          [0,4,Z,"Height"], [1,5,Z], [2,6,Z], [3,7,Z],
+        ];
+
+        edges.forEach(([a,b,color,type]) => {
+          drawEdge(v[a], v[b], color);
+
+          const value =
+            type === "Width" ? volInfo.width :
+            type === "Length" ? volInfo.length:
+            type === "Height" ? volInfo.height :
+            ""
+
+          {/*if (type == "Width"){
+            drawLabel(v[a], v[b], `${value} cm`, color, "width");
+          } else if (type == "Length"){
+            drawLabel(v[a], v[b], `${value} cm`, color, "length");
+          } else if (type == "Height"){
+            drawLabel(v[a], v[b], `${value} cm`, color, "height");
+          }*/}
+        });
+
+        accumulatedHeight += h;
+      
       });
     };
 

@@ -19,7 +19,7 @@ os.makedirs(output_dir, exist_ok=True)
 
 hdrGroups = [
     camState.hdrExposuresLow,
-    camState.hdrExposuresMedium#,
+    camState.hdrExposuresMedium,
     #camState.hdrExposuresHigh
 ]
 
@@ -432,80 +432,13 @@ def processHDR(colorToDepthFrame, depthFrame, colorFrame):
         if hdrGroupIndex >= len(hdrGroups):
 
             finalColor = buildHDRColor(hdrColorArray)
+            #hdrDepthArray = hdrDepthArray[:-1]
             finalDepth = buildHDRDepth(hdrDepthArray)
 
             print("HDR Processed")
 
-            #if final_index <= 4:
-            #    cv2.imwrite(os.path.join(output_dir, f"HDRcolorFinal_{final_index}.png"), finalColor)
-            #    numpy.save(os.path.join(output_dir, f"HDRdepthFinal_{final_index}.npy"), finalDepth)
-
-            #    final_index += 1
-
             frameState.colorToDepthFrameHDR = finalColor
             frameState.depthFrameHDR = finalDepth
-
-            # depth = finalDepth.astype(numpy.float32)
-
-            # mask = (depth >= 836) & (depth <= 866)
-
-            # valid_depths = depth[mask]
-
-            # dmin = valid_depths.min()
-            # dmax = valid_depths.max()
-
-            # depth_norm = numpy.zeros(depth.shape, dtype=numpy.uint8)
-
-            # depth_norm[mask] = numpy.clip(
-            #     ((depth[mask] - dmin) * 255.0 / (dmax - dmin)),
-            #     0,
-            #     255
-            # ).astype(numpy.uint8)
-
-            # depth_color = cv2.applyColorMap(depth_norm, cv2.COLORMAP_TURBO)
-            # depth_color[~mask] = (0, 0, 0)
-            # #BARRA
-            # bar_width = 50
-            # bar_height = depth_color.shape[0]
-
-            # gradient = numpy.linspace(
-            #     255, 0,
-            #     bar_height,
-            #     dtype=numpy.uint8
-            # ).reshape(-1, 1)
-
-            # colorbar = cv2.applyColorMap(gradient, cv2.COLORMAP_TURBO)
-            # colorbar = cv2.resize(
-            #     colorbar,
-            #     (bar_width, bar_height),
-            #     interpolation=cv2.INTER_NEAREST
-            # )
-
-            # # juntar imagem e barra
-            # result = numpy.hstack([depth_color, colorbar])
-
-            # # labels
-            # cv2.putText(
-            #     result,
-            #     f"{dmax:.0f} mm",
-            #     (depth_color.shape[1] + 5, 25),
-            #     cv2.FONT_HERSHEY_SIMPLEX,
-            #     0.6,
-            #     (255,255,255),
-            #     2
-            # )
-
-            # cv2.putText(
-            #     result,
-            #     f"{dmin:.0f} mm",
-            #     (depth_color.shape[1] + 5, bar_height - 10),
-            #     cv2.FONT_HERSHEY_SIMPLEX,
-            #     0.6,
-            #     (255,255,255),
-            #     2
-            # )
-
-            # cv2.imwrite("depth_with_scale.png", result)
 
             hdrColorArray = []
             hdrDepthArray = []

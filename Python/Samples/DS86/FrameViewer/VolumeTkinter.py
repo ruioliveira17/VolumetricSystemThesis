@@ -9,7 +9,6 @@ import cv2
 import numpy
 from FrameState import frameState
 
-
 OVERLAP_RATIO = 0.05
 
 def volumeSingleBundleAPI(depthFrame, workspace_depth, minimum_depth, box_limits, depths, fx_d, fy_d, cx_d, cy_d): 
@@ -226,12 +225,14 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
 
     pts_m = []
     allGroupsObjPoints = []
+    allObjCenter = []
     groups = []
     used = set()
 
     MIN_OBJ_HEIGHT_MM = 30
 
     calibrationDepthFrame_copy = calibrationDepthFrame.copy()
+    colorToDepthFrameX = frameState.colorToDepthFrame.copy()
 
     print("Box Limits Len:", len(box_limits))
 
@@ -272,6 +273,7 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
         objPoints = []
         allObj_pts_m = []
         depthsObj = []
+        objCenter = []
         group = groups[i]
         group.sort(key=lambda x: x[1], reverse=False)
         min_depth = min(depth for _, depth in group)
@@ -341,6 +343,20 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
             X = (xs_v - cx_d) * Z / fx_d
             Y = (ys_v - cy_d) * Z / fy_d
 
+            Xc = (max(X) + min(X)) / 2
+            Yc = (max(Y) + min(Y)) / 2
+
+            Xcp = float(numpy.mean(xs_v))
+            Ycp = float(numpy.mean(ys_v))
+
+            cv2.circle(colorToDepthFrameX,
+                    (int(Xcp), int(Ycp)),
+                    7,
+                    (0, 0, 255),
+                    2)
+
+            objCenter.append((Xc * 100, Yc * 100))
+
             allObj_pts_m.append(numpy.column_stack([X, Y]).tolist())
             depthsObj.append(depth)
 
@@ -351,6 +367,8 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
 
         allGroupsObjPoints.append(allObj_pts_m)
         allDepths.append(depthsObj)
+        allObjCenter.append(objCenter)
+        
         #print("Size of allGroupsObjPoints:", len(allGroupsObjPoints))
         #print("Size of allObj_pts_m:", len(allObj_pts_m))
         #print("Size of allDepths", len(allDepths))
@@ -412,6 +430,8 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
         groupLengths.append(objLength)
         groupHeights.append(objHeight)
         groupRealVolume.append(realVolume)
+        
+    cv2.imwrite("Centers.png", colorToDepthFrameX)
 
     print("------------------------------")
     uidth = groupWidths
@@ -425,7 +445,7 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
     length_meters = ength
     height_meters = eight
 
-    return volume, width_meters, length_meters, height_meters
+    return volume, width_meters, length_meters, height_meters, allObjCenter
 
 def volumeIndividualAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits, depths, fx_d, fy_d, cx_d, cy_d): 
     MIN_OBJ_HEIGHT_MM = 30

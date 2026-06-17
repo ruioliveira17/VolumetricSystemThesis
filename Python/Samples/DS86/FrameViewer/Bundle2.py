@@ -97,15 +97,15 @@ def comparisonCaliImageCurrImage(colorFrame, calibrationColorFrame, depthFrame, 
     total_pixels_depth = numpy.count_nonzero(depth_mask)
 
     # ---------------- COLOR ----------------
-    #current = cv2.bitwise_and(colorFrame, colorFrame, mask=mask)
-    #cali = cv2.bitwise_and(calibrationColorFrame, calibrationColorFrame, mask=mask)
+    current = cv2.bitwise_and(colorFrame, colorFrame, mask=mask)
+    cali = cv2.bitwise_and(calibrationColorFrame, calibrationColorFrame, mask=mask)
 
-    #currentGray = cv2.cvtColor(current, cv2.COLOR_BGR2GRAY)
-    #caliGray = cv2.cvtColor(cali, cv2.COLOR_BGR2GRAY)
+    currentGray = cv2.cvtColor(current, cv2.COLOR_BGR2GRAY)
+    caliGray = cv2.cvtColor(cali, cv2.COLOR_BGR2GRAY)
 
-    #diff = cv2.absdiff(currentGray, caliGray)
+    diff = cv2.absdiff(currentGray, caliGray)
 
-    #colorScore = numpy.sum(diff>20) / total_pixels
+    colorScore = numpy.sum(diff>10) / total_pixels
 
     # ---------------- DEPTH ----------------
     depthDiff = cv2.absdiff(
@@ -118,8 +118,8 @@ def comparisonCaliImageCurrImage(colorFrame, calibrationColorFrame, depthFrame, 
     depthScore = numpy.sum((depthDiff > 30) & validMask) / total_pixels_depth
 
     # ---------------- DECISION ----------------
-    w_color = 0.5
-    w_depth = 0.5
+    w_color = 0.25
+    w_depth = 0.75
 
     #finalScore = (w_color * colorScore) + (w_depth * depthScore)
 
@@ -127,7 +127,7 @@ def comparisonCaliImageCurrImage(colorFrame, calibrationColorFrame, depthFrame, 
     print("Depth Score:", depthScore)
     #print("Final Score:", finalScore)
 
-    #return finalScore >= 0.60
+    #return finalScore >= 0.80
     return depthScore >= 0.80
 
 def overlap_ratio(b1, b2):
@@ -161,21 +161,8 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
     Sx = fx_rgb / fx_d
     Sy = fy_rgb / fy_d
 
-    #ys, xs = numpy.indices(depth_copy.shape)
-
-    #D = depth_copy.astype(numpy.float32)
-
-    #depth_corrected = D / (numpy.sqrt(1 + ((xs - cx_d) / fx_d) ** 2 + ((ys - cy_d) / fy_d) ** 2))
-
-    #depth_copy = numpy.round(depth_corrected).astype(numpy.int32)
-
     if len(objects_info) != 0:
-        #for obj in objects_info:
-        
         for i, obj in enumerate(objects_info):
-
-            #x1, y1, x2, y2 = obj["workspace_limits"]
-            #workspace_area2 = depthFrame[y1:y2, x1:x2]
 
             mask = numpy.zeros(depth_copy.shape, dtype = numpy.uint8)
             print("Obj Workspace Limits:", obj["workspace_limits"])
@@ -188,8 +175,6 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
 
             if i == 0:
                 mask2 = (workspace_area2 >= (obj["depth"] - threshold)) & (workspace_area2 <= (obj["depth"] + threshold))
-            #    print("Limite Superior", obj["depth"] + threshold)
-            #    print("Limite Inferior", obj["depth"] - threshold)
             else:
                 if (obj["depth"] - threshold) < (objects_info[i-1]["depth"] + threshold):
                     print("Limite Inferior")
@@ -200,22 +185,13 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
             
             binary = mask2.astype(numpy.uint8) * 255
 
-            #if i == 0:
-            #    cv2.imwrite("binary_before.png", binary)
-
             # Remove ruído pequeno
             element_open = numpy.ones((3, 3), numpy.uint8)
             binary = cv2.morphologyEx(binary, cv2.MORPH_OPEN, element_open)
 
-            #if i == 0:
-            #    cv2.imwrite("binary_after_open.png", binary)
-
             # Fecha buracos e regulariza a forma
             element_close = numpy.ones((7, 7), numpy.uint8)
             binary = cv2.morphologyEx(binary, cv2.MORPH_CLOSE, element_close)
-
-            #if i == 0:
-            #    cv2.imwrite("binary_after_close.png", binary)
 
             contour, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
             
@@ -236,6 +212,12 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
             print("-------------------------------------------------------------------")
 
             for c in shifted_contours_sorted:
+
+                #rgb_c = get_rgb_contour(colorToDepthFrame, c, mask2)
+                #best_c, source = pick_best_contour(c, rgb_c, similarity_threshold=0.3)  
+
+                #c = best_c
+
                 belongs_to_previous = False
                 rect = cv2.minAreaRect(c)
                 box = cv2.boxPoints(rect)
@@ -489,3 +471,64 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
     minimum_value = 6000
                     
     return minimum_value, not_set, box_ws, box_limits, depths, object_outOfLine
+
+###############################################
+def get_rgb_contour(colorToDepthFrame, depth_contour, depth_mask):
+    """
+    Extrai contornos da imagem RGB dentro da região do contorno de profundidade.
+    """
+    # Criar máscara a partir do contorno de profundidade (zona de interesse)
+    roi_mask = numpy.zeros(colorToDepthFrame.shape[:2], dtype=numpy.uint8)
+    cv2.drawContours(roi_mask, [depth_contour], -1, 255, thickness=cv2.FILLED)
+
+    # Dilatar ligeiramente para não cortar bordas
+    roi_mask = cv2.dilate(roi_mask, numpy.ones((15, 15), numpy.uint8))
+
+    # Aplicar a máscara à imagem RGB
+    roi_rgb = cv2.bitwise_and(colorToDepthFrame, colorToDepthFrame, mask=roi_mask)
+
+    # Converter para escala de cinza e aplicar Canny
+    gray = cv2.cvtColor(roi_rgb, cv2.COLOR_BGR2GRAY)
+    blurred = cv2.GaussianBlur(gray, (5, 5), 0)
+    edges = cv2.Canny(blurred, threshold1=30, threshold2=80)
+
+    # Fechar lacunas nos contornos
+    edges = cv2.morphologyEx(edges, cv2.MORPH_CLOSE, numpy.ones((5, 5), numpy.uint8))
+
+    rgb_contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    if not rgb_contours:
+        return None
+
+    # Devolver o maior contorno encontrado
+    return max(rgb_contours, key=cv2.contourArea)
+
+def contour_similarity(c1, c2):
+    """
+    Compara dois contornos usando Shape Matching (Hu Moments).
+    Valor próximo de 0 = muito semelhantes.
+    """
+    score = cv2.matchShapes(c1, c2, cv2.CONTOURS_MATCH_I2, 0.0)
+    return score
+
+def pick_best_contour(depth_contour, rgb_contour, similarity_threshold=0.3):
+    """
+    Decide qual contorno usar com base na semelhança e área.
+    """
+    if rgb_contour is None:
+        return depth_contour, "depth"
+
+    similarity = contour_similarity(depth_contour, rgb_contour)
+    print(f"Shape similarity score: {similarity:.4f}")
+
+    area_depth = cv2.contourArea(depth_contour)
+    area_rgb   = cv2.contourArea(rgb_contour)
+    area_ratio = min(area_depth, area_rgb) / max(area_depth, area_rgb) if max(area_depth, area_rgb) > 0 else 0
+
+    if similarity > similarity_threshold or area_ratio < 0.5:
+        # Contornos muito diferentes — RGB tem mais detalhe de textura, preferir RGB
+        print("Contornos divergem — usando RGB")
+        return rgb_contour, "rgb"
+    else:
+        print("Contornos consistentes — usando Depth")
+        return depth_contour, "depth"
