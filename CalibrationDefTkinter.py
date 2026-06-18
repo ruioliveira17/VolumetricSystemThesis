@@ -24,8 +24,17 @@ color_shape = (1200, 1600, 3)
 colorToDepth_shape   = (480, 640, 3)
 depth_shape = (480, 640)
 
+def contour_distance(contours, cx_d, cy_d):
+    M = cv2.moments(contours)
+    if M["m00"] == 0:
+        return float("inf")
+    cx = int(M["m10"] / M["m00"])
+    cy = int(M["m01"] / M["m00"])
+    return (cx - cx_d)**2 + (cy - cy_d)**2
+
 def maskAPI(colorToDepthFrame, lower, upper, color, cx_d, cy_d):
     detection_area = None
+    workspace_warning = None
 
     try:
         colorToDepthFrame = cv2.resize(colorToDepthFrame, (640, 480))
@@ -46,23 +55,27 @@ def maskAPI(colorToDepthFrame, lower, upper, color, cx_d, cy_d):
 
         result = cv2.bitwise_and(colorToDepthFrame, colorToDepthFrame, mask=mask_hsv)
 
-        imgray = cv2.cvtColor(result, cv2.COLOR_BGR2GRAY)
-        ret, thresh = cv2.threshold(imgray, 127, 255, 0)
-
         colorToDepthFrame_copy = colorToDepthFrame.copy()
-        colorToDepthFrame_copy2 = colorToDepthFrame.copy()
-        contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
+        contours, hierarchy = cv2.findContours(mask_hsv, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+        
         if contours:
-            largest_contour = max(contours, key=cv2.contourArea)
-            
-            rect = cv2.minAreaRect(largest_contour)
+            valid_contours = [c for c in contours if cv2.contourArea(c) > 200]
 
-            detection_area = cv2.boxPoints(rect)
-            detection_area = numpy.int32(detection_area)
+            if valid_contours:
+                closest_contour = min(valid_contours, key=lambda contours: contour_distance(contours, cx_d, cy_d))
+                
+                rect = cv2.minAreaRect(closest_contour)
 
-            cv2.drawContours(colorToDepthFrame_copy, [detection_area], 0, (255, 0, 0), 2)
+                detection_area = cv2.boxPoints(rect)
+                detection_area = numpy.int32(detection_area)
+
+                cv2.drawContours(colorToDepthFrame_copy, [detection_area], 0, (255, 0, 0), 2)
 
         #WORKSPACE WARNING
+
+        imgray = cv2.cvtColor(result, cv2.COLOR_BGR2GRAY)
+        ret, thresh = cv2.threshold(imgray, 127, 255, 0)
+        contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
 
         if hierarchy is not None:
 
@@ -80,7 +93,6 @@ def maskAPI(colorToDepthFrame, lower, upper, color, cx_d, cy_d):
 
                 workspace_warning = cv2.boxPoints(rect)
                 workspace_warning = numpy.int32(workspace_warning)
-                
 
         # PONTO CENTRAL
         

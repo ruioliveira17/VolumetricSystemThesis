@@ -31,20 +31,16 @@ def volumeSingleBundleAPI(depthFrame, workspace_depth, minimum_depth, box_limits
         pts_flat = box_limits[i].reshape(-1,2)
         rect_px = cv2.minAreaRect(pts_flat.astype(numpy.float32))
         box_px = cv2.boxPoints(rect_px)
-        #Z = (depths[i] / 1000)
         cv2.drawContours(frameState.colorToDepthFrame, [numpy.int32(box_px)], 0, (0, 255, 0), 2)
         cv2.imwrite(f"colorToDepthFrame{i}.png", frameState.colorToDepthFrame)
 
         DEPTH_TOL_MM = 40
         for (u,v) in pts_flat:
-            #Z_radial = depthFrame[int(v), int(u)] / 1000
             Z_mm = depthFrame[int(v), int(u)]
-            #if Z_radial <= 0 or Z_radial >= workspace_depth:  # ignora píxeis sem profundidade válida
             if Z_mm <= 0 or Z_mm >= workspace_depth:
                 continue
             if abs(Z_mm - depths[i]) > DEPTH_TOL_MM:
                 continue
-            #Z = Z_radial / numpy.sqrt(1 + ((u - cx_d) / fx_d)**2 + ((v - cy_d) / fy_d)**2)
             Z = Z_mm / 1000
             X = (u - cx_d) * Z / fx_d
             Y = (v - cy_d) * Z / fy_d
@@ -56,26 +52,6 @@ def volumeSingleBundleAPI(depthFrame, workspace_depth, minimum_depth, box_limits
     rect_m = cv2.minAreaRect(pts_m)
     width_meters, length_meters = rect_m[1]
     height_meters = (workspace_depth - minimum_depth) / 1000
-
-    #if width_meters < length_meters:
-    #    width_meters, length_meters = length_meters, width_meters
-
-    #xmin = pts_m[:,0].min()
-    #xmax = pts_m[:,0].max()
-    #ymin = pts_m[:,1].min()
-    #ymax = pts_m[:,1].max()
-
-    #if xmin < 0:
-    #    wid = xmax + abs(xmin)
-    #else:
-    #    wid = xmax - abs(xmin)
-    #if ymin < 0:
-    #    hei = ymax + abs(ymin)
-    #else:
-    #    hei = ymax - abs(ymin)
-
-    #if hei > wid:
-    #    length_meters, width_meters = width_meters, length_meters
 
     volume = width_meters * length_meters * height_meters
 
@@ -283,9 +259,6 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
             continue
 
         for contour, depth in group:
-            #all_points = numpy.vstack([contour for contour, _ in group])
-            #pts_flat = all_points.reshape(-1,2)
-
             fill_img = numpy.zeros((480, 640), dtype=numpy.uint8)
             cv2.fillPoly(fill_img, [contour.astype(numpy.int32)], 255)
 
@@ -412,11 +385,11 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
                 volume = width_meters * length_meters * height_meters
                 totalVolume += volume
                 realVolume += volume
-                #print("Volume:", volume)
+                print("Volume:", volume)
                 #print("Volume Real:", realVolume)
-                #print("Height:", height_meters)
-                #print("Width:", width_meters)
-                #print("Length:", length_meters)
+                print("Height:", height_meters)
+                print("Width:", width_meters)
+                print("Length:", length_meters)
             else:
                 height_meters = (ws_d_h - depths[i]) / 1000
                 volume = width_meters * length_meters * height_meters

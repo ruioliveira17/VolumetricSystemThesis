@@ -15,6 +15,7 @@ from PIL import Image
 from pydantic import BaseModel, Field, StrictBool
 from typing import List, Literal, Optional
 
+import asyncio
 import cv2
 import io
 import json
@@ -106,13 +107,13 @@ def object_processing():
         else:
             depthFrame = frameState.depthFrameHDR
 
-        depthState.not_set, depthState.objects_info = MinDepthAPI(depthFrame, workspaceState.detection_area, workspaceState.workspace_warning, workspaceState.workspace_depth, depthState.threshold, depthState.not_set, camState.cx_d, camState.cy_d, camState.fx_d, camState.fy_d)
-
+        if workspaceState.workspace_warning is not None:
+            depthState.not_set, depthState.objects_info = MinDepthAPI(depthFrame, workspaceState.detection_area, workspaceState.workspace_warning, workspaceState.workspace_depth, depthState.threshold, depthState.not_set, camState.cx_d, camState.cy_d, camState.fx_d, camState.fy_d)
         if depthState.objects_info is not None and len(depthState.objects_info) != 0:
             depthState.minimum_depth = depthState.objects_info[0]["depth"]
             depthState.minimum_value = depthState.minimum_depth
 
-            #print("New Min Value", depthState.minimum_value)
+            print("New Min Value", depthState.minimum_value)
 
         time.sleep(0.01)
 
@@ -163,6 +164,9 @@ def resume_ObjProcessing():
 def stop_ObjProcessing():
     global objProcessing_thread, thread_state
 
+    if objProcessing_thread is None:
+        return
+    
     print("Stopping volume thread...")
 
     thread_state = "STOPPING"
@@ -170,9 +174,9 @@ def stop_ObjProcessing():
     objProcessingStop_event.set()
     objProcessingPause_event.set()
 
-    if objProcessing_thread is not None:
-        objProcessing_thread.join()
-        objProcessing_thread = None
+    
+    objProcessing_thread.join(timeout=3)
+    objProcessing_thread = None
 
     thread_state = "STOPPED"
 
@@ -249,6 +253,7 @@ async def lifespan(app: FastAPI):
                 calib = json.load(f)
 
             workspaceState.detection_area = calib["detection_area"]
+            workspaceState.workspace_warning = calib["workspace_warning"]
             workspaceState.workspace_depth = calib["workspace_depth"]
             maskState.hmin = calib["hmin"]
             maskState.hmax = calib["hmax"]
@@ -261,13 +266,13 @@ async def lifespan(app: FastAPI):
             frameState.calibrationColorFrame = cv2.imread(calib["calibrationColorFrame_path"])
             frameState.calibrationDepthFrame = numpy.load(calib["calibrationDepthFrame_path"])
             
-            print("Calibração carregada!")
+            print("Calibration loaded!")
 
         except Exception as e:
             print("Error loading calibration:", e)
             calib = None
     else:
-        print("É necessário realizar calibração!")
+        print("Its necessary to realize a calibration!")
         calib = None
 
     if os.path.exists(config_path):
@@ -286,24 +291,31 @@ async def lifespan(app: FastAPI):
             camState.spatialFilter = config["spatialFilter"]
             camState.confidenceFilter = config["confidenceFilter"]
             
-            print("Calibração carregada!")
+            print("Last configurations loaded!")
 
         except Exception as e:
-            print("Error loading calibration:", e)
+            print("Error loading last configuration:", e)
             config = None
     else:
-        print("É necessário realizar calibração!")
+        print("There arent any last configurations!")
         config = None
 
     startCamera()
+    try:
+        yield
+    finally:
+        #SHUTDOWN
+        print("API a desligar")
+        
+        await asyncio.gather(
+            *(pc.close() for pc in pcs),
+            return_exceptions = True
+        )
+        pcs.clear()
 
-    yield
-
-    #SHUTDOWN
-    print("API a desligar")
-    save_configuration()
-    stop_ObjProcessing()
-    stopCamera()
+        save_configuration()
+        stop_ObjProcessing()
+        stopCamera()
 
 #----------------------------------------------------   Criar App   -------------------------------------------------------
 
@@ -816,14 +828,19 @@ def apply_mask(data: HSVValue, current_user: dict = Depends(get_current_user)):
     else:
         colorToDepthFrame = frameState.colorToDepthFrameHDR
 
-    maskFrame, workspaceDetectedFrame, detection_area, workspace_warning = maskAPI(colorToDepthFrame, lower, upper, maskState.color, int(camState.cx_d), int(camState.cy_d))
+    result = maskAPI(colorToDepthFrame, lower, upper, maskState.color, int(camState.cx_d), int(camState.cy_d))
 
-    if maskFrame is None or workspaceDetectedFrame is None:
+    if result is None:
         return{"message:": "Mask application failed!"}
+    
+    maskFrame, workspaceDetectedFrame, detection_area, workspace_warning = result
 
     frameState.maskFrame = maskFrame
     frameState.workspaceDetectedFrame = workspaceDetectedFrame
-    workspaceState.detected_area = detection_area.reshape((-1, 2)).tolist() if isinstance(detection_area, numpy.ndarray) else detection_area
+    if detection_area is not None:
+        workspaceState.detected_area = detection_area.reshape((-1, 2)).tolist() if isinstance(detection_area, numpy.ndarray) else detection_area
+    else: 
+        workspaceState.detected_area = [[5, 5],[634, 5],[634, 474], [0, 474]]
     workspaceState.temp_workspace_warning = workspace_warning.reshape((-1, 2)).tolist() if isinstance(workspace_warning, numpy.ndarray) else workspace_warning
     
     return{"message:": "Mask applied with success"}
@@ -1389,6 +1406,7 @@ def volume_Real(current_user: dict = Depends(get_current_user)):
     #    depthState.minimum_value = depthState.minimum_depth
 
     #    print("New Min Value", depthState.minimum_value)
+    print("Alo?")    
 
     if depthState.not_set == 0:
         depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine = objIdentifier(colorFrame, colorToDepthFrame, depthFrame, frameState.calibrationColorFrame, frameState.calibrationDepthFrame, modeState.volumeMode, depthState.objects_info, workspaceState.workspace_depth, depthState.threshold, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb, camState.fx_d, camState.fy_d, camState.fx_rgb, camState.fy_rgb)

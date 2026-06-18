@@ -55,7 +55,7 @@ function App() {
   const [regCode, setRegCode] = useState("");
 
   const [ExpHDR_toggle, setExpHDR] = useState(true);
-  const [volumeMode, setVolumeMode] = useState();
+  const [volumeMode, setVolumeMode] = useState("multi_bundle");
   const [StaticDynamic_toggle, setStaticDynamic] = useState(false);
   const [DebugMode_toggle, setDebugMode] = useState(false);
 
@@ -163,15 +163,15 @@ function App() {
         } else if (config_data.expositionMode === "Fixed") {
           await handleExpHDR_toggle({ target: { value: "false" } });
         }
-        
+
         if (config_data.volumeMode === "Single Bundle") {
-          await handleVolumeMode({ target: { value: "single_bundle" } });
+          setVolumeMode("single_bundle");
         } else if (config_data.volumeMode === "Multi Bundle") {
-          await handleVolumeMode({ target: { value: "multi_bundle" } });
+          setVolumeMode("multi_bundle");
         } else if (config_data.volumeMode === "Real") {
-          await handleVolumeMode({ target: { value: "real" } });
+          setVolumeMode("real");
         } else if (config_data.volumeMode === "Individual") {
-          await handleVolumeMode({ target: { value: "individual" } });
+          setVolumeMode("individual");
         }
       }
 
@@ -406,6 +406,7 @@ function App() {
 
       const response = await fetch(`${API_URL}/getObjectsOutOfLine`, {headers: { "Authorization": `Bearer ${access_token}`}});
       const data = await response.json();
+      console.log(data.objects_outOfLine)
       const objectsOutOfLine = data.objects_outOfLine.map((val, i) => val ? i + 1 : null).filter(v => v !== null);
       if (objectsOutOfLine.length > 0) {
           setError([TextOutOfLine]);
