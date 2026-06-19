@@ -189,6 +189,8 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
     groupWidths= []
     groupLengths = []
     groupHeights = []
+    groupHeightsOverlapped = []
+    groupAngles = []
     groupRealVolume = []
 
     bolume = []
@@ -355,14 +357,16 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
         objWidth= []
         objLength = []
         objHeight = []
+        objHeightOverlapped = []
+        objAngle = []
         realVolume = 0
         
         for i, obj in enumerate(allObjPtsM):
+            height_meters_overlappedObject = 0
             allObjPtsM = [numpy.array(obj, dtype=numpy.float32) for obj in allObjPtsM]
             rect_m = cv2.minAreaRect(allObjPtsM[i])
             width_meters, length_meters = rect_m[1]
-            if width_meters > length_meters:
-                width_meters, length_meters = length_meters, width_meters
+            angle = rect_m[2]
 
             pts_flat_h = allObjPtsM[i].reshape(-1, 2)
             mask_h = numpy.zeros(calibrationDepthFrame_copy.shape, dtype=numpy.uint8)
@@ -379,6 +383,9 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
                     if isInside(allObjPtsM[i], allObjPtsM[j]):
                         print("Inside")
                         height_meters = (depths[j] - depths[i]) / 1000
+                        height_meters_overlappedObject = ((ws_d_h - depths[i]) / 1000) - height_meters
+                        print("Height", height_meters)
+                        print("Bottom Lvl", height_meters_overlappedObject)
                         break
 
             if i != 0:
@@ -398,14 +405,18 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
             objWidth.append(width_meters)
             objLength.append(length_meters)
             objHeight.append(height_meters)
+            objHeightOverlapped.append(height_meters_overlappedObject)
+            objAngle.append(angle)
         
         groupWidths.append(objWidth)
         groupLengths.append(objLength)
         groupHeights.append(objHeight)
+        groupHeightsOverlapped.append(objHeightOverlapped)
+        groupAngles.append(objAngle)
         groupRealVolume.append(realVolume)
         
     cv2.imwrite("Centers.png", colorToDepthFrameX)
-
+    print(groupHeightsOverlapped)
     print("------------------------------")
     uidth = groupWidths
     ength = groupLengths
@@ -418,7 +429,7 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
     length_meters = ength
     height_meters = eight
 
-    return volume, width_meters, length_meters, height_meters, allObjCenter
+    return volume, width_meters, length_meters, height_meters, allObjCenter, groupAngles, groupHeightsOverlapped
 
 def volumeIndividualAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits, depths, fx_d, fy_d, cx_d, cy_d): 
     MIN_OBJ_HEIGHT_MM = 30

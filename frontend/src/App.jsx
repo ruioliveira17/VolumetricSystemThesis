@@ -64,6 +64,8 @@ function App() {
 
   const [volInfo, setVolInfo] = useState(null);
   const [objCenters, setObjCenters] = useState([]);
+  const [objAngles, setObjAngles] = useState([]);
+  const [objOverlappedHeights, setOverlappedObjHeights] = useState([]);
   const [objectImage, setObjectImage] = useState(null);
 
   const [objectList, setObjectList] = useState([]);
@@ -96,7 +98,7 @@ function App() {
   const dragging = useRef(false);
   const lastX = useRef(0);
 
-  const [volBundleMode, setVolBundleMode] = useState(true);
+  const [volBundleMode, setVolBundleMode] = useState(false);
   const [calibrationMode, setCalibrationMode] = useState("auto");
 
   const isDragging = useRef(false);
@@ -105,6 +107,23 @@ function App() {
   const [lockMenu, setLockMenu] = useState(false);
 
   const [countdown, setCountdown] = useState(null);
+
+  const [showCamera, setShowCamera] = useState(true);
+
+  useEffect(() => {
+    if (!showCamera) return;
+
+    if (cameraVideo.current && pc.current?.getReceivers) {
+      const receivers = pc.current.getReceivers();
+      const stream = new MediaStream();
+
+      receivers.forEach(r => {
+        if (r.track) stream.addTrack(r.track);
+      });
+
+      cameraVideo.current.srcObject = stream;
+    }
+  }, [showCamera]);
 
   useEffect(() => {
     console.log(API_URL);
@@ -159,19 +178,23 @@ function App() {
 
       if (config_data.configured) {
         if (config_data.expositionMode === "HDR") {
-          await handleExpHDR_toggle({ target: { value: "true" } });
-        } else if (config_data.expositionMode === "Fixed") {
-          await handleExpHDR_toggle({ target: { value: "false" } });
+          setExpHDR(true);
+        } else if (config_data.expositionMode === "Fixed Exposition") {
+          setExpHDR(false);
         }
 
         if (config_data.volumeMode === "Single Bundle") {
           setVolumeMode("single_bundle");
+          setVolBundleMode(true);
         } else if (config_data.volumeMode === "Multi Bundle") {
           setVolumeMode("multi_bundle");
+          setVolBundleMode(false);
         } else if (config_data.volumeMode === "Real") {
           setVolumeMode("real");
+          setVolBundleMode(false);
         } else if (config_data.volumeMode === "Individual") {
           setVolumeMode("individual");
+          setVolBundleMode(false);
         }
       }
 
@@ -431,6 +454,7 @@ function App() {
       const blob = await imgResp.blob();
       const url = URL.createObjectURL(blob);
       setObjectImage(url);
+      setShowCamera(false);
       //document.getElementById("object-img").removeAttribute("hidden");
 
     } catch (error) {
@@ -457,6 +481,8 @@ function App() {
     });
 
     setObjCenters(objData.obj_center ?? []);
+    setObjAngles(objData.obj_angles ?? []);
+    setOverlappedObjHeights(objData.obj_overlappedHeights ?? []);
   }, [selectedObject, multipleVolumeData]);
 
   async function volumeMultiBundle(access_token) {
@@ -482,6 +508,7 @@ function App() {
       const blob = await imgResp.blob();
       const url = URL.createObjectURL(blob);
       setObjectImage(url);
+      setShowCamera(false);
       //document.getElementById("object-img").removeAttribute("hidden");
 
       const objIdentified = Object.keys(volumeData).filter(key => key !== "Total");
@@ -538,6 +565,7 @@ function App() {
       const blob = await imgResp.blob();
       const url = URL.createObjectURL(blob);
       setObjectImage(url);
+      setShowCamera(false);
       //document.getElementById("object-img").removeAttribute("hidden");
 
       const objIdentified = Object.keys(volumeData).filter(key => key !== "Total");
@@ -548,6 +576,8 @@ function App() {
         const objData = volumeData[key];
 
         setObjCenters(objData.obj_center ?? []);
+        setObjAngles(objData.obj_angles ?? []);
+        setOverlappedObjHeights(objData.obj_overlappedHeights ?? []);
 
         setSelectedObject(key);
 
@@ -596,6 +626,7 @@ function App() {
       const blob = await imgResp.blob();
       const url = URL.createObjectURL(blob);
       setObjectImage(url);
+      setShowCamera(false);
       //document.getElementById("object-img").removeAttribute("hidden");
 
       const objIdentified = Object.keys(volumeData).filter(key => key !== "Total");
@@ -752,19 +783,22 @@ function App() {
           })).reverse()
         : [volInfo];
 
+      //console.log("Obj Centers", objCenters)
       const centers = volumeMode === "real"
         ? objCenters.slice().reverse()
         : objCenters;
 
-      //console.log(objCenters)
-      //console.log(centers)
+      const angles = volumeMode === "real"
+        ? objAngles.slice().reverse()
+        : objAngles;
+
+      const overlappedHeights = volumeMode === "real"
+        ? objOverlappedHeights.slice().reverse()
+        : objOverlappedHeights;
 
       const maxWidth = Math.max(...boxes.map(b => b.width));
       const maxLength = Math.max(...boxes.map(b => b.length));
       const totalHeight = boxes.reduce((sum, b) => sum + b.height, 0);
-      //console.log(maxWidth);
-      //console.log(maxLength);
-      //console.log(totalHeight);
 
       const maxDim = Math.max(maxWidth, maxLength, totalHeight);
 
@@ -776,13 +810,14 @@ function App() {
       const cy = H / 2;
 
       const rotCenter = centers[0] ?? [0, 0];
-      const pivot_cy = rotCenter[0] / maxDim
-      const pivot_cx = rotCenter[1] / maxDim
+      const pivot_cx = rotCenter[0] / maxDim
+      const pivot_cy = rotCenter[1] / maxDim
 
-      let accumulatedHeight = -totalHeight / 2;
+      let baseHeight = -totalHeight / 2;
 
       boxes.forEach((box, i) => {
-        const [center_y, center_x] = centers[i] ?? [0, 0];
+        let bottom, top
+        const [center_x, center_y] = centers[i] ?? [0, 0];
         //console.log(center_x, center_y);
 
         const w = box.width;
@@ -795,19 +830,54 @@ function App() {
         const hw = nw / 2;
         const hd = nd / 2;
 
-        const bottom = accumulatedHeight / maxDim;
-        const top = (accumulatedHeight + h) / maxDim;
+        const angle = (angles[i] ?? 0) * Math.PI / 180;
+
+        const ca = Math.cos(angle);
+        const sa = Math.sin(angle);
+
+        const rotate = (x,y) => ({
+          x: x * ca - y * sa,
+          y: x * sa + y * ca,
+        });
+
+        const bottomHeight = overlappedHeights[i] ?? 0;
+        if (i === 0 || bottomHeight === 0){
+          bottom = baseHeight / maxDim;
+          top = (baseHeight + h) / maxDim;
+        } else{
+          bottom = (baseHeight + bottomHeight * 100) / maxDim;
+          top = (baseHeight + bottomHeight * 100 + h) / maxDim;
+        }
+
+        console.log("OverlappedHeights", overlappedHeights)
+        console.log("BottomHeight", bottomHeight * 100);
+        console.log("Bottom", bottom);
+        console.log("Top", top);
+        console.log("BaseHeight", baseHeight);
+
+        const p0 = rotate(-hw, -hd);
+        const p1 = rotate(hw, -hd);
+        const p2 = rotate(hw, hd);
+        const p3 = rotate(-hw, hd);
+        
+        const center = rotate(
+          (center_x / maxDim) - pivot_cx,
+          (center_y / maxDim) - pivot_cy
+        );
+
+        const offX = center.x;
+        const offY = center.y;
 
         const v = [
-          project(-hw + (center_x / maxDim) - pivot_cx, -hd - (center_y / maxDim) + pivot_cy, bottom, cx , cy, scale),
-          project(hw + (center_x / maxDim) - pivot_cx, -hd - (center_y / maxDim) + pivot_cy, bottom, cx, cy, scale),
-          project(hw + (center_x / maxDim) - pivot_cx, hd - (center_y / maxDim) + pivot_cy, bottom, cx, cy, scale),
-          project(-hw + (center_x / maxDim) - pivot_cx, hd - (center_y / maxDim) + pivot_cy, bottom, cx, cy, scale),
+          project(p0.x + offX, p0.y + offY, bottom, cx , cy, scale),
+          project(p1.x + offX, p1.y + offY, bottom, cx, cy, scale),
+          project(p2.x + offX, p2.y + offY, bottom, cx, cy, scale),
+          project(p3.x + offX, p3.y + offY, bottom, cx, cy, scale),
 
-          project(-hw + (center_x / maxDim) - pivot_cx, -hd - (center_y / maxDim) + pivot_cy, top, cx, cy, scale),
-          project(hw + (center_x / maxDim) - pivot_cx, -hd - (center_y / maxDim) + pivot_cy, top, cx, cy, scale),
-          project(hw + (center_x / maxDim) - pivot_cx, hd - (center_y / maxDim) + pivot_cy, top, cx, cy, scale),
-          project(-hw + (center_x / maxDim) - pivot_cx, hd - (center_y / maxDim) + pivot_cy, top, cx, cy, scale),
+          project(p0.x + offX, p0.y + offY, top, cx, cy, scale),
+          project(p1.x + offX, p1.y + offY, top, cx, cy, scale),
+          project(p2.x + offX, p2.y + offY, top, cx, cy, scale),
+          project(p3.x + offX, p3.y + offY, top, cx, cy, scale),
         ];
 
         const X = "#6CD08A"; // width
@@ -872,7 +942,7 @@ function App() {
           }*/}
         });
 
-        accumulatedHeight += h;
+        //accumulatedHeight += h;
       
       });
     };
@@ -925,11 +995,14 @@ function App() {
     } else {
         await fetch(`${API_URL}/exposition/mode/fixed`, { method: "POST", headers: { "Authorization": `Bearer ${access_token}`} });
     }
+
+    await fetch(`${API_URL}/saveInfo`, {method: "POST", headers: { "Authorization": `Bearer ${access_token}` } });
   }
 
   async function handleVolumeMode(e) {
     const mode = e.target.value;
     setVolumeMode(mode);
+    setShowCamera(true);
     setObjectImage(null);
     setObjectList([]);
     setSelectedObject("");
@@ -957,6 +1030,8 @@ function App() {
           setVolBundleMode(false);
           break;
     }
+
+    await fetch(`${API_URL}/saveInfo`, {method: "POST", headers: { "Authorization": `Bearer ${access_token}` } });
   }
 
   async function handleStaticDynamic_toggle(e) {
@@ -1011,6 +1086,8 @@ function App() {
             },
             body: JSON.stringify({ exposureTime: value })
         });
+
+        await fetch(`${API_URL}/saveInfo`, {method: "POST", headers: { "Authorization": `Bearer ${access_token}` } });
 
         setError([TextExposureUpdateSuccessfull]);
     } catch (error) {
@@ -1620,9 +1697,18 @@ function App() {
 
     pc.current.addTransceiver('video', { direction: 'recvonly' });
 
-    pc.current.ontrack = (event) => {
+    pc.current.ontrack = async (event) => {
       if (cameraVideo.current) {
         cameraVideo.current.srcObject = event.streams[0];
+
+        cameraVideo.current.muted = true;
+
+        try {
+          await cameraVideo.current.play();
+        } catch (e) {
+          console.log("PLAY ERROR:", e);
+        }
+
       }
     };
 
@@ -1851,22 +1937,33 @@ function App() {
               <div className="menu-info">Calculates the volume of objects on the platform</div>
             </div>
 
-            {/* Video */}
-            <div className="camera-video-wrapper">
-              <video
-                ref={cameraVideo}
-                autoPlay
-                playsInline
-                className="camera-video"
-              />
-            </div>
-
-            {/* Image */}
-            {objectImage && (
+            {/* Video & Image */}
+            <div className="camera-container">
               <div className="camera-video-wrapper">
-                <img className="object-img" src={objectImage} alt="objects"/>
+                {showCamera ? (
+                  <div>
+                    <video
+                      ref={cameraVideo}
+                      autoPlay
+                      playsInline
+                      className="camera-video"
+                    />
+                  </div>
+                ) : (
+                  objectImage && (
+                    <div>
+                      <img className="object-img" src={objectImage} alt="objects"/>
+                    </div>
+                  )
+                )}
               </div>
-            )}
+
+              <div className="switch-button-wrapper">
+                {objectImage && (
+                  <button onClick={() => setShowCamera(prev => !prev)} className="switch-button"></button>
+                )}
+              </div>
+            </div>
 
             {volBundleMode && (
               <>

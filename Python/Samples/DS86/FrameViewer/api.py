@@ -113,7 +113,7 @@ def object_processing():
             depthState.minimum_depth = depthState.objects_info[0]["depth"]
             depthState.minimum_value = depthState.minimum_depth
 
-            print("New Min Value", depthState.minimum_value)
+            #print("New Min Value", depthState.minimum_value)
 
         time.sleep(0.01)
 
@@ -313,7 +313,6 @@ async def lifespan(app: FastAPI):
         )
         pcs.clear()
 
-        save_configuration()
         stop_ObjProcessing()
         stopCamera()
 
@@ -1156,7 +1155,6 @@ def debugOn(current_user: dict = Depends(require_admin)):
     return {"Debug Mode:": modeState.debugMode}
 
 #------------------------------------------------------- Volume -------------------------------------------------------
-
 @app.post("/menu/volume/open")
 def open_volume_menu():
     global objProcessing_thread
@@ -1413,7 +1411,7 @@ def volume_Real(current_user: dict = Depends(get_current_user)):
         t2 = time.perf_counter()
         print("objIdentifier:", (t2 - t0) * 1000, "ms")
         if volumeState.box_limits is not None and len(volumeState.box_limits) > 0:
-            volumeState.volume, volumeState.width_meters, volumeState.length_meters, volumeState.height_meters, volumeState.obj_center = volumeRealAPI(depthFrame, frameState.calibrationDepthFrame, workspaceState.workspace_depth, volumeState.box_limits, volumeState.depths, camState.fx_d, camState.fy_d, camState.cx_d, camState.cy_d)
+            volumeState.volume, volumeState.width_meters, volumeState.length_meters, volumeState.height_meters, volumeState.obj_center, volumeState.obj_angles, volumeState.objOverlappedHeights = volumeRealAPI(depthFrame, frameState.calibrationDepthFrame, workspaceState.workspace_depth, volumeState.box_limits, volumeState.depths, camState.fx_d, camState.fy_d, camState.cx_d, camState.cy_d)
             t3 = time.perf_counter()
             print("volumeRealAPI:", (t3 - t2) * 1000, "ms")
         else:
@@ -1444,7 +1442,9 @@ def volume_Real(current_user: dict = Depends(get_current_user)):
         "height": volumeState.height_meters,
         "depth": depthState.minimum_depth / 10,
         "ws_depth": workspaceState.workspace_depth / 10,
-        "objCenter": volumeState.obj_center
+        "objCenter": volumeState.obj_center,
+        "objAngles": volumeState.obj_angles,
+        "objOverlappedHeights" : volumeState.objOverlappedHeights
     }
 
 @app.get("/volume/real/results", summary="Gets the Real Volume Algorithm Results",
@@ -1460,6 +1460,8 @@ def get_Volume_Real(current_user: dict = Depends(get_current_user)):
     lengths = volumeState.length_meters if isinstance(volumeState.length_meters, list) else [volumeState.length_meters]
     heights = volumeState.height_meters if isinstance(volumeState.height_meters, list) else [volumeState.height_meters]
     obj_center = volumeState.obj_center if isinstance(volumeState.obj_center, list) else [volumeState.obj_center]
+    obj_angles = volumeState.obj_angles if isinstance(volumeState.obj_angles, list) else [volumeState.obj_angles]
+    obj_overlappedHeights = volumeState.objOverlappedHeights if isinstance(volumeState.objOverlappedHeights, list) else [volumeState.objOverlappedHeights]
 
     num_objects = min(
         len(volumes),
@@ -1472,10 +1474,12 @@ def get_Volume_Real(current_user: dict = Depends(get_current_user)):
         response[f"{i+1}"] = {
             "volume_m": round(float(volumes[i]), 6),
             "volume_cm": round(float(volumes[i] * 1000000), 2),
-            "x": [round(float(v), 1) for v in widths[i]],
-            "y": [round(float(v), 1) for v in lengths[i]],
-            "z": [round(float(v), 1) for v in heights[i]],
+            "x": [round(float(w), 1) for w in widths[i]],
+            "y": [round(float(l), 1) for l in lengths[i]],
+            "z": [round(float(h), 1) for h in heights[i]],
             "obj_center": [[round(float(x), 3), round(float(y), 3)] for (x, y) in obj_center[i]],
+            "obj_angles":  [round(float(a), 1) for a in obj_angles[i]],
+            "obj_overlappedHeights": [round(float(oh), 3) for oh in obj_overlappedHeights[i]]
         }
 
     response["Total"] = {
@@ -1703,3 +1707,8 @@ def get_configuration_status(current_user: dict = Depends(get_current_user)):
 
     except:
         return {"configured": False}
+    
+@app.post("/saveInfo")
+def save_state():
+    save_configuration()
+    return {"ok": True}
