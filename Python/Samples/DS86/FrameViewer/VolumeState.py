@@ -12,5 +12,6 @@ class VolumeState:
         self.obj_angles = 0
         self.volume = 0
         self.objects_outOfLine = None
+        self.countdown = 3
 
 volumeState = VolumeState()

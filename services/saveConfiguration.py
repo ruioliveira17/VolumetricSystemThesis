@@ -4,6 +4,7 @@ import json
 from CameraState import camState
 from FilterState import filterState
 from ModeState import modeState
+from VolumeState import volumeState
 
 def save_configuration():
     data = {
@@ -17,6 +18,7 @@ def save_configuration():
         "fillHoleFilter":    bool(filterState.fillHoleFilter)    if filterState.fillHoleFilter    is not None else True,
         "spatialFilter":     bool(filterState.spatialFilter)     if filterState.spatialFilter     is not None else True,
         "confidenceFilter":  bool(filterState.confidenceFilter)  if filterState.confidenceFilter  is not None else False,
+        "countdown":         volumeState.countdown,
     }
 
     os.makedirs("config", exist_ok=True)

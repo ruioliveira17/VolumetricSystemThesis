@@ -233,6 +233,7 @@ class SystemUpdate(BaseModel):
     spatialFilter: Optional[StrictBool] = None
     confidenceFilter: Optional[StrictBool] = None 
     fps: Optional[int] = Field(None, ge=1, le=15)
+    countdown: Optional[int] = Field(None, ge=0, le=10)
 
 load_dotenv()
 ADMIN_REGISTER_CODE = os.environ.get("ADMIN_REGISTER_CODE")
@@ -290,6 +291,7 @@ async def lifespan(app: FastAPI):
             camState.fillHoleFilter = config["fillHoleFilter"]
             camState.spatialFilter = config["spatialFilter"]
             camState.confidenceFilter = config["confidenceFilter"]
+            volumeState.countdown = config["countdown"]
             
             print("Last configurations loaded!")
 
@@ -1397,15 +1399,6 @@ def volume_Real(current_user: dict = Depends(get_current_user)):
     else:
         depthFrame = frameState.depthFrameHDR
 
-    #depthState.not_set, depthState.objects_info = MinDepthAPI(depthFrame, workspaceState.detection_area, workspaceState.workspace_warning, workspaceState.workspace_depth, depthState.threshold, depthState.not_set, camState.cx_d, camState.cy_d, camState.fx_d, camState.fy_d)
-
-    #if depthState.objects_info is not None and len(depthState.objects_info) != 0:
-    #    depthState.minimum_depth = depthState.objects_info[0]["depth"]
-    #    depthState.minimum_value = depthState.minimum_depth
-
-    #    print("New Min Value", depthState.minimum_value)
-    print("Alo?")    
-
     if depthState.not_set == 0:
         depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine = objIdentifier(colorFrame, colorToDepthFrame, depthFrame, frameState.calibrationColorFrame, frameState.calibrationDepthFrame, modeState.volumeMode, depthState.objects_info, workspaceState.workspace_depth, depthState.threshold, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb, camState.fx_d, camState.fy_d, camState.fx_rgb, camState.fy_rgb)
         t2 = time.perf_counter()
@@ -1447,12 +1440,7 @@ def volume_Real(current_user: dict = Depends(get_current_user)):
         "objOverlappedHeights" : volumeState.objOverlappedHeights
     }
 
-@app.get("/volume/real/results", summary="Gets the Real Volume Algorithm Results",
-         description="""
-         Gets the results of the real volume algorithm.
-         """,
-         tags=["Volume"])
-def get_Volume_Real(current_user: dict = Depends(get_current_user)):
+def buildVolumeRealResponse():
     response = {}
 
     volumes = volumeState.volume if isinstance(volumeState.volume, list) else [volumeState.volume]
@@ -1488,6 +1476,14 @@ def get_Volume_Real(current_user: dict = Depends(get_current_user)):
     }
     
     return response
+
+@app.get("/volume/real/results", summary="Gets the Real Volume Algorithm Results",
+         description="""
+         Gets the results of the real volume algorithm.
+         """,
+         tags=["Volume"])
+def get_Volume_Real(current_user: dict = Depends(get_current_user)):
+    return buildVolumeRealResponse()
 
 @app.post("/volume/individual", summary="Starts the Individual Volume Algorithm",
          description="""
@@ -1682,6 +1678,9 @@ def update_systemInfo(info: SystemUpdate, current_user: dict = Depends(require_a
         camState.fps = info.fps
         setFPS(info.fps)
 
+    if info.countdown is not None:
+        volumeState.countdown = info.countdown
+
     return {"status": "updated"}
 
 # --------------------------------------- Config Status ---------------------------------------
@@ -1712,3 +1711,13 @@ def get_configuration_status(current_user: dict = Depends(get_current_user)):
 def save_state():
     save_configuration()
     return {"ok": True}
+
+@app.get("/countdown/value", summary="Retrieves the value of the countdown timer",
+         description="""
+         Obtains the value of the countdown timer. 
+         """,
+         tags=["Configuration"])
+def get_countdownTimer(current_user: dict = Depends(get_current_user)):
+    return{
+        "countdown": volumeState.countdown,
+    }

@@ -194,9 +194,7 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
             binary = cv2.morphologyEx(binary, cv2.MORPH_CLOSE, element_close)
 
             contour, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-            
-            shifted_contours_sorted = sorted(contour, key=lambda x: len(x), reverse=True)
-            
+
             for j, c in enumerate(contour):
                 colorToDepth_copy4 = colorToDepthFrame.copy()
                 
@@ -210,14 +208,10 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
 
             print("Depth:", obj["depth"])
             print("-------------------------------------------------------------------")
+            
+            shifted_contours_sorted = sorted(contour, key=lambda x: len(x), reverse=True)
 
             for c in shifted_contours_sorted:
-
-                #rgb_c = get_rgb_contour(colorToDepthFrame, c, mask2)
-                #best_c, source = pick_best_contour(c, rgb_c, similarity_threshold=0.3)  
-
-                #c = best_c
-
                 belongs_to_previous = False
                 rect = cv2.minAreaRect(c)
                 box = cv2.boxPoints(rect)
@@ -362,6 +356,21 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
 
             print("-------------------------------------------------------------------")    
 
+    contours_to_process = []
+
+    for cont in contours:
+        if is_suspect_blob(cont[0], colorToDepthFrame):
+            split_masks = split_contours(cont[0])
+
+            for c in split_masks:
+                c = numpy.array(c, dtype=numpy.int32).reshape((-1, 1, 2))
+                contours_to_process.append(c)
+                depths.append(depths[-1])
+        else:
+            contours_to_process.append(cont)
+
+    #contours = contours_to_process
+
     if volumeMode == "Single Bundle":
         box_limits = [c for contour_list in contours for c in contour_list if c.size > 0]
 
@@ -379,6 +388,7 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
             cv2.drawContours(colorToDepth_copy2, [box_scaled], 0, (0, 0, 0), 16)
             cv2.drawContours(colorToDepth_copy2, [box_scaled], 0, (255, 255, 0), 8)
             #cv2.drawContours(colorToDepth_copy, [box], 0,  (0, 255, 0), 2)
+
     elif volumeMode == "Real" or volumeMode == "Multi Bundle":
         all_contours = [c for contour_list in contours for c in contour_list if c.size > 0]
 
@@ -459,7 +469,6 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
                 cv2.putText(colorToDepth_copy2, str(obj_id), (x + 15, y + 40), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 0), 14, cv2.LINE_AA)
                 cv2.putText(colorToDepth_copy2, str(obj_id), (x + 15, y + 40), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (255, 255, 255), 7, cv2.LINE_AA)
             
-
     colorToDepth_copy2 = cv2.resize(colorToDepth_copy2, (640, 480))
     frameState.detectedObjectsFrame = colorToDepth_copy2
     cv2.imwrite("Objects.png", colorToDepth_copy3)
@@ -472,63 +481,136 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
                     
     return minimum_value, not_set, box_ws, box_limits, depths, object_outOfLine
 
-###############################################
-def get_rgb_contour(colorToDepthFrame, depth_contour, depth_mask):
-    """
-    Extrai contornos da imagem RGB dentro da região do contorno de profundidade.
-    """
-    # Criar máscara a partir do contorno de profundidade (zona de interesse)
-    roi_mask = numpy.zeros(colorToDepthFrame.shape[:2], dtype=numpy.uint8)
-    cv2.drawContours(roi_mask, [depth_contour], -1, 255, thickness=cv2.FILLED)
+######################
+def is_suspect_blob(c, ctd):
+    image = ctd.copy()
 
-    # Dilatar ligeiramente para não cortar bordas
-    roi_mask = cv2.dilate(roi_mask, numpy.ones((15, 15), numpy.uint8))
+    perimeter = cv2.arcLength(c, True)
+    approx = cv2.approxPolyDP(c, 0.02 * perimeter, True)
 
-    # Aplicar a máscara à imagem RGB
-    roi_rgb = cv2.bitwise_and(colorToDepthFrame, colorToDepthFrame, mask=roi_mask)
+    pts = approx.reshape(-1, 2)
 
-    # Converter para escala de cinza e aplicar Canny
-    gray = cv2.cvtColor(roi_rgb, cv2.COLOR_BGR2GRAY)
-    blurred = cv2.GaussianBlur(gray, (5, 5), 0)
-    edges = cv2.Canny(blurred, threshold1=30, threshold2=80)
+    for x, y in pts:
+        cv2.circle(image, (x, y), 5, (0, 0, 255), -1)
 
-    # Fechar lacunas nos contornos
-    edges = cv2.morphologyEx(edges, cv2.MORPH_CLOSE, numpy.ones((5, 5), numpy.uint8))
+    cv2.drawContours(image, [approx], -1, (0,255,0), 2)
+    cv2.imwrite("Approx.png", image)
 
-    rgb_contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    return len(approx) > 4
 
-    if not rgb_contours:
-        return None
+def split_contours(c):
+    points_to_analize = []
+    contour = []
+    possibleContour = []
+    perimeter = cv2.arcLength(c, True)
+    approx = cv2.approxPolyDP(c, 0.02 * perimeter, True)
 
-    # Devolver o maior contorno encontrado
-    return max(rgb_contours, key=cv2.contourArea)
+    pts = approx.reshape(-1, 2).tolist()
 
-def contour_similarity(c1, c2):
-    """
-    Compara dois contornos usando Shape Matching (Hu Moments).
-    Valor próximo de 0 = muito semelhantes.
-    """
-    score = cv2.matchShapes(c1, c2, cv2.CONTOURS_MATCH_I2, 0.0)
-    return score
+    points_to_analize = pts.copy()
+    remaining = points_to_analize.copy()
 
-def pick_best_contour(depth_contour, rgb_contour, similarity_threshold=0.3):
-    """
-    Decide qual contorno usar com base na semelhança e área.
-    """
-    if rgb_contour is None:
-        return depth_contour, "depth"
+    while len(points_to_analize) > 0:
+        if len(possibleContour) == 0:
+            possibleContour.append(remaining[0])
+            remaining.pop(0)
+        else:
+            if len(possibleContour) == 1 or len(possibleContour) == 3:
+                point = same_x(possibleContour[-1], remaining)
+                possibleContour.append(point)
+                remaining.remove(point)
+            if len(possibleContour) == 2:
+                point = same_y(possibleContour[-1], remaining)
+                possibleContour.append(point)
+                remaining.remove(point)
 
-    similarity = contour_similarity(depth_contour, rgb_contour)
-    print(f"Shape similarity score: {similarity:.4f}")
+        if len(possibleContour) == 4:
+            if abs(possibleContour[-1][1] - possibleContour[0][1]) <= 10:
+                contour.append(possibleContour.copy())
+                points_to_analize.remove(possibleContour[0])
+                points_to_analize.remove(possibleContour[1])
+                points_to_analize.remove(possibleContour[2])
+                points_to_analize.remove(possibleContour[3])
+                possibleContour.clear()
+            else:
+                if possibleContour[2][1] > possibleContour[-1][1]:
+                    tempContour = []
+                    if possibleContour[0][1] > possibleContour[-1][1]:
+                        x = possibleContour[2][0]
+                        y = possibleContour[0][1]
+                        VP = [x, y]
+                        tempContour.append(possibleContour[0])
+                        tempContour.append(possibleContour[1])
+                        tempContour.append(possibleContour[2])
+                        tempContour.append(VP)
+                        contour.append(tempContour.copy())
+                    
+                        points_to_analize.remove(possibleContour[0])
+                        points_to_analize.remove(possibleContour[1])
+                        points_to_analize.remove(possibleContour[2])
+                        points_to_analize.append(VP)
 
-    area_depth = cv2.contourArea(depth_contour)
-    area_rgb   = cv2.contourArea(rgb_contour)
-    area_ratio = min(area_depth, area_rgb) / max(area_depth, area_rgb) if max(area_depth, area_rgb) > 0 else 0
+                    else:
+                        x = possibleContour[1][0]
+                        y = possibleContour[-1][1]
+                        VP = [x, y]
+                        tempContour.append(possibleContour[1])
+                        tempContour.append(possibleContour[2])
+                        tempContour.append(possibleContour[3])
+                        tempContour.append(VP)
+                        contour.append(tempContour.copy())
 
-    if similarity > similarity_threshold or area_ratio < 0.5:
-        # Contornos muito diferentes — RGB tem mais detalhe de textura, preferir RGB
-        print("Contornos divergem — usando RGB")
-        return rgb_contour, "rgb"
-    else:
-        print("Contornos consistentes — usando Depth")
-        return depth_contour, "depth"
+                        points_to_analize.remove(possibleContour[1])
+                        points_to_analize.remove(possibleContour[2])
+                        points_to_analize.remove(possibleContour[3])
+                        points_to_analize.append(VP)
+
+                    possibleContour.clear()
+                else:
+                    tempFirst = possibleContour[2]
+                    possibleContour.clear()
+                    possibleContour.append(tempFirst)
+
+            remaining = points_to_analize.copy()
+
+    return contour
+
+def same_x(ref, remaining, tolerance = 10):
+    rx, ry = ref
+
+    best = None
+    best_dist = float("inf")
+
+    for p in remaining:
+        if numpy.array_equal(p, ref):
+            continue
+
+        x, y = p
+
+        if abs(x - rx) <= tolerance:
+            d = abs(x - rx)
+            if d < best_dist:
+                best = p
+                best_dist = d
+            
+    return best
+
+def same_y(ref, remaining, tolerance = 10):
+    rx, ry = ref
+
+    best = None
+    best_dist = float("inf")
+
+    for p in remaining:
+        if numpy.array_equal(p, ref):
+            continue
+
+        x, y = p
+
+        if abs(y - ry) <= tolerance:
+            d = abs(y - ry)
+            if d < best_dist:
+                best = p
+                best_dist = d
+            
+    return best

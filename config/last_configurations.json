@@ -8,5 +8,6 @@
     "flyingPixelFilter": true,
     "fillHoleFilter": true,
     "spatialFilter": true,
-    "confidenceFilter": false
+    "confidenceFilter": false,
+    "countdown": 3
 }

@@ -35,6 +35,10 @@ function App() {
   const TextExposureValues = "Exposure Time value must be between 100 and 4000";
   const TextExposureUpdateSuccessfull = "Exposure Time updated successfully";
 
+  const TextCountdownCaracters = "Only integer values are allowed for the Countdown Timer";
+  const TextCountdownValues = "Countdown Timer value must be between 0 and 10";
+  const TextCountdownUpdateSuccessfull = "Countdown Timer updated successfully";
+
   const [currentMenu, setCurrentMenu] = useState("login");
 
   const detectionArea = useRef([0, 0, 0, 0]);
@@ -106,6 +110,7 @@ function App() {
 
   const [lockMenu, setLockMenu] = useState(false);
 
+  const [countdownTimer, setCountdownTimer] = useState("");
   const [countdown, setCountdown] = useState(null);
 
   const [showCamera, setShowCamera] = useState(true);
@@ -388,6 +393,7 @@ function App() {
         setVolInfo(null);
         setVolumeData(null);
         setObjectImage(null);
+        setShowCamera(true);
         refreshAccessToken();
         const access_token = localStorage.getItem("access_token");
 
@@ -397,7 +403,10 @@ function App() {
           throw new Error("Session expired");
         }
 
-        for (let i = 3; i > 0; i--) {
+        const countResp = await fetch(`${API_URL}/countdown/value`, {headers: { "Authorization": `Bearer ${access_token}`}});
+        const countData = await countResp.json();
+
+        for (let i = countData.countdown; i > 0; i--) {
           setCountdown(i);
           await new Promise(resolve => setTimeout(resolve, 1000));
         }
@@ -1092,6 +1101,39 @@ function App() {
         setError([TextExposureUpdateSuccessfull]);
     } catch (error) {
         console.error("Exposure set error:", error);
+    }
+  }
+
+  async function countdownTimerSet_click() {
+    const value = Number(countdownTimer);
+    
+    if (!Number.isInteger(value)) {
+        setError([TextCountdownCaracters]);
+        return;
+    }
+
+    if (value < 0 || value > 10) {
+        setError([TextCountdownValues]);
+        return;
+    }
+
+    try {
+        refreshAccessToken();
+        const access_token = localStorage.getItem("access_token");
+
+        await fetch(`${API_URL}/update_systemInfo`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json", "Authorization": `Bearer ${access_token}`
+            },
+            body: JSON.stringify({ countdown: value })
+        });
+
+        await fetch(`${API_URL}/saveInfo`, {method: "POST", headers: { "Authorization": `Bearer ${access_token}` } });
+
+        setError([TextCountdownUpdateSuccessfull]);
+    } catch (error) {
+        console.error("Countdown set error:", error);
     }
   }
 
@@ -2268,7 +2310,7 @@ function App() {
         </div>
       )}
 
-      {/* Calibration PopUp */}
+      {/* Settings PopUp */}
       {showSettingsPopup && (
         <>
           {/* Fundo Escuro */}
@@ -2307,7 +2349,7 @@ function App() {
                   )}
               </div>
 
-              {/* Bundle Mode */}
+              {/* Volume Mode */}
               <span className="text">Volume Mode</span>
               <div className="radio-group">
                 <label className="radio-option">
@@ -2331,6 +2373,20 @@ function App() {
                 </label>*/}
               </div>
 
+              {/* Countdown Value */}
+              <span className="text">Countdown Timer</span>
+              <div className="countdown-controls">
+                <input
+                  type="number"
+                  className="countdown-input"
+                  value={countdownTimer}
+                  onChange={(e) => setCountdownTimer(e.target.value)}
+                />
+
+                <button className="countdown-btn" onClick={countdownTimerSet_click}>
+                  <span className="text">Set</span>
+                </button>
+              </div>
             </div>
           </div>
         </>
