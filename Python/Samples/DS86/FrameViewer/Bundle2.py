@@ -132,8 +132,8 @@ def comparisonCaliImageCurrImage(colorFrame, calibrationColorFrame, depthFrame, 
 
 def overlap_ratio(b1, b2):
     inter, _ = cv2.intersectConvexConvex(
-        b1.astype(numpy.float32),
-        b2.astype(numpy.float32)
+        b1.astype(numpy.int32),
+        b2.astype(numpy.int32)
     )
 
     a1 = cv2.contourArea(b1)
@@ -143,6 +143,22 @@ def overlap_ratio(b1, b2):
         return 0
 
     return inter / min(a1, a2)
+
+def intersection_edge(b1, b2, ctd, kernel_size=3):
+    mask1 = numpy.zeros(ctd.shape, dtype=numpy.uint8)
+    mask2 = numpy.zeros(ctd.shape, dtype=numpy.uint8)
+
+    b1 = b1.astype(numpy.int32)
+    b2 = b2.astype(numpy.int32)
+
+    cv2.fillPoly(mask1, [b1], 255)
+    cv2.fillPoly(mask2, [b2], 255)
+    
+    kernel = numpy.ones((kernel_size, kernel_size), numpy.uint8)
+    mask1 = cv2.dilate(mask1, kernel)
+    mask2 = cv2.dilate(mask2, kernel)
+
+    return numpy.any(cv2.bitwise_and(mask1, mask2))
 
 def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFrame, calibrationDepthFrame, volumeMode, objects_info, workspace_depth, threshold, colorSlope, cx_d, cy_d, cx_rgb, cy_rgb, fx_d, fy_d, fx_rgb, fy_rgb):
     contours = []
@@ -222,10 +238,11 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
                 box_scaled = numpy.round(box_scaled).astype(numpy.int32)
                 print("Box_Scaled:", box_scaled)
                 if not comparisonCaliImageCurrImage(colorFrame, calibrationColorFrame, depthFrame, calibrationDepthFrame, box_scaled, c):
+                    print("Não passou no teste")
                     continue
 
                 if not is_valid_area(c):
-                    #print("Contornos Inválidos")
+                    print("Contornos Inválidos")
                     continue
 
                 bbox_c = get_bbox(c)
@@ -340,10 +357,6 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
 
                     print(f"Merged current {current_index} into previous {prev_index}")
 
-            print("Size Contours:", len(contours))
-            print("Size Depths:", len(depths))
-            print("Size BoxWS:", len(box_ws))
-            print("Size ObjOutOfLine:", len(object_outOfLine))
             shift = 0
             for idx in sorted(to_delete, reverse=True):
                 real_idx = idx - shift
@@ -352,24 +365,8 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
                 del box_ws[real_idx]
                 del object_outOfLine[real_idx]
                 shift += 1
-                print("Deleted idx:", real_idx)
 
             print("-------------------------------------------------------------------")    
-
-    contours_to_process = []
-
-    for cont in contours:
-        if is_suspect_blob(cont[0], colorToDepthFrame):
-            split_masks = split_contours(cont[0])
-
-            for c in split_masks:
-                c = numpy.array(c, dtype=numpy.int32).reshape((-1, 1, 2))
-                contours_to_process.append(c)
-                depths.append(depths[-1])
-        else:
-            contours_to_process.append(cont)
-
-    #contours = contours_to_process
 
     if volumeMode == "Single Bundle":
         box_limits = [c for contour_list in contours for c in contour_list if c.size > 0]
@@ -390,8 +387,30 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
             #cv2.drawContours(colorToDepth_copy, [box], 0,  (0, 255, 0), 2)
 
     elif volumeMode == "Real" or volumeMode == "Multi Bundle":
-        all_contours = [c for contour_list in contours for c in contour_list if c.size > 0]
+        # Separar objetos com a mesma profundidade :D
+        # if volumeMode == "Real":
+        #     contours_to_process = []
 
+        #     for cont in contours:
+        #         if is_suspect_blob(cont[0], colorToDepthFrame):
+        #             print("Inside")
+        #             split_masks = split_contours(cont[0])
+
+        #             if split_masks is not None:
+        #                 for c in split_masks:
+        #                     c = numpy.array(c, dtype=numpy.int32).reshape((-1, 1, 2))
+        #                     contours_to_process.append([c])
+        #                     depths.append(depths[-1])
+        #             else:
+        #                 contours_to_process.append(cont)
+        #         else:
+        #             print("Outside")
+        #             contours_to_process.append(cont)
+
+        #     contours = contours_to_process
+
+        all_contours = [c for contour_list in contours for c in contour_list if c.size > 0]
+        #print("All Contours", all_contours)
         groups = []
         used = set()
 
@@ -418,7 +437,7 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
                     box_i = cv2.boxPoints(cv2.minAreaRect(all_contours[idx]))
                     box_j = cv2.boxPoints(cv2.minAreaRect(all_contours[j]))
 
-                    if overlap_ratio(box_i, box_j) > OVERLAP_RATIO:
+                    if overlap_ratio(box_i, box_j) > OVERLAP_RATIO or intersection_edge(box_i, box_j, depthFrame):
                         stack.append(j)
 
             groups.append(group)
@@ -447,6 +466,22 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
             cv2.putText(colorToDepth_copy2, str(obj_id), (x + 15, y + 40), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (255, 255, 255), 7, cv2.LINE_AA)    
 
     elif volumeMode == "Individual":
+        contours_to_process = []
+
+        for cont in contours:
+            if is_suspect_blob(cont[0], colorToDepthFrame):
+                split_masks = split_contours(cont[0])
+
+                for c in split_masks:
+                    c = numpy.array(c, dtype=numpy.int32).reshape((-1, 1, 2))
+                    contours_to_process.append([c])
+                    depths.append(depths[-1])
+            else:
+                contours_to_process.append(cont)
+
+        if contours_to_process is not None:
+            contours = contours_to_process
+
         for obj_id, contour_list in enumerate(contours, start=1):
             for c in contour_list:
                 rect = cv2.minAreaRect(c)
@@ -510,107 +545,122 @@ def split_contours(c):
     points_to_analize = pts.copy()
     remaining = points_to_analize.copy()
 
-    while len(points_to_analize) > 0:
-        if len(possibleContour) == 0:
-            possibleContour.append(remaining[0])
-            remaining.pop(0)
-        else:
-            if len(possibleContour) == 1 or len(possibleContour) == 3:
-                point = same_x(possibleContour[-1], remaining)
-                possibleContour.append(point)
-                remaining.remove(point)
-            if len(possibleContour) == 2:
-                point = same_y(possibleContour[-1], remaining)
-                possibleContour.append(point)
-                remaining.remove(point)
-
-        if len(possibleContour) == 4:
-            if abs(possibleContour[-1][1] - possibleContour[0][1]) <= 10:
-                contour.append(possibleContour.copy())
-                points_to_analize.remove(possibleContour[0])
-                points_to_analize.remove(possibleContour[1])
-                points_to_analize.remove(possibleContour[2])
-                points_to_analize.remove(possibleContour[3])
-                possibleContour.clear()
+    if len(points_to_analize) > 4:
+        while len(points_to_analize) >= 4:
+            if len(possibleContour) == 0:
+                possibleContour.append(remaining[0])
+                remaining.pop(0)
             else:
-                if possibleContour[2][1] > possibleContour[-1][1]:
-                    tempContour = []
-                    if possibleContour[0][1] > possibleContour[-1][1]:
-                        x = possibleContour[2][0]
-                        y = possibleContour[0][1]
-                        VP = [x, y]
-                        tempContour.append(possibleContour[0])
-                        tempContour.append(possibleContour[1])
-                        tempContour.append(possibleContour[2])
-                        tempContour.append(VP)
-                        contour.append(tempContour.copy())
-                    
-                        points_to_analize.remove(possibleContour[0])
-                        points_to_analize.remove(possibleContour[1])
-                        points_to_analize.remove(possibleContour[2])
-                        points_to_analize.append(VP)
+                if len(possibleContour) == 1 or len(possibleContour) == 3:
+                    print("X")
+                    print("0/2 PossibleContour-1", possibleContour[-1])
+                    point = same_x(possibleContour[-1], remaining)
+                    if point is not None:
+                        possibleContour.append(point)
+                        if point in remaining:
+                            remaining.remove(point)
+                if len(possibleContour) == 2:
+                    print("Y")
+                    print("1 PossibleContour-1", possibleContour[-1])
+                    point = same_y(possibleContour[-1], remaining)
+                    if point is not None:
+                        possibleContour.append(point)
+                        if point in remaining:
+                            remaining.remove(point)
 
-                    else:
-                        x = possibleContour[1][0]
-                        y = possibleContour[-1][1]
-                        VP = [x, y]
-                        tempContour.append(possibleContour[1])
-                        tempContour.append(possibleContour[2])
-                        tempContour.append(possibleContour[3])
-                        tempContour.append(VP)
-                        contour.append(tempContour.copy())
-
-                        points_to_analize.remove(possibleContour[1])
-                        points_to_analize.remove(possibleContour[2])
-                        points_to_analize.remove(possibleContour[3])
-                        points_to_analize.append(VP)
-
+            if len(possibleContour) == 4:
+                print("3 PossibleContour-1", possibleContour[-1])
+                #print("Trying")
+                if abs(possibleContour[-1][1] - possibleContour[0][1]) <= 10:
+                    contour.append(possibleContour.copy())
+                    points_to_analize.remove(possibleContour[0])
+                    points_to_analize.remove(possibleContour[1])
+                    points_to_analize.remove(possibleContour[2])
+                    points_to_analize.remove(possibleContour[3])
                     possibleContour.clear()
                 else:
-                    tempFirst = possibleContour[2]
-                    possibleContour.clear()
-                    possibleContour.append(tempFirst)
+                    if possibleContour[2][1] > possibleContour[-1][1]:
+                        tempContour = []
+                        if possibleContour[0][1] > possibleContour[-1][1]:
+                            x = possibleContour[2][0]
+                            y = possibleContour[0][1]
+                            VP = [x, y]
+                            tempContour.append(possibleContour[0])
+                            tempContour.append(possibleContour[1])
+                            tempContour.append(possibleContour[2])
+                            tempContour.append(VP)
+                            contour.append(tempContour.copy())
+                        
+                            points_to_analize.remove(possibleContour[0])
+                            points_to_analize.remove(possibleContour[1])
+                            points_to_analize.remove(possibleContour[2])
+                            points_to_analize.append(VP)
 
-            remaining = points_to_analize.copy()
+                        else:
+                            x = possibleContour[1][0]
+                            y = possibleContour[-1][1]
+                            VP = [x, y]
+                            tempContour.append(possibleContour[1])
+                            tempContour.append(possibleContour[2])
+                            tempContour.append(possibleContour[3])
+                            tempContour.append(VP)
+                            contour.append(tempContour.copy())
+
+                            points_to_analize.remove(possibleContour[1])
+                            points_to_analize.remove(possibleContour[2])
+                            points_to_analize.remove(possibleContour[3])
+                            points_to_analize.append(VP)
+
+                        possibleContour.clear()
+                        print("Contorno Adicionado")
+                    else:
+                        tempFirst = possibleContour[2]
+                        possibleContour.clear()
+                        possibleContour.append(tempFirst)
+                        print("Temporary PossibleContour-1", possibleContour[-1])
+                        
+                remaining = points_to_analize.copy()
 
     return contour
 
 def same_x(ref, remaining, tolerance = 10):
-    rx, ry = ref
-
     best = None
     best_dist = float("inf")
 
-    for p in remaining:
-        if numpy.array_equal(p, ref):
-            continue
+    if ref is not None:
+        rx, ry = ref
 
-        x, y = p
+        for p in remaining:
+            if numpy.array_equal(p, ref):
+                continue
 
-        if abs(x - rx) <= tolerance:
-            d = abs(x - rx)
-            if d < best_dist:
-                best = p
-                best_dist = d
-            
+            x, y = p
+
+            if abs(x - rx) <= tolerance:
+                d = abs(x - rx)
+                if d < best_dist:
+                    best = p
+                    best_dist = d
+                
     return best
 
 def same_y(ref, remaining, tolerance = 10):
-    rx, ry = ref
-
     best = None
     best_dist = float("inf")
 
-    for p in remaining:
-        if numpy.array_equal(p, ref):
-            continue
+    if ref is not None:
+        rx, ry = ref
 
-        x, y = p
+        for p in remaining:
+            if numpy.array_equal(p, ref):
+                continue
 
-        if abs(y - ry) <= tolerance:
-            d = abs(y - ry)
-            if d < best_dist:
-                best = p
-                best_dist = d
-            
+            x, y = p
+
+            if abs(y - ry) <= tolerance:
+                d = abs(y - ry)
+                if d < best_dist:
+                    best = p
+                    best_dist = d
+                
     return best

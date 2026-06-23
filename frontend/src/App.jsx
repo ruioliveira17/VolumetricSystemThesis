@@ -827,7 +827,6 @@ function App() {
       boxes.forEach((box, i) => {
         let bottom, top
         const [center_x, center_y] = centers[i] ?? [0, 0];
-        //console.log(center_x, center_y);
 
         const w = box.width;
         const d = box.length;
@@ -840,6 +839,7 @@ function App() {
         const hd = nd / 2;
 
         const angle = (angles[i] ?? 0) * Math.PI / 180;
+        console.log(angle);
 
         const ca = Math.cos(angle);
         const sa = Math.sin(angle);
@@ -858,21 +858,21 @@ function App() {
           top = (baseHeight + bottomHeight * 100 + h) / maxDim;
         }
 
-        console.log("OverlappedHeights", overlappedHeights)
-        console.log("BottomHeight", bottomHeight * 100);
-        console.log("Bottom", bottom);
-        console.log("Top", top);
-        console.log("BaseHeight", baseHeight);
+        //console.log("OverlappedHeights", overlappedHeights)
+        //console.log("BottomHeight", bottomHeight * 100);
+        //console.log("Bottom", bottom);
+        //console.log("Top", top);
+        //console.log("BaseHeight", baseHeight);
 
         const p0 = rotate(-hw, -hd);
         const p1 = rotate(hw, -hd);
         const p2 = rotate(hw, hd);
         const p3 = rotate(-hw, hd);
         
-        const center = rotate(
-          (center_x / maxDim) - pivot_cx,
-          (center_y / maxDim) - pivot_cy
-        );
+        const center = {
+          x: (center_x / maxDim) - pivot_cx,
+          y: (center_y / maxDim) - pivot_cy
+        };
 
         const offX = center.x;
         const offY = center.y;

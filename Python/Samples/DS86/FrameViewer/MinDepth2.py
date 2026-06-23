@@ -24,46 +24,8 @@ def project_points(pts_pixels, workspace_depth, object_depth, cx_d, cy_d, fx_d, 
 def MinDepthAPI(depthFrame, detection_area, workspace_warning, workspace_depth, threshold, not_set, cx_d, cy_d, fx_d, fy_d):
     depth_copy = depthFrame.copy()
     objects_info = []
-    #pts_m = []
 
     try:
-        # pts_pixels = detection_area
-
-        # # Converte para NumPy
-        # pts_flat = numpy.array(pts_pixels, dtype=numpy.float32)
-
-        # for (u,v) in pts_flat:
-        #     X = (u - cx_d) * (workspace_depth / 1000) / fx_d
-        #     Y = (v - cy_d) * (workspace_depth / 1000) / fy_d
-        #     pts_m.append([X, Y])
-
-        # pts_m = numpy.array(pts_m, dtype=numpy.float32)
-
-        # rect_m = cv2.minAreaRect(pts_m)
-        # workspace_width_m, workspace_height_m = rect_m[1]
-
-        # if workspace_width_m < workspace_height_m:
-        #     workspace_width_m, workspace_height_m = workspace_height_m, workspace_width_m
-
-        # xmin, xmax = pts_m[:, 0].min(), pts_m[:, 0].max()
-        # ymin, ymax = pts_m[:, 1].min(), pts_m[:, 1].max()
-        # wid = xmax + abs(xmin) if xmin < 0 else xmax - abs(xmin)
-        # hei = ymax + abs(ymin) if ymin < 0 else ymax - abs(ymin)
-
-        # if hei > wid:
-        #     workspace_height_m, workspace_width_m = workspace_width_m, workspace_height_m
-
-        # print("Workspace Width:",workspace_width_m)
-        # print("Workspace Height:", workspace_height_m)
-
-        #ys, xs = numpy.indices(depth_copy.shape)
-
-        #D = depth_copy.astype(numpy.float32)
-
-        #depth_corrected = D / (numpy.sqrt(1 + ((xs - cx_d) / fx_d) ** 2 + ((ys - cy_d) / fy_d) ** 2))
-
-        #depth_copy = numpy.round(depth_corrected).astype(numpy.int32)
-
         mask = numpy.zeros(depth_copy.shape, dtype=numpy.uint8)
         box = numpy.array(detection_area, dtype=numpy.int32)
         cv2.fillPoly(mask, [box], 255)
@@ -107,10 +69,6 @@ def MinDepthAPI(depthFrame, detection_area, workspace_warning, workspace_depth, 
                     depth_value = round(float(numpy.median(neighbors)), 1)
 
                     if (len(objects_info) == 0 or abs(depth_value - objects_info[-1]["depth"]) > threshold) and workspace_depth - depth_value >= 50:
-                        #print(f"Ponto ({x},{y}) válido | depth={depth_value} | min={min_value}")
-                        #print("Profundidade:", depth_value)
-                        #print("Min Value", min_value)
-
                         prev_lower = depth_value - threshold
                             
                         workspace_limits     = project_points(
@@ -150,7 +108,6 @@ def MinDepthAPI(depthFrame, detection_area, workspace_warning, workspace_depth, 
 
         if objects_info:
             objects_info = sorted(objects_info, key=lambda obj: obj["depth"])
-            #print("Profundidade mínima:", objects_info[0]["depth"]/10, 'cm')
             not_set = 0
 
         else:
@@ -158,7 +115,5 @@ def MinDepthAPI(depthFrame, detection_area, workspace_warning, workspace_depth, 
 
     except Exception as e :
         print(e)
-    #finally :
-        #print('Min Depth end')
 
     return not_set, objects_info

@@ -104,7 +104,7 @@ def volumeMultiBundleAPI(depthFrame, calibrationDepthFrame, workspace_depth, box
                 box_i = cv2.boxPoints(cv2.minAreaRect(box_limits[idx]))
                 box_j = cv2.boxPoints(cv2.minAreaRect(box_limits[j]))
 
-                if overlap_ratio(box_i, box_j) > OVERLAP_RATIO:
+                if overlap_ratio(box_i, box_j) > OVERLAP_RATIO or intersection_edge(box_i, box_j, depthFrame):
                     stack.append(j)
 
         groups.append(group)
@@ -237,7 +237,7 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
                 box_i = cv2.boxPoints(cv2.minAreaRect(box_limits[idx]))
                 box_j = cv2.boxPoints(cv2.minAreaRect(box_limits[j]))
 
-                if overlap_ratio(box_i, box_j) > OVERLAP_RATIO:
+                if overlap_ratio(box_i, box_j) > OVERLAP_RATIO or intersection_edge(box_i, box_j, depthFrame):
                     stack.append(j)
 
         groups.append(group)
@@ -384,8 +384,6 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
                         print("Inside")
                         height_meters = (depths[j] - depths[i]) / 1000
                         height_meters_overlappedObject = ((ws_d_h - depths[i]) / 1000) - height_meters
-                        print("Height", height_meters)
-                        print("Bottom Lvl", height_meters_overlappedObject)
                         break
 
             if i != 0:
@@ -393,14 +391,13 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
                 totalVolume += volume
                 realVolume += volume
                 print("Volume:", volume)
-                #print("Volume Real:", realVolume)
                 print("Height:", height_meters)
                 print("Width:", width_meters)
                 print("Length:", length_meters)
+                print("------------------------------")
             else:
                 height_meters = (ws_d_h - depths[i]) / 1000
                 volume = width_meters * length_meters * height_meters
-                #print("Volume:", volume)
 
             objWidth.append(width_meters)
             objLength.append(length_meters)
@@ -416,7 +413,9 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
         groupRealVolume.append(realVolume)
         
     cv2.imwrite("Centers.png", colorToDepthFrameX)
-    print(groupHeightsOverlapped)
+    #print(groupHeightsOverlapped)
+    print(allObjCenter)
+    print(groupAngles)
     print("------------------------------")
     uidth = groupWidths
     ength = groupLengths
@@ -565,3 +564,19 @@ def overlap_ratio(b1, b2):
         return 0
 
     return inter / min(a1, a2)
+
+def intersection_edge(b1, b2, ctd, kernel_size=3):
+    mask1 = numpy.zeros(ctd.shape, dtype=numpy.uint8)
+    mask2 = numpy.zeros(ctd.shape, dtype=numpy.uint8)
+
+    b1 = b1.astype(numpy.int32)
+    b2 = b2.astype(numpy.int32)
+
+    cv2.fillPoly(mask1, [b1], 255)
+    cv2.fillPoly(mask2, [b2], 255)
+    
+    kernel = numpy.ones((kernel_size, kernel_size), numpy.uint8)
+    mask1 = cv2.dilate(mask1, kernel)
+    mask2 = cv2.dilate(mask2, kernel)
+
+    return numpy.any(cv2.bitwise_and(mask1, mask2))
