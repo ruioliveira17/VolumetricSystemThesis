@@ -11,6 +11,8 @@ from FrameState import frameState
 
 OVERLAP_RATIO = 0.05
 
+i = None
+
 def volumeSingleBundleAPI(depthFrame, workspace_depth, minimum_depth, box_limits, depths, fx_d, fy_d, cx_d, cy_d): 
     volume = 0
     width_meters = 0
@@ -252,6 +254,7 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
         allObj_pts_m = []
         depthsObj = []
         objCenter = []
+        irregularGroup = []
         group = groups[i]
         group.sort(key=lambda x: x[1], reverse=False)
         min_depth = min(depth for _, depth in group)
@@ -283,6 +286,7 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
         depthsObj.append(min_depth)
 
         for j in range(len(group)):
+            irregular = False
             contour, depth = group[j]
             obj_height_mm = workspace_depth - depth
             if obj_height_mm < MIN_OBJ_HEIGHT_MM:
@@ -293,17 +297,9 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
 
             mask = numpy.zeros(calibrationDepthFrame_copy.shape, dtype=numpy.uint8)
             cv2.fillPoly(mask, [pts_flat.astype(numpy.int32)], 255)
-            #ws_values = calibrationDepthFrame_copy[mask == 255].astype(numpy.float32)
-            #ws_values = ws_values[(ws_values >= 150) & (ws_values < workspace_depth + 15)]
-            #ws_depth = numpy.median(ws_values)
-            #print("Workspace Depth:", ws_depth)
 
             fill_img = numpy.zeros((480, 640), dtype=numpy.uint8)
             cv2.fillPoly(fill_img, [pts_flat.astype(numpy.int32)], 255)
-
-            #ws_values = calibrationDepthFrame[mask == 255].astype(numpy.float32)
-            #ws_values = ws_values[(ws_values >= 150) & (ws_values < workspace_depth + 15)]
-            #ws_depth = numpy.mean(ws_values)
 
             ys_all, xs_all = numpy.where(fill_img > 0)
             if len(xs_all) == 0 or len(ys_all) == 0:
@@ -335,12 +331,18 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
             allObj_pts_m.append(numpy.column_stack([X, Y]).tolist())
             depthsObj.append(depth)
 
-            rect_px = cv2.minAreaRect(pts_flat.astype(numpy.float32))
-            box_px = cv2.boxPoints(rect_px)
-            cv2.drawContours(frameState.colorToDepthFrame, [numpy.int32(box_px)], 0, (0, 255, 0), 2)
+            #rect_px = cv2.minAreaRect(pts_flat.astype(numpy.float32))
+            #box_px = cv2.boxPoints(rect_px)
+            #cv2.drawContours(frameState.colorToDepthFrame, [numpy.int32(box_px)], 0, (0, 255, 0), 2)
             #cv2.imwrite(f"colorToDepthFrame{i}.png", frameState.colorToDepthFrame)
+            if is_suspect_blob(contour):
+                irregular = True
 
-        allGroupsObjPoints.append(allObj_pts_m)
+            print("Irregular:", irregular)
+
+            irregularGroup.append(irregular)
+
+        allGroupsObjPoints.append((allObj_pts_m, irregularGroup))
         allDepths.append(depthsObj)
         allObjCenter.append(objCenter)
         
@@ -348,7 +350,7 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
         #print("Size of allObj_pts_m:", len(allObj_pts_m))
         #print("Size of allDepths", len(allDepths))
 
-    for idx, allObjPtsM in enumerate(allGroupsObjPoints):
+    for idx, (allObjPtsM, irregular) in enumerate(allGroupsObjPoints):
         #print("Grupo:", idx)
         #print("------------------------")
         #print("Size of allObjPtsM:", len(allObjPtsM))
@@ -360,9 +362,15 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
         objHeightOverlapped = []
         objAngle = []
         realVolume = 0
+
+        print("Irregular")
+        print(irregular)
+        print("-------------")
         
         for i, obj in enumerate(allObjPtsM):
             height_meters_overlappedObject = 0
+            #print(irregular)
+            #print("-------------")
             allObjPtsM = [numpy.array(obj, dtype=numpy.float32) for obj in allObjPtsM]
             rect_m = cv2.minAreaRect(allObjPtsM[i])
             width_meters, length_meters = rect_m[1]
@@ -376,18 +384,27 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
             ws_d_h = float(numpy.median(ws_vals_h)) if ws_vals_h.size > 0 else float(workspace_depth)
             height_meters = (ws_d_h - depths[i]) / 1000
 
-            #print("i:", i)
-            if i!=0 and i < (len(allObjPtsM) - 1):
-                print("Verifying object")
-                for j in range(i + 1, len(allObjPtsM)):
-                    if isInside(allObjPtsM[i], allObjPtsM[j]):
-                        print("Inside")
-                        height_meters = (depths[j] - depths[i]) / 1000
-                        height_meters_overlappedObject = ((ws_d_h - depths[i]) / 1000) - height_meters
-                        break
+            print(i)
+            if i!=0:
+                print(irregular[i-1])
+
+            if i!= 0:
+                if irregular[i-1]:
+                    hull = cv2.convexHull(allObjPtsM[i])
+                    volume = cv2.contourArea(hull) * height_meters
+                else:
+                    if i!=0 and i < (len(allObjPtsM) - 1):
+                        print("Verifying object")
+                        for j in range(i + 1, len(allObjPtsM)):
+                            if isInside(allObjPtsM[i], allObjPtsM[j]):
+                                print("Inside")
+                                height_meters = (depths[j] - depths[i]) / 1000
+                                height_meters_overlappedObject = ((ws_d_h - depths[i]) / 1000) - height_meters
+                                break
 
             if i != 0:
-                volume = width_meters * length_meters * height_meters
+                if not irregular[i-1]:
+                    volume = width_meters * length_meters * height_meters
                 totalVolume += volume
                 realVolume += volume
                 print("Volume:", volume)
@@ -532,7 +549,7 @@ def volumeIndividualAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_
 def isInside(box1, box2):
     box1 = box1.reshape(-1, 2).astype(numpy.float32)
     box2 = box2.reshape(-1, 2).astype(numpy.float32)
-    box2 = to_hull(box2)
+    #box2 = to_hull(box2)
     inside = 0
 
     for (u, v) in box1:
@@ -580,3 +597,14 @@ def intersection_edge(b1, b2, ctd, kernel_size=3):
     mask2 = cv2.dilate(mask2, kernel)
 
     return numpy.any(cv2.bitwise_and(mask1, mask2))
+
+def is_suspect_blob(c):
+    rect = cv2.minAreaRect(c)
+    w, h = rect[1]
+
+    rectArea = w * h
+    contourArea = cv2.contourArea(c)
+
+    print("Percentage", contourArea/rectArea)
+
+    return contourArea/rectArea <= 0.85

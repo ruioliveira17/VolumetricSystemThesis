@@ -168,17 +168,52 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
     object_outOfLine = []
     belongs_to_previous = False
     pending_merges = []
+    binaryImgs = []
     curr_index = 0
 
     colorToDepth_copy2 = colorFrame.copy()
     colorToDepth_copy3 = colorToDepthFrame.copy()
     depth_copy = depthFrame.copy()
+    color_copy = colorFrame.copy()
 
     Sx = fx_rgb / fx_d
     Sy = fy_rgb / fy_d
 
     if len(objects_info) != 0:
         for i, obj in enumerate(objects_info):
+            # Using RGB
+            # maskRGB = numpy.zeros(color_copy.shape[:2], dtype = numpy.uint8)
+
+            # box_scaled = numpy.copy(box)
+            # box_scaled[:,0] = (box[:,0] - cx_d) * Sx + cx_rgb + (offset_x_959mm_depth * or_depth_offset)/workspace_depth
+            # box_scaled[:,1] = (box[:,1] - cy_d) * Sy + cy_rgb
+            # box_scaled = numpy.round(box_scaled).astype(numpy.int32)
+
+            # cv2.fillPoly(maskRGB, [box_scaled], 255)
+
+            # workspaceArea = cv2.bitwise_and(color_copy, color_copy, mask=maskRGB)
+            # ROI = cv2.cvtColor(workspaceArea, cv2.COLOR_BGR2GRAY)
+            # BLUR = cv2.GaussianBlur(ROI, (5,5), 0)
+            # Edges = cv2.Canny(BLUR, 50, 150)
+
+            # cv2.imwrite("Edges.png", Edges)
+
+            # CONTOUR, _ = cv2.findContours(Edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+            # colorToDepth_copy5 = colorToDepthFrame.copy()
+            
+            # CONTOUR_DEPTH = []
+
+            # for c in CONTOUR:
+            #     cnt = c.astype(numpy.float32)
+
+            #     cnt[:, :, 0] = (cnt[:, :, 0] - cx_rgb - ((offset_x_959mm_depth * or_depth_offset)/workspace_depth)) / Sx + cx_d
+            #     cnt[:, :, 1] = (cnt[:, :, 1] - cy_rgb) / Sy + cy_d
+
+            #     CONTOUR_DEPTH.append(cnt.astype(numpy.int32))
+
+            # cv2.drawContours(colorToDepth_copy5, CONTOUR_DEPTH, -1, (0, 255, 0), 2)
+            # cv2.imwrite("DEPTHSRGB_contour.png", colorToDepth_copy5)
 
             mask = numpy.zeros(depth_copy.shape, dtype = numpy.uint8)
             print("Obj Workspace Limits:", obj["workspace_limits"])
@@ -223,6 +258,7 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
                 cv2.imwrite(f"DEPTHS{i}_contour{j}.png", colorToDepth_copy4)
 
             print("Depth:", obj["depth"])
+
             print("-------------------------------------------------------------------")
             
             shifted_contours_sorted = sorted(contour, key=lambda x: len(x), reverse=True)
@@ -267,6 +303,15 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
                                 belongs_to_previous = True
                                 print("Pertence ao anterior o macaco")
                             break
+                        # if abs(obj['depth'] - depths[i_prev_obj]) <= 5:
+                        #     depth_between_contours = isThere_A_Object(c, prev_c, depthFrame)
+                        #     if depth_between_contours < obj['depth']:
+                        #         print("Merge is emminent. Prepare for merging...")
+                            
+                        #         pending_merges.append({
+                        #             "current_index": curr_index,
+                        #             "prev_index": i_prev_obj
+                        #         })
                         if too_close(bbox_c, bbox_prev):
                             belongs_to_previous = True
                             print("Too Close")
@@ -295,6 +340,7 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
                         all_shifted_contours = numpy.vstack([c])
                         contours.append([all_shifted_contours])
                         box_ws.append(obj["workspace_limits"])
+                        binaryImgs.append(binary)
 
                         previous_mask = numpy.zeros(depth_copy.shape, dtype=numpy.uint8)
 
@@ -364,6 +410,7 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
                 del depths[real_idx]
                 del box_ws[real_idx]
                 del object_outOfLine[real_idx]
+                del binaryImgs[real_idx]
                 shift += 1
 
             print("-------------------------------------------------------------------")    
@@ -390,8 +437,65 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
         # Separar objetos com a mesma profundidade :D
         # if volumeMode == "Real":
         #     contours_to_process = []
+            # for i, cont in enumerate(contours):
+            #     depth_img = depthFrame.copy()
+            #     mask = numpy.zeros(depth_img.shape, dtype=numpy.uint8)
 
-        #     for cont in contours:
+            #     cv2.drawContours(mask, cont, -1, 255, -1)
+
+            #     depth_blur = cv2.bilateralFilter(depth_img.astype(numpy.float32), 9, 75, 75)
+
+            #     sobelx = cv2.Sobel(depth_blur, cv2.CV_64F, 1, 0, ksize=3)
+            #     sobely = cv2.Sobel(depth_blur, cv2.CV_64F, 0, 1, ksize=3)
+            #     gradient_magnitude = numpy.sqrt(sobelx**2 + sobely**2)
+
+            #     gradient_scaled = numpy.uint8(255 * (gradient_magnitude / gradient_magnitude.max()))
+
+            #     _, edges = cv2.threshold(gradient_scaled, 50, 255, cv2.THRESH_BINARY)
+
+            #     edges_inv = cv2.bitwise_not(edges)
+
+            #     mask_separada = cv2.bitwise_and(mask, edges_inv)
+
+            #     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
+            #     mask_separada = cv2.morphologyEx(mask_separada, cv2.MORPH_OPEN, kernel)
+
+            #     novos_contornos, _ = cv2.findContours(mask_separada, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+            #     colorTD = colorToDepthFrame.copy()
+            #     cv2.drawContours(colorTD, novos_contornos, -1, (0, 255, 0), 2)
+            #     cv2.imwrite(f"ContoursDepth{i}.png", colorTD)
+
+                # binary = binaryImgs[i]
+                # dist = cv2.distanceTransform(binary, cv2.DIST_L2, 5)
+
+                # dist_norm = cv2.normalize(
+                #     dist,
+                #     None,
+                #     0,
+                #     255,
+                #     cv2.NORM_MINMAX
+                # ).astype(numpy.uint8)
+
+                # cv2.imwrite(f"distance{i}.png", dist_norm)
+
+                # _, sure_fg = cv2.threshold(
+                #     dist,
+                #     0.5 * dist.max(),
+                #     255,
+                #     0
+                # )
+
+                # sure_fg = sure_fg.astype(numpy.uint8)
+
+                # cv2.imwrite(f"sure_fg{i}.png", sure_fg)
+
+                # num_labels, labels = cv2.connectedComponents(
+                #     sure_fg.astype(numpy.uint8)
+                # )
+
+                # print(num_labels)
+
         #         if is_suspect_blob(cont[0], colorToDepthFrame):
         #             print("Inside")
         #             split_masks = split_contours(cont[0])
@@ -410,7 +514,6 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
         #     contours = contours_to_process
 
         all_contours = [c for contour_list in contours for c in contour_list if c.size > 0]
-        #print("All Contours", all_contours)
         groups = []
         used = set()
 
@@ -466,21 +569,21 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
             cv2.putText(colorToDepth_copy2, str(obj_id), (x + 15, y + 40), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (255, 255, 255), 7, cv2.LINE_AA)    
 
     elif volumeMode == "Individual":
-        contours_to_process = []
+        # contours_to_process = []
 
-        for cont in contours:
-            if is_suspect_blob(cont[0], colorToDepthFrame):
-                split_masks = split_contours(cont[0])
+        # for cont in contours:
+        #     if is_suspect_blob(cont[0], colorToDepthFrame):
+        #         split_masks = split_contours(cont[0])
 
-                for c in split_masks:
-                    c = numpy.array(c, dtype=numpy.int32).reshape((-1, 1, 2))
-                    contours_to_process.append([c])
-                    depths.append(depths[-1])
-            else:
-                contours_to_process.append(cont)
+        #         for c in split_masks:
+        #             c = numpy.array(c, dtype=numpy.int32).reshape((-1, 1, 2))
+        #             contours_to_process.append([c])
+        #             depths.append(depths[-1])
+        #     else:
+        #         contours_to_process.append(cont)
 
-        if contours_to_process is not None:
-            contours = contours_to_process
+        # if contours_to_process is not None:
+        #     contours = contours_to_process
 
         for obj_id, contour_list in enumerate(contours, start=1):
             for c in contour_list:
@@ -645,6 +748,7 @@ def same_x(ref, remaining, tolerance = 10):
     return best
 
 def same_y(ref, remaining, tolerance = 10):
+
     best = None
     best_dist = float("inf")
 
@@ -664,3 +768,25 @@ def same_y(ref, remaining, tolerance = 10):
                     best_dist = d
                 
     return best
+
+def isThere_A_Object(c, prev_c, depthFrame):
+    depth_img = depthFrame.copy()
+    mask1 = numpy.zeros(depth_img.shape, dtype=numpy.uint8)
+    mask2 = numpy.zeros(depth_img.shape, dtype=numpy.uint8)
+
+    cv2.drawContours(mask1, [c], -1, 1, -1)
+    cv2.drawContours(mask2, [prev_c], -1, 1, -1)
+
+    union = cv2.bitwise_or(mask1, mask2)
+    between = (union == 0)
+
+    x, y, w, h = cv2.boundingRect(numpy.vstack((c, prev_c)))
+    roi_between = between[y: y+h, x: x+w]
+    roi_depth = depth_img[y: y+h, x: x+w]
+
+    between_depths = roi_depth[roi_between]
+
+    depth_between_contours = numpy.mean(between_depths)
+    print("Depth_Between:", depth_between_contours)
+
+    return depth_between_contours
