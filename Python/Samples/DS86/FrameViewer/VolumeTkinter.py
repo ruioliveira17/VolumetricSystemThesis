@@ -203,7 +203,8 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
 
     allDepths = []
 
-    pts_m = []
+    allGroupObjContours = []
+    allGroupObjPointsPixel = []
     allGroupsObjPoints = []
     allObjCenter = []
     groups = []
@@ -251,6 +252,8 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
 
     for i in range((len(groups))):
         objPoints = []
+        allObj_contours = []
+        allObj_pts = []
         allObj_pts_m = []
         depthsObj = []
         objCenter = []
@@ -288,6 +291,30 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
         for j in range(len(group)):
             irregular = False
             contour, depth = group[j]
+
+            img = numpy.zeros((480, 640, 3), dtype=numpy.uint8)
+            epsilon = 0.005 * cv2.arcLength(contour, True)
+            contour_smooth = cv2.approxPolyDP(contour, epsilon, True)
+
+            cv2.drawContours(img, [contour_smooth], -1, (0, 0, 255), 2)
+
+            cv2.imwrite(f"contours_compare{i}.png", img)
+            #contour = contour_smooth
+            contour_px = contour.reshape(-1, 2)
+
+            z_contour = depthFrame[contour_px[:, 1], contour_px[:, 0]].astype(numpy.float32)
+
+            valid = (z_contour > 0) & (z_contour < workspace_depth)
+
+            contour_px = contour_px[valid]
+            z_contour = z_contour[valid]
+
+            Zc = z_contour / 1000.0
+            Xc_m = (contour_px[:, 0] - cx_d) * Zc / fx_d
+            Yc_m = (contour_px[:, 1] - cy_d) * Zc / fy_d
+
+            contour_m = numpy.column_stack((Xc_m, Yc_m)).astype(numpy.float32)
+
             obj_height_mm = workspace_depth - depth
             if obj_height_mm < MIN_OBJ_HEIGHT_MM:
                 print("Skipping ghost object", i, ": height", obj_height_mm, "mm")
@@ -327,7 +354,8 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
                     2)
 
             objCenter.append((Xc * 100, Yc * 100))
-
+            allObj_contours.append(contour_m)
+            allObj_pts.append(pts_flat.copy())
             allObj_pts_m.append(numpy.column_stack([X, Y]).tolist())
             depthsObj.append(depth)
 
@@ -342,6 +370,8 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
 
             irregularGroup.append(irregular)
 
+        allGroupObjPointsPixel.append(allObj_pts)
+        allGroupObjContours.append(allObj_contours)
         allGroupsObjPoints.append((allObj_pts_m, irregularGroup))
         allDepths.append(depthsObj)
         allObjCenter.append(objCenter)
@@ -351,6 +381,8 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
         #print("Size of allDepths", len(allDepths))
 
     for idx, (allObjPtsM, irregular) in enumerate(allGroupsObjPoints):
+        allObjPixel = allGroupObjPointsPixel[idx]
+        allObjContour = allGroupObjContours[idx]
         #print("Grupo:", idx)
         #print("------------------------")
         #print("Size of allObjPtsM:", len(allObjPtsM))
@@ -369,8 +401,6 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
         
         for i, obj in enumerate(allObjPtsM):
             height_meters_overlappedObject = 0
-            #print(irregular)
-            #print("-------------")
             allObjPtsM = [numpy.array(obj, dtype=numpy.float32) for obj in allObjPtsM]
             rect_m = cv2.minAreaRect(allObjPtsM[i])
             width_meters, length_meters = rect_m[1]
@@ -390,20 +420,29 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
 
             if i!= 0:
                 if irregular[i-1]:
-                    hull = cv2.convexHull(allObjPtsM[i])
-                    volume = cv2.contourArea(hull) * height_meters
+                    print("Calculating through Contour")
+                    volume = cv2.contourArea(allObjContour[i-1]) * height_meters
                 else:
                     if i!=0 and i < (len(allObjPtsM) - 1):
                         print("Verifying object")
                         for j in range(i + 1, len(allObjPtsM)):
-                            if isInside(allObjPtsM[i], allObjPtsM[j]):
-                                print("Inside")
-                                height_meters = (depths[j] - depths[i]) / 1000
-                                height_meters_overlappedObject = ((ws_d_h - depths[i]) / 1000) - height_meters
-                                break
+                            if isInsideHull(allObjPtsM[i], allObjPtsM[j]):
+                                if isInsideContour(allObjPtsM[i], allObjPtsM[j]):# or isCloseToTheContour(allObjPixel[i-1], allObjPixel[j-1]):
+                                    if intersection_edge(allObjPixel[i-1], allObjPixel[j-1], depthFrame):
+                                        print("Inside")
+                                        height_meters = (depths[j] - depths[i]) / 1000
+                                        height_meters_overlappedObject = ((ws_d_h - depths[i]) / 1000) - height_meters
+                                        break
+                                    else:
+                                        print("Outside")
+                                else:
+                                    print("Outside")
+                            else:
+                                print("Outside")
 
             if i != 0:
                 if not irregular[i-1]:
+                    print("Calulating through Width, Length, Height")
                     volume = width_meters * length_meters * height_meters
                 totalVolume += volume
                 realVolume += volume
@@ -526,7 +565,7 @@ def volumeIndividualAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_
 
         print("Verifying object ")
         for j in range(idx + 1, len(allObj_pts_m)):
-            if isInside(box_limits[idx], box_limits[j]):
+            if isInsideHull(box_limits[idx], box_limits[j]):
                 print("Inside")
                 height_meters = (depths[j] - depths[idx]) / 1000
                 break
@@ -546,10 +585,10 @@ def volumeIndividualAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_
 
     return volume, width_meters, length_meters, height_meters
 
-def isInside(box1, box2):
+def isInsideHull(box1, box2):
     box1 = box1.reshape(-1, 2).astype(numpy.float32)
     box2 = box2.reshape(-1, 2).astype(numpy.float32)
-    #box2 = to_hull(box2)
+    box2 = to_hull(box2)
     inside = 0
 
     for (u, v) in box1:
@@ -559,6 +598,24 @@ def isInside(box1, box2):
     result = inside / len(box1)
 
     if result > 0.15:
+        print("IsInsideHull")
+        return True
+    else:
+        return False
+    
+def isInsideContour(box1, box2):
+    box1 = box1.reshape(-1, 2).astype(numpy.float32)
+    box2 = box2.reshape(-1, 2).astype(numpy.float32)
+    inside = 0
+
+    for (u, v) in box1:
+        if cv2.pointPolygonTest(box2, (u, v), False) >= 0:
+            inside += 1
+
+    result = inside / len(box1)
+
+    if result > 0.15:
+        print("IsInsideContour")
         return True
     else:
         return False
@@ -583,8 +640,8 @@ def overlap_ratio(b1, b2):
     return inter / min(a1, a2)
 
 def intersection_edge(b1, b2, ctd, kernel_size=3):
-    mask1 = numpy.zeros(ctd.shape, dtype=numpy.uint8)
-    mask2 = numpy.zeros(ctd.shape, dtype=numpy.uint8)
+    mask1 = numpy.zeros(ctd.shape[:2], dtype=numpy.uint8)
+    mask2 = numpy.zeros(ctd.shape[:2], dtype=numpy.uint8)
 
     b1 = b1.astype(numpy.int32)
     b2 = b2.astype(numpy.int32)
@@ -596,6 +653,12 @@ def intersection_edge(b1, b2, ctd, kernel_size=3):
     mask1 = cv2.dilate(mask1, kernel)
     mask2 = cv2.dilate(mask2, kernel)
 
+    cv2.imwrite("mask1.png", mask1)
+    cv2.imwrite("mask2.png", mask2)
+
+    if numpy.any(cv2.bitwise_and(mask1, mask2)):
+        print("Intersection")
+
     return numpy.any(cv2.bitwise_and(mask1, mask2))
 
 def is_suspect_blob(c):
@@ -605,6 +668,22 @@ def is_suspect_blob(c):
     rectArea = w * h
     contourArea = cv2.contourArea(c)
 
+    if contourArea < 1000:
+        validateValue = 0.75
+    else:
+        validateValue = 0.85
+
     print("Percentage", contourArea/rectArea)
 
-    return contourArea/rectArea <= 0.85
+    return contourArea/rectArea <= validateValue
+
+def isCloseToTheContour(box1, box2, max_dist = 5):
+    contour1 =  box1.astype(numpy.int32)
+    contour2 = box2.astype(numpy.int32)
+
+    for p1 in contour1:
+        d = numpy.linalg.norm(contour2 - p1, axis=1)
+        if numpy.any(d <= max_dist):
+            return True
+
+    return False

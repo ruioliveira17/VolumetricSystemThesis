@@ -53,15 +53,13 @@ def boxes_overlap(box1, box2):
     return False
 
 def contours_overlap_by_points(c, prev_c, colorToDepth_copy):
-    min_ratio = 0.25
+    min_ratio = 0.20
 
     inside = 0
+    inside_prev = 0
     total = len(c)
-    print("Total", total)
-
-    #hull = cv2.convexHull(prev_c)
-
-    #cv2.drawContours(colorToDepth_copy, [hull], 0, (255, 0, 0), 2)
+    total_prev = len(prev_c)
+    #print("Total", total)
 
     for p in c:
         x = int(p[0][0])
@@ -69,11 +67,21 @@ def contours_overlap_by_points(c, prev_c, colorToDepth_copy):
 
         if cv2.pointPolygonTest(prev_c, (x, y), False) >= 0:
             inside += 1
+
+    for p in prev_c:
+        x = int(p[0][0])
+        y = int(p[0][1])
+
+        if cv2.pointPolygonTest(c, (x, y), False) >= 0:
+            inside_prev += 1
             
     print("Inside", inside)
     print("Quanto?", inside / total)
+
+    print("Inside Prev", inside_prev)
+    print("Quanto?", inside_prev / total_prev)
     
-    return (inside / total) >= min_ratio, colorToDepth_copy
+    return ((inside / total) >= min_ratio or (inside_prev / total_prev) >= min_ratio), colorToDepth_copy
 
 def is_valid_area(c, min_area = 320):
     a = cv2.contourArea(c)
@@ -93,7 +101,7 @@ def comparisonCaliImageCurrImage(colorFrame, calibrationColorFrame, depthFrame, 
 
     hull = cv2.convexHull(contour.astype(numpy.int32))
 
-    cv2.fillPoly(depth_mask, [hull], 255)
+    cv2.fillPoly(depth_mask, contour, 255)
     total_pixels_depth = numpy.count_nonzero(depth_mask)
 
     # ---------------- COLOR ----------------
@@ -377,12 +385,23 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
                 c = contours[current_index][0]
                 prev_c = contours[prev_index][0]
 
+                mask = numpy.zeros((480, 640), dtype=numpy.uint8)
+
+                cv2.fillPoly(mask, [c.astype(numpy.int32)], 255)
+                cv2.fillPoly(mask, [prev_c.astype(numpy.int32)], 255)
+
+                kernel = numpy.ones((3,3), numpy.uint8)
+                mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)      
+                img = numpy.zeros((480, 640, 3), dtype=numpy.uint8)
+                merged_contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+
+                merged_contour = max(merged_contours, key=cv2.contourArea)          
+                cv2.drawContours(img, [merged_contour], -1, (0, 0, 255), 2)
+
+                cv2.imwrite(f"merged.png", img)
+
                 A = cv2.contourArea(c)
                 B = cv2.contourArea(prev_c)
-
-                all_pts = numpy.vstack([c.reshape(-1, 2), prev_c.reshape(-1, 2)])
-
-                merged_contour = cv2.convexHull(all_pts)
 
                 if A > B:
                     contours[current_index] = [merged_contour]
@@ -394,7 +413,6 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
                     print(f"Merged previous {prev_index} into current {current_index}")
 
                 else:
-
                     contours[prev_index] = [merged_contour]
 
                     depths[prev_index] = min(depths[current_index], depths[prev_index])
@@ -403,15 +421,12 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
 
                     print(f"Merged current {current_index} into previous {prev_index}")
 
-            shift = 0
             for idx in sorted(to_delete, reverse=True):
-                real_idx = idx - shift
-                del contours[real_idx]
-                del depths[real_idx]
-                del box_ws[real_idx]
-                del object_outOfLine[real_idx]
-                del binaryImgs[real_idx]
-                shift += 1
+                del contours[idx]
+                del depths[idx]
+                del box_ws[idx]
+                del object_outOfLine[idx]
+                del binaryImgs[idx]
 
             print("-------------------------------------------------------------------")    
 
