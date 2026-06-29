@@ -52,7 +52,7 @@ def boxes_overlap(box1, box2):
         return True
     return False
 
-def contours_overlap_by_points(c, prev_c, colorToDepth_copy):
+def contours_overlap_by_points(c, prev_c):
     min_ratio = 0.20
 
     inside = 0
@@ -81,7 +81,43 @@ def contours_overlap_by_points(c, prev_c, colorToDepth_copy):
     print("Inside Prev", inside_prev)
     print("Quanto?", inside_prev / total_prev)
     
-    return ((inside / total) >= min_ratio or (inside_prev / total_prev) >= min_ratio), colorToDepth_copy
+    return ((inside / total) >= min_ratio or (inside_prev / total_prev) >= min_ratio)
+
+def intersection_edge(b1, b2, depthFrame, kernel_size=3):
+    mask1 = numpy.zeros(depthFrame.shape[:2], dtype=numpy.uint8)
+    mask2 = numpy.zeros(depthFrame.shape[:2], dtype=numpy.uint8)
+
+    b1 = b1.astype(numpy.int32)
+    b2 = b2.astype(numpy.int32)
+
+    cv2.fillPoly(mask1, [b1], 255)
+    cv2.fillPoly(mask2, [b2], 255)
+    
+    kernel = numpy.ones((kernel_size, kernel_size), numpy.uint8)
+    mask1 = cv2.dilate(mask1, kernel)
+    mask2 = cv2.dilate(mask2, kernel)
+
+    cv2.imwrite("mask1.png", mask1)
+    cv2.imwrite("mask2.png", mask2)
+
+    if numpy.any(cv2.bitwise_and(mask1, mask2)):
+        print("Intersection")
+
+    return numpy.any(cv2.bitwise_and(mask1, mask2))
+
+def overlap_ratio(b1, b2):
+    inter, _ = cv2.intersectConvexConvex(
+        b1.astype(numpy.float32),
+        b2.astype(numpy.float32)
+    )
+
+    a1 = cv2.contourArea(b1)
+    a2 = cv2.contourArea(b2)
+
+    if a1 + a2 == 0:
+        return 0
+
+    return inter / min(a1, a2)
 
 def is_valid_area(c, min_area = 320):
     a = cv2.contourArea(c)
@@ -137,36 +173,6 @@ def comparisonCaliImageCurrImage(colorFrame, calibrationColorFrame, depthFrame, 
 
     #return finalScore >= 0.80
     return depthScore >= 0.80
-
-def overlap_ratio(b1, b2):
-    inter, _ = cv2.intersectConvexConvex(
-        b1.astype(numpy.int32),
-        b2.astype(numpy.int32)
-    )
-
-    a1 = cv2.contourArea(b1)
-    a2 = cv2.contourArea(b2)
-
-    if a1 + a2 == 0:
-        return 0
-
-    return inter / min(a1, a2)
-
-def intersection_edge(b1, b2, ctd, kernel_size=3):
-    mask1 = numpy.zeros(ctd.shape, dtype=numpy.uint8)
-    mask2 = numpy.zeros(ctd.shape, dtype=numpy.uint8)
-
-    b1 = b1.astype(numpy.int32)
-    b2 = b2.astype(numpy.int32)
-
-    cv2.fillPoly(mask1, [b1], 255)
-    cv2.fillPoly(mask2, [b2], 255)
-    
-    kernel = numpy.ones((kernel_size, kernel_size), numpy.uint8)
-    mask1 = cv2.dilate(mask1, kernel)
-    mask2 = cv2.dilate(mask2, kernel)
-
-    return numpy.any(cv2.bitwise_and(mask1, mask2))
 
 def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFrame, calibrationDepthFrame, volumeMode, objects_info, workspace_depth, threshold, colorSlope, cx_d, cy_d, cx_rgb, cy_rgb, fx_d, fy_d, fx_rgb, fy_rgb):
     contours = []
@@ -269,9 +275,9 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
 
             print("-------------------------------------------------------------------")
             
-            shifted_contours_sorted = sorted(contour, key=lambda x: len(x), reverse=True)
+            #shifted_contours_sorted = sorted(contour, key=lambda x: len(x), reverse=True)
 
-            for c in shifted_contours_sorted:
+            for c in contour:
                 belongs_to_previous = False
                 rect = cv2.minAreaRect(c)
                 box = cv2.boxPoints(rect)
@@ -296,9 +302,8 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
                     for prev_c in prev_list:
                         bbox_prev = get_bbox(prev_c)
                         print("Wotefoque")
-                        boxesOverlap, colorToDepth_copy2 = contours_overlap_by_points(c, prev_c, colorToDepth_copy2)
                         print("Previous Depth:", depths[i_prev_obj])
-                        if boxesOverlap: #or contourDifference < 0.02:
+                        if contours_overlap_by_points(c, prev_c): #or contourDifference < 0.02:
                             #shouldMerge?
                             if obj['depth'] - 5 <= depths[i_prev_obj] + threshold:
                                 print("Merge is emminent. Prepare for merging...")
@@ -308,8 +313,9 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
                                     "prev_index": i_prev_obj
                                 })
                             else:
-                                belongs_to_previous = True
-                                print("Pertence ao anterior o macaco")
+                                #belongs_to_previous = True
+                                #print("Pertence ao anterior o macaco")
+                                print("Objetos diferentes")
                             break
                         # if abs(obj['depth'] - depths[i_prev_obj]) <= 5:
                         #     depth_between_contours = isThere_A_Object(c, prev_c, depthFrame)
@@ -320,6 +326,44 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
                         #             "current_index": curr_index,
                         #             "prev_index": i_prev_obj
                         #         })
+                        if areContoursClose(c, prev_c, 10):
+                            print("Close gap")
+                            imagIna = numpy.zeros(depthFrame.shape[:2], numpy.uint8)
+                            mask_prev = numpy.zeros(depthFrame.shape[:2], numpy.uint8)
+                            mask_curr = numpy.zeros(depthFrame.shape[:2], numpy.uint8)
+
+                            cv2.drawContours(mask_prev, [prev_c], -1, 255, -1)
+                            cv2.drawContours(mask_curr, [c], -1, 255, -1)
+
+                            union = cv2.bitwise_or(mask_prev, mask_curr)
+
+                            kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7,7))
+                            closed = cv2.morphologyEx(union, cv2.MORPH_CLOSE, kernel)
+
+                            new_pixels = cv2.subtract(closed, union)
+
+                            result = cv2.bitwise_or(mask_curr, new_pixels)
+
+                            cv2.imwrite("01_mask_prev.png", mask_prev)
+                            cv2.imwrite("02_mask_curr.png", mask_curr)
+                            cv2.imwrite("03_union.png", union)
+                            cv2.imwrite("04_closed.png", closed)
+                            cv2.imwrite("05_new_pixels.png", new_pixels)
+                            cv2.imwrite("06_result.png", result)
+
+                            contorno, _ = cv2.findContours(closed, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+                            if len(contorno) > 0:
+                                new_c = contorno[0]
+                                print("Antes:", c.shape)
+                                c = new_c
+                                print("Depois:", c.shape)
+                                cv2.drawContours(imagIna, [new_c], -1, 255, 2)
+                            else:
+                                print("No contour was found")
+
+                        else:
+                            print("No contours to unite")
+
                         if too_close(bbox_c, bbox_prev):
                             belongs_to_previous = True
                             print("Too Close")
@@ -346,6 +390,7 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
                         print("Adicionar ao Conjunto")
                         belongs_to_previous = False
                         all_shifted_contours = numpy.vstack([c])
+                        print("Append:", c.shape)
                         contours.append([all_shifted_contours])
                         box_ws.append(obj["workspace_limits"])
                         binaryImgs.append(binary)
@@ -552,15 +597,22 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
                     if j in used:
                         continue
 
-                    box_i = cv2.boxPoints(cv2.minAreaRect(all_contours[idx]))
-                    box_j = cv2.boxPoints(cv2.minAreaRect(all_contours[j]))
+                    #box_i = cv2.boxPoints(cv2.minAreaRect(all_contours[idx]))
+                    #box_j = cv2.boxPoints(cv2.minAreaRect(all_contours[j]))
+                    box_i = all_contours[idx]
+                    box_j = all_contours[j]
 
-                    if overlap_ratio(box_i, box_j) > OVERLAP_RATIO or intersection_edge(box_i, box_j, depthFrame):
+                    #if overlap_ratio(box_i, box_j) > OVERLAP_RATIO or intersection_edge(box_i, box_j, depthFrame):
+                    if contours_overlap_by_points(box_i, box_j) or intersection_edge(box_i, box_j, depthFrame) or areContoursClose(box_i, box_j, 10):
                         stack.append(j)
 
             groups.append(group)
 
+        contours_img = numpy.zeros((depthFrame.shape[0], depthFrame.shape[1], 3), dtype=numpy.uint8)
+
         for obj_id, group in enumerate(groups, start=1):
+            for c in group:
+                cv2.drawContours(contours_img, [c], -1, (255, 255, 255), 1)
             all_points = numpy.vstack(group)
             rect = cv2.minAreaRect(all_points)
             box = cv2.boxPoints(rect)
@@ -582,6 +634,8 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
 
             cv2.putText(colorToDepth_copy2, str(obj_id), (x + 15, y + 40), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 0), 14, cv2.LINE_AA)
             cv2.putText(colorToDepth_copy2, str(obj_id), (x + 15, y + 40), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (255, 255, 255), 7, cv2.LINE_AA)    
+
+        cv2.imwrite("groups.png", contours_img)
 
     elif volumeMode == "Individual":
         # contours_to_process = []
@@ -621,7 +675,7 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
                 
                 cv2.putText(colorToDepth_copy2, str(obj_id), (x + 15, y + 40), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 0), 14, cv2.LINE_AA)
                 cv2.putText(colorToDepth_copy2, str(obj_id), (x + 15, y + 40), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (255, 255, 255), 7, cv2.LINE_AA)
-            
+    
     colorToDepth_copy2 = cv2.resize(colorToDepth_copy2, (640, 480))
     frameState.detectedObjectsFrame = colorToDepth_copy2
     cv2.imwrite("Objects.png", colorToDepth_copy3)
@@ -805,3 +859,14 @@ def isThere_A_Object(c, prev_c, depthFrame):
     print("Depth_Between:", depth_between_contours)
 
     return depth_between_contours
+
+def areContoursClose(c1, c2, threshold):
+    pts1 = c1.reshape(-1, 2)
+    pts2 = c2.reshape(-1, 2)
+
+    for p1 in pts1:
+        dists = numpy.linalg.norm(pts2 - p1, axis=1)
+        if numpy.min(dists) <= threshold:
+            return True
+
+    return False

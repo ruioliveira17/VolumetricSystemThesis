@@ -9,9 +9,9 @@ import cv2
 import numpy
 from FrameState import frameState
 
-OVERLAP_RATIO = 0.05
-
 i = None
+
+OVERLAP_RATIO = 0.05
 
 def volumeSingleBundleAPI(depthFrame, workspace_depth, minimum_depth, box_limits, depths, fx_d, fy_d, cx_d, cy_d): 
     volume = 0
@@ -103,10 +103,13 @@ def volumeMultiBundleAPI(depthFrame, calibrationDepthFrame, workspace_depth, box
                 if j in used:
                     continue
 
-                box_i = cv2.boxPoints(cv2.minAreaRect(box_limits[idx]))
-                box_j = cv2.boxPoints(cv2.minAreaRect(box_limits[j]))
+                #box_i = cv2.boxPoints(cv2.minAreaRect(box_limits[idx]))
+                #box_j = cv2.boxPoints(cv2.minAreaRect(box_limits[j]))
+                box_i = box_limits[idx]
+                box_j = box_limits[j]
 
-                if overlap_ratio(box_i, box_j) > OVERLAP_RATIO or intersection_edge(box_i, box_j, depthFrame):
+                #if overlap_ratio(box_i, box_j) > OVERLAP_RATIO or intersection_edge(box_i, box_j, depthFrame):
+                if contours_overlap_by_points(box_i, box_j) or intersection_edge(box_i, box_j, depthFrame) or areContoursClose(box_i, box_j, 10):
                     stack.append(j)
 
         groups.append(group)
@@ -237,10 +240,13 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
                 if j in used:
                     continue
 
-                box_i = cv2.boxPoints(cv2.minAreaRect(box_limits[idx]))
-                box_j = cv2.boxPoints(cv2.minAreaRect(box_limits[j]))
+                #box_i = cv2.boxPoints(cv2.minAreaRect(box_limits[idx]))
+                #box_j = cv2.boxPoints(cv2.minAreaRect(box_limits[j]))
+                box_i = box_limits[idx]
+                box_j = box_limits[j]
 
-                if overlap_ratio(box_i, box_j) > OVERLAP_RATIO or intersection_edge(box_i, box_j, depthFrame):
+                #if overlap_ratio(box_i, box_j) > OVERLAP_RATIO or intersection_edge(box_i, box_j, depthFrame):
+                if contours_overlap_by_points(box_i, box_j) or intersection_edge(box_i, box_j, depthFrame) or areContoursClose(box_i, box_j, 10):
                     stack.append(j)
 
         groups.append(group)
@@ -337,6 +343,10 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
             valid = (zs_all > 0) & (zs_all < workspace_depth) & (numpy.abs(zs_all - depth) <= DEPTH_TOL_MM)
             xs_v, ys_v, zs_v = xs_all[valid], ys_all[valid], zs_all[valid]
 
+            print("Pixels preenchidos:", len(xs_all))
+            print("Pixels válidos:", len(xs_v))
+            print("Depth do objeto:", depth)
+
             Z = zs_v / 1000.0
             X = (xs_v - cx_d) * Z / fx_d
             Y = (ys_v - cy_d) * Z / fy_d
@@ -394,6 +404,7 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
         objHeightOverlapped = []
         objAngle = []
         realVolume = 0
+        last_area = 0
 
         print("Irregular")
         print(irregular)
@@ -419,31 +430,38 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
                 print(irregular[i-1])
 
             if i!= 0:
-                if irregular[i-1]:
-                    print("Calculating through Contour")
-                    volume = cv2.contourArea(allObjContour[i-1]) * height_meters
+                #if irregular[i-1]:
+                print("Calculating through Contour")
+                if i-1 > 0:
+                    area = cv2.contourArea(allObjContour[i-1]) - last_area
                 else:
-                    if i!=0 and i < (len(allObjPtsM) - 1):
-                        print("Verifying object")
-                        for j in range(i + 1, len(allObjPtsM)):
-                            if isInsideHull(allObjPtsM[i], allObjPtsM[j]):
-                                if isInsideContour(allObjPtsM[i], allObjPtsM[j]):# or isCloseToTheContour(allObjPixel[i-1], allObjPixel[j-1]):
-                                    if intersection_edge(allObjPixel[i-1], allObjPixel[j-1], depthFrame):
-                                        print("Inside")
-                                        height_meters = (depths[j] - depths[i]) / 1000
-                                        height_meters_overlappedObject = ((ws_d_h - depths[i]) / 1000) - height_meters
-                                        break
-                                    else:
-                                        print("Outside")
-                                else:
-                                    print("Outside")
-                            else:
-                                print("Outside")
+                    area = cv2.contourArea(allObjContour[i-1])
+                    
+                last_area = area
+                volume = area * height_meters
+                print("Area:", cv2.contourArea(allObjContour[i-1]))
+                #else:
+                #    if i!=0 and i < (len(allObjPtsM) - 1):
+                #        print("Verifying object")
+                #        for j in range(i + 1, len(allObjPtsM)):
+                #            if isInsideHull(allObjPtsM[i], allObjPtsM[j]):
+                #                if isInsideContour(allObjPtsM[i], allObjPtsM[j]):# or isCloseToTheContour(allObjPixel[i-1], allObjPixel[j-1]):
+                #                    if intersection_edge(allObjPixel[i-1], allObjPixel[j-1], depthFrame):
+                #                        print("Inside")
+                #                        height_meters = (depths[j] - depths[i]) / 1000
+                #                        height_meters_overlappedObject = ((ws_d_h - depths[i]) / 1000) - height_meters
+                #                        break
+                #                    else:
+                #                        print("Outside")
+                #                else:
+                #                    print("Outside")
+                #            else:
+                #                print("Outside")
 
             if i != 0:
-                if not irregular[i-1]:
-                    print("Calulating through Width, Length, Height")
-                    volume = width_meters * length_meters * height_meters
+                #if not irregular[i-1]:
+                #    print("Calulating through Width, Length, Height")
+                #    volume = width_meters * length_meters * height_meters
                 totalVolume += volume
                 realVolume += volume
                 print("Volume:", volume)
@@ -625,23 +643,40 @@ def to_hull(points):
     hull = cv2.convexHull(points)
     return hull
 
-def overlap_ratio(b1, b2):
-    inter, _ = cv2.intersectConvexConvex(
-        b1.astype(numpy.float32),
-        b2.astype(numpy.float32)
-    )
+def contours_overlap_by_points(c, prev_c):
+    min_ratio = 0.20
 
-    a1 = cv2.contourArea(b1)
-    a2 = cv2.contourArea(b2)
+    inside = 0
+    inside_prev = 0
+    total = len(c)
+    total_prev = len(prev_c)
+    #print("Total", total)
 
-    if a1 + a2 == 0:
-        return 0
+    for p in c:
+        x = int(p[0][0])
+        y = int(p[0][1])
 
-    return inter / min(a1, a2)
+        if cv2.pointPolygonTest(prev_c, (x, y), False) >= 0:
+            inside += 1
 
-def intersection_edge(b1, b2, ctd, kernel_size=3):
-    mask1 = numpy.zeros(ctd.shape[:2], dtype=numpy.uint8)
-    mask2 = numpy.zeros(ctd.shape[:2], dtype=numpy.uint8)
+    for p in prev_c:
+        x = int(p[0][0])
+        y = int(p[0][1])
+
+        if cv2.pointPolygonTest(c, (x, y), False) >= 0:
+            inside_prev += 1
+            
+    print("Inside", inside)
+    print("Quanto?", inside / total)
+
+    print("Inside Prev", inside_prev)
+    print("Quanto?", inside_prev / total_prev)
+    
+    return ((inside / total) >= min_ratio or (inside_prev / total_prev) >= min_ratio)
+
+def intersection_edge(b1, b2, depthFrame, kernel_size=3):
+    mask1 = numpy.zeros(depthFrame.shape[:2], dtype=numpy.uint8)
+    mask2 = numpy.zeros(depthFrame.shape[:2], dtype=numpy.uint8)
 
     b1 = b1.astype(numpy.int32)
     b2 = b2.astype(numpy.int32)
@@ -660,6 +695,31 @@ def intersection_edge(b1, b2, ctd, kernel_size=3):
         print("Intersection")
 
     return numpy.any(cv2.bitwise_and(mask1, mask2))
+
+def areContoursClose(c1, c2, threshold):
+    pts1 = c1.reshape(-1, 2)
+    pts2 = c2.reshape(-1, 2)
+
+    for p1 in pts1:
+        dists = numpy.linalg.norm(pts2 - p1, axis=1)
+        if numpy.min(dists) <= threshold:
+            return True
+
+    return False
+
+def overlap_ratio(b1, b2):
+    inter, _ = cv2.intersectConvexConvex(
+        b1.astype(numpy.float32),
+        b2.astype(numpy.float32)
+    )
+
+    a1 = cv2.contourArea(b1)
+    a2 = cv2.contourArea(b2)
+
+    if a1 == 0 or a2 == 0:
+        return 0
+
+    return inter / min(a1, a2)
 
 def is_suspect_blob(c):
     rect = cv2.minAreaRect(c)
