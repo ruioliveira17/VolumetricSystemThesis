@@ -69,12 +69,15 @@ function App() {
   const [volInfo, setVolInfo] = useState(null);
   const [objCenters, setObjCenters] = useState([]);
   const [objAngles, setObjAngles] = useState([]);
+  const [objContours, setObjContours] = useState([]);
   const [objOverlappedHeights, setOverlappedObjHeights] = useState([]);
   const [objectImage, setObjectImage] = useState(null);
 
   const [objectList, setObjectList] = useState([]);
   const [selectedObject, setSelectedObject] = useState("");
   const [multipleVolumeData, setVolumeData] = useState(null);
+
+  const [depthReady, setDepthReady] = useState(false);
 
   const [savedUser, setSavedUser] = useState(null);
 
@@ -492,6 +495,7 @@ function App() {
     setObjCenters(objData.obj_center ?? []);
     setObjAngles(objData.obj_angles ?? []);
     setOverlappedObjHeights(objData.obj_overlappedHeights ?? []);
+    setObjContours(objData.obj_contours ?? []);
   }, [selectedObject, multipleVolumeData]);
 
   async function volumeMultiBundle(access_token) {
@@ -587,6 +591,7 @@ function App() {
         setObjCenters(objData.obj_center ?? []);
         setObjAngles(objData.obj_angles ?? []);
         setOverlappedObjHeights(objData.obj_overlappedHeights ?? []);
+        setObjContours(objData.obj_contours ?? []);
 
         setSelectedObject(key);
 
@@ -792,10 +797,13 @@ function App() {
           })).reverse()
         : [volInfo];
 
-      //console.log("Obj Centers", objCenters)
       const centers = volumeMode === "real"
         ? objCenters.slice().reverse()
         : objCenters;
+
+      // const contours = volumeMode === "real"
+      //   ? objContours.slice().reverse()
+      //   : objContours;
 
       const angles = volumeMode === "real"
         ? objAngles.slice().reverse()
@@ -809,9 +817,9 @@ function App() {
       const maxLength = Math.max(...boxes.map(b => b.length));
       const totalHeight = boxes.reduce((sum, b) => sum + b.height, 0);
 
-      const maxDim = Math.max(maxWidth, maxLength, totalHeight);
+      const maxDim = Math.max(maxWidth, maxLength);
 
-      const scale = Math.min(W, H) * 0.7;
+      const scale = Math.min(W, H) * 0.6;
       const fontSize = Math.max(15, Math.min(22, scale * 0.04));
       ctx.font = `${fontSize}px Inter Regular`;
 
@@ -822,11 +830,12 @@ function App() {
       const pivot_cx = rotCenter[0] / maxDim
       const pivot_cy = rotCenter[1] / maxDim
 
-      let baseHeight = -totalHeight / 2;
+      let baseHeight = - totalHeight / 2;
 
       boxes.forEach((box, i) => {
-        let bottom, top
+        let bottom, top;
         const [center_x, center_y] = centers[i] ?? [0, 0];
+        //const contour = contours[i].map(([px, py]) => [px * 100, py * 100]);
 
         const w = box.width;
         const d = box.length;
@@ -839,7 +848,6 @@ function App() {
         const hd = nd / 2;
 
         const angle = (angles[i] ?? 0) * Math.PI / 180;
-        console.log(angle);
 
         const ca = Math.cos(angle);
         const sa = Math.sin(angle);
@@ -857,12 +865,6 @@ function App() {
           bottom = (baseHeight + bottomHeight * 100) / maxDim;
           top = (baseHeight + bottomHeight * 100 + h) / maxDim;
         }
-
-        //console.log("OverlappedHeights", overlappedHeights)
-        //console.log("BottomHeight", bottomHeight * 100);
-        //console.log("Bottom", bottom);
-        //console.log("Top", top);
-        //console.log("BaseHeight", baseHeight);
 
         const p0 = rotate(-hw, -hd);
         const p1 = rotate(hw, -hd);
@@ -950,8 +952,6 @@ function App() {
             drawLabel(v[a], v[b], `${value} cm`, color, "height");
           }*/}
         });
-
-        //accumulatedHeight += h;
       
       });
     };
@@ -1169,17 +1169,31 @@ function App() {
 
   // Repeat Toggle Status every 500ms
   useEffect(() => {
-    if (currentMenu !== "config-menu" && currentMenu !== "calibration-menu") {
-      return;
-    }
+    if (currentMenu === "config-menu" && currentMenu === "calibration-menu"){
+      const interval = setInterval(async () => {
+        refreshToggles();
+      }, 500);
 
-    const interval = setInterval(() => {
-      refreshToggles();
-    }, 500);
+      return () => {
+        clearInterval(interval);
+      };
+    } else if (currentMenu === "volume-menu") {
 
-    return () => {
-      clearInterval(interval);
-    };
+      const interval = setInterval(async () => {
+        const access_token = localStorage.getItem("access_token");
+        const response = await fetch(`${API_URL}/depth/status`, {
+            headers: { "Authorization": `Bearer ${access_token}` }
+        });
+
+        const data = await response.json();
+        //console.log(data.ready);
+        setDepthReady(data.ready);
+      }, 500);
+
+      return () => {
+        clearInterval(interval);
+      };
+    }    
   }, [currentMenu]);
 
   async function refreshToggles() {
@@ -2010,7 +2024,7 @@ function App() {
             {volBundleMode && (
               <>
                 {/* Button */}
-                <button onClick={volume_click} className="volumeBundle-button" disabled={loadingVolume}>
+                <button onClick={volume_click} className="volumeBundle-button" disabled={loadingVolume || !depthReady}>
                   {loadingVolume && (
                     <div className="loadingVolume-icon">  
                       <img src="/loading.svg" alt="loading"/>
@@ -2071,7 +2085,7 @@ function App() {
             {!volBundleMode && (
               <>
                 {/* Button */}
-                <button onClick={volume_click} className="volume-button" disabled={loadingVolume}>
+                <button onClick={volume_click} className="volume-button" disabled={loadingVolume || !depthReady}>
                   {loadingVolume && (
                     <div className="loadingVolume-icon">  
                       <img src="/loading.svg" alt="loading"/>

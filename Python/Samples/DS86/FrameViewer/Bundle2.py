@@ -344,23 +344,15 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
 
                             result = cv2.bitwise_or(mask_curr, new_pixels)
 
-                            cv2.imwrite("01_mask_prev.png", mask_prev)
-                            cv2.imwrite("02_mask_curr.png", mask_curr)
-                            cv2.imwrite("03_union.png", union)
-                            cv2.imwrite("04_closed.png", closed)
-                            cv2.imwrite("05_new_pixels.png", new_pixels)
-                            cv2.imwrite("06_result.png", result)
-
                             contorno, _ = cv2.findContours(closed, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
                             if len(contorno) > 0:
-                                new_c = contorno[0]
-                                print("Antes:", c.shape)
-                                c = new_c
-                                print("Depois:", c.shape)
+                                print("Unite Contour")
+                                new_c = max(contorno, key=cv2.contourArea)
+                                if cv2.contourArea(new_c) > 0:
+                                    c = new_c
                                 cv2.drawContours(imagIna, [new_c], -1, 255, 2)
                             else:
                                 print("No contour was found")
-
                         else:
                             print("No contours to unite")
 
@@ -390,7 +382,6 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
                         print("Adicionar ao Conjunto")
                         belongs_to_previous = False
                         all_shifted_contours = numpy.vstack([c])
-                        print("Append:", c.shape)
                         contours.append([all_shifted_contours])
                         box_ws.append(obj["workspace_limits"])
                         binaryImgs.append(binary)
@@ -573,6 +564,12 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
 
         #     contours = contours_to_process
 
+        for i, contour_list in enumerate(contours):
+            print("Lista", i)
+
+            for j, c in enumerate(contour_list):
+                print(" ", j, c.shape, cv2.contourArea(c))
+
         all_contours = [c for contour_list in contours for c in contour_list if c.size > 0]
         groups = []
         used = set()
@@ -605,6 +602,7 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
                     #if overlap_ratio(box_i, box_j) > OVERLAP_RATIO or intersection_edge(box_i, box_j, depthFrame):
                     if contours_overlap_by_points(box_i, box_j) or intersection_edge(box_i, box_j, depthFrame) or areContoursClose(box_i, box_j, 10):
                         stack.append(j)
+                        print(f"BUNDLE joined {i} with {j}")
 
             groups.append(group)
 
@@ -685,6 +683,10 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
 
     not_set = 1
     minimum_value = 6000
+
+    print("ANTES DO RETURN")
+    for i, c in enumerate(box_limits):
+        print(i, id(c), c.shape)
                     
     return minimum_value, not_set, box_ws, box_limits, depths, object_outOfLine
 

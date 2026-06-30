@@ -63,7 +63,7 @@ def MinDepthAPI(depthFrame, detection_area, workspace_warning, workspace_depth, 
                 valid_count = numpy.sum(valid_mask)
                 total_count = neighbors.size
 
-                if valid_count / total_count >= 0.9 and not (min_value - threshold <= workspace_depth <= min_value + threshold):
+                if valid_count / total_count >= 0.80 and not (min_value - threshold <= workspace_depth <= min_value + threshold):
                         
                     neighbors = neighbors[(neighbors > (min_value - threshold)) & (neighbors < (min_value + threshold))]
                     depth_value = round(float(numpy.median(neighbors)), 1)
@@ -82,22 +82,22 @@ def MinDepthAPI(depthFrame, detection_area, workspace_warning, workspace_depth, 
 
                         # Suppress entire depth-band + 51px border to kill edge artefacts
                         # (visible box sides when rotated appear just outside top contour)
-                        # surface_band = (
-                        #     (depth_copy >= min_value - threshold) &
-                        #     (depth_copy <= min_value + threshold) &
-                        #     (mask > 0)
-                        # ).astype(numpy.uint8) * 255
-                        # big_kernel = numpy.ones((51, 51), dtype=numpy.uint8)
-                        # dilated = cv2.dilate(surface_band, big_kernel)
-                        # depth_copy[dilated > 0] = 9999
-                        depth_copy[y, x] = 9999
+                        surface_band = (
+                            (depth_copy >= min_value - threshold) &
+                            (depth_copy <= min_value + threshold) &
+                            (mask > 0)
+                        ).astype(numpy.uint8) * 255
+                        big_kernel = numpy.ones((51, 51), dtype=numpy.uint8)
+                        dilated = cv2.dilate(surface_band, big_kernel)
+                        depth_copy[dilated > 0] = 9999
+                        #depth_copy[y, x] = 9999
 
                     else:
-                        # suppress = numpy.zeros_like(depth_copy, dtype=numpy.uint8)
-                        # suppress[y, x] = 1
-                        # suppress = cv2.dilate(suppress, kernel)
-                        # depth_copy[suppress > 0] = 9999
-                        depth_copy[y, x] = 9999
+                        suppress = numpy.zeros_like(depth_copy, dtype=numpy.uint8)
+                        suppress[y, x] = 1
+                        suppress = cv2.dilate(suppress, kernel)
+                        depth_copy[suppress > 0] = 9999
+                        #depth_copy[y, x] = 9999
 
                     suppressed_any = True
                     break

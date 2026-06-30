@@ -10,8 +10,10 @@ class VolumeState:
         self.height_meters = 0
         self.obj_center = 0
         self.obj_angles = 0
+        self.objOverlappedHeights = 0
+        self.objContours = 0
         self.volume = 0
-        self.objects_outOfLine = None
+        self.objects_outOfLine = []
         self.countdown = 3
 
 volumeState = VolumeState()

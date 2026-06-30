@@ -83,6 +83,9 @@ def volumeMultiBundleAPI(depthFrame, calibrationDepthFrame, workspace_depth, box
 
     print("Box Limits Len:", len(box_limits))
 
+    for i, c in enumerate(box_limits):
+        print(i, c.shape, cv2.contourArea(c))
+
     for i in range(len(box_limits)):
         if i in used:
             continue
@@ -111,6 +114,7 @@ def volumeMultiBundleAPI(depthFrame, calibrationDepthFrame, workspace_depth, box
                 #if overlap_ratio(box_i, box_j) > OVERLAP_RATIO or intersection_edge(box_i, box_j, depthFrame):
                 if contours_overlap_by_points(box_i, box_j) or intersection_edge(box_i, box_j, depthFrame) or areContoursClose(box_i, box_j, 10):
                     stack.append(j)
+                    print(f"joined {i} with {j}")
 
         groups.append(group)
 
@@ -126,6 +130,8 @@ def volumeMultiBundleAPI(depthFrame, calibrationDepthFrame, workspace_depth, box
             continue
          
         for contour, depth in group:
+            print("--------------")
+            #print(contour)
             fill_img = numpy.zeros((480, 640), dtype=numpy.uint8)
             cv2.fillPoly(fill_img, [contour.astype(numpy.int32)], 255)
 
@@ -134,9 +140,12 @@ def volumeMultiBundleAPI(depthFrame, calibrationDepthFrame, workspace_depth, box
                 continue
 
             DEPTH_TOL_MM = 40
-            zs_all = depthFrame[ys_all, xs_all].astype(numpy.float32)
-            valid = (zs_all > 0) & (zs_all < workspace_depth) & (numpy.abs(zs_all - depth) <= DEPTH_TOL_MM)
+            #print(ys_all, xs_all)
+            zs_all = depthFrame[ys_all, xs_all]
+            #print(zs_all)
+            valid = (zs_all > 0) & (zs_all < workspace_depth)# & (numpy.abs(zs_all - depth) <= DEPTH_TOL_MM)
             xs_v, ys_v, zs_v = xs_all[valid], ys_all[valid], zs_all[valid]
+            #print(xs_v)
 
             Z = zs_v / 1000.0
             X = (xs_v - cx_d) * Z / fx_d
@@ -282,7 +291,7 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
 
             DEPTH_TOL_MM = 40
             zs_all = depthFrame[ys_all, xs_all].astype(numpy.float32)
-            valid = (zs_all > 0) & (zs_all < workspace_depth) & (numpy.abs(zs_all - depth) <= DEPTH_TOL_MM)
+            valid = (zs_all > 0) & (zs_all < workspace_depth)# & (numpy.abs(zs_all - depth) <= DEPTH_TOL_MM)
             xs_v, ys_v, zs_v = xs_all[valid], ys_all[valid], zs_all[valid]
 
             Z = zs_v / 1000.0
@@ -297,6 +306,7 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
         for j in range(len(group)):
             irregular = False
             contour, depth = group[j]
+            print(group[j])
 
             img = numpy.zeros((480, 640, 3), dtype=numpy.uint8)
             epsilon = 0.005 * cv2.arcLength(contour, True)
@@ -335,17 +345,14 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
             cv2.fillPoly(fill_img, [pts_flat.astype(numpy.int32)], 255)
 
             ys_all, xs_all = numpy.where(fill_img > 0)
+            print(xs_all)
             if len(xs_all) == 0 or len(ys_all) == 0:
                 continue
 
             DEPTH_TOL_MM = 40
             zs_all = depthFrame[ys_all, xs_all].astype(numpy.float32)
-            valid = (zs_all > 0) & (zs_all < workspace_depth) & (numpy.abs(zs_all - depth) <= DEPTH_TOL_MM)
+            valid = (zs_all > 0) & (zs_all < workspace_depth)# & (numpy.abs(zs_all - depth) <= DEPTH_TOL_MM)
             xs_v, ys_v, zs_v = xs_all[valid], ys_all[valid], zs_all[valid]
-
-            print("Pixels preenchidos:", len(xs_all))
-            print("Pixels válidos:", len(xs_v))
-            print("Depth do objeto:", depth)
 
             Z = zs_v / 1000.0
             X = (xs_v - cx_d) * Z / fx_d
@@ -502,7 +509,7 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
     length_meters = ength
     height_meters = eight
 
-    return volume, width_meters, length_meters, height_meters, allObjCenter, groupAngles, groupHeightsOverlapped
+    return volume, width_meters, length_meters, height_meters, allObjCenter, groupAngles, groupHeightsOverlapped, allGroupObjContours
 
 def volumeIndividualAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits, depths, fx_d, fy_d, cx_d, cy_d): 
     MIN_OBJ_HEIGHT_MM = 30
@@ -650,7 +657,6 @@ def contours_overlap_by_points(c, prev_c):
     inside_prev = 0
     total = len(c)
     total_prev = len(prev_c)
-    #print("Total", total)
 
     for p in c:
         x = int(p[0][0])
@@ -666,11 +672,11 @@ def contours_overlap_by_points(c, prev_c):
         if cv2.pointPolygonTest(c, (x, y), False) >= 0:
             inside_prev += 1
             
-    print("Inside", inside)
-    print("Quanto?", inside / total)
+    # print("Inside", inside)
+    # print("Quanto?", inside / total)
 
-    print("Inside Prev", inside_prev)
-    print("Quanto?", inside_prev / total_prev)
+    # print("Inside Prev", inside_prev)
+    # print("Quanto?", inside_prev / total_prev)
     
     return ((inside / total) >= min_ratio or (inside_prev / total_prev) >= min_ratio)
 

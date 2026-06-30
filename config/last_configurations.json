@@ -9,5 +9,5 @@
     "fillHoleFilter": true,
     "spatialFilter": true,
     "confidenceFilter": false,
-    "countdown": 3
+    "countdown": 0
 }

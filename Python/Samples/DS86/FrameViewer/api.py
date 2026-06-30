@@ -115,6 +115,8 @@ def object_processing():
 
             #print("New Min Value", depthState.minimum_value)
 
+        #print("DepthState.Objects_info:", depthState.objects_info)
+
         time.sleep(0.01)
 
 def start_ObjProcessing():
@@ -1205,7 +1207,7 @@ def volume_SingleBundle(current_user: dict = Depends(get_current_user)):
 
     #    print("New Min Value", depthState.minimum_value)
 
-    if depthState.not_set == 0:
+    if depthState.objects_info is not None:
         depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine = objIdentifier(colorFrame, colorToDepthFrame, depthFrame, frameState.calibrationColorFrame, frameState.calibrationDepthFrame, modeState.volumeMode, depthState.objects_info, workspaceState.workspace_depth, depthState.threshold, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb, camState.fx_d, camState.fy_d, camState.fx_rgb, camState.fy_rgb)
         if volumeState.depths:
             depthState.minimum_depth = min(volumeState.depths)
@@ -1299,7 +1301,7 @@ def volume_MultiBundle(current_user: dict = Depends(get_current_user)):
 
     #    print("New Min Value", depthState.minimum_value)
 
-    if depthState.not_set == 0:
+    if depthState.objects_info is not None:
         depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine = objIdentifier(colorFrame, colorToDepthFrame, depthFrame, frameState.calibrationColorFrame, frameState.calibrationDepthFrame, modeState.volumeMode, depthState.objects_info, workspaceState.workspace_depth, depthState.threshold, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb, camState.fx_d, camState.fy_d, camState.fx_rgb, camState.fy_rgb)
         if volumeState.box_limits is not None and len(volumeState.box_limits) > 0:
             volumeState.volume, volumeState.width_meters, volumeState.length_meters, volumeState.height_meters = volumeMultiBundleAPI(depthFrame, frameState.calibrationDepthFrame, workspaceState.workspace_depth, volumeState.box_limits, volumeState.depths, camState.fx_d, camState.fy_d, camState.cx_d, camState.cy_d)
@@ -1399,12 +1401,12 @@ def volume_Real(current_user: dict = Depends(get_current_user)):
     else:
         depthFrame = frameState.depthFrameHDR
 
-    if depthState.not_set == 0:
+    if depthState.objects_info is not None:
         depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine = objIdentifier(colorFrame, colorToDepthFrame, depthFrame, frameState.calibrationColorFrame, frameState.calibrationDepthFrame, modeState.volumeMode, depthState.objects_info, workspaceState.workspace_depth, depthState.threshold, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb, camState.fx_d, camState.fy_d, camState.fx_rgb, camState.fy_rgb)
         t2 = time.perf_counter()
         print("objIdentifier:", (t2 - t0) * 1000, "ms")
         if volumeState.box_limits is not None and len(volumeState.box_limits) > 0:
-            volumeState.volume, volumeState.width_meters, volumeState.length_meters, volumeState.height_meters, volumeState.obj_center, volumeState.obj_angles, volumeState.objOverlappedHeights = volumeRealAPI(depthFrame, frameState.calibrationDepthFrame, workspaceState.workspace_depth, volumeState.box_limits, volumeState.depths, camState.fx_d, camState.fy_d, camState.cx_d, camState.cy_d)
+            volumeState.volume, volumeState.width_meters, volumeState.length_meters, volumeState.height_meters, volumeState.obj_center, volumeState.obj_angles, volumeState.objOverlappedHeights, volumeState.objContours = volumeRealAPI(depthFrame, frameState.calibrationDepthFrame, workspaceState.workspace_depth, volumeState.box_limits, volumeState.depths, camState.fx_d, camState.fy_d, camState.cx_d, camState.cy_d)
             t3 = time.perf_counter()
             print("volumeRealAPI:", (t3 - t2) * 1000, "ms")
         else:
@@ -1413,12 +1415,19 @@ def volume_Real(current_user: dict = Depends(get_current_user)):
             volumeState.length_meters = 0
             volumeState.height_meters = 0
             volumeState.obj_center = 0
+            volumeState.obj_angles = 0
+            volumeState.objOverlappedHeights = 0
+            volumeState.objContours = 0
             depthState.minimum_depth = workspaceState.workspace_depth
     else:
         volumeState.volume = 0
         volumeState.width_meters = 0
         volumeState.length_meters = 0
+        volumeState.height_meters = 0
         volumeState.obj_center = 0
+        volumeState.obj_angles = 0
+        volumeState.objOverlappedHeights = 0
+        volumeState.objContours = 0
         depthState.minimum_depth = workspaceState.workspace_depth
 
     volumeState.width_meters = scale_nested(volumeState.width_meters, 100)
@@ -1437,7 +1446,8 @@ def volume_Real(current_user: dict = Depends(get_current_user)):
         "ws_depth": workspaceState.workspace_depth / 10,
         "objCenter": volumeState.obj_center,
         "objAngles": volumeState.obj_angles,
-        "objOverlappedHeights" : volumeState.objOverlappedHeights
+        "objOverlappedHeights" : volumeState.objOverlappedHeights,
+        #"objContours": [[contour.tolist() for contour in group] for group in volumeState.objContours]
     }
 
 def buildVolumeRealResponse():
@@ -1450,6 +1460,7 @@ def buildVolumeRealResponse():
     obj_center = volumeState.obj_center if isinstance(volumeState.obj_center, list) else [volumeState.obj_center]
     obj_angles = volumeState.obj_angles if isinstance(volumeState.obj_angles, list) else [volumeState.obj_angles]
     obj_overlappedHeights = volumeState.objOverlappedHeights if isinstance(volumeState.objOverlappedHeights, list) else [volumeState.objOverlappedHeights]
+    #obj_contours = volumeState.objContours if isinstance(volumeState.objContours, list) else [volumeState.objContours]
 
     num_objects = min(
         len(volumes),
@@ -1467,7 +1478,8 @@ def buildVolumeRealResponse():
             "z": [round(float(h), 1) for h in heights[i]],
             "obj_center": [[round(float(x), 3), round(float(y), 3)] for (x, y) in obj_center[i]],
             "obj_angles":  [round(float(a), 1) for a in obj_angles[i]],
-            "obj_overlappedHeights": [round(float(oh), 3) for oh in obj_overlappedHeights[i]]
+            "obj_overlappedHeights": [round(float(oh), 3) for oh in obj_overlappedHeights[i]],
+            #"obj_contours": [contour.tolist() for contour in obj_contours[i]]
         }
 
     response["Total"] = {
@@ -1720,4 +1732,10 @@ def save_state():
 def get_countdownTimer(current_user: dict = Depends(get_current_user)):
     return{
         "countdown": volumeState.countdown,
+    }
+
+@app.get("/depth/status")
+def depth_status(current_user : dict = Depends(get_current_user)):
+    return {
+        "ready": depthState.objects_info is not None
     }
