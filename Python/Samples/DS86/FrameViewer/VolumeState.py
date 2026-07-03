@@ -15,5 +15,8 @@ class VolumeState:
         self.volume = 0
         self.objects_outOfLine = []
         self.countdown = 3
+        self.click_timestamp = None
+        self.hdrFinished = False
+        self.processing = ""
 
 volumeState = VolumeState()

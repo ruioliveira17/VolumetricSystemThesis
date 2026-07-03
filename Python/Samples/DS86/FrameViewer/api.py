@@ -45,9 +45,10 @@ from API.VzenseDS_api import *
 from auth import create_access_token, create_refresh_token, get_password_hash, verify_password, verify_token
 from Bundle2 import objIdentifier
 from CalibrationDefTkinter import calibrateAPI, maskAPI, manualWorkspaceDraw
-from CameraOptions import startCamera, stopCamera, setFPS, setFlyingPixelFilter, setFillHoleFilter, setSpatialFilter, setConfidenceFilter
+from CameraOptions import startCamera, stopCamera, setFPS, processHDR, setFlyingPixelFilter, setFillHoleFilter, setSpatialFilter, setConfidenceFilter
 from MinDepth2 import MinDepthAPI
 from VolumeTkinter import volumeSingleBundleAPI, volumeMultiBundleAPI, volumeRealAPI, volumeIndividualAPI
+from Weight import getWeight
 
 #------------------------------------------------------   Services    ------------------------------------------------------
 
@@ -107,11 +108,11 @@ def object_processing():
         else:
             depthFrame = frameState.depthFrameHDR
 
-        if workspaceState.workspace_warning is not None:
-            depthState.not_set, depthState.objects_info = MinDepthAPI(depthFrame, workspaceState.detection_area, workspaceState.workspace_warning, workspaceState.workspace_depth, depthState.threshold, depthState.not_set, camState.cx_d, camState.cy_d, camState.fx_d, camState.fy_d)
-        if depthState.objects_info is not None and len(depthState.objects_info) != 0:
-            depthState.minimum_depth = depthState.objects_info[0]["depth"]
-            depthState.minimum_value = depthState.minimum_depth
+        # if workspaceState.workspace_warning is not None:
+        #     depthState.not_set, depthState.objects_info = MinDepthAPI(depthFrame, workspaceState.detection_area, workspaceState.workspace_warning, workspaceState.workspace_depth, depthState.threshold, depthState.not_set, camState.cx_d, camState.cy_d, camState.fx_d, camState.fy_d)
+        # if depthState.objects_info is not None and len(depthState.objects_info) != 0:
+        #     depthState.minimum_depth = depthState.objects_info[0]["depth"]
+        #     depthState.minimum_value = depthState.minimum_depth
 
             #print("New Min Value", depthState.minimum_value)
 
@@ -651,94 +652,6 @@ def getDetectedObjectsFrame(current_user: dict = Depends(get_current_user)):
     return Response(content=buf.read(), media_type="image/png")
     #return Response(content=frameState.detectedObjectsFrame.tobytes(), media_type="application/octet-stream")
 
-@app.get("/getFrame/HDRcolor", summary="Get HDR Color Frame",
-         description="""
-         Grabs the HDR color frame provided by an algorithm that captures multiple exposures and returns it as a PNG image. If no frame is available, it returns an error message.
-         """,
-         tags=["Frame"])
-def get_Color_HDRFrame(current_user: dict = Depends(get_current_user)):
-    colorFrameHDR = frameState.colorFrameHDR
-    if colorFrameHDR is None:
-        return Response(status_code=204)
-
-    if colorFrameHDR.dtype != numpy.uint8:
-        # Normaliza caso não seja uint8
-        colorFrameHDR = (numpy.clip(colorFrameHDR, 0, 1) * 255).astype(numpy.uint8)
-    
-    # Converte BGR -> RGB
-    img_rgbHDR = colorFrameHDR[:, :, ::-1]
-    pil_img = Image.fromarray(img_rgbHDR)
-
-    # Salva em PNG na memória
-    buf = io.BytesIO()
-    pil_img.save(buf, format="PNG")
-    buf.seek(0)
-
-    return Response(content=buf.read(), media_type="image/png")
-    #return Response(content=frameState.colorFrameHDR.tobytes(), media_type="application/octet-stream")
-
-@app.get("/getFrame/HDRcolorToDepth", summary="Get HDR ColorToDepth Frame",
-         description="""
-         Grabs the HDR depth frame provided by an algorithm that captures multiple exposures converted to color and returns it as a PNG image. If no frame is available, it returns an error message.
-         """,
-         tags=["Frame"])
-def get_ColorToDepth_HDRFrame(current_user: dict = Depends(get_current_user)):
-    colorToDepthFrameHDR = frameState.colorToDepthFrameHDR
-    if colorToDepthFrameHDR is None:
-        return Response(status_code=204)
-
-    if colorToDepthFrameHDR.dtype != numpy.uint8:
-        # Normaliza caso não seja uint8
-        colorToDepthFrameHDR = (numpy.clip(colorToDepthFrameHDR, 0, 1) * 255).astype(numpy.uint8)
-    
-    # Converte BGR -> RGB
-    img_ctdHDR = colorToDepthFrameHDR[:, :, ::-1]
-    pil_img = Image.fromarray(img_ctdHDR)
-
-    # Salva em PNG na memória
-    buf = io.BytesIO()
-    pil_img.save(buf, format="PNG")
-    buf.seek(0)
-
-    return Response(content=buf.read(), media_type="image/png")
-    #return Response(content=frameState.colorToDepthFrameHDR.tobytes(), media_type="application/octet-stream")
-
-@app.get("/getFrame/HDRdepth", summary="Get HDR Depth Frame",
-         description="""
-         Grabs the HDR depth frame provided by an algorithm that captures multiple exposures and returns it as a PNG image. If no frame is available, it returns an error message.
-         """,
-         tags=["Frame"])
-def get_Depth_HDRFrame(current_user: dict = Depends(get_current_user)):
-    depthFrameHDR = frameState.depthFrameHDR
-    if depthFrameHDR is None:
-        return Response(status_code=204)
-
-    colorSlope = camState.colorSlope
-
-    img = numpy.int32(depthFrameHDR)
-    img = img * 255 / colorSlope
-    img = numpy.clip(img, 0, 255)
-    img = numpy.uint8(img)
-    depth_img = cv2.applyColorMap(img, cv2.COLORMAP_RAINBOW)
-
-    if depth_img.dtype != numpy.uint8:
-        # Normaliza para 0-255 e converte para uint8
-        frame_uint8 = (numpy.clip(depth_img, 0, 1) * 255).astype(numpy.uint8)
-    else:
-        frame_uint8 = depth_img
-
-    # BGR -> RGB
-    frame_depth = frame_uint8[:, :, ::-1]
-
-    pil_img = Image.fromarray(frame_depth)
-
-    # Salva em PNG na memória
-    buf = io.BytesIO()
-    pil_img.save(buf, format="PNG")
-    buf.seek(0)
-
-    return Response(content=buf.read(), media_type="image/png")
-    #return Response(content=frameState.depthFrameHDR.tobytes(), media_type="application/octet-stream")
 
 #-------------------------------------------------------   Mask    -------------------------------------------------------
 @app.post("/mask/color", summary="Set Mask Color",
@@ -908,10 +821,7 @@ def calibrate(data: HSVValue, current_user: dict = Depends(get_current_user)):
     lower = (data.hmin, data.smin, data.vmin)
     upper = (data.hmax, data.smax, data.vmax)
 
-    if frameState.colorFrameHDR is None or modeState.expositionMode == "Fixed Exposition":
-        colorFrame = frameState.colorFrame
-    else:
-        colorFrame = frameState.colorFrameHDR
+    colorFrame = frameState.colorFrame
 
     if frameState.colorToDepthFrameHDR is None or modeState.expositionMode == "Fixed Exposition":
         colorToDepthFrame = frameState.colorToDepthFrame
@@ -1179,16 +1089,30 @@ def close_volume_menu():
 
     return {"status": "ok"}
 
+@app.post("/volume/clickTimestamp")
+def click_timestamp(current_user: dict = Depends(get_current_user)):
+    volumeState.click_timestamp = time.monotonic()
+    return {"status": "ok"}
+
+@app.get("/volume/status")
+def volumeStatus(current_user: dict = Depends(get_current_user)):
+    return {
+        "status": volumeState.processing
+    }
+
 @app.post("/volume/singleBundle", summary="Starts the SingleBundle Volume Algorithm",
          description="""
          Starts the bundle volume algorithm.
          """,
          tags=["Volume"])
 def volume_SingleBundle(current_user: dict = Depends(get_current_user)):
-    if frameState.colorToDepthFrameHDR is None or modeState.expositionMode == "Fixed Exposition":
-        colorFrame = frameState.colorFrame
-    else:
-        colorFrame = frameState.colorFrameHDR
+    volumeState.processing = "Processing Frames..."
+    while True:
+        finished, times = processHDR(volumeState.click_timestamp)
+        if finished:
+            break
+
+    colorFrame = frameState.colorFrame
 
     if frameState.colorToDepthFrameHDR is None or modeState.expositionMode == "Fixed Exposition":
         colorToDepthFrame = frameState.colorToDepthFrame
@@ -1200,6 +1124,13 @@ def volume_SingleBundle(current_user: dict = Depends(get_current_user)):
     else:
         depthFrame = frameState.depthFrameHDR
 
+    if workspaceState.workspace_warning is not None:
+        volumeState.processing = "Finding Depths..."
+        depthState.not_set, depthState.objects_info = MinDepthAPI(depthFrame, workspaceState.detection_area, workspaceState.workspace_warning, workspaceState.workspace_depth, depthState.threshold, depthState.not_set, camState.cx_d, camState.cy_d, camState.fx_d, camState.fy_d)
+    if depthState.objects_info is not None and len(depthState.objects_info) != 0:
+        depthState.minimum_depth = depthState.objects_info[0]["depth"]
+        depthState.minimum_value = depthState.minimum_depth
+
     #depthState.not_set, depthState.objects_info = MinDepthAPI(depthFrame, workspaceState.detection_area, workspaceState.workspace_warning, workspaceState.workspace_depth, depthState.threshold, depthState.not_set, camState.cx_d, camState.cy_d, camState.fx_d, camState.fy_d)
 
     #if depthState.objects_info is not None and len(depthState.objects_info) != 0:
@@ -1208,10 +1139,12 @@ def volume_SingleBundle(current_user: dict = Depends(get_current_user)):
     #    print("New Min Value", depthState.minimum_value)
 
     if depthState.objects_info is not None:
+        volumeState.processing = "Identifying Objects..."
         depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine = objIdentifier(colorFrame, colorToDepthFrame, depthFrame, frameState.calibrationColorFrame, frameState.calibrationDepthFrame, modeState.volumeMode, depthState.objects_info, workspaceState.workspace_depth, depthState.threshold, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb, camState.fx_d, camState.fy_d, camState.fx_rgb, camState.fy_rgb)
         if volumeState.depths:
             depthState.minimum_depth = min(volumeState.depths)
             if volumeState.box_limits is not None and len(volumeState.box_limits) > 0:
+                volumeState.processing = "Calculating Volumes..."
                 volumeState.volume, volumeState.width_meters, volumeState.length_meters, volumeState.height_meters = volumeSingleBundleAPI(depthFrame, workspaceState.workspace_depth, depthState.minimum_depth, volumeState.box_limits, volumeState.depths, camState.fx_d, camState.fy_d, camState.cx_d, camState.cy_d)
             else:
                 volumeState.volume = 0
@@ -1246,6 +1179,8 @@ def volume_SingleBundle(current_user: dict = Depends(get_current_user)):
     else:
         volumeState.height_meters = volumeState.height_meters * 100
 
+    volumeState.processing = ""
+
     return{
         "volume": volumeState.volume,
         "width": volumeState.width_meters,
@@ -1279,10 +1214,15 @@ def get_Volume_SingleBundle(current_user: dict = Depends(get_current_user)):
          """,
          tags=["Volume"])
 def volume_MultiBundle(current_user: dict = Depends(get_current_user)):
-    if frameState.colorToDepthFrameHDR is None or modeState.expositionMode == "Fixed Exposition":
-        colorFrame = frameState.colorFrame
-    else:
-        colorFrame = frameState.colorFrameHDR
+    t0 = time.perf_counter()
+    volumeState.processing = "Processing Frames..."
+    while True:
+        finished, times = processHDR(volumeState.click_timestamp, t0)
+        if finished:
+            break
+    t1 = time.perf_counter()
+
+    colorFrame = frameState.colorFrame
 
     if frameState.colorToDepthFrameHDR is None or modeState.expositionMode == "Fixed Exposition":
         colorToDepthFrame = frameState.colorToDepthFrame
@@ -1301,10 +1241,25 @@ def volume_MultiBundle(current_user: dict = Depends(get_current_user)):
 
     #    print("New Min Value", depthState.minimum_value)
 
+    if workspaceState.workspace_warning is not None:
+        t2 = time.perf_counter()
+        volumeState.processing = "Finding Depths..."
+        depthState.not_set, depthState.objects_info = MinDepthAPI(depthFrame, workspaceState.detection_area, workspaceState.workspace_warning, workspaceState.workspace_depth, depthState.threshold, depthState.not_set, camState.cx_d, camState.cy_d, camState.fx_d, camState.fy_d)
+        t3 = time.perf_counter()
+    if depthState.objects_info is not None and len(depthState.objects_info) != 0:
+        depthState.minimum_depth = depthState.objects_info[0]["depth"]
+        depthState.minimum_value = depthState.minimum_depth
+
     if depthState.objects_info is not None:
+        t4 = time.perf_counter()
+        volumeState.processing = "Identifying Objects..."
         depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine = objIdentifier(colorFrame, colorToDepthFrame, depthFrame, frameState.calibrationColorFrame, frameState.calibrationDepthFrame, modeState.volumeMode, depthState.objects_info, workspaceState.workspace_depth, depthState.threshold, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb, camState.fx_d, camState.fy_d, camState.fx_rgb, camState.fy_rgb)
+        t5 = time.perf_counter()       
         if volumeState.box_limits is not None and len(volumeState.box_limits) > 0:
+            t6 = time.perf_counter()
+            volumeState.processing = "Calculating Volumes..."
             volumeState.volume, volumeState.width_meters, volumeState.length_meters, volumeState.height_meters = volumeMultiBundleAPI(depthFrame, frameState.calibrationDepthFrame, workspaceState.workspace_depth, volumeState.box_limits, volumeState.depths, camState.fx_d, camState.fy_d, camState.cx_d, camState.cy_d)
+            t7 = time.perf_counter()
         else:
             volumeState.volume = 0
             volumeState.width_meters = 0
@@ -1331,6 +1286,26 @@ def volume_MultiBundle(current_user: dict = Depends(get_current_user)):
         volumeState.height_meters = [h * 100 for h in volumeState.height_meters]
     else:
         volumeState.height_meters = volumeState.height_meters * 100
+
+    print("Time waiting for every frame that is missing", times[0] * 1000, "ms")
+    print("Time waiting to build each HDR", times[1] * 1000, "ms")
+    print("Time waiting to build last HDR", times[2] * 1000, "ms")
+
+    print("Time to wait for HDR:", (t1 - t0) * 1000, "ms")
+
+    print("Time between HDR done and MinDepthAPI:", (t2 - t1) * 1000, "ms")
+    
+    print("Time for MinDepthAPI:", (t3 - t2) * 1000, "ms")
+    
+    print("Time between MinDepthAPI and objIdentifier:", (t4 - t3) * 1000, "ms")
+    
+    print("Time for objIdentifier:", (t5 - t4) * 1000, "ms")
+    
+    print("Time between objIdentifier and volumeMultiBundleAPI:", (t6 - t5) * 1000, "ms")
+    
+    print("Time for volumeMultiBundleAPI:", (t7 - t6) * 1000, "ms")
+
+    volumeState.processing = ""
 
     return{
         "volume": volumeState.volume,
@@ -1385,11 +1360,14 @@ def get_Volume_MultiBundle(current_user: dict = Depends(get_current_user)):
          """,
          tags=["Volume"])
 def volume_Real(current_user: dict = Depends(get_current_user)):
+    volumeState.processing = "Processing Frames..."
+    while True:
+        finished, times = processHDR(volumeState.click_timestamp)
+        if finished:
+            break
+
     t0 = time.perf_counter()
-    if frameState.colorToDepthFrameHDR is None or modeState.expositionMode == "Fixed Exposition":
-        colorFrame = frameState.colorFrame
-    else:
-        colorFrame = frameState.colorFrameHDR
+    colorFrame = frameState.colorFrame
 
     if frameState.colorToDepthFrameHDR is None or modeState.expositionMode == "Fixed Exposition":
         colorToDepthFrame = frameState.colorToDepthFrame
@@ -1401,11 +1379,20 @@ def volume_Real(current_user: dict = Depends(get_current_user)):
     else:
         depthFrame = frameState.depthFrameHDR
 
+    if workspaceState.workspace_warning is not None:
+        volumeState.processing = "Finding Depths..."
+        depthState.not_set, depthState.objects_info = MinDepthAPI(depthFrame, workspaceState.detection_area, workspaceState.workspace_warning, workspaceState.workspace_depth, depthState.threshold, depthState.not_set, camState.cx_d, camState.cy_d, camState.fx_d, camState.fy_d)
+    if depthState.objects_info is not None and len(depthState.objects_info) != 0:
+        depthState.minimum_depth = depthState.objects_info[0]["depth"]
+        depthState.minimum_value = depthState.minimum_depth
+
     if depthState.objects_info is not None:
+        volumeState.processing = "Identifying Objects..."
         depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine = objIdentifier(colorFrame, colorToDepthFrame, depthFrame, frameState.calibrationColorFrame, frameState.calibrationDepthFrame, modeState.volumeMode, depthState.objects_info, workspaceState.workspace_depth, depthState.threshold, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb, camState.fx_d, camState.fy_d, camState.fx_rgb, camState.fy_rgb)
         t2 = time.perf_counter()
         print("objIdentifier:", (t2 - t0) * 1000, "ms")
         if volumeState.box_limits is not None and len(volumeState.box_limits) > 0:
+            volumeState.processing = "Calculating Volumes..."
             volumeState.volume, volumeState.width_meters, volumeState.length_meters, volumeState.height_meters, volumeState.obj_center, volumeState.obj_angles, volumeState.objOverlappedHeights, volumeState.objContours = volumeRealAPI(depthFrame, frameState.calibrationDepthFrame, workspaceState.workspace_depth, volumeState.box_limits, volumeState.depths, camState.fx_d, camState.fy_d, camState.cx_d, camState.cy_d)
             t3 = time.perf_counter()
             print("volumeRealAPI:", (t3 - t2) * 1000, "ms")
@@ -1436,6 +1423,8 @@ def volume_Real(current_user: dict = Depends(get_current_user)):
 
     t4 = time.perf_counter()
     print("TOTAL /volume/real:", (t4 - t0) * 1000, "ms")
+
+    volumeState.processing = ""
 
     return{
         "volume": volumeState.volume,
@@ -1503,11 +1492,14 @@ def get_Volume_Real(current_user: dict = Depends(get_current_user)):
          """,
          tags=["Volume"])
 def volume_Individual(current_user: dict = Depends(get_current_user)):
+    volumeState.processing = "Processing Frames..."
+    while True:
+        finished, times = processHDR(volumeState.click_timestamp)
+        if finished:
+            break
+
     t0 = time.perf_counter()
-    if frameState.colorToDepthFrameHDR is None or modeState.expositionMode == "Fixed Exposition":
-        colorFrame = frameState.colorFrame
-    else:
-        colorFrame = frameState.colorFrameHDR
+    colorFrame = frameState.colorFrame
 
     if frameState.colorToDepthFrameHDR is None or modeState.expositionMode == "Fixed Exposition":
         colorToDepthFrame = frameState.colorToDepthFrame
@@ -1527,11 +1519,20 @@ def volume_Individual(current_user: dict = Depends(get_current_user)):
 
     #    print("New Min Value", depthState.minimum_value)
 
+    if workspaceState.workspace_warning is not None:
+        volumeState.processing = "Finding Depths..."
+        depthState.not_set, depthState.objects_info = MinDepthAPI(depthFrame, workspaceState.detection_area, workspaceState.workspace_warning, workspaceState.workspace_depth, depthState.threshold, depthState.not_set, camState.cx_d, camState.cy_d, camState.fx_d, camState.fy_d)
+    if depthState.objects_info is not None and len(depthState.objects_info) != 0:
+        depthState.minimum_depth = depthState.objects_info[0]["depth"]
+        depthState.minimum_value = depthState.minimum_depth
+
     if depthState.not_set == 0:
+        volumeState.processing = "Identifying Objects..."
         depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine = objIdentifier(colorFrame, colorToDepthFrame, depthFrame, frameState.calibrationColorFrame, frameState.calibrationDepthFrame, modeState.volumeMode, depthState.objects_info, workspaceState.workspace_depth, depthState.threshold, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb, camState.fx_d, camState.fy_d, camState.fx_rgb, camState.fy_rgb)
         t2 = time.perf_counter()
         print("objIdentifier:", (t2 - t0) * 1000, "ms")
         if volumeState.box_limits is not None and len(volumeState.box_limits) > 0:
+            volumeState.processing = "Calculating Volumes..."
             volumeState.volume, volumeState.width_meters, volumeState.length_meters, volumeState.height_meters = volumeIndividualAPI(depthFrame, frameState.calibrationDepthFrame, workspaceState.workspace_depth, volumeState.box_limits, volumeState.depths, camState.fx_d, camState.fy_d, camState.cx_d, camState.cy_d)
             t3 = time.perf_counter()
             print("volumeIndividualAPI:", (t3 - t2) * 1000, "ms")
@@ -1564,6 +1565,8 @@ def volume_Individual(current_user: dict = Depends(get_current_user)):
 
     t4 = time.perf_counter()
     print("TOTAL /volume/individual:", (t4 - t0) * 1000, "ms")
+
+    volumeState.processing = ""
 
     return{
         "volume": volumeState.volume,
@@ -1739,3 +1742,13 @@ def depth_status(current_user : dict = Depends(get_current_user)):
     return {
         "ready": depthState.objects_info is not None
     }
+
+# --------------------------------------- Weight ---------------------------------------
+
+@app.get("/weight", summary="Retrieves the current weight from the scale",
+         description="""
+         Obtains the current weight reading from the scale.
+         """,
+         tags=["Weight"])
+def get_weight(current_user: dict = Depends(get_current_user)):
+    return getWeight()

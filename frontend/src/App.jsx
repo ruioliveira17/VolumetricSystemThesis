@@ -77,7 +77,10 @@ function App() {
   const [selectedObject, setSelectedObject] = useState("");
   const [multipleVolumeData, setVolumeData] = useState(null);
 
-  const [depthReady, setDepthReady] = useState(false);
+  const [weightInfo, setWeightInfo] = useState(null);
+  const [weightStable, setWeightStable] = useState(false);
+
+  const [processingMessage, setProcessingMessage] = useState("");
 
   const [savedUser, setSavedUser] = useState(null);
 
@@ -414,6 +417,10 @@ function App() {
           await new Promise(resolve => setTimeout(resolve, 1000));
         }
 
+        fetch(`${API_URL}/volume/clickTimestamp`, { method: 'POST', headers: { "Authorization": `Bearer ${access_token}`} });
+
+        const aftercountdown = performance.now();
+
         setCountdown(null);
 
         setLoadingVolume(true);
@@ -428,7 +435,9 @@ function App() {
         } else if (volumeMode["Volume Mode"] === "Individual"){
           await volumeIndividual(access_token);
         }
+
         const end = performance.now();
+        console.log("After Countdown UI TIME:", end - aftercountdown, "ms");
         console.log("TOTAL UI TIME:", end - start, "ms");
       } catch (error) {
         console.warn(error);
@@ -815,9 +824,10 @@ function App() {
 
       const maxWidth = Math.max(...boxes.map(b => b.width));
       const maxLength = Math.max(...boxes.map(b => b.length));
+      const maxHeight = Math.max(...boxes.map(b => b.height));
       const totalHeight = boxes.reduce((sum, b) => sum + b.height, 0);
 
-      const maxDim = Math.max(maxWidth, maxLength);
+      const maxDim = Math.max(maxWidth, maxLength, maxHeight);
 
       const scale = Math.min(W, H) * 0.6;
       const fontSize = Math.max(15, Math.min(22, scale * 0.04));
@@ -991,7 +1001,7 @@ function App() {
       window.removeEventListener("mouseup", up);
     };
   }, [volInfo, currentMenu]);
-              
+
   async function handleExpHDR_toggle(e) {
     const checked = e.target.value === "true";
     setExpHDR(checked);
@@ -1088,13 +1098,7 @@ function App() {
         refreshAccessToken();
         const access_token = localStorage.getItem("access_token");
 
-        await fetch(`${API_URL}/update_systemInfo`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json", "Authorization": `Bearer ${access_token}`
-            },
-            body: JSON.stringify({ exposureTime: value })
-        });
+        await fetch(`${API_URL}/update_systemInfo`, {method: "POST", headers: {"Content-Type": "application/json", "Authorization": `Bearer ${access_token}`}, body: JSON.stringify({ exposureTime: value })});
 
         await fetch(`${API_URL}/saveInfo`, {method: "POST", headers: { "Authorization": `Bearer ${access_token}` } });
 
@@ -1180,14 +1184,16 @@ function App() {
     } else if (currentMenu === "volume-menu") {
 
       const interval = setInterval(async () => {
-        const access_token = localStorage.getItem("access_token");
-        const response = await fetch(`${API_URL}/depth/status`, {
-            headers: { "Authorization": `Bearer ${access_token}` }
-        });
-
-        const data = await response.json();
-        //console.log(data.ready);
-        setDepthReady(data.ready);
+        try{
+          const access_token = localStorage.getItem("access_token");
+          const dataResponse = await fetch(`${API_URL}/weight`, {headers: { "Authorization": `Bearer ${access_token}`}});
+          const weightData = await dataResponse.json();
+          setWeightInfo(weightData);
+          //console.log("Weight info:", weightData.flags["stable"]);
+          setWeightStable(weightData.flags["stable"]);
+        }catch (error) {
+          console.error("Weight info error:", error);
+        }
       }, 500);
 
       return () => {
@@ -1804,6 +1810,28 @@ function App() {
     }
   }
 
+  // Processing Message
+  useEffect(() => {
+  if (!loadingVolume) return;
+
+  const interval = setInterval(async () => {
+    try {
+      const access_token = localStorage.getItem("access_token");
+
+      const response = await fetch(`${API_URL}/volume/status`, {headers: {Authorization: `Bearer ${access_token}`,},});
+
+      const data = await response.json();
+
+      setProcessingMessage(data.status);
+    } catch (error) {
+      console.error(error);
+    }
+  }, 100);
+
+  return () => clearInterval(interval);
+}, [loadingVolume]);
+
+
   return (
     <>
       {/* Menu Side Nav */}
@@ -1987,6 +2015,13 @@ function App() {
             ))}
           </div>
 
+          {loadingVolume && (
+            <div className="warning">
+              {processingMessage}
+            </div>
+          )}
+            
+
           <div className="menu-wrapper">
             <div className="title-container">
               <div className="menu-title">Volume</div>
@@ -2024,7 +2059,7 @@ function App() {
             {volBundleMode && (
               <>
                 {/* Button */}
-                <button onClick={volume_click} className="volumeBundle-button" disabled={loadingVolume || !depthReady}>
+                <button onClick={volume_click} className="volumeBundle-button" disabled={loadingVolume || !weightStable}>
                   {loadingVolume && (
                     <div className="loadingVolume-icon">  
                       <img src="/loading.svg" alt="loading"/>
@@ -2069,6 +2104,11 @@ function App() {
                           <span className="value">{volInfo.volume_cm.toFixed(2)}</span>
                         </div>
 
+                        <div style={{ color: "#FFFFFF" }} className="boxBundleInfo-text">
+                          <span className="label">Weight (kg):</span>
+                          <span className="value">{weightInfo?.weight != null ? Number(weightInfo.weight).toFixed(2) : "0.00"}</span>
+                        </div>
+
                       </div>
                     </>
                   )}
@@ -2085,7 +2125,7 @@ function App() {
             {!volBundleMode && (
               <>
                 {/* Button */}
-                <button onClick={volume_click} className="volume-button" disabled={loadingVolume || !depthReady}>
+                <button onClick={volume_click} className="volume-button" disabled={loadingVolume || !weightStable}>
                   {loadingVolume && (
                     <div className="loadingVolume-icon">  
                       <img src="/loading.svg" alt="loading"/>
@@ -2127,10 +2167,17 @@ function App() {
                     ))}
                   </div>
 
+                  
+
                   <div className="object-total">
                     {multipleVolumeData ? (
                       <> 
-                        <div>TOTAL:</div>
+                        <div>TOTAL WEIGHT:</div>
+                        <div className="total-value">
+                          {weightInfo?.weight != null ? Number(weightInfo.weight).toFixed(2) : "0.00"} Kg
+                        </div>
+
+                        <div>TOTAL VOLUME:</div>
                         <div className="total-value">
                           {multipleVolumeData?.Total?.volume_m ?? 0} m³
                         </div>

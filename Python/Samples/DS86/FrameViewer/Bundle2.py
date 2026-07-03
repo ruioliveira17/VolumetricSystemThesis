@@ -683,10 +683,6 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
 
     not_set = 1
     minimum_value = 6000
-
-    print("ANTES DO RETURN")
-    for i, c in enumerate(box_limits):
-        print(i, id(c), c.shape)
                     
     return minimum_value, not_set, box_ws, box_limits, depths, object_outOfLine
 

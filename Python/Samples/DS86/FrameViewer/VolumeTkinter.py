@@ -83,9 +83,6 @@ def volumeMultiBundleAPI(depthFrame, calibrationDepthFrame, workspace_depth, box
 
     print("Box Limits Len:", len(box_limits))
 
-    for i, c in enumerate(box_limits):
-        print(i, c.shape, cv2.contourArea(c))
-
     for i in range(len(box_limits)):
         if i in used:
             continue
@@ -130,7 +127,7 @@ def volumeMultiBundleAPI(depthFrame, calibrationDepthFrame, workspace_depth, box
             continue
          
         for contour, depth in group:
-            print("--------------")
+            #print("--------------")
             #print(contour)
             fill_img = numpy.zeros((480, 640), dtype=numpy.uint8)
             cv2.fillPoly(fill_img, [contour.astype(numpy.int32)], 255)
@@ -306,7 +303,7 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
         for j in range(len(group)):
             irregular = False
             contour, depth = group[j]
-            print(group[j])
+            #print(group[j])
 
             img = numpy.zeros((480, 640, 3), dtype=numpy.uint8)
             epsilon = 0.005 * cv2.arcLength(contour, True)
@@ -345,7 +342,7 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
             cv2.fillPoly(fill_img, [pts_flat.astype(numpy.int32)], 255)
 
             ys_all, xs_all = numpy.where(fill_img > 0)
-            print(xs_all)
+            #print(xs_all)
             if len(xs_all) == 0 or len(ys_all) == 0:
                 continue
 
@@ -383,7 +380,7 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
             if is_suspect_blob(contour):
                 irregular = True
 
-            print("Irregular:", irregular)
+            #print("Irregular:", irregular)
 
             irregularGroup.append(irregular)
 
@@ -413,9 +410,9 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
         realVolume = 0
         last_area = 0
 
-        print("Irregular")
-        print(irregular)
-        print("-------------")
+        #print("Irregular")
+        #print(irregular)
+        #print("-------------")
         
         for i, obj in enumerate(allObjPtsM):
             height_meters_overlappedObject = 0
@@ -432,9 +429,9 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
             ws_d_h = float(numpy.median(ws_vals_h)) if ws_vals_h.size > 0 else float(workspace_depth)
             height_meters = (ws_d_h - depths[i]) / 1000
 
-            print(i)
-            if i!=0:
-                print(irregular[i-1])
+            #print(i)
+            #if i!=0:
+            #    print(irregular[i-1])
 
             if i!= 0:
                 #if irregular[i-1]:
@@ -495,9 +492,9 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
         
     cv2.imwrite("Centers.png", colorToDepthFrameX)
     #print(groupHeightsOverlapped)
-    print(allObjCenter)
-    print(groupAngles)
-    print("------------------------------")
+    #print(allObjCenter)
+    #print(groupAngles)
+    #print("------------------------------")
     uidth = groupWidths
     ength = groupLengths
     eight = groupHeights

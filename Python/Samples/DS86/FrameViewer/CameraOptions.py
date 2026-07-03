@@ -23,8 +23,10 @@ hdrGroups = [
     #camState.hdrExposuresHigh
 ]
 
-colorArray = []
-depthArray = []
+colorArray = [None] * 8
+depthArray = [None] * 8
+timestampArray = [None] * 8
+frameTimestamps = []
 skipFrame = 0
 final_index = 0
 hdrGroupIndex = 0
@@ -219,6 +221,9 @@ def setFPS():
         print("VZ_GetFrameRate failed:"+ str(ret))  
 
 def captureLoop():
+    global colorArray, depthArray, timestampArray, hdrGroupIndex
+    print("[CameraStream] Iniciando captura de frames...")
+    last = None
     while camState._running:
         t_start = time.monotonic()
 
@@ -272,13 +277,47 @@ def captureLoop():
                 frametmp.shape = (colorframe.height, colorframe.width,3)
                 colorFrame = frametmp.copy()
 
+            bufferIndex = hdrGroupIndex * len(hdrGroups[0]) + camState.hdrIndex
+
             if hasColorToDepth == 1 and hasDepth == 1 and hasColor == 1:
+                timestampArray[bufferIndex] = time.monotonic()
                 frameState.colorToDepthFrame = colorToDepthFrame
                 frameState.depthFrame = depthFrame
                 frameState.colorFrame = colorFrame
 
+                #print("Frames capturados com sucesso!")
+
+                #now = time.perf_counter()
+
+                #if last is not None:
+                #    print("Time between frames:", (now - last) * 1000, "ms")
+
+                #last = now
+
                 if camState.hdrEnabled == True:
-                    processHDR(colorToDepthFrame, depthFrame, colorFrame)
+                    exposure = hdrGroups[hdrGroupIndex][camState.hdrIndex]
+
+                    #t = time.perf_counter()
+
+                    #camState.camera.VZ_SetExposureTime(VzSensorType.VzToFSensor, c_int32(exposure))
+
+                    #print("Changing Exposure", (time.perf_counter() - t) * 1000)
+
+                    colorArray[bufferIndex] = colorToDepthFrame.copy()
+                    depthArray[bufferIndex] = depthFrame.copy()
+
+                    #print("Adicionado Frame ao Buffer")
+
+                    camState.hdrIndex += 1
+                    if camState.hdrIndex >= len(hdrGroups[hdrGroupIndex]):
+                        camState.hdrIndex = 0
+                        hdrGroupIndex += 1
+
+                        if hdrGroupIndex >= len(hdrGroups):
+                            hdrGroupIndex = 0
+                #    processHDR(colorToDepthFrame, depthFrame, colorFrame)
+            #else:
+            #    print("Não foram capturados frames válidos. ColorToDepth:", hasColorToDepth, "Depth:", hasDepth, "Color:", hasColor)
 
         elapsed = time.monotonic() - t_start
         sleep_time = (1/camState.fps) - elapsed
@@ -376,74 +415,51 @@ def buildHDRColor(colorFrames):
         stacked.sum(axis=0) / count
     ).astype(numpy.uint8)
 
-def processHDR(colorToDepthFrame, depthFrame, colorFrame):
-    global colorArray
-    global depthArray
-    global skipFrame
-    global hdrGroupIndex
-    global final_index
-    global hdrColorArray
-    global hdrDepthArray
+def processHDR(click_timestamp, t0):
+    global colorArray, depthArray, timestampArray
+    finished = False
+    times = []
 
-    exposure = hdrGroups[hdrGroupIndex][camState.hdrIndex]
+    if click_timestamp is None:
+        click_timestamp = 0
 
-    camState.camera.VZ_SetExposureTime(
-        VzSensorType.VzToFSensor,
-        c_int32(exposure)
-    )
+    if (any(frame is None for frame in colorArray) or any(frame is None for frame in depthArray)) or any(ts <= click_timestamp for ts in timestampArray):
+        #print("Não tem frames suficientes")
+        finished = False
+    else:
+        t1 = time.perf_counter()
+        lowHDRColor = colorArray[:4]
+        lowHDRDepth = depthArray[:4]
 
-    if skipFrame == 0:
-        skipFrame = 1
-        return
+        mediumHDRColor = colorArray[4:]
+        mediumHDRDepth = depthArray[4:]
 
-    skipFrame = 0
+        t2 = time.perf_counter()
+        #hdrLowColor = buildHDRColor(lowHDRColor)
+        #cv2.imwrite(os.path.join(output_dir, f"LowHDRcolor.png"), hdrLowColor)
+        #hdrMediumColor = buildHDRColor(mediumHDRColor)
+        #cv2.imwrite(os.path.join(output_dir, f"MediumHDRcolor.png"), hdrMediumColor)
 
-    colorArray.append(colorToDepthFrame)
-    depthArray.append(depthFrame)
+        #hdrLowDepth = buildHDRDepth(lowHDRDepth)
+        #cv2.imwrite(os.path.join(output_dir, f"LowHDRdepth.png"), hdrLowDepth)
+        #hdrMediumDepth = buildHDRDepth(mediumHDRDepth)
+        #cv2.imwrite(os.path.join(output_dir, f"MediumHDRdepth.png"), hdrMediumDepth)
+        t3 = time.perf_counter()
 
-    frameState.colorFrameHDR = colorFrame
+        finalColor = buildHDRColor(colorArray)#buildHDRColor([hdrLowColor, hdrMediumColor])
+        finalDepth = buildHDRDepth(depthArray)#buildHDRDepth([hdrLowDepth, hdrMediumDepth])
+        t4 = time.perf_counter()
 
-    camState.hdrIndex += 1
+        print("HDR Processed")
 
-    # terminou um grupo de 4 exposições
-    if camState.hdrIndex >= len(hdrGroups[hdrGroupIndex]):
+        frameState.colorToDepthFrameHDR = finalColor
+        frameState.depthFrameHDR = finalDepth
 
-        hdrColor = buildHDRColor(colorArray)
-        hdrDepth = buildHDRDepth(depthArray)
+        times = [t1 - t0, t3 - t2, t4 - t3]
 
-        hdrColorArray.append(hdrColor)
-        hdrDepthArray.append(hdrDepth)
+        finished = True
 
-        if final_index <= 4:
-            if hdrGroupIndex == 0:
-                cv2.imwrite(os.path.join(output_dir, f"LowHDRcolor_{final_index}.png"), hdrColor)
-                numpy.save(os.path.join(output_dir, f"LowHDRdepth_{final_index}.npy"), hdrDepth)
-            if hdrGroupIndex == 1:
-                cv2.imwrite(os.path.join(output_dir, f"MediumHDRcolor_{final_index}.png"), hdrColor)
-                numpy.save(os.path.join(output_dir, f"MediumHDRdepth_{final_index}.npy"), hdrDepth)
-
-        colorArray = []
-        depthArray = []
-
-        camState.hdrIndex = 0
-        hdrGroupIndex += 1
-
-        # terminou Low + Medium + High
-        if hdrGroupIndex >= len(hdrGroups):
-
-            finalColor = buildHDRColor(hdrColorArray)
-            #hdrDepthArray = hdrDepthArray[:-1]
-            finalDepth = buildHDRDepth(hdrDepthArray)
-
-            print("HDR Processed")
-
-            frameState.colorToDepthFrameHDR = finalColor
-            frameState.depthFrameHDR = finalDepth
-
-            hdrColorArray = []
-            hdrDepthArray = []
-
-            hdrGroupIndex = 0
+    return finished, times
 
 def setFlyingPixelFilter(value: bool):
     ret,params = camState.camera.VZ_GetFlyingPixelFilterParams()
