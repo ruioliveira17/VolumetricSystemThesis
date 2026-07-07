@@ -564,11 +564,11 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
 
         #     contours = contours_to_process
 
-        for i, contour_list in enumerate(contours):
-            print("Lista", i)
+        # for i, contour_list in enumerate(contours):
+        #     print("Lista", i)
 
-            for j, c in enumerate(contour_list):
-                print(" ", j, c.shape, cv2.contourArea(c))
+        #     for j, c in enumerate(contour_list):
+        #         print(" ", j, c.shape, cv2.contourArea(c))
 
         all_contours = [c for contour_list in contours for c in contour_list if c.size > 0]
         groups = []

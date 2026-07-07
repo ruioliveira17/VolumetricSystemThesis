@@ -44,6 +44,14 @@ function App() {
   const detectionArea = useRef([0, 0, 0, 0]);
   const selectedPoint = useRef(null);
 
+  const selectedCorner = useRef(null);
+  const [cropArea, setCropArea] = useState({
+    x: 100,
+    y: 100,
+    width: 300,
+    height: 200
+  });
+
   const cameraLoopInterval = useRef(null);
   const tokenCheckInterval = useRef(null);
   
@@ -88,7 +96,10 @@ function App() {
   const [colorSlope, setColorSlope] = useState("");
 
   const pc = useRef(null);
+  const cameraStream = useRef(null);
   const cameraVideo = useRef(null);
+  const cropVideo = useRef(null);
+  const cropCanvas = useRef(null);
 
   const calibrationImage = useRef(null);
 
@@ -121,6 +132,9 @@ function App() {
 
   const [showCamera, setShowCamera] = useState(true);
 
+  const [showCropWindow, setShowCropWindow] = useState(false);
+  const [videoCrop, setVideoCrop] = useState(null);
+
   useEffect(() => {
     if (!showCamera) return;
 
@@ -135,6 +149,16 @@ function App() {
       cameraVideo.current.srcObject = stream;
     }
   }, [showCamera]);
+
+  useEffect(() => {
+    if (!showCropWindow)
+        return;
+
+    if(cropVideo.current && cameraStream.current){
+        cropVideo.current.srcObject = cameraStream.current;
+        cropVideo.current.play();
+    }
+  }, [showCropWindow]);
 
   useEffect(() => {
     console.log(API_URL);
@@ -1299,6 +1323,238 @@ function App() {
     } catch (err) { console.warn("Erro drawing Workspace:", err); }
   }
 
+  useEffect(() => {
+    if (currentMenu !== "volume-menu") return;
+
+    const canvas = cropCanvas.current;
+    const video = cropVideo.current;
+
+    if (!canvas || !video) return;
+
+    const ctx = canvas.getContext("2d");
+
+    function resizeCanvas(){
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+
+      drawCrop();
+    }
+
+    function drawCrop(){
+      ctx.clearRect(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+      );
+
+      ctx.strokeStyle = "red";
+      ctx.lineWidth = 5;
+
+      ctx.strokeRect(
+        cropArea.x,
+        cropArea.y,
+        cropArea.width,
+        cropArea.height
+      );
+
+      const corners = [
+        {
+          name:"tl",
+          x:cropArea.x,
+          y:cropArea.y
+        },
+        {
+          name:"tr",
+          x:cropArea.x + cropArea.width,
+          y:cropArea.y
+        },
+        {
+          name:"bl",
+          x:cropArea.x,
+          y:cropArea.y + cropArea.height
+        },
+        {
+          name:"br",
+          x:cropArea.x + cropArea.width,
+          y:cropArea.y + cropArea.height
+        }
+      ];
+
+      corners.forEach((corner)=>{
+        const radius =
+          selectedCorner.current === corner.name
+            ? 12
+            : 10;
+
+        ctx.beginPath();
+
+        ctx.arc(
+          corner.x,
+          corner.y,
+          radius,
+          0,
+          Math.PI * 2
+        );
+
+        ctx.fillStyle =
+          selectedCorner.current === corner.name
+            ? "yellow"
+            : "white";
+
+        ctx.fill();
+
+        ctx.strokeStyle = "black";
+        ctx.lineWidth = 2;
+
+        ctx.stroke();
+      });
+    }
+
+    function getMousePos(event){
+      const rect = canvas.getBoundingClientRect();
+
+      return {
+        x:(event.clientX - rect.left) * canvas.width / rect.width,
+        y:(event.clientY - rect.top) * canvas.height / rect.height
+      };
+
+    }
+
+    function mouseDown(event){
+      const {x,y} = getMousePos(event);
+
+      const corners = [
+          {
+              name:"tl",
+              x:cropArea.x,
+              y:cropArea.y
+          },
+          {
+              name:"tr",
+              x:cropArea.x + cropArea.width,
+              y:cropArea.y
+          },
+          {
+              name:"bl",
+              x:cropArea.x,
+              y:cropArea.y + cropArea.height
+          },
+          {
+              name:"br",
+              x:cropArea.x + cropArea.width,
+              y:cropArea.y + cropArea.height
+          }
+      ];
+
+      const threshold = 25;
+
+      for(const corner of corners){
+          const distance = Math.hypot(
+              x - corner.x,
+              y - corner.y
+          );
+
+          if(distance < threshold){
+              selectedCorner.current = corner.name;
+              dragging.current = true;
+
+              drawCrop();
+              return;
+          }
+      }
+
+      selectedCorner.current = null;
+      dragging.current = false;
+
+      drawCrop();  
+    }
+
+    function mouseMove(event){
+      if(!dragging.current)
+        return;
+
+      const {x,y}=getMousePos(event);
+
+      setCropArea(prev=>{
+        const c={...prev};
+
+        if(selectedCorner.current==="tl"){
+          c.width += c.x-x;
+          c.height += c.y-y;
+          c.x=x;
+          c.y=y;
+        }
+
+        if(selectedCorner.current==="tr"){
+          c.width=x-c.x;
+          c.height+=c.y-y;
+          c.y=y;
+        }
+
+        if(selectedCorner.current==="bl"){
+          c.width+=c.x-x;
+          c.height=y-c.y;
+          c.x=x;
+        }
+
+        if(selectedCorner.current==="br"){
+          c.width=x-c.x;
+          c.height=y-c.y;
+        }
+
+        console.log("cropArea:", c)
+        return c;
+      });
+
+    }
+
+    function mouseUp(){
+      dragging.current=false;
+      selectedCorner.current=null;
+    }
+
+    video.addEventListener(
+      "loadedmetadata",
+      resizeCanvas
+    );
+
+    canvas.addEventListener(
+      "mousedown",
+      mouseDown
+    );
+
+    canvas.addEventListener(
+      "mousemove",
+      mouseMove
+    );
+
+    canvas.addEventListener(
+      "mouseup",
+      mouseUp
+    );
+
+    resizeCanvas();
+
+    return ()=>{
+      canvas.removeEventListener(
+        "mousedown",
+        mouseDown
+      );
+
+      canvas.removeEventListener(
+        "mousemove",
+        mouseMove
+      );
+
+      canvas.removeEventListener(
+        "mouseup",
+        mouseUp
+      );
+    };
+
+  }, [currentMenu, showCropWindow, cropArea]);
+
   // Screen Click
   useEffect(() => {
     if (currentMenu !== "calibration-menu") return;
@@ -1760,9 +2016,10 @@ function App() {
     pc.current.addTransceiver('video', { direction: 'recvonly' });
 
     pc.current.ontrack = async (event) => {
-      if (cameraVideo.current) {
-        cameraVideo.current.srcObject = event.streams[0];
+      cameraStream.current = event.streams[0];
 
+      if(cameraVideo.current){
+        cameraVideo.current.srcObject = cameraStream.current;
         cameraVideo.current.muted = true;
 
         try {
@@ -1770,7 +2027,6 @@ function App() {
         } catch (e) {
           console.log("PLAY ERROR:", e);
         }
-
       }
     };
 
@@ -1831,6 +2087,39 @@ function App() {
   return () => clearInterval(interval);
 }, [loadingVolume]);
 
+  function getCropTransform(){
+
+    const video = cameraVideo.current;
+
+    if(!video || !videoCrop)
+      return {};
+
+
+    const sx = video.clientWidth / video.videoWidth;
+    const sy = video.clientHeight / video.videoHeight;
+
+    //console.log(video.clientWidth)
+    //console.log(video.videoWidth)
+
+    const x = videoCrop.x * sx;
+    const y = videoCrop.y * sy;
+    const width = videoCrop.width * sx;
+    const height = videoCrop.height * sy;
+
+
+    const scaleX = video.clientWidth / width;
+    const scaleY = video.clientHeight / height;
+
+    const scale = Math.min(scaleX, scaleY);
+
+    return {
+      transform: `
+        translate(${-x}px, ${-y}px)
+        scale(${scale})
+      `,
+      transformOrigin:"top left"
+    };
+  }
 
   return (
     <>
@@ -2032,19 +2321,16 @@ function App() {
             <div className="camera-container">
               <div className="camera-video-wrapper">
                 {showCamera ? (
-                  <div>
-                    <video
-                      ref={cameraVideo}
-                      autoPlay
-                      playsInline
-                      className="camera-video"
-                    />
-                  </div>
+                  <video
+                    ref={cameraVideo}
+                    autoPlay
+                    playsInline
+                    className="camera-video"
+                    style={getCropTransform()}
+                  />
                 ) : (
                   objectImage && (
-                    <div>
-                      <img className="object-img" src={objectImage} alt="objects"/>
-                    </div>
+                    <img className="object-img" src={objectImage} alt="objects"/>
                   )
                 )}
               </div>
@@ -2470,7 +2756,20 @@ function App() {
                   <span className="text-role"> Role: {savedUser?.role} </span>
                 </div>
               </div>
+
+              <div className="user-preferences">
+                <span> Preferences </span>
+              </div>
+
+              <div className="image-crop-preference">
+                <span className="video-size"> Video Size </span>
+                 <button onClick={() => setShowCropWindow(true)} className="define-button">
+                    <span className="text"> Define </span>
+                 </button>
+              </div>
             </div>
+
+            
 
             <div className="logout-option" onClick={logout}>
               Logout
@@ -2480,88 +2779,44 @@ function App() {
         </>
       )}
 
-      {/* Configuration Panel */}
-      {/*{currentMenu === "config-menu" && (
-        <div>
-          <div
-            className="switch-row"
-            style={{ position: "absolute", top: "47vh", left: "10vw" }}
-          >
-            <span>Static</span>
+      {showCropWindow && (
+        <div className="crop-popup">
+          <div className="crop-window">
+            <div className="crop-title">
+              <span> Window Resizer </span>
+            </div>
 
-            <label className="switch">
-              <input
-                type="checkbox"
-                checked={StaticDynamic_toggle}
-                onChange={handleStaticDynamic_toggle}
+            <div className="crop-video-wrapper">
+              <video
+                ref={cropVideo}
+                autoPlay
+                playsInline
+                className="crop-video"
               />
-              <span className="slider round"></span>
-            </label>
 
-            <span>Dynamic</span>
+              <canvas ref={cropCanvas} className="crop-overlay"/>
+            </div>
+
+            <div className="crop-buttons">
+              <button className="crop-button" onClick={() => setShowCropWindow(false)}>
+                <span className="text">Cancel</span>
+              </button>
+              <button className="crop-button" onClick={() => {
+                                                setVideoCrop({
+                                                  ...cropArea,
+                                                  videoWidth: cropVideo.current.videoWidth,
+                                                  videoHeight: cropVideo.current.videoHeight,
+                                                  displayWidth: cropVideo.current.clientWidth,
+                                                  displayHeight: cropVideo.current.clientHeight
+                                                })
+                                                setShowCropWindow(false);
+                                              }}>
+                <span className="text">Confirm</span>
+              </button>
+            </div>
           </div>
-
-          <span
-            style={{
-              fontSize: "1vw",
-              position: "absolute",
-              top: "63vh",
-              left: "10.5vw"
-            }}
-          >
-            Debug Mode
-          </span>
-
-          <div
-            className="switch-row"
-            style={{ position: "absolute", top: "66vh", left: "10vw" }}
-          >
-            <span>On</span>
-
-            <label className="switch">
-              <input
-                type="checkbox"
-                checked={DebugMode_toggle}
-                onChange={handleDebugMode_toggle}
-              />
-              <span className="slider round"></span>
-            </label>
-
-            <span>Off</span>
-          </div>
-
-          <div
-            className="input-box"
-            style={{ position: "absolute", top: "29vh", left: "52vw" }}
-          >
-            <label>Exposure Time:</label>
-            <input
-              type="text"
-              value={exposureTime}
-              onChange={(e) => setExposureTime(e.target.value)}
-            />
-            <button onClick={exposureSet_click}>Set</button>
-          </div>
-
-          <div
-            className="input-box"
-            style={{ position: "absolute", top: "34vh", left: "52vw" }}
-          >
-            <label>Color Slope:</label>
-            <input
-              type="text"
-              value={colorSlope}
-              onChange={(e) => setColorSlope(e.target.value)}
-            />
-            <button onClick={colorSlopeSet_click}>Set</button>
-          </div>
-          <div className="powered-by-panel">
-            <div className="powered-by-text" translate="no">Powered by</div>
-            <img src="/MarquesLogo.svg" className="powered-by-logo" alt="Marques Logo"/>
-          </div>
-
         </div>
-      )}*/}
+      )}
     </>
   )
 }
