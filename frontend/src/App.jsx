@@ -39,17 +39,18 @@ function App() {
   const TextCountdownValues = "Countdown Timer value must be between 0 and 10";
   const TextCountdownUpdateSuccessfull = "Countdown Timer updated successfully";
 
-  const [currentMenu, setCurrentMenu] = useState("login");
+  const [currentMenu, setCurrentMenu] = useState("login-menu");
+  const [lastMenu, setLastMenu] = useState("None");
 
   const detectionArea = useRef([0, 0, 0, 0]);
   const selectedPoint = useRef(null);
 
   const selectedCorner = useRef(null);
   const [cropArea, setCropArea] = useState({
-    x: 100,
-    y: 100,
-    width: 300,
-    height: 200
+    x: 15,
+    y: 15,
+    width: 1570,
+    height: 1170
   });
 
   const cameraLoopInterval = useRef(null);
@@ -103,7 +104,7 @@ function App() {
 
   const calibrationImage = useRef(null);
 
-  const isAuthScreen = currentMenu === "login" || currentMenu === "register";
+  const isAuthScreen = currentMenu === "login-menu" || currentMenu === "register";
 
   const [rgb, setRgb] = useState({ r: 171, g: 170, b: 46 });
 
@@ -134,6 +135,7 @@ function App() {
 
   const [showCropWindow, setShowCropWindow] = useState(false);
   const [videoCrop, setVideoCrop] = useState(null);
+  const [cropTransform, setCropTransform] = useState(null);
 
   useEffect(() => {
     if (!showCamera) return;
@@ -170,7 +172,32 @@ function App() {
     restoreSession();
   }, []);
 
+  async function waitForServer(maxAttempts = 20, delay = 1000) {
+    for (let i = 0; i < maxAttempts; i++) {
+      try {
+        const res = await fetch(`${API_URL}/status`);
+
+        if (res.ok) {
+          return true;
+        }
+      } catch (err) {
+        // servidor ainda desligado
+      }
+
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+
+    return false;
+  }
+
   async function restoreSession() {
+    const serverReady = await waitForServer();
+
+    if (!serverReady) {
+      console.error("Servidor indisponível");
+      return;
+    }
+
     const access_token = localStorage.getItem("access_token");
 
     if (!access_token) {
@@ -197,6 +224,11 @@ function App() {
       } else {
         setCurrentMenu("volume-menu");
         setLockMenu(false);
+        setRgb({
+          r: data.colorRGB[0],
+          g: data.colorRGB[1],
+          b: data.colorRGB[2]
+        });
       }
 
       const config_res = await fetch(`${API_URL}/configuration/status`, {
@@ -218,6 +250,8 @@ function App() {
           setExpHDR(false);
         }
 
+        console.log("volumeMode:", config_data.volumeMode);
+
         if (config_data.volumeMode === "Single Bundle") {
           setVolumeMode("single_bundle");
           setVolBundleMode(true);
@@ -231,7 +265,10 @@ function App() {
           setVolumeMode("individual");
           setVolBundleMode(false);
         }
+
       }
+
+      setMenuSideNavOpen(true);
 
     } catch (err) {
       setCurrentMenu("login-menu");
@@ -239,7 +276,7 @@ function App() {
   }
 
   function showLoginScreen() {
-      setCurrentMenu("login");
+      setCurrentMenu("login-menu");
 
       setError([TextClear]);
       setRegUsername("");
@@ -281,6 +318,8 @@ function App() {
 
         await checkCalibration();
 
+        setMenuSideNavOpen(true);
+
         setError([TextClear]);
 
       } else {
@@ -311,6 +350,11 @@ function App() {
     } else {
       setCurrentMenu("volume-menu");
       setLockMenu(false);
+      setRgb({
+        r: data.colorRGB[0],
+        g: data.colorRGB[1],
+        b: data.colorRGB[2]
+      });
     }
   }
 
@@ -369,7 +413,7 @@ function App() {
 
     setUsername("");
     setPassword("");
-    setCurrentMenu("login");
+    setCurrentMenu("login-menu");
     setSavedUser(null);
 
     setMenuSideNavOpen(false)
@@ -383,11 +427,11 @@ function App() {
 
   // Change Menu Functions
   useEffect(() => {
-    if (currentMenu === "login") {
+    if (currentMenu === "login-menu") {
       setError([TextLoginWelcome, TextLoginCredentials]);
     }
 
-    if (currentMenu === "login" || currentMenu === "register") return;
+    if (currentMenu === "login-menu" || currentMenu === "register") return;
 
     refreshAccessToken();
     setError([TextClear]);
@@ -1226,6 +1270,32 @@ function App() {
     }    
   }, [currentMenu]);
 
+  useEffect(() => {
+
+    async function updateMenu() {
+      const access_token = localStorage.getItem("access_token");
+
+      if (currentMenu === "config-menu"){
+        await fetch(`${API_URL}/currentMenu`, {
+            method: "POST",
+            headers: {"Content-Type": "application/json", "Authorization": `Bearer ${access_token}`},
+            body: JSON.stringify({currentMenu: lastMenu})
+        });
+      } else {
+        await fetch(`${API_URL}/currentMenu`, {
+            method: "POST",
+            headers: {"Content-Type": "application/json", "Authorization": `Bearer ${access_token}`},
+            body: JSON.stringify({currentMenu: currentMenu})
+        });
+      } 
+      setLastMenu(currentMenu);
+    }
+
+    updateMenu();
+    
+  }, [currentMenu]);
+
+
   async function refreshToggles() {
     try {
       const access_token = localStorage.getItem("access_token");
@@ -1298,7 +1368,7 @@ function App() {
       workspaceDrawing();
 
       if (active) {
-        setTimeout(loop, 500);
+        setTimeout(loop, 200);
       }
     };
 
@@ -1349,7 +1419,7 @@ function App() {
       );
 
       ctx.strokeStyle = "red";
-      ctx.lineWidth = 5;
+      ctx.lineWidth = 8;
 
       ctx.strokeRect(
         cropArea.x,
@@ -1381,33 +1451,33 @@ function App() {
         }
       ];
 
-      corners.forEach((corner)=>{
+      corners.forEach((corner) => {
         const radius =
           selectedCorner.current === corner.name
-            ? 12
-            : 10;
+            ? 18
+            : 15;
+
+        // Borda preta
+        ctx.beginPath();
+        ctx.arc(corner.x, corner.y, radius, 0, Math.PI * 2);
+        ctx.fillStyle = "black";
+        ctx.fill();
 
         ctx.beginPath();
-
-        ctx.arc(
-          corner.x,
-          corner.y,
-          radius,
-          0,
-          Math.PI * 2
-        );
-
+        ctx.arc(corner.x, corner.y, radius - 2, 0, Math.PI * 2);
         ctx.fillStyle =
           selectedCorner.current === corner.name
             ? "yellow"
             : "white";
-
         ctx.fill();
 
-        ctx.strokeStyle = "black";
-        ctx.lineWidth = 2;
+        ctx.globalCompositeOperation = "destination-out";
 
-        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(corner.x, corner.y, radius - 8, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.globalCompositeOperation = "source-over";
       });
     }
 
@@ -1512,6 +1582,7 @@ function App() {
     function mouseUp(){
       dragging.current=false;
       selectedCorner.current=null;
+      drawCrop();
     }
 
     video.addEventListener(
@@ -1994,13 +2065,13 @@ function App() {
     const handleMenu = async () => {
       if (currentMenu === "volume-menu") {
         startWebRTC("volume");
-        await fetch(`${API_URL}/menu/volume/open`, {method: "POST"});
+        //await fetch(`${API_URL}/menu/volume/open`, {method: "POST"});
       } else if (currentMenu === "calibration-menu") {
         startWebRTC("calibration");
-        await fetch(`${API_URL}/menu/volume/close`, {method: "POST"});
+        //await fetch(`${API_URL}/menu/volume/close`, {method: "POST"});
       } else {
         stopWebRTC();
-        await fetch(`${API_URL}/menu/volume/close`, {method: "POST"});
+        //await fetch(`${API_URL}/menu/volume/close`, {method: "POST"});
       }
     };
 
@@ -2087,39 +2158,97 @@ function App() {
   return () => clearInterval(interval);
 }, [loadingVolume]);
 
-  function getCropTransform(){
+  function getCropCut(){
 
     const video = cameraVideo.current;
 
     if(!video || !videoCrop)
       return {};
 
+    const top = (videoCrop.y / videoCrop.videoHeight) * 100;
+    const left = (videoCrop.x / videoCrop.videoWidth) * 100;
+    const right = 100 - ((videoCrop.x + videoCrop.width) / videoCrop.videoWidth) * 100;
+    const bottom = 100 - ((videoCrop.y + videoCrop.height) / videoCrop.videoHeight) * 100;
 
-    const sx = video.clientWidth / video.videoWidth;
-    const sy = video.clientHeight / video.videoHeight;
+    return {
+      clipPath : `inset(${top}% ${right}% ${bottom}% ${left}%)`
+    };
+  }
 
-    //console.log(video.clientWidth)
-    //console.log(video.videoWidth)
+  function getCropTransform(){
+    const video = cameraVideo.current;
 
-    const x = videoCrop.x * sx;
-    const y = videoCrop.y * sy;
-    const width = videoCrop.width * sx;
-    const height = videoCrop.height * sy;
+    if(!video || !videoCrop)
+        return {};
 
+    const scaleX =
+        videoCrop.videoWidth / videoCrop.width;
 
-    const scaleX = video.clientWidth / width;
-    const scaleY = video.clientHeight / height;
+    const scaleY =
+        videoCrop.videoHeight / videoCrop.height;
 
     const scale = Math.min(scaleX, scaleY);
 
+    const scaleCentersX = (video.clientWidth / videoCrop.videoWidth)
+
+    const scaleCentersY = (video.clientHeight / videoCrop.videoHeight)
+
+    const cropCenterX = (videoCrop.x + videoCrop.width / 2) * scaleCentersX;
+
+    const cropCenterY = (videoCrop.y + videoCrop.height / 2) * scaleCentersY;
+
+    const videoCenterX = video.clientWidth / 2;
+
+    const videoCenterY = video.clientHeight / 2;
+
+    let translateX = videoCenterX - cropCenterX * scale;
+
+    let translateY = videoCenterY - cropCenterY * scale;
+
+    const transformedWidth = video.clientWidth * scale;
+    const transformedHeight = video.clientHeight * scale;
+
+    const left = translateX;
+    const top = translateY;
+
+    const right = translateX + transformedWidth;
+    const bottom = translateY + transformedHeight;
+
+    if (left > 0) {
+      translateX -= left;
+    }
+    if (top > 0) {
+      translateY -= top;
+    }
+    if (right < video.clientWidth) {
+      console.log(right)
+      translateX += video.clientWidth - right;
+    }
+    if (bottom < video.clientHeight) {
+      translateY += video.clientHeight - bottom;
+    }
+
     return {
-      transform: `
-        translate(${-x}px, ${-y}px)
-        scale(${scale})
-      `,
-      transformOrigin:"top left"
+        transform: `
+            translate(${translateX}px, ${translateY}px)
+            scale(${scale})
+        `,
+        transformOrigin: "top left"
     };
   }
+
+  useEffect(() => {
+    if (!videoCrop)
+        return;
+
+    const video = cameraVideo.current;
+
+    if (!video)
+        return;
+
+    setCropTransform(getCropTransform());
+
+  }, [videoCrop]);
 
   return (
     <>
@@ -2152,7 +2281,7 @@ function App() {
 
         <img
           src="/user.svg"
-          className={`nav-icon ${currentMenu === "login" ? "hidden" : ""}`}
+          className={`nav-icon ${currentMenu === "login-menu" ? "hidden" : ""}`}
           /*onClick={toggleUserMenu}*/
           onClick={() => setShowUserPopup(true)}
         />
@@ -2160,7 +2289,7 @@ function App() {
       </div>
 
       {/* Login Screen Panel */}
-      {currentMenu === "login" && (
+      {currentMenu === "login-menu" && (
         <div>
           <img src="/Qubic.svg" className="qubic-logo" alt="Qubic Logo"/> 
 
@@ -2308,8 +2437,7 @@ function App() {
             <div className="warning">
               {processingMessage}
             </div>
-          )}
-            
+          )}  
 
           <div className="menu-wrapper">
             <div className="title-container">
@@ -2321,16 +2449,17 @@ function App() {
             <div className="camera-container">
               <div className="camera-video-wrapper">
                 {showCamera ? (
+                  
                   <video
                     ref={cameraVideo}
                     autoPlay
                     playsInline
                     className="camera-video"
-                    style={getCropTransform()}
+                    style={cropTransform}
                   />
                 ) : (
                   objectImage && (
-                    <img className="object-img" src={objectImage} alt="objects"/>
+                    <img className="object-img" src={objectImage} style={cropTransform} alt="objects"/>
                   )
                 )}
               </div>
@@ -2734,6 +2863,14 @@ function App() {
                   <span className="text">Set</span>
                 </button>
               </div>
+
+              <span className="text">Preferences</span>
+              <div className="image-crop-preference">
+                <span className="video-size"> Video Size </span>
+                 <button onClick={() => setShowCropWindow(true)} disabled={currentMenu !== "volume-menu"} className="define-button">
+                    <span className="define_text"> Define </span>
+                 </button>
+              </div>
             </div>
           </div>
         </>
@@ -2756,20 +2893,7 @@ function App() {
                   <span className="text-role"> Role: {savedUser?.role} </span>
                 </div>
               </div>
-
-              <div className="user-preferences">
-                <span> Preferences </span>
-              </div>
-
-              <div className="image-crop-preference">
-                <span className="video-size"> Video Size </span>
-                 <button onClick={() => setShowCropWindow(true)} className="define-button">
-                    <span className="text"> Define </span>
-                 </button>
-              </div>
-            </div>
-
-            
+            </div>            
 
             <div className="logout-option" onClick={logout}>
               Logout
@@ -2810,6 +2934,7 @@ function App() {
                                                   displayHeight: cropVideo.current.clientHeight
                                                 })
                                                 setShowCropWindow(false);
+                                                setShowSettingsPopup(false);
                                               }}>
                 <span className="text">Confirm</span>
               </button>

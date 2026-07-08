@@ -5,5 +5,5 @@ class ModeState:
         self.volumeMode = "Single Bundle"
         self.calibrationMode = "Automatic"
         self.debugMode = "Off"
-
+        self.currentMenu = "login-menu"
 modeState = ModeState()

@@ -90,100 +90,100 @@ def require_admin(user: dict = Depends(get_current_user)):
 
 #--------------------------------------------------   Object Processing   -------------------------------------------------
 
-objProcessing_thread = None
-thread_state = "STOPPED"
-objProcessingStop_event = threading.Event()
-objProcessingPause_event = threading.Event()
-objProcessingPause_event.set()
+# objProcessing_thread = None
+# thread_state = "STOPPED"
+# objProcessingStop_event = threading.Event()
+# objProcessingPause_event = threading.Event()
+# objProcessingPause_event.set()
 
-def object_processing():
-    print("THREAD START:", threading.get_ident())
+# def object_processing():
+#     print("THREAD START:", threading.get_ident())
 
-    while not objProcessingStop_event.is_set():
-        objProcessingPause_event.wait()
+#     while not objProcessingStop_event.is_set():
+#         objProcessingPause_event.wait()
 
-        #print("RUNNING:", threading.get_ident())
-        if frameState.depthFrameHDR is None or modeState.expositionMode == "Fixed Exposition":
-            depthFrame = frameState.depthFrame
-        else:
-            depthFrame = frameState.depthFrameHDR
+#         #print("RUNNING:", threading.get_ident())
+#         if frameState.depthFrameHDR is None or modeState.expositionMode == "Fixed Exposition":
+#             depthFrame = frameState.depthFrame
+#         else:
+#             depthFrame = frameState.depthFrameHDR
 
-        # if workspaceState.workspace_warning is not None:
-        #     depthState.not_set, depthState.objects_info = MinDepthAPI(depthFrame, workspaceState.detection_area, workspaceState.workspace_warning, workspaceState.workspace_depth, depthState.threshold, depthState.not_set, camState.cx_d, camState.cy_d, camState.fx_d, camState.fy_d)
-        # if depthState.objects_info is not None and len(depthState.objects_info) != 0:
-        #     depthState.minimum_depth = depthState.objects_info[0]["depth"]
-        #     depthState.minimum_value = depthState.minimum_depth
+#         # if workspaceState.workspace_warning is not None:
+#         #     depthState.not_set, depthState.objects_info = MinDepthAPI(depthFrame, workspaceState.detection_area, workspaceState.workspace_warning, workspaceState.workspace_depth, depthState.threshold, depthState.not_set, camState.cx_d, camState.cy_d, camState.fx_d, camState.fy_d)
+#         # if depthState.objects_info is not None and len(depthState.objects_info) != 0:
+#         #     depthState.minimum_depth = depthState.objects_info[0]["depth"]
+#         #     depthState.minimum_value = depthState.minimum_depth
 
-            #print("New Min Value", depthState.minimum_value)
+#             #print("New Min Value", depthState.minimum_value)
 
-        #print("DepthState.Objects_info:", depthState.objects_info)
+#         #print("DepthState.Objects_info:", depthState.objects_info)
 
-        time.sleep(0.01)
+#         time.sleep(0.01)
 
-def start_ObjProcessing():
-    global objProcessing_thread, thread_state
+# def start_ObjProcessing():
+#     global objProcessing_thread, thread_state
 
-    if thread_state in ["RUNNING", "PAUSED"]:
-        return
+#     if thread_state in ["RUNNING", "PAUSED"]:
+#         return
 
-    objProcessingStop_event.clear()
-    objProcessingPause_event.set()
+#     objProcessingStop_event.clear()
+#     objProcessingPause_event.set()
 
-    thread_state = "RUNNING"
+#     thread_state = "RUNNING"
 
-    objProcessing_thread = threading.Thread(
-        target=object_processing,
-        daemon=True
-    )
+#     objProcessing_thread = threading.Thread(
+#         target=object_processing,
+#         daemon=True
+#     )
 
-    objProcessing_thread.start()
+#     objProcessing_thread.start()
 
-    print("Volume thread started")
+#     print("Volume thread started")
 
-def pause_ObjProcessing():
-    global thread_state
+# def pause_ObjProcessing():
+#     global thread_state
 
-    if thread_state != "RUNNING":
-        return
+#     if thread_state != "RUNNING":
+#         return
 
-    objProcessingPause_event.clear()
+#     objProcessingPause_event.clear()
 
-    thread_state = "PAUSED"
+#     thread_state = "PAUSED"
 
-    print("Thread paused")
+#     print("Thread paused")
 
-def resume_ObjProcessing():
-    global thread_state
+# def resume_ObjProcessing():
+#     global thread_state
 
-    if thread_state in ["STOPPING", "STOPPED"]:
-        return
+#     if thread_state in ["STOPPING", "STOPPED"]:
+#         return
 
-    objProcessingPause_event.set()
+#     objProcessingPause_event.set()
 
-    thread_state = "RUNNING"
+#     thread_state = "RUNNING"
 
-    print("Thread resumed")
+#     print("Thread resumed")
 
-def stop_ObjProcessing():
-    global objProcessing_thread, thread_state
+# def stop_ObjProcessing():
+#     global objProcessing_thread, thread_state
 
-    if objProcessing_thread is None:
-        return
+#     if objProcessing_thread is None:
+#         return
     
-    print("Stopping volume thread...")
+#     print("Stopping volume thread...")
 
-    thread_state = "STOPPING"
+#     thread_state = "STOPPING"
 
-    objProcessingStop_event.set()
-    objProcessingPause_event.set()
+#     objProcessingStop_event.set()
+#     objProcessingPause_event.set()
 
     
-    objProcessing_thread.join(timeout=3)
-    objProcessing_thread = None
+#     objProcessing_thread.join(timeout=3)
+#     objProcessing_thread = None
 
-    thread_state = "STOPPED"
+#     thread_state = "STOPPED"
 
-    print("Volume thread stopped")
+#     print("Volume thread stopped")
 
 def scale_nested(data, factor):
     if isinstance(data, list):
@@ -238,6 +238,9 @@ class SystemUpdate(BaseModel):
     fps: Optional[int] = Field(None, ge=1, le=15)
     countdown: Optional[int] = Field(None, ge=0, le=10)
 
+class CurrentMenu(BaseModel):
+    currentMenu: str
+
 load_dotenv()
 ADMIN_REGISTER_CODE = os.environ.get("ADMIN_REGISTER_CODE")
 
@@ -266,6 +269,7 @@ async def lifespan(app: FastAPI):
             maskState.vmin = calib["vmin"]
             maskState.vmax = calib["vmax"]
             maskState.color = calib["color"]
+            maskState.colorRGB = calib["colorRGB"]
             camState.colorSlope = calib["colorSlope"]
             frameState.calibrationColorFrame = cv2.imread(calib["calibrationColorFrame_path"])
             frameState.calibrationDepthFrame = numpy.load(calib["calibrationDepthFrame_path"])
@@ -318,7 +322,7 @@ async def lifespan(app: FastAPI):
         )
         pcs.clear()
 
-        stop_ObjProcessing()
+        #stop_ObjProcessing()
         stopCamera()
 
 #----------------------------------------------------   Criar App   -------------------------------------------------------
@@ -671,6 +675,7 @@ def set_maskColor(data: HSVValue, current_user: dict = Depends(get_current_user)
 def clickSet_maskColor(data: ColorCoords, current_user: dict = Depends(get_current_user)):
     x, y = data.x, data.y
     b, g, r = frameState.colorToDepthFrame[y, x]
+    maskState.colorRGB = [int(r), int(g), int(b)]
 
     color_ack = False
     preset = COLOR_PRESETS
@@ -807,7 +812,7 @@ def get_calibration_status(current_user: dict = Depends(get_current_user)):
         if "detection_area" not in data:
             return {"calibrated": False}
 
-        return {"calibrated": True}
+        return {"calibrated": True, "colorRGB": data["colorRGB"]}
 
     except:
         return {"calibrated": False}
@@ -1069,25 +1074,25 @@ def debugOn(current_user: dict = Depends(require_admin)):
     return {"Debug Mode:": modeState.debugMode}
 
 #------------------------------------------------------- Volume -------------------------------------------------------
-@app.post("/menu/volume/open")
-def open_volume_menu():
-    global objProcessing_thread
+# @app.post("/menu/volume/open")
+# def open_volume_menu():
+#     global objProcessing_thread
 
-    if objProcessing_thread is None or not objProcessing_thread.is_alive():
-        start_ObjProcessing()
-    else:
-        resume_ObjProcessing() 
+#     if objProcessing_thread is None or not objProcessing_thread.is_alive():
+#         start_ObjProcessing()
+#     else:
+#         resume_ObjProcessing() 
 
-    return {"status": "ok"}
+#     return {"status": "ok"}
 
-@app.post("/menu/volume/close")
-def close_volume_menu():
-    global objProcessing_thread
+# @app.post("/menu/volume/close")
+# def close_volume_menu():
+#     global objProcessing_thread
 
-    if objProcessing_thread is not None and objProcessing_thread.is_alive():
-        pause_ObjProcessing()
+#     if objProcessing_thread is not None and objProcessing_thread.is_alive():
+#         pause_ObjProcessing()
 
-    return {"status": "ok"}
+#     return {"status": "ok"}
 
 @app.post("/volume/clickTimestamp")
 def click_timestamp(current_user: dict = Depends(get_current_user)):
@@ -1106,9 +1111,10 @@ def volumeStatus(current_user: dict = Depends(get_current_user)):
          """,
          tags=["Volume"])
 def volume_SingleBundle(current_user: dict = Depends(get_current_user)):
+    t0 = time.perf_counter()
     volumeState.processing = "Processing Frames..."
     while True:
-        finished, times = processHDR(volumeState.click_timestamp)
+        finished, times = processHDR(volumeState.click_timestamp, t0)
         if finished:
             break
 
@@ -1360,9 +1366,10 @@ def get_Volume_MultiBundle(current_user: dict = Depends(get_current_user)):
          """,
          tags=["Volume"])
 def volume_Real(current_user: dict = Depends(get_current_user)):
+    t0 = time.perf_counter()
     volumeState.processing = "Processing Frames..."
     while True:
-        finished, times = processHDR(volumeState.click_timestamp)
+        finished, times = processHDR(volumeState.click_timestamp, t0)
         if finished:
             break
 
@@ -1492,9 +1499,10 @@ def get_Volume_Real(current_user: dict = Depends(get_current_user)):
          """,
          tags=["Volume"])
 def volume_Individual(current_user: dict = Depends(get_current_user)):
+    t0 = time.perf_counter()
     volumeState.processing = "Processing Frames..."
     while True:
-        finished, times = processHDR(volumeState.click_timestamp)
+        finished, times = processHDR(volumeState.click_timestamp, t0)
         if finished:
             break
 
@@ -1752,3 +1760,23 @@ def depth_status(current_user : dict = Depends(get_current_user)):
          tags=["Weight"])
 def get_weight(current_user: dict = Depends(get_current_user)):
     return getWeight()
+
+# --------------------------------------  Menu  ----------------------------------------
+
+@app.post("/currentMenu", summary="Changes the currentMenu",
+         description="""
+         Changes the Current Menu on the backend to make it possible to processHDR in calibrationMode
+         """,
+         tags=["Menu"])
+def updateCurrentMenu(data: CurrentMenu, current_user: dict = Depends(get_current_user)):
+    modeState.currentMenu = data.currentMenu
+    return{"message:": "Success"}
+
+# ----------------------------------- Server  Status -----------------------------------
+@app.get("/status", summary="Checks the status of the server",
+         description="""
+         Checks the status of the server. If it returns ok the server is live.
+         """,
+         tags=["Server"])
+def serverStatus():
+    return {"status": "ok"}

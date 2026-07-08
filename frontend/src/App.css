@@ -489,7 +489,6 @@ body {
   height: 100%;
 
   display: block;
-  transform-origin: top left;
 }
 
 .object-img{
@@ -1385,7 +1384,6 @@ body {
   height: 15%;
   top: 4%;
   padding-left: 5%;
-  margin-bottom: 8%;
 }
 
 .countdown-input{
@@ -1434,6 +1432,54 @@ body {
 }
 
 .countdown-btn:hover .text{
+  color: black;
+}
+
+.settings-popup .image-crop-preference{
+  position: relative;
+  top: 6%;
+  gap: 5%;
+  width: 100%;
+  height: 5%;
+
+  display: flex;
+  align-items: center;
+}
+
+.video-size{
+  padding-left: 5%;
+  font-size: 1.8vh;
+  color: white;
+}
+
+.define-button{
+  width: 30%;
+  height: 100%;
+  cursor: pointer;
+  border-radius: 0.2vw;
+  border: none;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  background: rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+}
+
+.define-button .define_text {
+  color: white;
+  text-align: center;
+  text-transform: uppercase;
+  font-family: "Inter Regular", sans-serif;
+  transition: color 0.3s ease;
+}
+
+.define-button:hover {
+  background: white;
+}
+
+.define-button:hover .text {
   color: black;
 }
 
@@ -1505,56 +1551,6 @@ body {
   font-size: 1.5vh;
 }
 
-.user-popup .user-preferences{
-  position: relative;
-  top: 4%;
-  gap: 5%;
-}
-
-.user-popup .image-crop-preference{
-  position: relative;
-  top: 6%;
-  gap: 5%;
-  width: 100%;
-
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.video-size{
-  text-align: left;
-}
-
-.define-button{
-  width: 40%;
-  cursor: pointer;
-  border-radius: 0.2vw;
-  border: none;
-
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
-  background: rgba(255, 255, 255, 0.2);
-  transition: all 0.3s ease;
-}
-
-.define-button .text {
-  color: white;
-  text-transform: uppercase;
-  font-family: "Inter Regular", sans-serif;
-  transition: color 0.3s ease;
-}
-
-.define-button:hover {
-  background: white;
-}
-
-.define-button:hover .text {
-  color: black;
-}
-
 .user-popup .logout-option{
   position: relative;
   bottom: 3%;
@@ -1605,7 +1601,6 @@ body {
   transition: color 0.3s ease;
 }
 
-
 .crop-video-wrapper {
   position: relative;
   object-fit: contain;
@@ -1622,7 +1617,6 @@ body {
   object-fit: cover;
   display: block;
 }
-
 
 .crop-overlay {
   position:absolute;

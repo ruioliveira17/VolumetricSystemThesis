@@ -23,6 +23,7 @@ def save_WS_calibration():
         "vmin": int(maskState.vmin),
         "vmax": int(maskState.vmax),
         "color": maskState.color,
+        "colorRGB": maskState.colorRGB,
         "colorSlope": int(camState.colorSlope),
         "calibrationColorFrame_path": "config/calibrationColorFrame.png",
         "calibrationDepthFrame_path": "config/calibrationDepthFrame.npy"

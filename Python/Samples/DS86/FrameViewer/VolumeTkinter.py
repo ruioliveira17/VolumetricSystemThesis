@@ -169,9 +169,14 @@ def volumeMultiBundleAPI(depthFrame, calibrationDepthFrame, workspace_depth, box
         pts_flat_h = allObj_pts_m[idx].reshape(-1, 2)
         mask_h = numpy.zeros(calibrationDepthFrame_copy.shape, dtype=numpy.uint8)
         cv2.fillPoly(mask_h, [pts_flat_h.astype(numpy.int32)], 255)
-        ws_vals_h = calibrationDepthFrame_copy[mask_h == 255].astype(numpy.float32)
-        ws_vals_h = ws_vals_h[(ws_vals_h >= 150) & (ws_vals_h <= workspace_depth + 15)]
-        ws_d_h = float(numpy.median(ws_vals_h)) if ws_vals_h.size > 0 else float(workspace_depth)
+        #ws_vals_h = calibrationDepthFrame_copy[mask_h == 255].astype(numpy.float32)
+        #ws_vals_h = ws_vals_h[(ws_vals_h >= 150) & (ws_vals_h <= workspace_depth + 15)]
+        #ws_d_h = float(numpy.median(ws_vals_h)) if ws_vals_h.size > 0 else float(workspace_depth)
+        ws_d_h = float(workspace_depth)
+
+        print("WS_D_H:", ws_d_h)
+        print("OBJ_D:", depthsObj[idx])
+
         height_meters = (ws_d_h - depthsObj[idx]) / 1000
 
         volume = width_meters * length_meters * height_meters
@@ -188,6 +193,7 @@ def volumeMultiBundleAPI(depthFrame, calibrationDepthFrame, workspace_depth, box
     height_meters = eight
 
     print("Volume:", volume)
+    print("Heights:", height_meters)
 
     return volume, width_meters, length_meters, height_meters
 

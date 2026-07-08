@@ -3,7 +3,7 @@
     "volumeMode": "Multi Bundle",
     "workingMode": "Static",
     "debugMode": "Off",
-    "exposureTime": 2000,
+    "exposureTime": 1200,
     "fps": 10,
     "flyingPixelFilter": true,
     "fillHoleFilter": true,

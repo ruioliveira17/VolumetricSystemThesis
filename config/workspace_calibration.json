@@ -1,38 +1,38 @@
 {
     "detection_area": [
         [
-            135,
+            415,
             381
         ],
         [
-            133,
-            105
+            134,
+            381
         ],
         [
-            417,
+            131,
+            103
+        ],
+        [
+            416,
             101
-        ],
-        [
-            417,
-            380
         ]
     ],
     "workspace_warning": [
         [
-            271,
-            345
+            162,
+            136
         ],
         [
-            265,
-            339
+            143,
+            131
         ],
         [
-            271,
-            333
+            144,
+            128
         ],
         [
-            277,
-            339
+            163,
+            133
         ]
     ],
     "workspace_depth": 1144.0,
@@ -43,6 +43,11 @@
     "vmin": 200,
     "vmax": 255,
     "color": "White",
+    "colorRGB": [
+        174,
+        181,
+        189
+    ],
     "colorSlope": 1601,
     "calibrationColorFrame_path": "config/calibrationColorFrame.png",
     "calibrationDepthFrame_path": "config/calibrationDepthFrame.npy"
