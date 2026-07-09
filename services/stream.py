@@ -8,6 +8,7 @@ from av import VideoFrame
 
 from FrameState import frameState
 from CameraState import camState
+from ModeState import modeState
 
 class CameraTrack(VideoStreamTrack):
     async def recv(self):
@@ -23,13 +24,25 @@ class CameraTrack(VideoStreamTrack):
     
 class CTDTrack(VideoStreamTrack):
     async def recv(self):
-        frame = frameState.workspaceDetectedFrame
-        while frame is None:
-            #await asyncio.sleep(0.05)
+        if modeState.calibrationMode == "Automatic":
             frame = frameState.workspaceDetectedFrame
-        
-        if frame.dtype != numpy.uint8:
-            frame = (numpy.clip(frame, 0, 1) * 255).astype(numpy.uint8)
+            while frame is None:
+                #await asyncio.sleep(0.05)
+                frame = frameState.workspaceDetectedFrame
+            
+            if frame.dtype != numpy.uint8:
+                frame = (numpy.clip(frame, 0, 1) * 255).astype(numpy.uint8)
+        if modeState.calibrationMode == "Manual":
+            if camState.hdrEnabled and frameState.colorToDepthFrameHDR is not None:
+                frame = frameState.colorToDepthFrameHDR
+            elif not camState.hdrEnabled:
+                frame = frameState.colorToDepthFrame
+            while frame is None:
+                #await asyncio.sleep(0.05)
+                frame = frameState.colorToDepthFrame
+            
+            if frame.dtype != numpy.uint8:
+                frame = (numpy.clip(frame, 0, 1) * 255).astype(numpy.uint8)
 
         return VideoFrame.from_ndarray(frame, format='bgr24')
 
@@ -62,14 +75,27 @@ def generateDepth_Stream():
 
 def generateCalibrationCTD_Stream():
     while True:
-        frame = frameState.workspaceDetectedFrame
-        if frame is not None:
-            if frame.dtype != numpy.uint8:
-                frame = (numpy.clip(frame, 0, 1) * 255).astype(numpy.uint8)
-            _, jpeg = cv2.imencode('.jpg', frame)
-            yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + jpeg.tobytes() + b'\r\n')
-        time.sleep(0.05)
+        if modeState.calibrationMode == "Automatic":
+            frame = frameState.workspaceDetectedFrame
+            if frame is not None:
+                if frame.dtype != numpy.uint8:
+                    frame = (numpy.clip(frame, 0, 1) * 255).astype(numpy.uint8)
+                _, jpeg = cv2.imencode('.jpg', frame)
+                yield (b'--frame\r\n'
+                    b'Content-Type: image/jpeg\r\n\r\n' + jpeg.tobytes() + b'\r\n')
+            time.sleep(0.05)
+        if modeState.calibrationMode == "Manual":
+            if camState.hdrEnabled and frameState.colorToDepthFrameHDR is not None:
+                frame = frameState.colorToDepthFrameHDR
+            elif not camState.hdrEnabled:
+                frame = frameState.colorToDepthFrame
+            if frame is not None:
+                if frame.dtype != numpy.uint8:
+                    frame = (numpy.clip(frame, 0, 1) * 255).astype(numpy.uint8)
+                _, jpeg = cv2.imencode('.jpg', frame)
+                yield (b'--frame\r\n'
+                    b'Content-Type: image/jpeg\r\n\r\n' + jpeg.tobytes() + b'\r\n')
+            time.sleep(0.05)
 
 def generateCalibrationMask_Stream():
     while True:

@@ -4,6 +4,7 @@ class ModeState:
         self.expositionMode = "HDR"
         self.volumeMode = "Single Bundle"
         self.calibrationMode = "Automatic"
+        self.speedMode = "Intermedium"
         self.debugMode = "Off"
         self.currentMenu = "login-menu"
 modeState = ModeState()

@@ -88,103 +88,6 @@ def require_admin(user: dict = Depends(get_current_user)):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin privileges required.")
     return user
 
-#--------------------------------------------------   Object Processing   -------------------------------------------------
-
-# objProcessing_thread = None
-# thread_state = "STOPPED"
-# objProcessingStop_event = threading.Event()
-# objProcessingPause_event = threading.Event()
-# objProcessingPause_event.set()
-
-# def object_processing():
-#     print("THREAD START:", threading.get_ident())
-
-#     while not objProcessingStop_event.is_set():
-#         objProcessingPause_event.wait()
-
-#         #print("RUNNING:", threading.get_ident())
-#         if frameState.depthFrameHDR is None or modeState.expositionMode == "Fixed Exposition":
-#             depthFrame = frameState.depthFrame
-#         else:
-#             depthFrame = frameState.depthFrameHDR
-
-#         # if workspaceState.workspace_warning is not None:
-#         #     depthState.not_set, depthState.objects_info = MinDepthAPI(depthFrame, workspaceState.detection_area, workspaceState.workspace_warning, workspaceState.workspace_depth, depthState.threshold, depthState.not_set, camState.cx_d, camState.cy_d, camState.fx_d, camState.fy_d)
-#         # if depthState.objects_info is not None and len(depthState.objects_info) != 0:
-#         #     depthState.minimum_depth = depthState.objects_info[0]["depth"]
-#         #     depthState.minimum_value = depthState.minimum_depth
-
-#             #print("New Min Value", depthState.minimum_value)
-
-#         #print("DepthState.Objects_info:", depthState.objects_info)
-
-#         time.sleep(0.01)
-
-# def start_ObjProcessing():
-#     global objProcessing_thread, thread_state
-
-#     if thread_state in ["RUNNING", "PAUSED"]:
-#         return
-
-#     objProcessingStop_event.clear()
-#     objProcessingPause_event.set()
-
-#     thread_state = "RUNNING"
-
-#     objProcessing_thread = threading.Thread(
-#         target=object_processing,
-#         daemon=True
-#     )
-
-#     objProcessing_thread.start()
-
-#     print("Volume thread started")
-
-# def pause_ObjProcessing():
-#     global thread_state
-
-#     if thread_state != "RUNNING":
-#         return
-
-#     objProcessingPause_event.clear()
-
-#     thread_state = "PAUSED"
-
-#     print("Thread paused")
-
-# def resume_ObjProcessing():
-#     global thread_state
-
-#     if thread_state in ["STOPPING", "STOPPED"]:
-#         return
-
-#     objProcessingPause_event.set()
-
-#     thread_state = "RUNNING"
-
-#     print("Thread resumed")
-
-# def stop_ObjProcessing():
-#     global objProcessing_thread, thread_state
-
-#     if objProcessing_thread is None:
-#         return
-    
-#     print("Stopping volume thread...")
-
-#     thread_state = "STOPPING"
-
-#     objProcessingStop_event.set()
-#     objProcessingPause_event.set()
-
-    
-#     objProcessing_thread.join(timeout=3)
-#     objProcessing_thread = None
-
-#     thread_state = "STOPPED"
-
-#     print("Volume thread stopped")
-
 def scale_nested(data, factor):
     if isinstance(data, list):
         return [scale_nested(x, factor) for x in data]
@@ -290,6 +193,8 @@ async def lifespan(app: FastAPI):
 
             modeState.expositionMode = config["expositionMode"]
             modeState.volumeMode = config["volumeMode"]
+            modeState.calibrationMode = config["calibrationMode"]
+            modeState.speedMode = config["speedMode"]
             modeState.workingMode = config["workingMode"]
             modeState.debugMode = config["debugMode"]
             camState.exposureTime = config["exposureTime"]
@@ -770,25 +675,11 @@ def apply_mask(data: HSVValue, current_user: dict = Depends(get_current_user)):
 
 @app.post("/applyManualWorkspace", summary="Applies Manual Workspace",
          description="""
-         Allows the user to change the workspace detection area manually by providing a list of coordinates that represent the vertices of a polygon. An algorithm makes the changes necessary to the image to show correctly the workspaceDetectedFrame to the user with the new workspace defined. If the workspace application is successful, it returns a success message. Otherwise, it returns an error message.
+         Sends the manual workspace coordinates changed on the frontend to the backend.
          """,
          tags=["Mask"])
 def apply_manualWS(data: ManualWorkspace, current_user: dict = Depends(get_current_user)):
-    if frameState.colorToDepthFrameHDR is None or modeState.expositionMode == "Fixed Exposition":
-        colorToDepthFrame = frameState.colorToDepthFrame
-    else:
-        colorToDepthFrame = frameState.colorToDepthFrameHDR
-
-    detection_area = numpy.array(data.detection_area, dtype=int).reshape((-1, 2))
-    selected_point = data.selected_point
-
-    workspaceDetectedFrame, detection_area = manualWorkspaceDraw(colorToDepthFrame, detection_area, selected_point, int(camState.cx_d), int(camState.cy_d))
-
-    if workspaceDetectedFrame is None:
-        return{"message:": "Mask application failed!"}
-
-    frameState.workspaceDetectedFrame = workspaceDetectedFrame
-    workspaceState.detected_area = detection_area.tolist()
+    workspaceState.detected_area = numpy.array(data.detection_area, dtype=int).reshape((-1, 2))
 
     return{"message:": "Mask applied with success"}
 
@@ -929,6 +820,35 @@ def automaticCalibration(current_user: dict = Depends(get_current_user)):
 def manualCalibration(current_user: dict = Depends(get_current_user)):
     modeState.calibrationMode = "Manual"
     return {"mode:": modeState.calibrationMode}
+
+#----------------------------------------------------- Speed  Mode ----------------------------------------------------
+
+@app.post("/speed/mode/slow", summary="Sets the Speed Mode to Slow",
+         description="""
+         Sets the speed mode to "Slow".
+         """,
+         tags=["Using Modes"])
+def slowSpeed(current_user: dict = Depends(require_admin)):
+    modeState.speedMode = "Slow"
+    return {"mode:": modeState.speedMode}
+
+@app.post("/speed/mode/intermedium", summary="Sets the Speed Mode to Intermedium",
+         description="""
+         Sets the speed mode to "Intermedium".
+         """,
+         tags=["Using Modes"])
+def intermediumSpeed(current_user: dict = Depends(require_admin)):
+    modeState.speedMode = "Intermedium"
+    return {"mode:": modeState.speedMode}
+
+@app.post("/speed/mode/fast", summary="Sets the Speed Mode to Fast",
+         description="""
+         Sets the speed mode to "Fast".
+         """,
+         tags=["Using Modes"])
+def fastSpeed(current_user: dict = Depends(require_admin)):
+    modeState.speedMode = "Fast"
+    return {"mode:": modeState.speedMode}
 
 #---------------------------------------------------- Working Mode -----------------------------------------------------
 
@@ -1074,26 +994,6 @@ def debugOn(current_user: dict = Depends(require_admin)):
     return {"Debug Mode:": modeState.debugMode}
 
 #------------------------------------------------------- Volume -------------------------------------------------------
-# @app.post("/menu/volume/open")
-# def open_volume_menu():
-#     global objProcessing_thread
-
-#     if objProcessing_thread is None or not objProcessing_thread.is_alive():
-#         start_ObjProcessing()
-#     else:
-#         resume_ObjProcessing() 
-
-#     return {"status": "ok"}
-
-# @app.post("/menu/volume/close")
-# def close_volume_menu():
-#     global objProcessing_thread
-
-#     if objProcessing_thread is not None and objProcessing_thread.is_alive():
-#         pause_ObjProcessing()
-
-#     return {"status": "ok"}
-
 @app.post("/volume/clickTimestamp")
 def click_timestamp(current_user: dict = Depends(get_current_user)):
     volumeState.click_timestamp = time.monotonic()
@@ -1220,13 +1120,14 @@ def get_Volume_SingleBundle(current_user: dict = Depends(get_current_user)):
          """,
          tags=["Volume"])
 def volume_MultiBundle(current_user: dict = Depends(get_current_user)):
-    t0 = time.perf_counter()
+    times = [None] * 8
+    times[0] = time.perf_counter()
     volumeState.processing = "Processing Frames..."
     while True:
-        finished, times = processHDR(volumeState.click_timestamp, t0)
+        finished, timesssssssss = processHDR(volumeState.click_timestamp, times[0])
         if finished:
             break
-    t1 = time.perf_counter()
+    times[1] = time.perf_counter()
 
     colorFrame = frameState.colorFrame
 
@@ -1240,32 +1141,32 @@ def volume_MultiBundle(current_user: dict = Depends(get_current_user)):
     else:
         depthFrame = frameState.depthFrameHDR
 
-    #depthState.not_set, depthState.objects_info = MinDepthAPI(depthFrame, workspaceState.detection_area, workspaceState.workspace_warning, workspaceState.workspace_depth, depthState.threshold, depthState.not_set, camState.cx_d, camState.cy_d, camState.fx_d, camState.fy_d)
-
-    #if depthState.objects_info is not None and len(depthState.objects_info) != 0:
-    #    depthState.minimum_value = depthState.objects_info[0]["depth"]
-
-    #    print("New Min Value", depthState.minimum_value)
-
     if workspaceState.workspace_warning is not None:
-        t2 = time.perf_counter()
+        times[2] = time.perf_counter()
         volumeState.processing = "Finding Depths..."
         depthState.not_set, depthState.objects_info = MinDepthAPI(depthFrame, workspaceState.detection_area, workspaceState.workspace_warning, workspaceState.workspace_depth, depthState.threshold, depthState.not_set, camState.cx_d, camState.cy_d, camState.fx_d, camState.fy_d)
-        t3 = time.perf_counter()
+        times[3] = time.perf_counter()
     if depthState.objects_info is not None and len(depthState.objects_info) != 0:
         depthState.minimum_depth = depthState.objects_info[0]["depth"]
         depthState.minimum_value = depthState.minimum_depth
 
     if depthState.objects_info is not None:
-        t4 = time.perf_counter()
+        times[4] = time.perf_counter()
         volumeState.processing = "Identifying Objects..."
         depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine = objIdentifier(colorFrame, colorToDepthFrame, depthFrame, frameState.calibrationColorFrame, frameState.calibrationDepthFrame, modeState.volumeMode, depthState.objects_info, workspaceState.workspace_depth, depthState.threshold, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb, camState.fx_d, camState.fy_d, camState.fx_rgb, camState.fy_rgb)
-        t5 = time.perf_counter()       
-        if volumeState.box_limits is not None and len(volumeState.box_limits) > 0:
-            t6 = time.perf_counter()
-            volumeState.processing = "Calculating Volumes..."
-            volumeState.volume, volumeState.width_meters, volumeState.length_meters, volumeState.height_meters = volumeMultiBundleAPI(depthFrame, frameState.calibrationDepthFrame, workspaceState.workspace_depth, volumeState.box_limits, volumeState.depths, camState.fx_d, camState.fy_d, camState.cx_d, camState.cy_d)
-            t7 = time.perf_counter()
+        times[5] = time.perf_counter()
+        if volumeState.depths:       
+            if volumeState.box_limits is not None and len(volumeState.box_limits) > 0:
+                times[6] = time.perf_counter()
+                volumeState.processing = "Calculating Volumes..."
+                volumeState.volume, volumeState.width_meters, volumeState.length_meters, volumeState.height_meters = volumeMultiBundleAPI(depthFrame, frameState.calibrationDepthFrame, workspaceState.workspace_depth, volumeState.box_limits, volumeState.depths, camState.fx_d, camState.fy_d, camState.cx_d, camState.cy_d)
+                times[7] = time.perf_counter()
+            else:
+                volumeState.volume = 0
+                volumeState.width_meters = 0
+                volumeState.length_meters = 0
+                volumeState.height_meters = 0
+                depthState.minimum_depth = workspaceState.workspace_depth
         else:
             volumeState.volume = 0
             volumeState.width_meters = 0
@@ -1293,23 +1194,24 @@ def volume_MultiBundle(current_user: dict = Depends(get_current_user)):
     else:
         volumeState.height_meters = volumeState.height_meters * 100
 
-    print("Time waiting for every frame that is missing", times[0] * 1000, "ms")
-    print("Time waiting to build each HDR", times[1] * 1000, "ms")
-    print("Time waiting to build last HDR", times[2] * 1000, "ms")
+    if all(t is not None for t in times):
+        print("Time waiting for every frame that is missing", timesssssssss[0] * 1000, "ms")
+        print("Time waiting to build each HDR", timesssssssss[1] * 1000, "ms")
+        print("Time waiting to build last HDR", timesssssssss[2] * 1000, "ms")
 
-    print("Time to wait for HDR:", (t1 - t0) * 1000, "ms")
+        print("Time to wait for HDR:", (times[1] - times[0]) * 1000, "ms")
 
-    print("Time between HDR done and MinDepthAPI:", (t2 - t1) * 1000, "ms")
-    
-    print("Time for MinDepthAPI:", (t3 - t2) * 1000, "ms")
-    
-    print("Time between MinDepthAPI and objIdentifier:", (t4 - t3) * 1000, "ms")
-    
-    print("Time for objIdentifier:", (t5 - t4) * 1000, "ms")
-    
-    print("Time between objIdentifier and volumeMultiBundleAPI:", (t6 - t5) * 1000, "ms")
-    
-    print("Time for volumeMultiBundleAPI:", (t7 - t6) * 1000, "ms")
+        print("Time between HDR done and MinDepthAPI:", (times[2] - times[1]) * 1000, "ms")
+        
+        print("Time for MinDepthAPI:", (times[3] - times[2]) * 1000, "ms")
+        
+        print("Time between MinDepthAPI and objIdentifier:", (times[4] - times[3]) * 1000, "ms")
+        
+        print("Time for objIdentifier:", (times[5] - times[4]) * 1000, "ms")
+        
+        print("Time between objIdentifier and volumeMultiBundleAPI:", (times[6] - times[5]) * 1000, "ms")
+        
+        print("Time for volumeMultiBundleAPI:", (times[7] - times[6]) * 1000, "ms")
 
     volumeState.processing = ""
 
@@ -1398,11 +1300,22 @@ def volume_Real(current_user: dict = Depends(get_current_user)):
         depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine = objIdentifier(colorFrame, colorToDepthFrame, depthFrame, frameState.calibrationColorFrame, frameState.calibrationDepthFrame, modeState.volumeMode, depthState.objects_info, workspaceState.workspace_depth, depthState.threshold, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb, camState.fx_d, camState.fy_d, camState.fx_rgb, camState.fy_rgb)
         t2 = time.perf_counter()
         print("objIdentifier:", (t2 - t0) * 1000, "ms")
-        if volumeState.box_limits is not None and len(volumeState.box_limits) > 0:
-            volumeState.processing = "Calculating Volumes..."
-            volumeState.volume, volumeState.width_meters, volumeState.length_meters, volumeState.height_meters, volumeState.obj_center, volumeState.obj_angles, volumeState.objOverlappedHeights, volumeState.objContours = volumeRealAPI(depthFrame, frameState.calibrationDepthFrame, workspaceState.workspace_depth, volumeState.box_limits, volumeState.depths, camState.fx_d, camState.fy_d, camState.cx_d, camState.cy_d)
-            t3 = time.perf_counter()
-            print("volumeRealAPI:", (t3 - t2) * 1000, "ms")
+        if volumeState.depths:
+            if volumeState.box_limits is not None and len(volumeState.box_limits) > 0:
+                volumeState.processing = "Calculating Volumes..."
+                volumeState.volume, volumeState.width_meters, volumeState.length_meters, volumeState.height_meters, volumeState.obj_center, volumeState.obj_angles, volumeState.objOverlappedHeights, volumeState.objContours = volumeRealAPI(depthFrame, frameState.calibrationDepthFrame, workspaceState.workspace_depth, volumeState.box_limits, volumeState.depths, camState.fx_d, camState.fy_d, camState.cx_d, camState.cy_d)
+                t3 = time.perf_counter()
+                print("volumeRealAPI:", (t3 - t2) * 1000, "ms")
+            else:
+                volumeState.volume = 0
+                volumeState.width_meters = 0
+                volumeState.length_meters = 0
+                volumeState.height_meters = 0
+                volumeState.obj_center = 0
+                volumeState.obj_angles = 0
+                volumeState.objOverlappedHeights = 0
+                volumeState.objContours = 0
+                depthState.minimum_depth = workspaceState.workspace_depth
         else:
             volumeState.volume = 0
             volumeState.width_meters = 0
@@ -1539,11 +1452,18 @@ def volume_Individual(current_user: dict = Depends(get_current_user)):
         depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine = objIdentifier(colorFrame, colorToDepthFrame, depthFrame, frameState.calibrationColorFrame, frameState.calibrationDepthFrame, modeState.volumeMode, depthState.objects_info, workspaceState.workspace_depth, depthState.threshold, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb, camState.fx_d, camState.fy_d, camState.fx_rgb, camState.fy_rgb)
         t2 = time.perf_counter()
         print("objIdentifier:", (t2 - t0) * 1000, "ms")
-        if volumeState.box_limits is not None and len(volumeState.box_limits) > 0:
-            volumeState.processing = "Calculating Volumes..."
-            volumeState.volume, volumeState.width_meters, volumeState.length_meters, volumeState.height_meters = volumeIndividualAPI(depthFrame, frameState.calibrationDepthFrame, workspaceState.workspace_depth, volumeState.box_limits, volumeState.depths, camState.fx_d, camState.fy_d, camState.cx_d, camState.cy_d)
-            t3 = time.perf_counter()
-            print("volumeIndividualAPI:", (t3 - t2) * 1000, "ms")
+        if volumeState.depths:
+            if volumeState.box_limits is not None and len(volumeState.box_limits) > 0:
+                volumeState.processing = "Calculating Volumes..."
+                volumeState.volume, volumeState.width_meters, volumeState.length_meters, volumeState.height_meters = volumeIndividualAPI(depthFrame, frameState.calibrationDepthFrame, workspaceState.workspace_depth, volumeState.box_limits, volumeState.depths, camState.fx_d, camState.fy_d, camState.cx_d, camState.cy_d)
+                t3 = time.perf_counter()
+                print("volumeIndividualAPI:", (t3 - t2) * 1000, "ms")
+            else:
+                volumeState.volume = 0
+                volumeState.width_meters = 0
+                volumeState.length_meters = 0
+                volumeState.height_meters = 0
+                depthState.minimum_depth = workspaceState.workspace_depth
         else:
             volumeState.volume = 0
             volumeState.width_meters = 0
@@ -1725,7 +1645,7 @@ def get_configuration_status(current_user: dict = Depends(get_current_user)):
         if "expositionMode" not in data or "volumeMode" not in data:
             return {"configured": False}
 
-        return {"configured": True, "expositionMode": data["expositionMode"], "volumeMode": data["volumeMode"]}
+        return {"configured": True, "expositionMode": data["expositionMode"], "volumeMode": data["volumeMode"], "calibrationMode": data["calibrationMode"], "speedMode": data["speedMode"]}
 
     except:
         return {"configured": False}

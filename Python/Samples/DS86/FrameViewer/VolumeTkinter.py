@@ -430,9 +430,10 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
             pts_flat_h = allObjPtsM[i].reshape(-1, 2)
             mask_h = numpy.zeros(calibrationDepthFrame_copy.shape, dtype=numpy.uint8)
             cv2.fillPoly(mask_h, [pts_flat_h.astype(numpy.int32)], 255)
-            ws_vals_h = calibrationDepthFrame_copy[mask_h == 255].astype(numpy.float32)
-            ws_vals_h = ws_vals_h[(ws_vals_h >= 150) & (ws_vals_h <= workspace_depth + 15)]
-            ws_d_h = float(numpy.median(ws_vals_h)) if ws_vals_h.size > 0 else float(workspace_depth)
+            #ws_vals_h = calibrationDepthFrame_copy[mask_h == 255].astype(numpy.float32)
+            #ws_vals_h = ws_vals_h[(ws_vals_h >= 150) & (ws_vals_h <= workspace_depth + 15)]
+            #ws_d_h = float(numpy.median(ws_vals_h)) if ws_vals_h.size > 0 else float(workspace_depth)
+            ws_d_h = float(workspace_depth)
             height_meters = (ws_d_h - depths[i]) / 1000
 
             #print(i)

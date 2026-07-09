@@ -69,6 +69,7 @@ function App() {
 
   const [ExpHDR_toggle, setExpHDR] = useState(true);
   const [volumeMode, setVolumeMode] = useState("multi_bundle");
+  const [speedMode, setSpeedMode] = useState("intermedium");
   const [StaticDynamic_toggle, setStaticDynamic] = useState(false);
   const [DebugMode_toggle, setDebugMode] = useState(false);
 
@@ -101,6 +102,7 @@ function App() {
   const cameraVideo = useRef(null);
   const cropVideo = useRef(null);
   const cropCanvas = useRef(null);
+  const workspaceCanvas = useRef(null);
 
   const calibrationImage = useRef(null);
 
@@ -137,40 +139,7 @@ function App() {
   const [videoCrop, setVideoCrop] = useState(null);
   const [cropTransform, setCropTransform] = useState(null);
 
-  useEffect(() => {
-    if (!showCamera) return;
-
-    if (cameraVideo.current && pc.current?.getReceivers) {
-      const receivers = pc.current.getReceivers();
-      const stream = new MediaStream();
-
-      receivers.forEach(r => {
-        if (r.track) stream.addTrack(r.track);
-      });
-
-      cameraVideo.current.srcObject = stream;
-    }
-  }, [showCamera]);
-
-  useEffect(() => {
-    if (!showCropWindow)
-        return;
-
-    if(cropVideo.current && cameraStream.current){
-        cropVideo.current.srcObject = cameraStream.current;
-        cropVideo.current.play();
-    }
-  }, [showCropWindow]);
-
-  useEffect(() => {
-    console.log(API_URL);
-    const user = JSON.parse(localStorage.getItem("current_user"));
-
-    if (!user) return;
-
-    setSavedUser(user);
-    restoreSession();
-  }, []);
+  // ---------------  Wait For Server to be Alive  ---------------
 
   async function waitForServer(maxAttempts = 20, delay = 1000) {
     for (let i = 0; i < maxAttempts; i++) {
@@ -190,6 +159,21 @@ function App() {
     return false;
   }
 
+  // -------------------------------------------------------------
+  // --------------------  Restore Session  ----------------------
+
+  // Restore Session
+  useEffect(() => {
+    console.log(API_URL);
+    const user = JSON.parse(localStorage.getItem("current_user"));
+
+    if (!user) return;
+
+    setSavedUser(user);
+    restoreSession();
+  }, []);
+
+  // Restore Session Algorithm
   async function restoreSession() {
     const serverReady = await waitForServer();
 
@@ -250,8 +234,6 @@ function App() {
           setExpHDR(false);
         }
 
-        console.log("volumeMode:", config_data.volumeMode);
-
         if (config_data.volumeMode === "Single Bundle") {
           setVolumeMode("single_bundle");
           setVolBundleMode(true);
@@ -266,6 +248,20 @@ function App() {
           setVolBundleMode(false);
         }
 
+        if (config_data.calibrationMode === "Automatic"){
+          setCalibrationMode("auto");
+        } else if (config_data.calibrationMode === "Manual"){
+          setCalibrationMode("manual")
+        }
+
+        if (config_data.speedMode === "Slow"){
+          setSpeedMode("slow")
+        } else if (config_data.speedMode === "Intermedium"){
+          setSpeedMode("intermedium")
+        } else if (config_data.speedMode === "Fast"){
+          setSpeedMode("fast")
+        }
+
       }
 
       setMenuSideNavOpen(true);
@@ -275,6 +271,10 @@ function App() {
     }
   }
 
+  // -------------------------------------------------------------
+  // ----------------------  Login Screen  -----------------------
+
+  // Login Screen
   function showLoginScreen() {
       setCurrentMenu("login-menu");
 
@@ -285,7 +285,8 @@ function App() {
       setRegCode("");
       setMenuSideNavOpen("false");
   }
-
+  
+  // Login Algorithm
   async function login() {
     if (!username || !password) {
       setError([TextFillAllFields]);
@@ -332,6 +333,7 @@ function App() {
     }
   }
 
+  // Check Calibration
   async function checkCalibration() {
     refreshAccessToken();
     const access_token = localStorage.getItem("access_token");
@@ -356,6 +358,36 @@ function App() {
         b: data.colorRGB[2]
       });
     }
+  }
+
+  // Logout
+  function logout() {
+    if (tokenCheckInterval.current) {
+        clearInterval(tokenCheckInterval.current);
+        tokenCheckInterval.current = null;
+    }
+
+    if (cameraLoopInterval.current) {
+      clearInterval(cameraLoopInterval.current);
+      cameraLoopInterval.current = null;
+    }
+
+    localStorage.removeItem("current_user");
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
+
+    setUsername("");
+    setPassword("");
+    setCurrentMenu("login-menu");
+    setSavedUser(null);
+
+    setMenuSideNavOpen(false)
+    setShowUserPopup(false)
+
+    setObjectList([]);
+    setSelectedObject("");
+    setVolInfo(null);
+    setVolumeData(null);
   }
 
   function showRegisterScreen() {
@@ -396,36 +428,10 @@ function App() {
       showLoginScreen();
   }
 
-  function logout() {
-    if (tokenCheckInterval.current) {
-        clearInterval(tokenCheckInterval.current);
-        tokenCheckInterval.current = null;
-    }
+  // -------------------------------------------------------------
+  // ----------------------  Menu Changes  -----------------------
 
-    if (cameraLoopInterval.current) {
-      clearInterval(cameraLoopInterval.current);
-      cameraLoopInterval.current = null;
-    }
-
-    localStorage.removeItem("current_user");
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
-
-    setUsername("");
-    setPassword("");
-    setCurrentMenu("login-menu");
-    setSavedUser(null);
-
-    setMenuSideNavOpen(false)
-    setShowUserPopup(false)
-
-    setObjectList([]);
-    setSelectedObject("");
-    setVolInfo(null);
-    setVolumeData(null);
-  }
-
-  // Change Menu Functions
+  // Aplies Change Effects
   useEffect(() => {
     if (currentMenu === "login-menu") {
       setError([TextLoginWelcome, TextLoginCredentials]);
@@ -459,6 +465,36 @@ function App() {
     };
   }, [currentMenu]);
 
+  // Updates Current Menu on Backend
+  useEffect(() => {
+    async function updateMenu() {
+      const access_token = localStorage.getItem("access_token");
+
+      if (currentMenu === "config-menu"){
+        await fetch(`${API_URL}/currentMenu`, {
+            method: "POST",
+            headers: {"Content-Type": "application/json", "Authorization": `Bearer ${access_token}`},
+            body: JSON.stringify({currentMenu: lastMenu})
+        });
+      } else {
+        await fetch(`${API_URL}/currentMenu`, {
+            method: "POST",
+            headers: {"Content-Type": "application/json", "Authorization": `Bearer ${access_token}`},
+            body: JSON.stringify({currentMenu: currentMenu})
+        });
+      } 
+      setLastMenu(currentMenu);
+    }
+
+    updateMenu();
+    
+  }, [currentMenu]);
+
+
+  // -------------------------------------------------------------
+  // ------------------  Volume Menu Functions  ------------------
+
+  // Start Calculating Volume
   async function volume_click(){
       try{
         const start = performance.now();
@@ -512,6 +548,7 @@ function App() {
       }
   }
 
+  // Single Bundle Volume Algorithm
   async function volumeSingleBundle(access_token) {
     try {
       await fetch(`${API_URL}/volume/singleBundle`, { method: 'POST', headers: { "Authorization": `Bearer ${access_token}` } });
@@ -554,27 +591,7 @@ function App() {
     }
   }
 
-  // Show Volume Depending of the selected object
-  useEffect(() => {
-    if (!selectedObject || !multipleVolumeData) return;
-
-    const objData = multipleVolumeData[selectedObject];
-    if (!objData) return;
-
-    setVolInfo({
-      volume_m: objData.volume_m,
-      volume_cm: objData.volume_cm,
-      width: objData.x,
-      length: objData.y,
-      height: objData.z
-    });
-
-    setObjCenters(objData.obj_center ?? []);
-    setObjAngles(objData.obj_angles ?? []);
-    setOverlappedObjHeights(objData.obj_overlappedHeights ?? []);
-    setObjContours(objData.obj_contours ?? []);
-  }, [selectedObject, multipleVolumeData]);
-
+  // Multi-Bundle Volume Algorithm
   async function volumeMultiBundle(access_token) {
     try {
       await fetch(`${API_URL}/volume/multiBundle`, { method: 'POST', headers: { "Authorization": `Bearer ${access_token}` } });
@@ -632,6 +649,7 @@ function App() {
     }
   }
 
+  // Real Volume Algorithm
   async function volumeReal(access_token) {
     try {
       await fetch(`${API_URL}/volume/real`, { method: 'POST', headers: { "Authorization": `Bearer ${access_token}` } });
@@ -694,6 +712,7 @@ function App() {
     }
   }
 
+  // Individual Volume Algorithm
   async function volumeIndividual(access_token) {
     try {
       await fetch(`${API_URL}/volume/individual`, { method: 'POST', headers: { "Authorization": `Bearer ${access_token}` } });
@@ -751,7 +770,28 @@ function App() {
     }
   }
 
-  // 3D Box
+  // Show Volume Info Depending of the selected object
+  useEffect(() => {
+    if (!selectedObject || !multipleVolumeData) return;
+
+    const objData = multipleVolumeData[selectedObject];
+    if (!objData) return;
+
+    setVolInfo({
+      volume_m: objData.volume_m,
+      volume_cm: objData.volume_cm,
+      width: objData.x,
+      length: objData.y,
+      height: objData.z
+    });
+
+    setObjCenters(objData.obj_center ?? []);
+    setObjAngles(objData.obj_angles ?? []);
+    setOverlappedObjHeights(objData.obj_overlappedHeights ?? []);
+    setObjContours(objData.obj_contours ?? []);
+  }, [selectedObject, multipleVolumeData]);
+
+  // Drawing the Boxes
   useEffect(() => {
     if (currentMenu !== "volume-menu") return;
 
@@ -1070,6 +1110,557 @@ function App() {
     };
   }, [volInfo, currentMenu]);
 
+  // -------------------------------------------------------------
+  // ----------------  Calibration Menu Options  -----------------
+
+  // Workspace Drawing Loop
+  useEffect(() => {
+    if(currentMenu !== "calibration-menu") return;
+
+    let active = true;
+
+    const loop = async () => {
+      if (!active) return;
+
+      workspaceDrawing();
+
+      if (active) {
+        setTimeout(loop, 200);
+      }
+    };
+    
+    loop();
+    
+    return () => {
+      active = false;
+    };
+  }, [currentMenu]);
+
+  // Workspace Drawing Algorithm
+  async function workspaceDrawing(){
+    try{
+      const access_token = localStorage.getItem("access_token");
+      const r = await fetch(`${API_URL}/calibrate/mode`, {headers: { "Authorization": `Bearer ${access_token}`}});
+      const calibData = await r.json();
+      if (calibData["Calibrate Mode"] === "Automatic") {
+        if (currentMenu !== "calibration-menu") return;
+        applyMask(access_token);
+      } else if (calibData["Calibrate Mode"] === "Manual") {
+        applyManualWorkspace();
+      }
+    } catch (err) { console.warn("Erro drawing Workspace:", err); }
+  }
+
+  async function applyMask(access_token) {
+    try {
+      const r = await fetch(`${API_URL}/mask`, {headers: { "Authorization": `Bearer ${access_token}`}});
+      const maskValues = await r.json();
+      await fetch(`${API_URL}/applyMask`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', "Authorization": `Bearer ${access_token}` },
+          body: JSON.stringify(maskValues)
+      });
+    } catch (err) { console.warn("Erro applyMask:", err); }
+  }
+
+  function applyManualWorkspace() {
+    const canvas = workspaceCanvas.current;
+    const img = calibrationImage.current;
+
+    if (!canvas || !img) return;
+
+    const ctx = canvas.getContext("2d");
+
+    canvas.width = img.naturalWidth;
+    canvas.height = img.naturalHeight;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const points = detectionArea.current;
+
+    if (!points || points.length === 0) return;
+
+    // Desenhar o polígono
+    ctx.beginPath();
+
+    points.forEach((point, index) => {
+      if (index === 0)
+        ctx.moveTo(point[0], point[1]);
+      else
+        ctx.lineTo(point[0], point[1]);
+    });
+
+    ctx.closePath();
+
+    ctx.strokeStyle = "blue";
+    ctx.lineWidth = 4;
+    ctx.stroke();
+
+    // Desenhar os vértices
+    points.forEach((point, index) => {
+
+      const radius =
+        selectedPoint.current === index
+          ? 12
+          : 10;
+
+      // Borda preta
+      ctx.beginPath();
+      ctx.arc(point[0], point[1], radius, 0, Math.PI * 2);
+      ctx.fillStyle = "black";
+      ctx.fill();
+
+      // Interior
+      ctx.beginPath();
+      ctx.arc(point[0], point[1], radius - 2, 0, Math.PI * 2);
+      ctx.fillStyle =
+        selectedPoint.current === index
+          ? "yellow"
+          : "white";
+      ctx.fill();
+
+      // Buraco no centro (igual ao crop)
+      ctx.globalCompositeOperation = "destination-out";
+
+      ctx.beginPath();
+      ctx.arc(point[0], point[1], radius - 6, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.globalCompositeOperation = "source-over";
+    });
+  }
+
+  useEffect(() => {
+    if (currentMenu !== "calibration-menu") return;
+    if (calibrationMode !== "manual") return;
+
+    const canvas = workspaceCanvas.current;
+    const img = calibrationImage.current;
+
+    if (!canvas || !img) return;
+
+    const ctx = canvas.getContext("2d");
+
+    function resizeCanvas() {
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+
+      canvas.style.width = img.clientWidth + "px";
+      canvas.style.height = img.clientHeight + "px";
+
+      drawWorkspace();
+    }
+
+    function drawWorkspace() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const points = detectionArea.current;
+
+      if (!points || points.length === 0) return;
+
+      // Polígono
+      ctx.beginPath();
+
+      points.forEach((point, index) => {
+        if (index === 0)
+          ctx.moveTo(point[0], point[1]);
+        else
+          ctx.lineTo(point[0], point[1]);
+      });
+
+      ctx.closePath();
+
+      ctx.strokeStyle = "blue";
+      ctx.lineWidth = 5;
+      ctx.stroke();
+
+      // Pontos
+      points.forEach((point, index) => {
+
+        const radius =
+          selectedPoint.current === index
+            ? 12
+            : 10;
+
+        // Borda preta
+        ctx.beginPath();
+        ctx.arc(point[0], point[1], radius, 0, Math.PI * 2);
+        ctx.fillStyle = "black";
+        ctx.fill();
+
+        // Interior
+        ctx.beginPath();
+        ctx.arc(point[0], point[1], radius - 2, 0, Math.PI * 2);
+        ctx.fillStyle =
+          selectedPoint.current === index
+            ? "yellow"
+            : "white";
+        ctx.fill();
+
+        // Centro transparente
+        ctx.globalCompositeOperation = "destination-out";
+
+        ctx.beginPath();
+        ctx.arc(point[0], point[1], radius - 6, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.globalCompositeOperation = "source-over";
+      });
+    }
+
+    function getMousePos(event) {
+      const rect = canvas.getBoundingClientRect();
+
+      return {
+        x: (event.clientX - rect.left) * canvas.width / rect.width,
+        y: (event.clientY - rect.top) * canvas.height / rect.height
+      };
+    }
+
+    function mouseDown(event) {
+      const { x, y } = getMousePos(event);
+
+      let minDist = Infinity;
+      let closest = null;
+
+      detectionArea.current.forEach((point, index) => {
+        const dist = Math.hypot(
+          point[0] - x,
+          point[1] - y
+        );
+
+        if (dist < minDist) {
+          minDist = dist;
+          closest = index;
+        }
+      });
+
+      if (minDist <= 15) {
+        selectedPoint.current = closest;
+        dragging.current = true;
+      } else {
+        selectedPoint.current = null;
+        dragging.current = false;
+      }
+
+      drawWorkspace();
+    }
+
+    function mouseMove(event) {
+      if (!dragging.current) return;
+      if (selectedPoint.current === null) return;
+
+      const { x, y } = getMousePos(event);
+
+      detectionArea.current[selectedPoint.current] = [x, y];
+
+      drawWorkspace();
+    }
+
+    function mouseUp() {
+      dragging.current = false;
+      selectedPoint.current = null;
+
+      drawWorkspace();
+    }
+
+    img.addEventListener("load", resizeCanvas);
+
+    canvas.addEventListener("mousedown", mouseDown);
+    canvas.addEventListener("mousemove", mouseMove);
+
+    window.addEventListener("mouseup", mouseUp);
+
+    resizeCanvas();
+
+    return () => {
+      img.removeEventListener("load", resizeCanvas);
+
+      canvas.removeEventListener("mousedown", mouseDown);
+      canvas.removeEventListener("mousemove", mouseMove);
+
+      window.removeEventListener("mouseup", mouseUp);
+    };
+
+  }, [currentMenu, calibrationMode]);
+
+  // Screen Click
+  useEffect(() => {
+    if (currentMenu !== "calibration-menu") return;
+
+    const img = calibrationImage.current;
+    if (!img) return;
+
+    const handleClick = async (event) => {
+      try {
+        const access_token = localStorage.getItem("access_token");
+
+        const calibRes = await fetch(
+          `${API_URL}/calibrate/mode`,
+          { headers: { "Authorization": `Bearer ${access_token}` } }
+        );
+
+        const calibData = await calibRes.json();
+
+        const rect = img.getBoundingClientRect();
+        const x = Math.round((event.clientX - rect.left) * (img.naturalWidth / rect.width));
+        const y = Math.round((event.clientY - rect.top) * (img.naturalHeight / rect.height));
+
+        if (calibData["Calibrate Mode"] === "Automatic") {
+
+          await fetch(
+            `${API_URL}/mask/colorClick`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${access_token}`
+              },
+              body: JSON.stringify({ x, y })
+            }
+          );
+
+          const canvas = document.createElement("canvas");
+          const ctx = canvas.getContext("2d");
+
+          canvas.width = img.naturalWidth;
+          canvas.height = img.naturalHeight;
+          ctx.drawImage(img, 0, 0);
+
+          const pixel = ctx.getImageData(x, y, 1, 1).data;
+          const r_color = pixel[0];
+          const g_color = pixel[1];
+          const b_color = pixel[2];
+
+          setRgb({
+            r: r_color,
+            g: g_color,
+            b: b_color
+          });
+
+          await new Promise(r => setTimeout(r, 500));
+
+          handleCalibrationModeChange(true);
+
+        } 
+      } catch (err) {
+        console.warn("Erro colorClick:", err);
+      }
+    };
+
+    img.addEventListener("click", handleClick);
+
+    return () => {
+      img.removeEventListener("click", handleClick);
+    };
+
+  }, [currentMenu]);
+
+  // Gets the current detectionArea
+  useEffect(() => {
+    if (currentMenu !== "calibration-menu") return;
+
+    const loadWorkspace = async () => {
+        const access_token = localStorage.getItem("access_token");
+        const r = await fetch(
+            `${API_URL}/calibrate/mode`,
+            {headers:{ Authorization:`Bearer ${access_token}`}}
+        );
+
+        const calibData = await r.json();
+
+        if (calibData["Calibrate Mode"] === "Manual") {
+
+            const r = await fetch(
+                `${API_URL}/calibrate/params`,
+                {headers:{ Authorization:`Bearer ${access_token}`}}
+            );
+
+            detectionArea.current =(await r.json())["Detected Area"];
+            workspaceDrawing();
+        }
+    };
+
+    loadWorkspace();
+
+  }, [currentMenu, calibrationMode]);
+
+  // Key Press for Manual Workspace Adjustment
+  useEffect(() => {
+    if (currentMenu !== "calibration-menu") return;
+
+    const access_token = localStorage.getItem("access_token");
+
+    let active = true;
+
+    const init = async () => {
+      if (!active) return;
+
+      console.log("detectionAreaKey:", detectionArea.current);
+      console.log("selectedPointKey:", selectedPoint.current);
+      console.log("pointKey:", detectionArea.current[selectedPoint.current]);
+
+      const handleKeyDown = async (event) => {
+        try{
+          const r_mode = await fetch(`${API_URL}/calibrate/mode`, {headers: { "Authorization": `Bearer ${access_token}`}});
+          const calibData = await r_mode.json();
+
+          if (calibData["Calibrate Mode"] !== "Manual") return;
+
+          if (selectedPoint.current === null) return;
+
+          //const r = await fetch(`${API_URL}/calibrate/params`, {headers: { "Authorization": `Bearer ${access_token}`}});
+          //let data = await r.json();
+          //let detection_area = data["Detected Area"]; // [x1, y1, x2, y2]
+
+          const img = calibrationImage.current;
+          const maxX = img.naturalWidth;
+          const maxY = img.naturalHeight;
+
+          let point = detectionArea.current[selectedPoint.current];
+          if (event.key === "ArrowLeft") {
+            point[0] = Math.max(0, point[0] - step);
+
+          } else if (event.key === "ArrowRight") {
+            point[0] = Math.min(maxX, point[0] + step);
+
+          } else if (event.key === "ArrowUp") {
+            point[1] = Math.max(0, point[1] - step);
+
+          } else if (event.key === "ArrowDown") {
+            point[1] = Math.min(maxY, point[1] + step);
+
+          }
+
+          detectionArea.current[selectedPoint.current] = point;
+          console.log("detectionAreaKey:", detectionArea.current);
+          console.log("selectedPointKey:", selectedPoint.current);
+          console.log("pointKey:", detectionArea.current[selectedPoint.current]);
+        } catch (error) {
+          console.warn("Erro key_pressed:", error);
+        }
+     };
+
+      document.addEventListener("keydown", handleKeyDown);
+
+      return () => {
+        document.removeEventListener("keydown", handleKeyDown);
+      };
+    };
+
+    let cleanup;
+
+    init().then((fn) => {
+      cleanup = fn;
+    });
+
+    return () => {
+      active = false;
+      if (cleanup) cleanup();
+    };
+    
+  }, [currentMenu, selectedPoint]);
+
+  // Calibrate Click Algorithm
+  async function calibrate_click() {
+    try {
+      setLoadingCalibration(true);
+      setError([TextClear]);
+      refreshAccessToken();
+      const access_token = localStorage.getItem("access_token");
+
+      await fetch(`${API_URL}/applyManualWorkspace`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', "Authorization": `Bearer ${access_token}` },
+          body: JSON.stringify({ detection_area: detectionArea.current})
+      });
+
+      const maskResponse = await fetch(`${API_URL}/mask`, {headers: { "Authorization": `Bearer ${access_token}`}});
+      if (!maskResponse.ok) throw new Error("Mask request failed");
+      const maskValues = await maskResponse.json();
+
+      const calibrateResponse = await fetch(`${API_URL}/calibrate`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json", "Authorization": `Bearer ${access_token}`
+        },
+        body: JSON.stringify(maskValues)
+      });
+
+      if (!calibrateResponse.ok) throw new Error("Calibrate request failed");
+
+      const flagsResponse = await fetch(`${API_URL}/calibrate/flags`, { headers: { "Authorization": `Bearer ${access_token}` } });
+      if (!flagsResponse.ok) throw new Error("Flags request failed");
+
+      const data = await flagsResponse.json();
+
+      const center_aligned = data["Center Aligned"];
+      const ws_clear = data["Workspace Clear"];
+
+      if (center_aligned && ws_clear) {
+        setError([TextCalibrated, TextClear]);
+        setCalibrationModalOpen(true);
+      }
+      else if (center_aligned && !ws_clear) {
+        setError([TextNotCalibrated, TextWsNotEmpty]);
+      }
+      else if (!center_aligned && ws_clear) {
+        setError([TextNotCalibrated, TextCenterNotAligned]);
+      }
+      else {
+        setError([TextNotCalibrated, TextWsNotEmptyAndCenterNotAligned]);
+      }
+
+      /*const r = await fetch(`${API_URL}/calibrate/mode`, {headers: { "Authorization": `Bearer ${access_token}`}});
+      let calibData = await r.json();
+      if (calibData["Calibrate Mode"] === "Manual") {
+        await fetch(`${API_URL}/calibrate/mode/automatic`, { method: "POST", headers: { "Authorization": `Bearer ${access_token}` }});
+      }*/
+
+      selectedPoint.current = null;
+
+    } catch (error) {
+      setError([TextError]);
+      console.error(error);
+    } finally {
+      setLoadingCalibration(false);
+    }
+  }
+ 
+  // Confirm Calibration Algorithm
+  async function confirm_calibration(confirm) {
+    try {
+      setCalibrationModalOpen(false);
+      setError([TextClear]);
+      refreshAccessToken();
+      const access_token = localStorage.getItem("access_token");
+
+      if(confirm){
+        const calibrateResponse = await fetch(`${API_URL}/saveCalibration`, {
+          method: "POST",
+          headers: {
+              "Content-Type": "application/json", "Authorization": `Bearer ${access_token}`
+          }
+        });
+
+        if (!calibrateResponse.ok) throw new Error("Save calibration request failed");
+        setLockMenu(false);
+        setCurrentMenu("volume-menu");
+        setError([TextCalibrated, TextClear]);
+      }else{
+        setError([TextNotCalibrated, TextClear]);
+      }
+
+    } catch (error) {
+      setError([TextError]);
+      console.error(error);
+    }
+  }
+
+  // -------------------------------------------------------------
+  // ------------------  Settings Menu Options  ------------------
+
+  // Change Exposure Mode (Fixed Exposition / HDR)
   async function handleExpHDR_toggle(e) {
     const checked = e.target.value === "true";
     setExpHDR(checked);
@@ -1086,6 +1677,7 @@ function App() {
     await fetch(`${API_URL}/saveInfo`, {method: "POST", headers: { "Authorization": `Bearer ${access_token}` } });
   }
 
+  // Change Volume Mode (Single Bundle / Multi Bundle / Real / Individual)
   async function handleVolumeMode(e) {
     const mode = e.target.value;
     setVolumeMode(mode);
@@ -1121,6 +1713,44 @@ function App() {
     await fetch(`${API_URL}/saveInfo`, {method: "POST", headers: { "Authorization": `Bearer ${access_token}` } });
   }
 
+  // Change Calibration Mode (Automatic / Manual)
+  async function handleCalibrationModeChange(Manual){
+      refreshAccessToken();
+      const access_token = localStorage.getItem("access_token");
+      
+      if (Manual){
+        setCalibrationMode("manual");
+        await fetch(`${API_URL}/calibrate/mode/manual`, { method: "POST", headers: { "Authorization": `Bearer ${access_token}` }});
+      } else {
+        setCalibrationMode("auto");
+        await fetch(`${API_URL}/calibrate/mode/automatic`, { method: "POST", headers: { "Authorization": `Bearer ${access_token}` }});
+      }
+  }
+
+  // Change Volume Mode (Single Bundle / Multi Bundle / Real / Individual)
+  async function handleSpeedMode(e) {
+    const mode = e.target.value;
+    setSpeedMode(mode)
+
+    refreshAccessToken();
+    const access_token = localStorage.getItem("access_token");
+
+    switch (mode) {
+      case "slow":
+          await fetch(`${API_URL}/speed/mode/slow`, { method: "POST", headers: { "Authorization": `Bearer ${access_token}`} });
+          break;
+      case "intermedium":
+          await fetch(`${API_URL}/speed/mode/intermedium`, { method: "POST", headers: { "Authorization": `Bearer ${access_token}`} });
+          break;
+      case "fast":
+          await fetch(`${API_URL}/speed/mode/fast`, { method: "POST", headers: { "Authorization": `Bearer ${access_token}`} });
+          break;
+    }
+
+    await fetch(`${API_URL}/saveInfo`, {method: "POST", headers: { "Authorization": `Bearer ${access_token}` } });
+  }
+
+  // Change Working Mode (Static / Dynamic)
   async function handleStaticDynamic_toggle(e) {
     const checked = e.target.checked;
     setStaticDynamic(checked);
@@ -1135,6 +1765,7 @@ function App() {
     }
   }
 
+  // Change Debug Mode (On / Off)
   async function handleDebugMode_toggle(e) {
     const checked = e.target.checked;
     setDebugMode(checked);
@@ -1149,6 +1780,7 @@ function App() {
     }
   }
 
+  // Change Exposure Time (Only Works for Fixed Exposition)
   async function exposureSet_click() {
     const value = Number(exposureTime);
     
@@ -1176,6 +1808,7 @@ function App() {
     }
   }
 
+  // Change Countdown Timer Time
   async function countdownTimerSet_click() {
     const value = Number(countdownTimer);
     
@@ -1209,6 +1842,7 @@ function App() {
     }
   }
 
+  // Change Color Slope
   async function colorSlopeSet_click() {
     const value = Number(colorSlope);
     if (!Number.isInteger(value)) {
@@ -1270,32 +1904,6 @@ function App() {
     }    
   }, [currentMenu]);
 
-  useEffect(() => {
-
-    async function updateMenu() {
-      const access_token = localStorage.getItem("access_token");
-
-      if (currentMenu === "config-menu"){
-        await fetch(`${API_URL}/currentMenu`, {
-            method: "POST",
-            headers: {"Content-Type": "application/json", "Authorization": `Bearer ${access_token}`},
-            body: JSON.stringify({currentMenu: lastMenu})
-        });
-      } else {
-        await fetch(`${API_URL}/currentMenu`, {
-            method: "POST",
-            headers: {"Content-Type": "application/json", "Authorization": `Bearer ${access_token}`},
-            body: JSON.stringify({currentMenu: currentMenu})
-        });
-      } 
-      setLastMenu(currentMenu);
-    }
-
-    updateMenu();
-    
-  }, [currentMenu]);
-
-
   async function refreshToggles() {
     try {
       const access_token = localStorage.getItem("access_token");
@@ -1330,69 +1938,20 @@ function App() {
       }
   }
 
-  async function applyMask(access_token) {
-    try {
-      const r = await fetch(`${API_URL}/mask`, {headers: { "Authorization": `Bearer ${access_token}`}});
-      const maskValues = await r.json();
-      await fetch(`${API_URL}/applyMask`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', "Authorization": `Bearer ${access_token}` },
-          body: JSON.stringify(maskValues)
-      });
-    } catch (err) { console.warn("Erro applyMask:", err); }
-  }
-
-  async function applyManualWSDraw(access_token) {
-    try {
-      if (selectedPoint.current === null) {
-          const r = await fetch(`${API_URL}/calibrate/params`, { headers: { "Authorization": `Bearer ${access_token}` } });
-          detectionArea.current = (await r.json())["Detected Area"];
-      }
-      await fetch(`${API_URL}/applyManualWorkspace`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', "Authorization": `Bearer ${access_token}` },
-          body: JSON.stringify({ detection_area: detectionArea.current, selected_point: selectedPoint.current })
-      });
-    } catch (err) { console.warn("Erro applyManualWSDraw:", err); }
-  }
-
-  // Workspace Drawing Loop
+  // -------------------------------------------------------------
+  // ----------------------  Crop Method  ------------------------
+  // Crop Window
   useEffect(() => {
-    if(currentMenu !== "calibration-menu") return;
+    if (!showCropWindow)
+        return;
 
-    let active = true;
+    if(cropVideo.current && cameraStream.current){
+        cropVideo.current.srcObject = cameraStream.current;
+        cropVideo.current.play();
+    }
+  }, [showCropWindow]);
 
-    const loop = async () => {
-      if (!active) return;
-
-      workspaceDrawing();
-
-      if (active) {
-        setTimeout(loop, 200);
-      }
-    };
-
-    loop();
-
-    return () => {
-      active = false;
-    };
-  }, [currentMenu]);
-
-  async function workspaceDrawing(){
-    try{
-      const access_token = localStorage.getItem("access_token");
-      const r = await fetch(`${API_URL}/calibrate/mode`, {headers: { "Authorization": `Bearer ${access_token}`}});
-      const calibData = await r.json();
-      if (calibData["Calibrate Mode"] === "Automatic") {
-        if (currentMenu !== "calibration-menu") return;
-        applyMask(access_token);
-      } else if (calibData["Calibrate Mode"] === "Manual") {
-        applyManualWSDraw(access_token);
-      }
-    } catch (err) { console.warn("Erro drawing Workspace:", err); }
-  }
-
+  // Crop Algorithm
   useEffect(() => {
     if (currentMenu !== "volume-menu") return;
 
@@ -1547,30 +2106,49 @@ function App() {
       const {x,y}=getMousePos(event);
 
       setCropArea(prev=>{
-        const c={...prev};
+        const c = {...prev};
 
         if(selectedCorner.current==="tl"){
-          c.width += c.x-x;
-          c.height += c.y-y;
-          c.x=x;
-          c.y=y;
+          c.x = x;
+          c.y = y;
+          c.width = prev.width + (prev.x - x);
+          c.height = prev.height + (prev.y - y);
         }
 
         if(selectedCorner.current==="tr"){
-          c.width=x-c.x;
-          c.height+=c.y-y;
-          c.y=y;
+          c.y = y;
+          c.width = x - prev.x;
+          c.height = prev.height + (prev.y - y);
         }
 
         if(selectedCorner.current==="bl"){
-          c.width+=c.x-x;
-          c.height=y-c.y;
-          c.x=x;
+          c.x = x;
+          c.width = prev.width + (prev.x - x);
+          c.height = y - prev.y;
         }
 
         if(selectedCorner.current==="br"){
-          c.width=x-c.x;
-          c.height=y-c.y;
+          c.width = x - prev.x;
+          c.height = y - prev.y;
+        }
+
+        if(c.width < 50){
+          c.width = 50;
+
+          if(selectedCorner.current === "tl" ||
+            selectedCorner.current === "bl"){
+            c.x = prev.x + prev.width - 50;
+          }
+        }
+
+
+        if(c.height < 50){
+          c.height = 50;
+
+          if(selectedCorner.current === "tl" ||
+            selectedCorner.current === "tr"){
+            c.y = prev.y + prev.height - 50;
+          }
         }
 
         console.log("cropArea:", c)
@@ -1626,555 +2204,21 @@ function App() {
 
   }, [currentMenu, showCropWindow, cropArea]);
 
-  // Screen Click
+  // Apply Crop Transformation
   useEffect(() => {
-    if (currentMenu !== "calibration-menu") return;
-
-    const img = calibrationImage.current;
-    if (!img) return;
-
-    const handleClick = async (event) => {
-      try {
-        const access_token = localStorage.getItem("access_token");
-
-        const calibRes = await fetch(
-          `${API_URL}/calibrate/mode`,
-          { headers: { "Authorization": `Bearer ${access_token}` } }
-        );
-
-        const calibData = await calibRes.json();
-
-        const rect = img.getBoundingClientRect();
-        const x = Math.round((event.clientX - rect.left) * (img.naturalWidth / rect.width));
-        const y = Math.round((event.clientY - rect.top) * (img.naturalHeight / rect.height));
-
-        if (calibData["Calibrate Mode"] === "Automatic") {
-
-          await fetch(
-            `${API_URL}/mask/colorClick`,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${access_token}`
-              },
-              body: JSON.stringify({ x, y })
-            }
-          );
-
-          const canvas = document.createElement("canvas");
-          const ctx = canvas.getContext("2d");
-
-          canvas.width = img.naturalWidth;
-          canvas.height = img.naturalHeight;
-          ctx.drawImage(img, 0, 0);
-
-          const pixel = ctx.getImageData(x, y, 1, 1).data;
-          const r_color = pixel[0];
-          const g_color = pixel[1];
-          const b_color = pixel[2];
-
-          setRgb({
-            r: r_color,
-            g: g_color,
-            b: b_color
-          });
-
-          await new Promise(r => setTimeout(r, 500));
-
-          handleCalibrationModeChange(true);
-
-        } else if (calibData["Calibrate Mode"] === "Manual") {
-
-          const r = await fetch(
-            `${API_URL}/calibrate/params`,
-            { headers: { "Authorization": `Bearer ${access_token}` } }
-          );
-
-          const response = await r.json();
-          const points = response["Detected Area"];
-
-          let minDist = Infinity;
-          let closestPoint = null;
-
-          points.forEach((point, index) => {
-            const dist = Math.sqrt(
-              (point[0] - x) ** 2 + (point[1] - y) ** 2
-            );
-
-            if (dist < minDist) {
-              minDist = dist;
-              closestPoint = index;
-            }
-          });
-
-          if (minDist <= 10) {
-            selectedPoint.current = closestPoint;
-            console.log("Selected point:", closestPoint);
-          } else {
-            selectedPoint.current = null;
-            console.log("None of the points were selected");
-          }
-        }
-
-      } catch (err) {
-        console.warn("Erro colorClick:", err);
-      }
-    };
-
-    img.addEventListener("click", handleClick);
-
-    return () => {
-      img.removeEventListener("click", handleClick);
-    };
-
-  }, [currentMenu]);
-
-  // Key Press for Manual Workspace Adjustment
-  useEffect(() => {
-    if (currentMenu !== "calibration-menu") return;
-
-    const access_token = localStorage.getItem("access_token");
-
-    let active = true;
-
-    const init = async () => {
-      if (!active) return;
-
-      console.log("detectionAreaKey:", detectionArea.current);
-      console.log("selectedPointKey:", selectedPoint.current);
-      console.log("pointKey:", detectionArea.current[selectedPoint.current]);
-
-      const handleKeyDown = async (event) => {
-        try{
-          const r_mode = await fetch(`${API_URL}/calibrate/mode`, {headers: { "Authorization": `Bearer ${access_token}`}});
-          const calibData = await r_mode.json();
-
-          if (calibData["Calibrate Mode"] !== "Manual") return;
-
-          if (selectedPoint.current === null) return;
-
-          //const r = await fetch(`${API_URL}/calibrate/params`, {headers: { "Authorization": `Bearer ${access_token}`}});
-          //let data = await r.json();
-          //let detection_area = data["Detected Area"]; // [x1, y1, x2, y2]
-
-          const img = calibrationImage.current;
-          const maxX = img.naturalWidth;
-          const maxY = img.naturalHeight;
-
-          let point = detectionArea.current[selectedPoint.current];
-          if (event.key === "ArrowLeft") {
-            point[0] = Math.max(0, point[0] - step);
-
-          } else if (event.key === "ArrowRight") {
-            point[0] = Math.min(maxX, point[0] + step);
-
-          } else if (event.key === "ArrowUp") {
-            point[1] = Math.max(0, point[1] - step);
-
-          } else if (event.key === "ArrowDown") {
-            point[1] = Math.min(maxY, point[1] + step);
-
-          }
-
-          detectionArea.current[selectedPoint.current] = point;
-          console.log("detectionAreaKey:", detectionArea.current);
-          console.log("selectedPointKey:", selectedPoint.current);
-          console.log("pointKey:", detectionArea.current[selectedPoint.current]);
-        } catch (error) {
-          console.warn("Erro key_pressed:", error);
-        }
-     };
-
-      document.addEventListener("keydown", handleKeyDown);
-
-      return () => {
-        document.removeEventListener("keydown", handleKeyDown);
-      };
-    };
-
-    let cleanup;
-
-    init().then((fn) => {
-      cleanup = fn;
-    });
-
-    return () => {
-      active = false;
-      if (cleanup) cleanup();
-    };
-    
-  }, [currentMenu, selectedPoint]);
-
-  useEffect(() => {
-    if (currentMenu !== "calibration-menu") return;
-
-    if (calibrationMode !== "manual") return;
-
-    const img = calibrationImage.current;
-    if (!img) return;
-
-    img.addEventListener("pointerdown", handleMouseDown);
-    img.addEventListener("pointermove", handleMouseMove);
-    window.addEventListener("pointerup", handleMouseUp);
-    window.addEventListener("pointercancel", handleMouseUp);
-
-    return () => {
-      img.removeEventListener("pointerdown", handleMouseDown);
-      img.removeEventListener("pointermove", handleMouseMove);
-      window.removeEventListener("pointerup", handleMouseUp);
-      window.removeEventListener("pointercancel", handleMouseUp);
-    };
-  }, [currentMenu, calibrationMode]);
-  
-  function getMousePos(event, img) {
-    const rect = img.getBoundingClientRect();
-
-    const clientX = event.clientX ?? event.touches?.[0]?.clientX;
-    const clientY = event.clientY ?? event.touches?.[0]?.clientY;
-
-    const x = Math.round(
-      (clientX - rect.left) * (img.naturalWidth / rect.width)
-    );
-
-    const y = Math.round(
-      (clientY - rect.top) * (img.naturalHeight / rect.height)
-    );
-
-    return { x, y };
-  }
-
-  const handleMouseDown = (event) => {
-    if (currentMenu !== "calibration-menu") return;
-
-    const img = calibrationImage.current;
-    if (!img) return;
-
-    img.setPointerCapture?.(event.pointerId);
-
-    const { x, y } = getMousePos(event, img);
-
-    const points = detectionArea.current;
-
-    let minDist = Infinity;
-    let closest = null;
-
-    points.forEach((p, i) => {
-      const dist = Math.hypot(p[0] - x, p[1] - y);
-      if (dist < minDist) {
-        minDist = dist;
-        closest = i;
-      }
-    });
-
-    if (minDist <= 10) {
-      isDragging.current = true;
-      dragIndex.current = closest;
-      selectedPoint.current = closest;
-    }
-  };
-
-  const handleMouseMove = (event) => {
-    if (!isDragging.current) return;
-    if (dragIndex.current === null) return;
-
-    const img = calibrationImage.current;
-    if (!img) return;
-
-    const { x, y } = getMousePos(event, img);
-
-    const points = detectionArea.current;
-
-    points[dragIndex.current] = [x, y];
-
-    detectionArea.current = [...points];
-  };
-
-  const handleMouseUp = () => {
-    isDragging.current = false;
-    dragIndex.current = null;
-  };
-
-  function startCalibration(){
-    calibrate_click();
-  }
-
-  async function handleCalibrationModeChange(Manual){
-      refreshAccessToken();
-      const access_token = localStorage.getItem("access_token");
-      
-      if (Manual){
-        setCalibrationMode("manual");
-        await fetch(`${API_URL}/calibrate/mode/manual`, { method: "POST", headers: { "Authorization": `Bearer ${access_token}` }});
-      } else {
-        setCalibrationMode("auto");
-        await fetch(`${API_URL}/calibrate/mode/automatic`, { method: "POST", headers: { "Authorization": `Bearer ${access_token}` }});
-      }
-  }
-
-  async function calibrate_click() {
-    try {
-      setLoadingCalibration(true);
-      setError([TextClear]);
-      refreshAccessToken();
-      const access_token = localStorage.getItem("access_token");
-
-      const maskResponse = await fetch(`${API_URL}/mask`, {headers: { "Authorization": `Bearer ${access_token}`}});
-      if (!maskResponse.ok) throw new Error("Mask request failed");
-      const maskValues = await maskResponse.json();
-
-      const calibrateResponse = await fetch(`${API_URL}/calibrate`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json", "Authorization": `Bearer ${access_token}`
-        },
-        body: JSON.stringify(maskValues)
-      });
-
-      if (!calibrateResponse.ok) throw new Error("Calibrate request failed");
-
-      const flagsResponse = await fetch(`${API_URL}/calibrate/flags`, { headers: { "Authorization": `Bearer ${access_token}` } });
-      if (!flagsResponse.ok) throw new Error("Flags request failed");
-
-      const data = await flagsResponse.json();
-
-      const center_aligned = data["Center Aligned"];
-      const ws_clear = data["Workspace Clear"];
-
-      if (center_aligned && ws_clear) {
-        setError([TextCalibrated, TextClear]);
-        setCalibrationModalOpen(true);
-      }
-      else if (center_aligned && !ws_clear) {
-        setError([TextNotCalibrated, TextWsNotEmpty]);
-      }
-      else if (!center_aligned && ws_clear) {
-        setError([TextNotCalibrated, TextCenterNotAligned]);
-      }
-      else {
-        setError([TextNotCalibrated, TextWsNotEmptyAndCenterNotAligned]);
-      }
-
-      /*const r = await fetch(`${API_URL}/calibrate/mode`, {headers: { "Authorization": `Bearer ${access_token}`}});
-      let calibData = await r.json();
-      if (calibData["Calibrate Mode"] === "Manual") {
-        await fetch(`${API_URL}/calibrate/mode/automatic`, { method: "POST", headers: { "Authorization": `Bearer ${access_token}` }});
-      }*/
-
-      selectedPoint.current = null;
-
-    } catch (error) {
-      setError([TextError]);
-      console.error(error);
-    } finally {
-      setLoadingCalibration(false);
-    }
-  }
- 
-  async function confirm_calibration(confirm) {
-    try {
-      setCalibrationModalOpen(false);
-      setError([TextClear]);
-      refreshAccessToken();
-      const access_token = localStorage.getItem("access_token");
-
-      if(confirm){
-        const calibrateResponse = await fetch(`${API_URL}/saveCalibration`, {
-          method: "POST",
-          headers: {
-              "Content-Type": "application/json", "Authorization": `Bearer ${access_token}`
-          }
-        });
-
-        if (!calibrateResponse.ok) throw new Error("Save calibration request failed");
-        setLockMenu(false);
-        setCurrentMenu("volume-menu");
-        setError([TextCalibrated, TextClear]);
-      }else{
-        setError([TextNotCalibrated, TextClear]);
-      }
-
-    } catch (error) {
-      setError([TextError]);
-      console.error(error);
-    }
-  }
-
-  // Start Token Check Loop
-  useEffect(() => {
-    const timer = 5 * 60 * 1000;
-
-    if (!localStorage.getItem("access_token")) return;
-
-    const interval = setInterval(() => {
-      const access_token = localStorage.getItem("access_token");
-      if (!access_token) {
-        logout();
+    if (!videoCrop)
         return;
-      }
-
-      const refresh_token = localStorage.getItem("refresh_token");
-
-      try {
-        const payloadBase64 = refresh_token.split('.')[1];
-        const payload = JSON.parse(atob(payloadBase64));
-        const exp = payload.exp;
-        const currentTime = Math.floor(Date.now() / 1000);
-
-        if (currentTime >= exp) {
-          logout();
-        }
-
-      } catch (e) {
-        console.warn("Token parse error:", e);
-        logout();
-      }
-
-    }, timer);
-
-    return () => clearInterval(interval);
-  }, [currentMenu]);
-
-  async function refreshAccessToken() {
-      const refreshToken = localStorage.getItem("refresh_token");
-      if (!refreshToken) return false;
-
-      try {
-          const response = await fetch(`${API_URL}/refresh`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ refresh_token: refreshToken })
-          });
-
-          if (response.ok) {
-              const data = await response.json();
-
-              localStorage.setItem("access_token", data.access_token);
-              localStorage.setItem("refresh_token", data.refresh_token);
-              
-              return true;
-          }
-      } catch (e) {
-        console.warn("Refresh error:", e);
-        logout();
-        return false;
-      }
-  }
-
-  useEffect(() => {
-    const handleMenu = async () => {
-      if (currentMenu === "volume-menu") {
-        startWebRTC("volume");
-        //await fetch(`${API_URL}/menu/volume/open`, {method: "POST"});
-      } else if (currentMenu === "calibration-menu") {
-        startWebRTC("calibration");
-        //await fetch(`${API_URL}/menu/volume/close`, {method: "POST"});
-      } else {
-        stopWebRTC();
-        //await fetch(`${API_URL}/menu/volume/close`, {method: "POST"});
-      }
-    };
-
-    handleMenu();
-    
-  }, [currentMenu]);
-
-  async function startWebRTC(streamType) {
-    const access_token = localStorage.getItem("access_token");
-
-    pc.current = new RTCPeerConnection();
-
-    pc.current.addTransceiver('video', { direction: 'recvonly' });
-
-    pc.current.ontrack = async (event) => {
-      cameraStream.current = event.streams[0];
-
-      if(cameraVideo.current){
-        cameraVideo.current.srcObject = cameraStream.current;
-        cameraVideo.current.muted = true;
-
-        try {
-          await cameraVideo.current.play();
-        } catch (e) {
-          console.log("PLAY ERROR:", e);
-        }
-      }
-    };
-
-    const offer = await pc.current.createOffer();
-    await pc.current.setLocalDescription(offer);
-
-    const response = await fetch(`${API_URL}/offer`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${access_token}`
-        },
-        body: JSON.stringify({
-            sdp: pc.current.localDescription.sdp,
-            type: pc.current.localDescription.type,
-            stream: streamType
-        })
-    });
-
-    const answer = await response.json();
-
-    await pc.current.setRemoteDescription(answer);
-  }
-
-  function stopWebRTC() {
-    const video = cameraVideo.current;
-
-    if (video && video.srcObject) {
-        video.srcObject.getTracks().forEach(track => track.stop());
-        video.srcObject = null;
-    }
-
-    if (pc.current) {
-      pc.current.ontrack = null;
-      pc.current.close();
-      pc.current = null;
-    }
-  }
-
-  // Processing Message
-  useEffect(() => {
-  if (!loadingVolume) return;
-
-  const interval = setInterval(async () => {
-    try {
-      const access_token = localStorage.getItem("access_token");
-
-      const response = await fetch(`${API_URL}/volume/status`, {headers: {Authorization: `Bearer ${access_token}`,},});
-
-      const data = await response.json();
-
-      setProcessingMessage(data.status);
-    } catch (error) {
-      console.error(error);
-    }
-  }, 100);
-
-  return () => clearInterval(interval);
-}, [loadingVolume]);
-
-  function getCropCut(){
 
     const video = cameraVideo.current;
 
-    if(!video || !videoCrop)
-      return {};
+    if (!video)
+        return;
 
-    const top = (videoCrop.y / videoCrop.videoHeight) * 100;
-    const left = (videoCrop.x / videoCrop.videoWidth) * 100;
-    const right = 100 - ((videoCrop.x + videoCrop.width) / videoCrop.videoWidth) * 100;
-    const bottom = 100 - ((videoCrop.y + videoCrop.height) / videoCrop.videoHeight) * 100;
+    setCropTransform(getCropTransform());
 
-    return {
-      clipPath : `inset(${top}% ${right}% ${bottom}% ${left}%)`
-    };
-  }
+  }, [videoCrop]);
 
+  // Crop Transformation Algorithm
   function getCropTransform(){
     const video = cameraVideo.current;
 
@@ -2237,18 +2281,208 @@ function App() {
     };
   }
 
-  useEffect(() => {
-    if (!videoCrop)
-        return;
+  function getCropCut(){
 
     const video = cameraVideo.current;
 
-    if (!video)
+    if(!video || !videoCrop)
+      return {};
+
+    const top = (videoCrop.y / videoCrop.videoHeight) * 100;
+    const left = (videoCrop.x / videoCrop.videoWidth) * 100;
+    const right = 100 - ((videoCrop.x + videoCrop.width) / videoCrop.videoWidth) * 100;
+    const bottom = 100 - ((videoCrop.y + videoCrop.height) / videoCrop.videoHeight) * 100;
+
+    return {
+      clipPath : `inset(${top}% ${right}% ${bottom}% ${left}%)`
+    };
+  }
+
+  // -------------------------------------------------------------
+  // -------------------  Token Verifications  -------------------
+
+  // Start Token Check Loop
+  useEffect(() => {
+    const timer = 5 * 60 * 1000;
+
+    if (!localStorage.getItem("access_token")) return;
+
+    const interval = setInterval(() => {
+      const access_token = localStorage.getItem("access_token");
+      if (!access_token) {
+        logout();
         return;
+      }
 
-    setCropTransform(getCropTransform());
+      const refresh_token = localStorage.getItem("refresh_token");
 
-  }, [videoCrop]);
+      try {
+        const payloadBase64 = refresh_token.split('.')[1];
+        const payload = JSON.parse(atob(payloadBase64));
+        const exp = payload.exp;
+        const currentTime = Math.floor(Date.now() / 1000);
+
+        if (currentTime >= exp) {
+          logout();
+        }
+
+      } catch (e) {
+        console.warn("Token parse error:", e);
+        logout();
+      }
+
+    }, timer);
+
+    return () => clearInterval(interval);
+  }, [currentMenu]);
+
+  async function refreshAccessToken() {
+      const refreshToken = localStorage.getItem("refresh_token");
+      if (!refreshToken) return false;
+
+      try {
+          const response = await fetch(`${API_URL}/refresh`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ refresh_token: refreshToken })
+          });
+
+          if (response.ok) {
+              const data = await response.json();
+
+              localStorage.setItem("access_token", data.access_token);
+              localStorage.setItem("refresh_token", data.refresh_token);
+              
+              return true;
+          }
+      } catch (e) {
+        console.warn("Refresh error:", e);
+        logout();
+        return false;
+      }
+  }
+
+  // -------------------------------------------------------------
+  // -----------------------  Show  Video  -----------------------
+
+  // Show Video
+  useEffect(() => {
+    if (!showCamera) return;
+
+    if (cameraVideo.current && pc.current?.getReceivers) {
+      const receivers = pc.current.getReceivers();
+      const stream = new MediaStream();
+
+      receivers.forEach(r => {
+        if (r.track) stream.addTrack(r.track);
+      });
+
+      cameraVideo.current.srcObject = stream;
+    }
+  }, [showCamera]);
+
+  // Start/Stop Video Connection 
+  useEffect(() => {
+    const handleMenu = async () => {
+      if (currentMenu === "volume-menu") {
+        startWebRTC("volume");
+        //await fetch(`${API_URL}/menu/volume/open`, {method: "POST"});
+      } else if (currentMenu === "calibration-menu") {
+        startWebRTC("calibration");
+        //await fetch(`${API_URL}/menu/volume/close`, {method: "POST"});
+      } else {
+        stopWebRTC();
+        //await fetch(`${API_URL}/menu/volume/close`, {method: "POST"});
+      }
+    };
+
+    handleMenu();
+    
+  }, [currentMenu]);
+
+  // Start Video Connection Algorithm
+  async function startWebRTC(streamType) {
+    const access_token = localStorage.getItem("access_token");
+
+    pc.current = new RTCPeerConnection();
+
+    pc.current.addTransceiver('video', { direction: 'recvonly' });
+
+    pc.current.ontrack = async (event) => {
+      cameraStream.current = event.streams[0];
+
+      if(cameraVideo.current){
+        cameraVideo.current.srcObject = cameraStream.current;
+        cameraVideo.current.muted = true;
+
+        try {
+          await cameraVideo.current.play();
+        } catch (e) {
+          console.log("PLAY ERROR:", e);
+        }
+      }
+    };
+
+    const offer = await pc.current.createOffer();
+    await pc.current.setLocalDescription(offer);
+
+    const response = await fetch(`${API_URL}/offer`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${access_token}`
+        },
+        body: JSON.stringify({
+            sdp: pc.current.localDescription.sdp,
+            type: pc.current.localDescription.type,
+            stream: streamType
+        })
+    });
+
+    const answer = await response.json();
+
+    await pc.current.setRemoteDescription(answer);
+  }
+
+  // Stop Video Connection Algorithm
+  function stopWebRTC() {
+    const video = cameraVideo.current;
+
+    if (video && video.srcObject) {
+        video.srcObject.getTracks().forEach(track => track.stop());
+        video.srcObject = null;
+    }
+
+    if (pc.current) {
+      pc.current.ontrack = null;
+      pc.current.close();
+      pc.current = null;
+    }
+  }
+
+  // Processing Message
+  useEffect(() => {
+    if (!loadingVolume) return;
+
+    const interval = setInterval(async () => {
+      try {
+        const access_token = localStorage.getItem("access_token");
+
+        const response = await fetch(`${API_URL}/volume/status`, {headers: {Authorization: `Bearer ${access_token}`,},});
+
+        const data = await response.json();
+
+        setProcessingMessage(data.status);
+      } catch (error) {
+        console.error(error);
+      }
+    }, 100);
+
+    return () => clearInterval(interval);
+  }, [loadingVolume]);
+
+  // -------------------------------------------------------------
+  // -------------------------  Return  --------------------------
 
   return (
     <>
@@ -2490,7 +2724,7 @@ function App() {
                 <div className="boxBundleInfo-container">
                   <div className="background"></div>
 
-                  {volInfo && !multipleVolumeData && (
+                  {volInfo && !multipleVolumeData && (volInfo.width !== 0 || volInfo.length !== 0 || volInfo.height !== 0 || volInfo.volume_m !== 0 || volInfo.volume_cm !== 0) && (
                     <>
                       <canvas ref={canvasRef} className="volumeBundle-canvas"/>
                       <div className="boxBundleInfoText-container">
@@ -2645,7 +2879,7 @@ function App() {
                     </>
                   )}
 
-                  {!volInfo && !loadingVolume &&(
+                  {!volInfo && !loadingVolume && multipleVolumeData &&(
                     <>
                       <div className="boxInfo-message">Selecione um objeto</div>
                     </>
@@ -2705,6 +2939,10 @@ function App() {
                 alt="Workspace Detected"
                 draggable={false}
               />
+              
+              {calibrationMode === "manual" && (
+                <canvas ref={workspaceCanvas} className="workspace-overlay"/>
+              )}
             </div>
 
             {/* Calibration Info*/}
@@ -2743,7 +2981,7 @@ function App() {
               </div>
 
               {/* Button */}
-              <button onClick={startCalibration} className="calibration-button" disabled={loadingCalibration}>
+              <button onClick={calibrate_click} className="calibration-button" disabled={loadingCalibration}>
                 {loadingCalibration && (
                   <div className="loadingCalibration-icon">  
                     <img src="/loading.svg" alt="loading"/>
@@ -2870,6 +3108,24 @@ function App() {
                  <button onClick={() => setShowCropWindow(true)} disabled={currentMenu !== "volume-menu"} className="define-button">
                     <span className="define_text"> Define </span>
                  </button>
+              </div>
+
+              <span className="text">System Speed</span>
+              <div className="radio-group">
+                <label className="radio-option">
+                  <input type="radio" name="speedMode" value="slow" checked={speedMode === "slow"} onChange={handleSpeedMode}/>
+                  <span className="label">Slow</span>
+                </label>
+
+                <label className="radio-option">
+                  <input type="radio" name="speedMode" value="intermedium" checked={speedMode === "intermedium"} onChange={handleSpeedMode}/>
+                  <span className="label">Intermedium</span>
+                </label>
+
+                <label className="radio-option">
+                  <input type="radio" name="speedMode" value="fast" checked={speedMode === "fast"} onChange={handleSpeedMode}/>
+                  <span className="label">Fast</span>
+                </label>
               </div>
             </div>
           </div>

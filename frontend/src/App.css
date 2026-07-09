@@ -478,7 +478,6 @@ body {
   border-radius: 0.8vw;
   overflow: hidden;
 
-  background: black;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -917,7 +916,7 @@ body {
 /* -- CALIBRATION -- */
 
 .calibration-colorToDepthimg-wrapper {
-  position: absolute;
+  position: relative;
   left: 47.2%;
   top: 3.1%;
   width: 51.2%;
@@ -953,6 +952,16 @@ body {
 
 .calibration-colorToDepthimg[data-manual="true"]:hover {
   cursor: default;
+}
+
+.workspace-overlay {
+  position:absolute;
+
+  left:0;
+  top:0;
+
+  width:100%;
+  height:100%;
 }
 
 .calibration-button {
@@ -1442,6 +1451,8 @@ body {
   width: 100%;
   height: 5%;
 
+  margin-bottom: 9%;
+
   display: flex;
   align-items: center;
 }
@@ -1626,15 +1637,6 @@ body {
 
   width:100%;
   height:100%;
-}
-
-.crop-canvas{
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 20;
 }
 
 .crop-buttons{

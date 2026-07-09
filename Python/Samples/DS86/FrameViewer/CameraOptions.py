@@ -18,21 +18,13 @@ import os
 output_dir = "HDR_Files"
 os.makedirs(output_dir, exist_ok=True)
 
-hdrGroups = [
-    camState.hdrExposuresLow,
-    camState.hdrExposuresMedium,
-    #camState.hdrExposuresHigh
-]
+hdrGroups = []
+colorArray = []
+depthArray = []
+timestampArray = []
 
-colorArray = [None] * 8
-depthArray = [None] * 8
-timestampArray = [None] * 8
-frameTimestamps = []
 skipFrame = 0
-final_index = 0
 hdrGroupIndex = 0
-hdrColorArray = []
-hdrDepthArray = []
 
 def statusCamera():
     print("Status")
@@ -223,9 +215,28 @@ def setFPS():
 
 def captureLoop():
     global colorArray, depthArray, timestampArray, hdrGroupIndex
+
     print("[CameraStream] Iniciando captura de frames...")
-    last = None
+    lastSpeedMode = None
+
     while camState._running:
+        if modeState.speedMode != lastSpeedMode:
+            lastSpeedMode = modeState.speedMode
+
+            if modeState.speedMode == "Fast":
+                print("GOTTA GO FAST BOYYYYY")
+                hdrGroups = [camState.hdrExposuresLow, camState.hdrExposuresMedium]
+            elif modeState.speedMode == "Intermedium":
+                print("MID")
+                hdrGroups = [camState.hdrExposuresLow, camState.hdrExposuresMedium]
+            elif modeState.speedMode == "Slow":
+                print("RIDE SLOW HEEEEEEEYY HEEEEEEEYYY")
+                hdrGroups = [camState.hdrExposuresLow, camState.hdrExposuresMedium]
+                
+            colorArray = [None] * len(hdrGroups) * 4
+            depthArray = [None] * len(hdrGroups) * 4
+            timestampArray = [None] * len(hdrGroups) * 4
+
         t_start = time.monotonic()
 
         ret, frameready = camState.camera.VZ_GetFrameReady(c_uint16(33))
