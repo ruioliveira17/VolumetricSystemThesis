@@ -70,7 +70,6 @@ function App() {
   const [ExpHDR_toggle, setExpHDR] = useState(true);
   const [volumeMode, setVolumeMode] = useState("multi_bundle");
   const [speedMode, setSpeedMode] = useState("intermedium");
-  const [StaticDynamic_toggle, setStaticDynamic] = useState(false);
   const [DebugMode_toggle, setDebugMode] = useState(false);
 
   const [menuSideNav, setMenuSideNavOpen] = useState(false);
@@ -125,9 +124,6 @@ function App() {
   const [volBundleMode, setVolBundleMode] = useState(false);
   const [calibrationMode, setCalibrationMode] = useState("auto");
 
-  const isDragging = useRef(false);
-  const dragIndex = useRef(null);
-
   const [lockMenu, setLockMenu] = useState(false);
 
   const [countdownTimer, setCountdownTimer] = useState("");
@@ -138,6 +134,8 @@ function App() {
   const [showCropWindow, setShowCropWindow] = useState(false);
   const [videoCrop, setVideoCrop] = useState(null);
   const [cropTransform, setCropTransform] = useState(null);
+
+  const [appReady, setAppReady] = useState(false);
 
   // ---------------  Wait For Server to be Alive  ---------------
 
@@ -159,32 +157,42 @@ function App() {
     return false;
   }
 
-  // -------------------------------------------------------------
   // --------------------  Restore Session  ----------------------
 
   // Restore Session
   useEffect(() => {
-    console.log(API_URL);
-    const user = JSON.parse(localStorage.getItem("current_user"));
+    async function init() {
+      let serverReady = false;
 
-    if (!user) return;
+      while (!serverReady){
+        serverReady = await waitForServer();
 
-    setSavedUser(user);
-    restoreSession();
+        if (!serverReady) {
+          console.error("Servidor indisponível");
+        }
+      }
+      
+      const user = JSON.parse(localStorage.getItem("current_user"));
+
+      if (!user){
+        setAppReady(true);
+        return;
+      }
+      
+      setSavedUser(user);
+      restoreSession();
+      setAppReady(true);
+    }
+
+    init() 
   }, []);
 
   // Restore Session Algorithm
   async function restoreSession() {
-    const serverReady = await waitForServer();
-
-    if (!serverReady) {
-      console.error("Servidor indisponível");
-      return;
-    }
-
     const access_token = localStorage.getItem("access_token");
+    const refresh_token = localStorage.getItem("refresh_token");
 
-    if (!access_token) {
+    if (!access_token & !refresh_token) {
       logout();
     }
 
@@ -248,12 +256,6 @@ function App() {
           setVolBundleMode(false);
         }
 
-        if (config_data.calibrationMode === "Automatic"){
-          setCalibrationMode("auto");
-        } else if (config_data.calibrationMode === "Manual"){
-          setCalibrationMode("manual")
-        }
-
         if (config_data.speedMode === "Slow"){
           setSpeedMode("slow")
         } else if (config_data.speedMode === "Intermedium"){
@@ -271,7 +273,6 @@ function App() {
     }
   }
 
-  // -------------------------------------------------------------
   // ----------------------  Login Screen  -----------------------
 
   // Login Screen
@@ -428,7 +429,6 @@ function App() {
       showLoginScreen();
   }
 
-  // -------------------------------------------------------------
   // ----------------------  Menu Changes  -----------------------
 
   // Aplies Change Effects
@@ -491,7 +491,6 @@ function App() {
   }, [currentMenu]);
 
 
-  // -------------------------------------------------------------
   // ------------------  Volume Menu Functions  ------------------
 
   // Start Calculating Volume
@@ -918,10 +917,6 @@ function App() {
         ? objCenters.slice().reverse()
         : objCenters;
 
-      // const contours = volumeMode === "real"
-      //   ? objContours.slice().reverse()
-      //   : objContours;
-
       const angles = volumeMode === "real"
         ? objAngles.slice().reverse()
         : objAngles;
@@ -948,7 +943,15 @@ function App() {
       const pivot_cx = rotCenter[0] / maxDim
       const pivot_cy = rotCenter[1] / maxDim
 
-      let baseHeight = - totalHeight / 2;
+      let baseHeight = 0
+
+      if (volumeMode === "real"){
+        baseHeight = - maxHeight / 2;
+      } else {
+        baseHeight = - totalHeight / 2;
+      }
+
+      let prevTop = 0;
 
       boxes.forEach((box, i) => {
         let bottom, top;
@@ -983,6 +986,15 @@ function App() {
           bottom = (baseHeight + bottomHeight * 100) / maxDim;
           top = (baseHeight + bottomHeight * 100 + h) / maxDim;
         }
+
+        const clipBottom = i === 0 ? 0 : prevTop;
+
+        bottom = (baseHeight + clipBottom) / maxDim;
+        top = (baseHeight + h) / maxDim;
+
+        prevTop = h;
+
+        const isStacked = i > 0;
 
         const p0 = rotate(-hw, -hd);
         const p1 = rotate(hw, -hd);
@@ -1020,7 +1032,7 @@ function App() {
           [2,3,7,6],
           [1,2,6,5],
           [0,3,7,4],
-        ];
+        ].filter((_, idx) => !(isStacked && idx === 0));
 
         const faceDepth = faces.map(face => ({
           face,
@@ -1051,7 +1063,7 @@ function App() {
           [0,1,X,"Width"], [3,2,X], [4,5,X], [7,6,X],
           [0,3,Y,"Length"], [1,2,Y], [4,7,Y], [5,6,Y],
           [0,4,Z,"Height"], [1,5,Z], [2,6,Z], [3,7,Z],
-        ];
+        ].filter(([a,b]) => !(isStacked && a < 4 && b < 4));
 
         edges.forEach(([a,b,color,type]) => {
           drawEdge(v[a], v[b], color);
@@ -1110,7 +1122,6 @@ function App() {
     };
   }, [volInfo, currentMenu]);
 
-  // -------------------------------------------------------------
   // ----------------  Calibration Menu Options  -----------------
 
   // Workspace Drawing Loop
@@ -1122,7 +1133,7 @@ function App() {
     const loop = async () => {
       if (!active) return;
 
-      workspaceDrawing();
+      await workspaceDrawing();
 
       if (active) {
         setTimeout(loop, 200);
@@ -1160,6 +1171,19 @@ function App() {
           headers: { 'Content-Type': 'application/json', "Authorization": `Bearer ${access_token}` },
           body: JSON.stringify(maskValues)
       });
+
+      const params = await fetch(
+        `${API_URL}/calibrate/params`,
+        {
+          headers:{
+            Authorization:`Bearer ${access_token}`
+          }
+        }
+      );
+
+      const data = await params.json();
+      detectionArea.current = data["Detected Area"];
+
     } catch (err) { console.warn("Erro applyMask:", err); }
   }
 
@@ -1230,6 +1254,79 @@ function App() {
     });
   }
 
+  // Automatic Click
+  useEffect(() => {
+    if (currentMenu !== "calibration-menu") return;
+
+    const img = calibrationImage.current;
+    if (!img) return;
+
+    const handleClick = async (event) => {
+      try {
+        const access_token = localStorage.getItem("access_token");
+
+        const calibRes = await fetch(
+          `${API_URL}/calibrate/mode`,
+          { headers: { "Authorization": `Bearer ${access_token}` } }
+        );
+
+        const calibData = await calibRes.json();
+
+        const rect = img.getBoundingClientRect();
+        const x = Math.round((event.clientX - rect.left) * (img.naturalWidth / rect.width));
+        const y = Math.round((event.clientY - rect.top) * (img.naturalHeight / rect.height));
+
+        if (calibData["Calibrate Mode"] === "Automatic") {
+
+          await fetch(
+            `${API_URL}/mask/colorClick`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${access_token}`
+              },
+              body: JSON.stringify({ x, y })
+            }
+          );
+
+          const canvas = document.createElement("canvas");
+          const ctx = canvas.getContext("2d");
+
+          canvas.width = img.naturalWidth;
+          canvas.height = img.naturalHeight;
+          ctx.drawImage(img, 0, 0);
+
+          const pixel = ctx.getImageData(x, y, 1, 1).data;
+          const r_color = pixel[0];
+          const g_color = pixel[1];
+          const b_color = pixel[2];
+
+          setRgb({
+            r: r_color,
+            g: g_color,
+            b: b_color
+          });
+
+          await new Promise(r => setTimeout(r, 500));
+
+          handleCalibrationModeChange(true);
+
+        } 
+      } catch (err) {
+        console.warn("Erro colorClick:", err);
+      }
+    };
+
+    img.addEventListener("click", handleClick);
+
+    return () => {
+      img.removeEventListener("click", handleClick);
+    };
+
+  }, [currentMenu]);
+
+  // Manual Click
   useEffect(() => {
     if (currentMenu !== "calibration-menu") return;
     if (calibrationMode !== "manual") return;
@@ -1240,6 +1337,8 @@ function App() {
     if (!canvas || !img) return;
 
     const ctx = canvas.getContext("2d");
+
+    const STEP = 1;
 
     function resizeCanvas() {
       canvas.width = img.naturalWidth;
@@ -1359,7 +1458,39 @@ function App() {
 
     function mouseUp() {
       dragging.current = false;
-      selectedPoint.current = null;
+
+      drawWorkspace();
+    }
+
+    function keyDown(event){
+      if (selectedPoint.current === null) return;
+
+      const point = detectionArea.current[selectedPoint.current];
+
+      switch(event.key){
+        case "ArrowLeft":
+          event.preventDefault();
+          point[0] = Math.max(0, point[0] - STEP);
+          break;
+        
+        case "ArrowRight":
+          event.preventDefault();
+          point[0] = Math.max(0, point[0] + STEP);
+          break;
+        
+        case "ArrowUp":
+          event.preventDefault();
+          point[1] = Math.max(0, point[1] - STEP);
+          break;
+        
+        case "ArrowDown":
+          event.preventDefault();
+          point[1] = Math.max(0, point[1] + STEP);
+          break;
+
+        default:
+          return;
+      }
 
       drawWorkspace();
     }
@@ -1370,6 +1501,7 @@ function App() {
     canvas.addEventListener("mousemove", mouseMove);
 
     window.addEventListener("mouseup", mouseUp);
+    window.addEventListener("keydown", keyDown);
 
     resizeCanvas();
 
@@ -1380,83 +1512,12 @@ function App() {
       canvas.removeEventListener("mousemove", mouseMove);
 
       window.removeEventListener("mouseup", mouseUp);
+      window.removeEventListener("keydown", keyDown);
     };
 
   }, [currentMenu, calibrationMode]);
 
-  // Screen Click
-  useEffect(() => {
-    if (currentMenu !== "calibration-menu") return;
-
-    const img = calibrationImage.current;
-    if (!img) return;
-
-    const handleClick = async (event) => {
-      try {
-        const access_token = localStorage.getItem("access_token");
-
-        const calibRes = await fetch(
-          `${API_URL}/calibrate/mode`,
-          { headers: { "Authorization": `Bearer ${access_token}` } }
-        );
-
-        const calibData = await calibRes.json();
-
-        const rect = img.getBoundingClientRect();
-        const x = Math.round((event.clientX - rect.left) * (img.naturalWidth / rect.width));
-        const y = Math.round((event.clientY - rect.top) * (img.naturalHeight / rect.height));
-
-        if (calibData["Calibrate Mode"] === "Automatic") {
-
-          await fetch(
-            `${API_URL}/mask/colorClick`,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${access_token}`
-              },
-              body: JSON.stringify({ x, y })
-            }
-          );
-
-          const canvas = document.createElement("canvas");
-          const ctx = canvas.getContext("2d");
-
-          canvas.width = img.naturalWidth;
-          canvas.height = img.naturalHeight;
-          ctx.drawImage(img, 0, 0);
-
-          const pixel = ctx.getImageData(x, y, 1, 1).data;
-          const r_color = pixel[0];
-          const g_color = pixel[1];
-          const b_color = pixel[2];
-
-          setRgb({
-            r: r_color,
-            g: g_color,
-            b: b_color
-          });
-
-          await new Promise(r => setTimeout(r, 500));
-
-          handleCalibrationModeChange(true);
-
-        } 
-      } catch (err) {
-        console.warn("Erro colorClick:", err);
-      }
-    };
-
-    img.addEventListener("click", handleClick);
-
-    return () => {
-      img.removeEventListener("click", handleClick);
-    };
-
-  }, [currentMenu]);
-
-  // Gets the current detectionArea
+  // Gets the current detectionArea (only for Manual)
   useEffect(() => {
     if (currentMenu !== "calibration-menu") return;
 
@@ -1470,7 +1531,6 @@ function App() {
         const calibData = await r.json();
 
         if (calibData["Calibrate Mode"] === "Manual") {
-
             const r = await fetch(
                 `${API_URL}/calibrate/params`,
                 {headers:{ Authorization:`Bearer ${access_token}`}}
@@ -1484,82 +1544,6 @@ function App() {
     loadWorkspace();
 
   }, [currentMenu, calibrationMode]);
-
-  // Key Press for Manual Workspace Adjustment
-  useEffect(() => {
-    if (currentMenu !== "calibration-menu") return;
-
-    const access_token = localStorage.getItem("access_token");
-
-    let active = true;
-
-    const init = async () => {
-      if (!active) return;
-
-      console.log("detectionAreaKey:", detectionArea.current);
-      console.log("selectedPointKey:", selectedPoint.current);
-      console.log("pointKey:", detectionArea.current[selectedPoint.current]);
-
-      const handleKeyDown = async (event) => {
-        try{
-          const r_mode = await fetch(`${API_URL}/calibrate/mode`, {headers: { "Authorization": `Bearer ${access_token}`}});
-          const calibData = await r_mode.json();
-
-          if (calibData["Calibrate Mode"] !== "Manual") return;
-
-          if (selectedPoint.current === null) return;
-
-          //const r = await fetch(`${API_URL}/calibrate/params`, {headers: { "Authorization": `Bearer ${access_token}`}});
-          //let data = await r.json();
-          //let detection_area = data["Detected Area"]; // [x1, y1, x2, y2]
-
-          const img = calibrationImage.current;
-          const maxX = img.naturalWidth;
-          const maxY = img.naturalHeight;
-
-          let point = detectionArea.current[selectedPoint.current];
-          if (event.key === "ArrowLeft") {
-            point[0] = Math.max(0, point[0] - step);
-
-          } else if (event.key === "ArrowRight") {
-            point[0] = Math.min(maxX, point[0] + step);
-
-          } else if (event.key === "ArrowUp") {
-            point[1] = Math.max(0, point[1] - step);
-
-          } else if (event.key === "ArrowDown") {
-            point[1] = Math.min(maxY, point[1] + step);
-
-          }
-
-          detectionArea.current[selectedPoint.current] = point;
-          console.log("detectionAreaKey:", detectionArea.current);
-          console.log("selectedPointKey:", selectedPoint.current);
-          console.log("pointKey:", detectionArea.current[selectedPoint.current]);
-        } catch (error) {
-          console.warn("Erro key_pressed:", error);
-        }
-     };
-
-      document.addEventListener("keydown", handleKeyDown);
-
-      return () => {
-        document.removeEventListener("keydown", handleKeyDown);
-      };
-    };
-
-    let cleanup;
-
-    init().then((fn) => {
-      cleanup = fn;
-    });
-
-    return () => {
-      active = false;
-      if (cleanup) cleanup();
-    };
-    
-  }, [currentMenu, selectedPoint]);
 
   // Calibrate Click Algorithm
   async function calibrate_click() {
@@ -1657,7 +1641,6 @@ function App() {
     }
   }
 
-  // -------------------------------------------------------------
   // ------------------  Settings Menu Options  ------------------
 
   // Change Exposure Mode (Fixed Exposition / HDR)
@@ -1938,7 +1921,6 @@ function App() {
       }
   }
 
-  // -------------------------------------------------------------
   // ----------------------  Crop Method  ------------------------
   // Crop Window
   useEffect(() => {
@@ -2298,7 +2280,6 @@ function App() {
     };
   }
 
-  // -------------------------------------------------------------
   // -------------------  Token Verifications  -------------------
 
   // Start Token Check Loop
@@ -2308,12 +2289,6 @@ function App() {
     if (!localStorage.getItem("access_token")) return;
 
     const interval = setInterval(() => {
-      const access_token = localStorage.getItem("access_token");
-      if (!access_token) {
-        logout();
-        return;
-      }
-
       const refresh_token = localStorage.getItem("refresh_token");
 
       try {
@@ -2362,7 +2337,6 @@ function App() {
       }
   }
 
-  // -------------------------------------------------------------
   // -----------------------  Show  Video  -----------------------
 
   // Show Video
@@ -2481,725 +2455,726 @@ function App() {
     return () => clearInterval(interval);
   }, [loadingVolume]);
 
-  // -------------------------------------------------------------
   // -------------------------  Return  --------------------------
 
-  return (
-    <>
-      {/* Menu Side Nav */}
-      <div className={`menuSideNav ${(!isAuthScreen && menuSideNav) ? "open" : ""}`}>
-        {!lockMenu && (
+  if(appReady){
+    return (
+      <>
+        {/* Menu Side Nav */}
+        <div className={`menuSideNav ${(!isAuthScreen && menuSideNav) ? "open" : ""}`}>
+          {!lockMenu && (
+            <div
+              className={`nav-item ${currentMenu === "volume-menu" ? "active" : ""}`}
+              onClick={() => setCurrentMenu("volume-menu")}
+            >
+              VOLUME
+            </div>
+          )}
+
           <div
-            className={`nav-item ${currentMenu === "volume-menu" ? "active" : ""}`}
-            onClick={() => setCurrentMenu("volume-menu")}
+            className={`nav-item ${currentMenu === "calibration-menu" ? "active" : ""}`}
+            onClick={() => setCurrentMenu("calibration-menu")}
           >
-            VOLUME
+            CALIBRATION
+          </div>
+          {/*<div className={`nav-item ${currentMenu === "about-menu" ? "active" : ""}`}>
+            ABOUT
+          </div>*/}
+
+          <img
+            src="/settings.svg"
+            className={`nav-icon ${!menuSideNav ? "hidden" : ""}`}
+            onClick={() => setShowSettingsPopup(true)}
+          />
+
+          <img
+            src="/user.svg"
+            className={`nav-icon ${currentMenu === "login-menu" ? "hidden" : ""}`}
+            /*onClick={toggleUserMenu}*/
+            onClick={() => setShowUserPopup(true)}
+          />
+
+        </div>
+
+        {/* Login Screen Panel */}
+        {currentMenu === "login-menu" && (
+          <div>
+            <img src="/Qubic.svg" className="qubic-logo" alt="Qubic Logo"/> 
+
+            <div className="login-panel">
+              <div className="login-panel-title">Login</div>
+
+              <div className="login-panel-error-or-info">
+                {error.map((err, i) => (<p key={i}>{err}</p>))}
+              </div>
+
+              <form className="login-form" onSubmit={(e) => { e.preventDefault(); login(); }}>
+                <input
+                  className="login-input username"
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="Username"
+                />
+
+                <input
+                  className="login-input password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Password"
+                />
+
+                <button className="login-button" type="submit">
+                  <div className="background"></div>
+                  <span className="text">Login</span>
+                </button>
+              </form>
+
+              {/*<p style={{ marginTop: "15px" }}>
+                Don't have an account?{" "}
+                <span
+                  onClick={showRegisterScreen}
+                  style={{
+                    color: "black",
+                    cursor: "pointer",
+                    textDecoration: "underline"
+                  }}
+                >
+                  Register
+                </span>
+              </p>*/}
+
+            </div>
+
+            <div className="powered-by-panel-login">
+                <div className="powered-by-text-login" translate="no">Powered by</div>
+                <img src="/MarquesLogo.svg" className="powered-by-logo-login" alt="Marques Logo"/>
+            </div>
           </div>
         )}
 
-        <div
-          className={`nav-item ${currentMenu === "calibration-menu" ? "active" : ""}`}
-          onClick={() => setCurrentMenu("calibration-menu")}
-        >
-          CALIBRATION
-        </div>
-        {/*<div className={`nav-item ${currentMenu === "about-menu" ? "active" : ""}`}>
-          ABOUT
-        </div>*/}
+        {/* Register Screen Panel */}
+        {/*{currentMenu === "register" && (
+          <div className="menu">
+            <h2>Register</h2>
 
-        <img
-          src="/settings.svg"
-          className={`nav-icon ${!menuSideNav ? "hidden" : ""}`}
-          onClick={() => setShowSettingsPopup(true)}
-        />
-
-        <img
-          src="/user.svg"
-          className={`nav-icon ${currentMenu === "login-menu" ? "hidden" : ""}`}
-          /*onClick={toggleUserMenu}*/
-          onClick={() => setShowUserPopup(true)}
-        />
-
-      </div>
-
-      {/* Login Screen Panel */}
-      {currentMenu === "login-menu" && (
-        <div>
-          <img src="/Qubic.svg" className="qubic-logo" alt="Qubic Logo"/> 
-
-          <div className="login-panel">
-            <div className="login-panel-title">Login</div>
-
-            <div className="login-panel-error-or-info">
-              {error.map((err, i) => (<p key={i}>{err}</p>))}
-            </div>
-
-            <form className="login-form" onSubmit={(e) => { e.preventDefault(); login(); }}>
+            <form onSubmit={(e) => { e.preventDefault(); register(); }}>
               <input
-                className="login-input username"
                 type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                value={regUsername}
+                onChange={(e) => setRegUsername(e.target.value)}
                 placeholder="Username"
               />
+              <br />
+              <br />
 
               <input
-                className="login-input password"
                 type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                value={regPassword}
+                onChange={(e) => setRegPassword(e.target.value)}
                 placeholder="Password"
               />
+              <br />
+              <br />
 
-              <button className="login-button" type="submit">
-                <div className="background"></div>
-                <span className="text">Login</span>
+              <select
+                value={regRole}
+                onChange={(e) => setRegRole(e.target.value)}
+              >
+                <option value="user">User</option>
+                <option value="admin">Admin</option>
+              </select>
+              <br />
+              <br />
+
+              <input
+                type="text"
+                value={regCode}
+                onChange={(e) => setRegCode(e.target.value)}
+                placeholder="Admin Code"
+                disabled={regRole !== "admin"}
+              />
+              <br />
+              <br />
+
+              <button type="submit">
+                Register
               </button>
             </form>
 
-            {/*<p style={{ marginTop: "15px" }}>
-              Don't have an account?{" "}
+            <p style={{ marginTop: "15px" }}>
+              Already have an account?{" "}
               <span
-                onClick={showRegisterScreen}
+                onClick={showLoginScreen}
                 style={{
                   color: "black",
                   cursor: "pointer",
                   textDecoration: "underline"
                 }}
               >
-                Register
+                Login
               </span>
-            </p>*/}
+            </p>
 
+            <div style={{ color: "red" }}>{error.map((err, i) => (<p key={i}>{err}</p>))}</div>
           </div>
-
-          <div className="powered-by-panel-login">
-              <div className="powered-by-text-login" translate="no">Powered by</div>
-              <img src="/MarquesLogo.svg" className="powered-by-logo-login" alt="Marques Logo"/>
-          </div>
-        </div>
-      )}
-
-      {/* Register Screen Panel */}
-      {/*{currentMenu === "register" && (
-        <div className="menu">
-          <h2>Register</h2>
-
-          <form onSubmit={(e) => { e.preventDefault(); register(); }}>
-            <input
-              type="text"
-              value={regUsername}
-              onChange={(e) => setRegUsername(e.target.value)}
-              placeholder="Username"
-            />
-            <br />
-            <br />
-
-            <input
-              type="password"
-              value={regPassword}
-              onChange={(e) => setRegPassword(e.target.value)}
-              placeholder="Password"
-            />
-            <br />
-            <br />
-
-            <select
-              value={regRole}
-              onChange={(e) => setRegRole(e.target.value)}
-            >
-              <option value="user">User</option>
-              <option value="admin">Admin</option>
-            </select>
-            <br />
-            <br />
-
-            <input
-              type="text"
-              value={regCode}
-              onChange={(e) => setRegCode(e.target.value)}
-              placeholder="Admin Code"
-              disabled={regRole !== "admin"}
-            />
-            <br />
-            <br />
-
-            <button type="submit">
-              Register
+        )}*/}
+          
+        {/* Volume Panel */}
+        {currentMenu === "volume-menu" && (
+          <div>
+            {/* Logo */}
+            <button className="logo">
+              <img src="/Qubic.svg" alt="BM Logo" />
             </button>
-          </form>
 
-          <p style={{ marginTop: "15px" }}>
-            Already have an account?{" "}
-            <span
-              onClick={showLoginScreen}
-              style={{
-                color: "black",
-                cursor: "pointer",
-                textDecoration: "underline"
-              }}
-            >
-              Login
-            </span>
-          </p>
+            {/* Menu */}
+            <button className="menu-img" onClick={toggleMenu}>
+              <img src="/menu-closed.svg" alt="Menu" />
+            </button>
 
-          <div style={{ color: "red" }}>{error.map((err, i) => (<p key={i}>{err}</p>))}</div>
-        </div>
-      )}*/}
-        
-      {/* Volume Panel */}
-      {currentMenu === "volume-menu" && (
-        <div>
-          {/* Logo */}
-          <button className="logo">
-            <img src="/Qubic.svg" alt="BM Logo" />
-          </button>
-
-          {/* Menu */}
-          <button className="menu-img" onClick={toggleMenu}>
-            <img src="/menu-closed.svg" alt="Menu" />
-          </button>
-
-          {/* Warning */}
-          <div className="warning">
-            {error.map((err, i) => (
-              <p key={i}>{err}</p>
-            ))}
-          </div>
-
-          {loadingVolume && (
+            {/* Warning */}
             <div className="warning">
-              {processingMessage}
-            </div>
-          )}  
-
-          <div className="menu-wrapper">
-            <div className="title-container">
-              <div className="menu-title">Volume</div>
-              <div className="menu-info">Calculates the volume of objects on the platform</div>
+              {error.map((err, i) => (
+                <p key={i}>{err}</p>
+              ))}
             </div>
 
-            {/* Video & Image */}
-            <div className="camera-container">
-              <div className="camera-video-wrapper">
-                {showCamera ? (
-                  
-                  <video
-                    ref={cameraVideo}
-                    autoPlay
-                    playsInline
-                    className="camera-video"
-                    style={cropTransform}
-                  />
-                ) : (
-                  objectImage && (
-                    <img className="object-img" src={objectImage} style={cropTransform} alt="objects"/>
-                  )
-                )}
+            {loadingVolume && (
+              <div className="warning">
+                {processingMessage}
+              </div>
+            )}  
+
+            <div className="menu-wrapper">
+              <div className="title-container">
+                <div className="menu-title">Volume</div>
+                <div className="menu-info">Calculates the volume of objects on the platform</div>
               </div>
 
-              <div className="switch-button-wrapper">
-                {objectImage && (
-                  <button onClick={() => setShowCamera(prev => !prev)} className="switch-button"></button>
-                )}
-              </div>
-            </div>
-
-            {volBundleMode && (
-              <>
-                {/* Button */}
-                <button onClick={volume_click} className="volumeBundle-button" disabled={loadingVolume || !weightStable}>
-                  {loadingVolume && (
-                    <div className="loadingVolume-icon">  
-                      <img src="/loading.svg" alt="loading"/>
-                    </div>
-                  )}
-                  <div className="volumeBundle-button-info-container">
-                    <img src="/VIEW_IN_AR.svg" alt="VIEW_IN_AR" className="icon"/>
-                    <span className="text">Get Volume</span>
-                  </div>
-                </button>
-
-                {/* Info Objects */}
-                <div className="boxBundleInfo-container">
-                  <div className="background"></div>
-
-                  {volInfo && !multipleVolumeData && (volInfo.width !== 0 || volInfo.length !== 0 || volInfo.height !== 0 || volInfo.volume_m !== 0 || volInfo.volume_cm !== 0) && (
-                    <>
-                      <canvas ref={canvasRef} className="volumeBundle-canvas"/>
-                      <div className="boxBundleInfoText-container">
-                        <div style={{ color: "#6CD08A" }} className="boxBundleInfo-text">
-                          <span className="label">Width (cm):</span>
-                          <span className="value">{volInfo.width.toFixed(1)}</span>
-                        </div>
-
-                        <div style={{ color: "#C66D6D" }} className="boxBundleInfo-text">
-                          <span className="label">Length (cm):</span>
-                          <span className="value">{volInfo.length.toFixed(1)}</span>
-                        </div>
-
-                        <div style={{ color: "#9EB0FD" }} className="boxBundleInfo-text">
-                          <span className="label">Height (cm):</span>
-                          <span className="value">{volInfo.height.toFixed(1)}</span>
-                        </div>
-
-                        <div style={{ color: "#FFFFFF" }} className="boxBundleInfo-text">
-                          <span className="label">Volume (m³):</span>
-                          <span className="value">{volInfo.volume_m.toFixed(6)}</span>
-                        </div>
-
-                        <div style={{ color: "#FFFFFF" }} className="boxBundleInfo-text">
-                          <span className="label">Volume (cm³):</span>
-                          <span className="value">{volInfo.volume_cm.toFixed(2)}</span>
-                        </div>
-
-                        <div style={{ color: "#FFFFFF" }} className="boxBundleInfo-text">
-                          <span className="label">Weight (kg):</span>
-                          <span className="value">{weightInfo?.weight != null ? Number(weightInfo.weight).toFixed(2) : "0.00"}</span>
-                        </div>
-
-                      </div>
-                    </>
-                  )}
-
-                  {countdown && (
-                    <div className="countdown">
-                      {countdown}
-                    </div>
+              {/* Video & Image */}
+              <div className="camera-container">
+                <div className="camera-video-wrapper">
+                  {showCamera ? (
+                    
+                    <video
+                      ref={cameraVideo}
+                      autoPlay
+                      playsInline
+                      className="camera-video"
+                      style={cropTransform}
+                    />
+                  ) : (
+                    objectImage && (
+                      <img className="object-img" src={objectImage} style={cropTransform} alt="objects"/>
+                    )
                   )}
                 </div>
-              </>
-            )}
 
-            {!volBundleMode && (
-              <>
-                {/* Button */}
-                <button onClick={volume_click} className="volume-button" disabled={loadingVolume || !weightStable}>
-                  {loadingVolume && (
-                    <div className="loadingVolume-icon">  
-                      <img src="/loading.svg" alt="loading"/>
-                    </div>
+                <div className="switch-button-wrapper">
+                  {objectImage && (
+                    <button onClick={() => setShowCamera(prev => !prev)} className="switch-button"></button>
                   )}
-                  <div className="volume-button-info-container">
-                    <img src="/VIEW_IN_AR.svg" alt="VIEW_IN_AR" className="icon"/>
-                    <span className="text">Get Volume</span>
-                  </div>
-                </button>
+                </div>
+              </div>
 
-                {/* Menu Select Object */}
-                <div className="object-selection-menu">
-                  <div className="background"></div>
+              {volBundleMode && (
+                <>
+                  {/* Button */}
+                  <button onClick={volume_click} className="volumeBundle-button" disabled={loadingVolume || !weightStable}>
+                    {loadingVolume && (
+                      <div className="loadingVolume-icon">  
+                        <img src="/loading.svg" alt="loading"/>
+                      </div>
+                    )}
+                    <div className="volumeBundle-button-info-container">
+                      <img src="/VIEW_IN_AR.svg" alt="VIEW_IN_AR" className="icon"/>
+                      <span className="text">Get Volume</span>
+                    </div>
+                  </button>
 
-                  <div className="object-list">
-                    {objectList.map((obj) => (
-                      <span
-                        key={obj}
-                        className={`object-item ${selectedObject === obj ? "selected" : ""}`}
-                        onClick={() => {
-                          setSelectedObject(prev => {
-                            const isSame = prev === obj;
+                  {/* Info Objects */}
+                  <div className="boxBundleInfo-container">
+                    <div className="background"></div>
 
-                            if (isSame) {
-                              setVolInfo(null);
-                              return "";
-                            }
+                    {volInfo && !multipleVolumeData && (volInfo.width !== 0 || volInfo.length !== 0 || volInfo.height !== 0 || volInfo.volume_m !== 0 || volInfo.volume_cm !== 0) && (
+                      <>
+                        <canvas ref={canvasRef} className="volumeBundle-canvas"/>
+                        <div className="boxBundleInfoText-container">
+                          <div style={{ color: "#6CD08A" }} className="boxBundleInfo-text">
+                            <span className="label">Width (cm):</span>
+                            <span className="value">{volInfo.width.toFixed(1)}</span>
+                          </div>
 
-                            return obj;
-                          });
-                        }}
-                      >
-                        <span className="arrow">
-                          {selectedObject === obj ? "▶" : ""}
-                        </span>
-                        <span className="object-name">Object {obj}</span>
-                      </span>
-                    ))}
-                  </div>
+                          <div style={{ color: "#C66D6D" }} className="boxBundleInfo-text">
+                            <span className="label">Length (cm):</span>
+                            <span className="value">{volInfo.length.toFixed(1)}</span>
+                          </div>
 
-                  
+                          <div style={{ color: "#9EB0FD" }} className="boxBundleInfo-text">
+                            <span className="label">Height (cm):</span>
+                            <span className="value">{volInfo.height.toFixed(1)}</span>
+                          </div>
 
-                  <div className="object-total">
-                    {multipleVolumeData ? (
-                      <> 
-                        <div>TOTAL WEIGHT:</div>
-                        <div className="total-value">
-                          {weightInfo?.weight != null ? Number(weightInfo.weight).toFixed(2) : "0.00"} Kg
-                        </div>
+                          <div style={{ color: "#FFFFFF" }} className="boxBundleInfo-text">
+                            <span className="label">Volume (m³):</span>
+                            <span className="value">{volInfo.volume_m.toFixed(6)}</span>
+                          </div>
 
-                        <div>TOTAL VOLUME:</div>
-                        <div className="total-value">
-                          {multipleVolumeData?.Total?.volume_m ?? 0} m³
+                          <div style={{ color: "#FFFFFF" }} className="boxBundleInfo-text">
+                            <span className="label">Volume (cm³):</span>
+                            <span className="value">{volInfo.volume_cm.toFixed(2)}</span>
+                          </div>
+
+                          <div style={{ color: "#FFFFFF" }} className="boxBundleInfo-text">
+                            <span className="label">Weight (kg):</span>
+                            <span className="value">{weightInfo?.weight != null ? Number(weightInfo.weight).toFixed(2) : "0.00"}</span>
+                          </div>
+
                         </div>
                       </>
-                    ) : null}
+                    )}
+
+                    {countdown && (
+                      <div className="countdown">
+                        {countdown}
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+
+              {!volBundleMode && (
+                <>
+                  {/* Button */}
+                  <button onClick={volume_click} className="volume-button" disabled={loadingVolume || !weightStable}>
+                    {loadingVolume && (
+                      <div className="loadingVolume-icon">  
+                        <img src="/loading.svg" alt="loading"/>
+                      </div>
+                    )}
+                    <div className="volume-button-info-container">
+                      <img src="/VIEW_IN_AR.svg" alt="VIEW_IN_AR" className="icon"/>
+                      <span className="text">Get Volume</span>
+                    </div>
+                  </button>
+
+                  {/* Menu Select Object */}
+                  <div className="object-selection-menu">
+                    <div className="background"></div>
+
+                    <div className="object-list">
+                      {objectList.map((obj) => (
+                        <span
+                          key={obj}
+                          className={`object-item ${selectedObject === obj ? "selected" : ""}`}
+                          onClick={() => {
+                            setSelectedObject(prev => {
+                              const isSame = prev === obj;
+
+                              if (isSame) {
+                                setVolInfo(null);
+                                return "";
+                              }
+
+                              return obj;
+                            });
+                          }}
+                        >
+                          <span className="arrow">
+                            {selectedObject === obj ? "▶" : ""}
+                          </span>
+                          <span className="object-name">Object {obj}</span>
+                        </span>
+                      ))}
+                    </div>
+
+                    
+
+                    <div className="object-total">
+                      {multipleVolumeData ? (
+                        <> 
+                          <div>TOTAL WEIGHT:</div>
+                          <div className="total-value">
+                            {weightInfo?.weight != null ? Number(weightInfo.weight).toFixed(2) : "0.00"} Kg
+                          </div>
+
+                          <div>TOTAL VOLUME:</div>
+                          <div className="total-value">
+                            {multipleVolumeData?.Total?.volume_m ?? 0} m³
+                          </div>
+                        </>
+                      ) : null}
+                    </div>
+
+                    {countdown && (
+                      <div className="countdown">
+                        {countdown}
+                      </div>
+                    )}
+
                   </div>
 
-                  {countdown && (
-                    <div className="countdown">
-                      {countdown}
-                    </div>
-                  )}
+                  {/* Info Objects */}
+                  <div className="boxInfo-container">
+                    <div className="background"></div>
+                    
+                    {volInfo && selectedObject &&(
+                      <>
+                        <canvas ref={canvasRef} className="volume-canvas"/>
+                        <div className="boxInfoText-container">
+                          <div style={{ color: "#6CD08A" }} className="boxInfo-text">
+                            <span className="label">Width (cm):</span>
+                            <span className="value">{(volumeMode === "real" ? volInfo.width?.[0] : volInfo.width).toFixed(1)}</span>
+                          </div>
 
-                </div>
+                          <div style={{ color: "#C66D6D" }} className="boxInfo-text">
+                            <span className="label">Length (cm):</span>
+                            <span className="value">{(volumeMode === "real" ? volInfo.length?.[0] : volInfo.length).toFixed(1)}</span>
+                          </div>
 
-                {/* Info Objects */}
-                <div className="boxInfo-container">
-                  <div className="background"></div>
-                  
-                  {volInfo && selectedObject &&(
-                    <>
-                      <canvas ref={canvasRef} className="volume-canvas"/>
-                      <div className="boxInfoText-container">
-                        <div style={{ color: "#6CD08A" }} className="boxInfo-text">
-                          <span className="label">Width (cm):</span>
-                          <span className="value">{(volumeMode === "real" ? volInfo.width?.[0] : volInfo.width).toFixed(1)}</span>
+                          <div style={{ color: "#9EB0FD" }} className="boxInfo-text">
+                            <span className="label">Height (cm):</span>
+                            <span className="value">{(volumeMode === "real" ? volInfo.height?.[0] : volInfo.height).toFixed(1)}</span>
+                          </div>
+
+                          <div style={{ color: "#FFFFFF" }} className="boxInfo-text">
+                            <span className="label">Volume (m³):</span>
+                            <span className="value">{volInfo.volume_m.toFixed(6)}</span>
+                          </div>
+
+                          <div style={{ color: "#FFFFFF" }} className="boxInfo-text">
+                            <span className="label">Volume (cm³):</span>
+                            <span className="value">{volInfo.volume_cm.toFixed(2)}</span>
+                          </div>
+
                         </div>
+                      </>
+                    )}
 
-                        <div style={{ color: "#C66D6D" }} className="boxInfo-text">
-                          <span className="label">Length (cm):</span>
-                          <span className="value">{(volumeMode === "real" ? volInfo.length?.[0] : volInfo.length).toFixed(1)}</span>
-                        </div>
-
-                        <div style={{ color: "#9EB0FD" }} className="boxInfo-text">
-                          <span className="label">Height (cm):</span>
-                          <span className="value">{(volumeMode === "real" ? volInfo.height?.[0] : volInfo.height).toFixed(1)}</span>
-                        </div>
-
-                        <div style={{ color: "#FFFFFF" }} className="boxInfo-text">
-                          <span className="label">Volume (m³):</span>
-                          <span className="value">{volInfo.volume_m.toFixed(6)}</span>
-                        </div>
-
-                        <div style={{ color: "#FFFFFF" }} className="boxInfo-text">
-                          <span className="label">Volume (cm³):</span>
-                          <span className="value">{volInfo.volume_cm.toFixed(2)}</span>
-                        </div>
-
-                      </div>
-                    </>
-                  )}
-
-                  {!volInfo && !loadingVolume && multipleVolumeData &&(
-                    <>
-                      <div className="boxInfo-message">Selecione um objeto</div>
-                    </>
-                  )}
-                </div>
-              </>
-            )}
-          </div>
-
-          {/* Powered By */}
-          <div className="powered-by-panel">
-            <div className="powered-by-text" translate="no">Powered by</div>
-            <img src="/MarquesLogo.svg" className="powered-by-logo" alt="Marques Logo"/>
-          </div>
-        </div>
-      )}
-
-      {/* Calibration Panel */}
-      {currentMenu === "calibration-menu" && (
-        <div>
-          {/* Logo */}
-          <button className="logo">
-            <img src="/Qubic.svg" alt="BM Logo" />
-          </button>
-
-          {/* Menu */}
-          <button className="menu-img" onClick={toggleMenu}>
-            <img src="/menu-closed.svg" alt="Menu" />
-          </button>
-
-          {/* Warning */}
-          <div className="warning">
-            {error.map((err, i) => (
-              <p key={i}>{err}</p>
-            ))}
-          </div>
-
-          <div
-            id="caliErrorLabel"
-            className="warning"
-            style={{ marginTop: "1.4vh" }}
-          ></div>
-
-          <div className="menu-wrapper">
-            {/* Menu Title */}
-            <div className="title-container">
-              <div className="menu-title"> Calibration </div>
-              <div className="menu-info"> Calibrates the workspace based on the detected area </div>
-            </div>
-
-            {/* Video */}
-            <div className="calibration-colorToDepthimg-wrapper">
-              <img
-                ref={calibrationImage}
-                className="calibration-colorToDepthimg"
-                data-manual={calibrationMode === "manual"}
-                alt="Workspace Detected"
-                draggable={false}
-              />
-              
-              {calibrationMode === "manual" && (
-                <canvas ref={workspaceCanvas} className="workspace-overlay"/>
+                    {!volInfo && !loadingVolume && multipleVolumeData &&(
+                      <>
+                        <div className="boxInfo-message">Selecione um objeto</div>
+                      </>
+                    )}
+                  </div>
+                </>
               )}
             </div>
 
-            {/* Calibration Info*/}
-            <div className="calibrationInfo-container">
-              <div className="background"></div>
-              <div className="calibration-instructions">
-                <span className="bold">To perform the calibration:</span>
-                <span className="regular">
-                  1 - In the "Select Color" button, select the color in the camera image that corresponds to the platform's boundary tape.
-                </span>
+            {/* Powered By */}
+            <div className="powered-by-panel">
+              <div className="powered-by-text" translate="no">Powered by</div>
+              <img src="/MarquesLogo.svg" className="powered-by-logo" alt="Marques Logo"/>
+            </div>
+          </div>
+        )}
 
-                <span className="regular">
-                  2 - If necessary, manually adjust the points calculated in the previous step.
-                </span>
+        {/* Calibration Panel */}
+        {currentMenu === "calibration-menu" && (
+          <div>
+            {/* Logo */}
+            <button className="logo">
+              <img src="/Qubic.svg" alt="BM Logo" />
+            </button>
+
+            {/* Menu */}
+            <button className="menu-img" onClick={toggleMenu}>
+              <img src="/menu-closed.svg" alt="Menu" />
+            </button>
+
+            {/* Warning */}
+            <div className="warning">
+              {error.map((err, i) => (
+                <p key={i}>{err}</p>
+              ))}
+            </div>
+
+            <div
+              id="caliErrorLabel"
+              className="warning"
+              style={{ marginTop: "1.4vh" }}
+            ></div>
+
+            <div className="menu-wrapper">
+              {/* Menu Title */}
+              <div className="title-container">
+                <div className="menu-title"> Calibration </div>
+                <div className="menu-info"> Calibrates the workspace based on the detected area </div>
               </div>
-              <div className="btn-group">
-                <button className={`btn-mode ${calibrationMode === "auto" ? "active" : ""}`}
-                  onClick={() => handleCalibrationModeChange(false)}
-                >
-                  <div className="color-swatch" style={{ backgroundColor: `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})` }} />
-                  <div className="btn-content">
-                    <img src="/picker.svg" alt="Picker" className="icon" />
-                    <span className="text">Select Color</span>
-                  </div>
-                </button>
 
-                <button
-                  className={`btn-mode ${calibrationMode === "manual" ? "active" : ""}`}
-                  onClick={() => handleCalibrationModeChange(true)}
-                >
-                  <div className="btn-content">
-                    <img src="/activity_zone.svg" alt="ACTIVITY_ZONE" className="icon" />
-                    <span className="text">Adjust</span>
-                  </div>
-                </button>
-              </div>
-
-              {/* Button */}
-              <button onClick={calibrate_click} className="calibration-button" disabled={loadingCalibration}>
-                {loadingCalibration && (
-                  <div className="loadingCalibration-icon">  
-                    <img src="/loading.svg" alt="loading"/>
-                  </div>
+              {/* Video */}
+              <div className="calibration-colorToDepthimg-wrapper">
+                <img
+                  ref={calibrationImage}
+                  className="calibration-colorToDepthimg"
+                  data-manual={calibrationMode === "manual"}
+                  alt="Workspace Detected"
+                  draggable={false}
+                />
+                
+                {calibrationMode === "manual" && (
+                  <canvas ref={workspaceCanvas} className="workspace-overlay"/>
                 )}
-                <div className="calibration-button-info-container">
-                  <img src="/filter_zone.svg" alt="FILTER_ZONE" className="icon"/>
-                  <span className="text">Calibrate</span>
-                </div>
-              </button>              
-            </div>
-          </div>
-
-          {/* Modal */}
-          {calibrationModalOpen && (
-            <div className="calibration-modal">
-              <div className="background"></div>
-              <div className="calibration-modal-content">
-                <p>Do you want to confirm the changes?</p>
-
-                <div className="calibration-modal-buttons">
-                  <button onClick={() => confirm_calibration(true)}>
-                    Yes
-                  </button>
-
-                  <button onClick={() => confirm_calibration(false)}>
-                    No
-                  </button>
-                </div>
               </div>
-            </div>
-          )}
 
-          {/* Powered By */}
-          <div className="powered-by-panel">
-            <div className="powered-by-text" translate="no">Powered by</div>
-            <img src="/MarquesLogo.svg" className="powered-by-logo" alt="Marques Logo"/>
-          </div>
+              {/* Calibration Info*/}
+              <div className="calibrationInfo-container">
+                <div className="background"></div>
+                <div className="calibration-instructions">
+                  <span className="bold">To perform the calibration:</span>
+                  <span className="regular">
+                    1 - In the "Select Color" button, select the color in the camera image that corresponds to the platform's boundary tape.
+                  </span>
 
-        </div>
-      )}
+                  <span className="regular">
+                    2 - If necessary, manually adjust the points calculated in the previous step.
+                  </span>
+                </div>
+                <div className="btn-group">
+                  <button className={`btn-mode ${calibrationMode === "auto" ? "active" : ""}`}
+                    onClick={() => handleCalibrationModeChange(false)}
+                  >
+                    <div className="color-swatch" style={{ backgroundColor: `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})` }} />
+                    <div className="btn-content">
+                      <img src="/picker.svg" alt="Picker" className="icon" />
+                      <span className="text">Select Color</span>
+                    </div>
+                  </button>
 
-      {/* Settings PopUp */}
-      {showSettingsPopup && (
-        <>
-          {/* Fundo Escuro */}
-          <div className="popup-overlay" onClick={() => setShowSettingsPopup(false)}/>
+                  <button
+                    className={`btn-mode ${calibrationMode === "manual" ? "active" : ""}`}
+                    onClick={() => handleCalibrationModeChange(true)}
+                  >
+                    <div className="btn-content">
+                      <img src="/activity_zone.svg" alt="ACTIVITY_ZONE" className="icon" />
+                      <span className="text">Adjust</span>
+                    </div>
+                  </button>
+                </div>
 
-          {/* PopUp */}
-          <div className="settings-popup">
-            <span className="text">Configurations</span>
-            <div className="settings-buttons-container">
-              {/* Exposition */}
-              <span className="text">Exposition Type</span>
-              <div className="radio-group">
-                <label className="radio-option">
-                  <input type="radio" name="abertura" value="true" checked={ExpHDR_toggle} onChange={handleExpHDR_toggle}/>
-                  <span className="label">HDR</span>
-                </label>
-
-                <label className="radio-option">
-                  <input type="radio" name="abertura" value="false" checked={!ExpHDR_toggle} onChange={handleExpHDR_toggle}/>
-                  <span className="label">Exposure Time</span>
-                </label>
-
-                {!ExpHDR_toggle && (
-                    <div className="exposure-controls">
-                      <input
-                        type="number"
-                        className="exposure-input"
-                        value={exposureTime}
-                        onChange={(e) => setExposureTime(e.target.value)}
-                      />
-
-                      <button className="exposure-btn" onClick={exposureSet_click}>
-                        <span className="text">Set</span>
-                      </button>
+                {/* Button */}
+                <button onClick={calibrate_click} className="calibration-button" disabled={loadingCalibration}>
+                  {loadingCalibration && (
+                    <div className="loadingCalibration-icon">  
+                      <img src="/loading.svg" alt="loading"/>
                     </div>
                   )}
-              </div>
-
-              {/* Volume Mode */}
-              <span className="text">Volume Mode</span>
-              <div className="radio-group">
-                <label className="radio-option">
-                  <input type="radio" name="volumeMode" value="single_bundle" checked={volumeMode === "single_bundle"} onChange={handleVolumeMode}/>
-                  <span className="label">Single Bundle</span>
-                </label>
-
-                <label className="radio-option">
-                  <input type="radio" name="volumeMode" value="multi_bundle" checked={volumeMode === "multi_bundle"} onChange={handleVolumeMode}/>
-                  <span className="label">Multi Bundle</span>
-                </label>
-
-                <label className="radio-option">
-                  <input type="radio" name="volumeMode" value="real" checked={volumeMode === "real"} onChange={handleVolumeMode}/>
-                  <span className="label">Real</span>
-                </label>
-
-                {/*<label className="radio-option">
-                  <input type="radio" name="volumeMode" value="individual" checked={volumeMode === "individual"} onChange={handleVolumeMode}/>
-                  <span className="label">Individual</span>
-                </label>*/}
-              </div>
-
-              {/* Countdown Value */}
-              <span className="text">Countdown Timer</span>
-              <div className="countdown-controls">
-                <input
-                  type="number"
-                  className="countdown-input"
-                  value={countdownTimer}
-                  onChange={(e) => setCountdownTimer(e.target.value)}
-                />
-
-                <button className="countdown-btn" onClick={countdownTimerSet_click}>
-                  <span className="text">Set</span>
-                </button>
-              </div>
-
-              <span className="text">Preferences</span>
-              <div className="image-crop-preference">
-                <span className="video-size"> Video Size </span>
-                 <button onClick={() => setShowCropWindow(true)} disabled={currentMenu !== "volume-menu"} className="define-button">
-                    <span className="define_text"> Define </span>
-                 </button>
-              </div>
-
-              <span className="text">System Speed</span>
-              <div className="radio-group">
-                <label className="radio-option">
-                  <input type="radio" name="speedMode" value="slow" checked={speedMode === "slow"} onChange={handleSpeedMode}/>
-                  <span className="label">Slow</span>
-                </label>
-
-                <label className="radio-option">
-                  <input type="radio" name="speedMode" value="intermedium" checked={speedMode === "intermedium"} onChange={handleSpeedMode}/>
-                  <span className="label">Intermedium</span>
-                </label>
-
-                <label className="radio-option">
-                  <input type="radio" name="speedMode" value="fast" checked={speedMode === "fast"} onChange={handleSpeedMode}/>
-                  <span className="label">Fast</span>
-                </label>
+                  <div className="calibration-button-info-container">
+                    <img src="/filter_zone.svg" alt="FILTER_ZONE" className="icon"/>
+                    <span className="text">Calibrate</span>
+                  </div>
+                </button>              
               </div>
             </div>
-          </div>
-        </>
-      )}
 
-      {/* User PopUp */}
-      {showUserPopup && (
-        <>
-          {/* Fundo Escuro */}
-          <div className="popup-overlay" onClick={() => setShowUserPopup(false)}/>
+            {/* Modal */}
+            {calibrationModalOpen && (
+              <div className="calibration-modal">
+                <div className="background"></div>
+                <div className="calibration-modal-content">
+                  <p>Do you want to confirm the changes?</p>
 
-          {/* PopUp */}
-          <div className="user-popup">
-            <div className="user-info-container">
-              <div className="user-row">
-                <img src="/user.svg" className="user-icon"/>
+                  <div className="calibration-modal-buttons">
+                    <button onClick={() => confirm_calibration(true)}>
+                      Yes
+                    </button>
 
-                <div className="user-texts">
-                  <span className="text-user"> User: {savedUser?.username} </span>
-                  <span className="text-role"> Role: {savedUser?.role} </span>
+                    <button onClick={() => confirm_calibration(false)}>
+                      No
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>            
+            )}
 
-            <div className="logout-option" onClick={logout}>
-              Logout
+            {/* Powered By */}
+            <div className="powered-by-panel">
+              <div className="powered-by-text" translate="no">Powered by</div>
+              <img src="/MarquesLogo.svg" className="powered-by-logo" alt="Marques Logo"/>
+            </div>
+
+          </div>
+        )}
+
+        {/* Settings PopUp */}
+        {showSettingsPopup && (
+          <>
+            {/* Fundo Escuro */}
+            <div className="popup-overlay" onClick={() => setShowSettingsPopup(false)}/>
+
+            {/* PopUp */}
+            <div className="settings-popup">
+              <span className="text">Configurations</span>
+              <div className="settings-buttons-container">
+                {/* Exposition */}
+                <span className="text">Exposition Type</span>
+                <div className="radio-group">
+                  <label className="radio-option">
+                    <input type="radio" name="abertura" value="true" checked={ExpHDR_toggle} onChange={handleExpHDR_toggle}/>
+                    <span className="label">HDR</span>
+                  </label>
+
+                  <label className="radio-option">
+                    <input type="radio" name="abertura" value="false" checked={!ExpHDR_toggle} onChange={handleExpHDR_toggle}/>
+                    <span className="label">Exposure Time</span>
+                  </label>
+
+                  {!ExpHDR_toggle && (
+                      <div className="exposure-controls">
+                        <input
+                          type="number"
+                          className="exposure-input"
+                          value={exposureTime}
+                          onChange={(e) => setExposureTime(e.target.value)}
+                        />
+
+                        <button className="exposure-btn" onClick={exposureSet_click}>
+                          <span className="text">Set</span>
+                        </button>
+                      </div>
+                    )}
+                </div>
+
+                {/* Volume Mode */}
+                <span className="text">Volume Mode</span>
+                <div className="radio-group">
+                  <label className="radio-option">
+                    <input type="radio" name="volumeMode" value="single_bundle" checked={volumeMode === "single_bundle"} onChange={handleVolumeMode}/>
+                    <span className="label">Single Bundle</span>
+                  </label>
+
+                  <label className="radio-option">
+                    <input type="radio" name="volumeMode" value="multi_bundle" checked={volumeMode === "multi_bundle"} onChange={handleVolumeMode}/>
+                    <span className="label">Multi Bundle</span>
+                  </label>
+
+                  <label className="radio-option">
+                    <input type="radio" name="volumeMode" value="real" checked={volumeMode === "real"} onChange={handleVolumeMode}/>
+                    <span className="label">Real</span>
+                  </label>
+
+                  {/*<label className="radio-option">
+                    <input type="radio" name="volumeMode" value="individual" checked={volumeMode === "individual"} onChange={handleVolumeMode}/>
+                    <span className="label">Individual</span>
+                  </label>*/}
+                </div>
+
+                {/* Countdown Value */}
+                <span className="text">Countdown Timer</span>
+                <div className="countdown-controls">
+                  <input
+                    type="number"
+                    className="countdown-input"
+                    value={countdownTimer}
+                    onChange={(e) => setCountdownTimer(e.target.value)}
+                  />
+
+                  <button className="countdown-btn" onClick={countdownTimerSet_click}>
+                    <span className="text">Set</span>
+                  </button>
+                </div>
+
+                <span className="text">Preferences</span>
+                <div className="image-crop-preference">
+                  <span className="video-size"> Video Size </span>
+                  <button onClick={() => setShowCropWindow(true)} disabled={currentMenu !== "volume-menu"} className="define-button">
+                      <span className="define_text"> Define </span>
+                  </button>
+                </div>
+
+                <span className="text">System Speed</span>
+                <div className="radio-group">
+                  <label className="radio-option">
+                    <input type="radio" name="speedMode" value="slow" checked={speedMode === "slow"} onChange={handleSpeedMode}/>
+                    <span className="label">Slow</span>
+                  </label>
+
+                  <label className="radio-option">
+                    <input type="radio" name="speedMode" value="intermedium" checked={speedMode === "intermedium"} onChange={handleSpeedMode}/>
+                    <span className="label">Intermedium</span>
+                  </label>
+
+                  <label className="radio-option">
+                    <input type="radio" name="speedMode" value="fast" checked={speedMode === "fast"} onChange={handleSpeedMode}/>
+                    <span className="label">Fast</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* User PopUp */}
+        {showUserPopup && (
+          <>
+            {/* Fundo Escuro */}
+            <div className="popup-overlay" onClick={() => setShowUserPopup(false)}/>
+
+            {/* PopUp */}
+            <div className="user-popup">
+              <div className="user-info-container">
+                <div className="user-row">
+                  <img src="/user.svg" className="user-icon"/>
+
+                  <div className="user-texts">
+                    <span className="text-user"> User: {savedUser?.username} </span>
+                    <span className="text-role"> Role: {savedUser?.role} </span>
+                  </div>
+                </div>
+              </div>            
+
+              <div className="logout-option" onClick={logout}>
+                Logout
+              </div>
+            </div>
+              
+          </>
+        )}
+
+        {showCropWindow && (
+          <div className="crop-popup">
+            <div className="crop-window">
+              <div className="crop-title">
+                <span> Window Resizer </span>
+              </div>
+
+              <div className="crop-video-wrapper">
+                <video
+                  ref={cropVideo}
+                  autoPlay
+                  playsInline
+                  className="crop-video"
+                />
+
+                <canvas ref={cropCanvas} className="crop-overlay"/>
+              </div>
+
+              <div className="crop-buttons">
+                <button className="crop-button" onClick={() => setShowCropWindow(false)}>
+                  <span className="text">Cancel</span>
+                </button>
+                <button className="crop-button" onClick={() => {
+                                                  setVideoCrop({
+                                                    ...cropArea,
+                                                    videoWidth: cropVideo.current.videoWidth,
+                                                    videoHeight: cropVideo.current.videoHeight,
+                                                    displayWidth: cropVideo.current.clientWidth,
+                                                    displayHeight: cropVideo.current.clientHeight
+                                                  })
+                                                  setShowCropWindow(false);
+                                                  setShowSettingsPopup(false);
+                                                }}>
+                  <span className="text">Confirm</span>
+                </button>
+              </div>
             </div>
           </div>
-            
-        </>
-      )}
-
-      {showCropWindow && (
-        <div className="crop-popup">
-          <div className="crop-window">
-            <div className="crop-title">
-              <span> Window Resizer </span>
-            </div>
-
-            <div className="crop-video-wrapper">
-              <video
-                ref={cropVideo}
-                autoPlay
-                playsInline
-                className="crop-video"
-              />
-
-              <canvas ref={cropCanvas} className="crop-overlay"/>
-            </div>
-
-            <div className="crop-buttons">
-              <button className="crop-button" onClick={() => setShowCropWindow(false)}>
-                <span className="text">Cancel</span>
-              </button>
-              <button className="crop-button" onClick={() => {
-                                                setVideoCrop({
-                                                  ...cropArea,
-                                                  videoWidth: cropVideo.current.videoWidth,
-                                                  videoHeight: cropVideo.current.videoHeight,
-                                                  displayWidth: cropVideo.current.clientWidth,
-                                                  displayHeight: cropVideo.current.clientHeight
-                                                })
-                                                setShowCropWindow(false);
-                                                setShowSettingsPopup(false);
-                                              }}>
-                <span className="text">Confirm</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </>
-  )
+        )}
+      </>
+    );
+  }
 }
 
 export default App

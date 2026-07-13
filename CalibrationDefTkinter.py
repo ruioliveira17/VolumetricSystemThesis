@@ -44,14 +44,6 @@ def maskAPI(colorToDepthFrame, lower, upper, color, cx_d, cy_d):
         # ------------------ ÁREA EXTERIOR -------------------
 
         mask_hsv = cv2.inRange(hsv_frame, lower, upper)
-        if color == "Red":
-            preset = COLOR_PRESETS["Red2"]
-            lower = numpy.array(preset["lower"])
-            upper = numpy.array(preset["upper"])
-
-            mask_hsv2 = cv2.inRange(hsv_frame, lower, upper)
-
-            mask_hsv = mask_hsv | mask_hsv2
 
         result = cv2.bitwise_and(colorToDepthFrame, colorToDepthFrame, mask=mask_hsv)
 

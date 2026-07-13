@@ -225,17 +225,28 @@ def captureLoop():
 
             if modeState.speedMode == "Fast":
                 print("GOTTA GO FAST BOYYYYY")
-                hdrGroups = [camState.hdrExposuresLow, camState.hdrExposuresMedium]
+                hdrGroups = [camState.hdrExposuresLow_Fast, camState.hdrExposuresMedium_Fast]
+                hdrGroupIndex = 0
+                camState.hdrIndex = 0
+                colorArray = [None] * len(hdrGroups) * 2
+                depthArray = [None] * len(hdrGroups) * 2
+                timestampArray = [None] * len(hdrGroups) * 2
             elif modeState.speedMode == "Intermedium":
                 print("MID")
-                hdrGroups = [camState.hdrExposuresLow, camState.hdrExposuresMedium]
+                hdrGroups = [camState.hdrExposuresLow_Intermedium, camState.hdrExposuresMedium_Intermedium]
+                hdrGroupIndex = 0
+                camState.hdrIndex = 0
+                colorArray = [None] * len(hdrGroups) * 4
+                depthArray = [None] * len(hdrGroups) * 4
+                timestampArray = [None] * len(hdrGroups) * 4
             elif modeState.speedMode == "Slow":
                 print("RIDE SLOW HEEEEEEEYY HEEEEEEEYYY")
-                hdrGroups = [camState.hdrExposuresLow, camState.hdrExposuresMedium]
-                
-            colorArray = [None] * len(hdrGroups) * 4
-            depthArray = [None] * len(hdrGroups) * 4
-            timestampArray = [None] * len(hdrGroups) * 4
+                hdrGroups = [camState.hdrExposuresLow_Slow, camState.hdrExposuresMedium_Slow]
+                hdrGroupIndex = 0
+                camState.hdrIndex = 0
+                colorArray = [None] * len(hdrGroups) * 6
+                depthArray = [None] * len(hdrGroups) * 6
+                timestampArray = [None] * len(hdrGroups) * 6
 
         t_start = time.monotonic()
 

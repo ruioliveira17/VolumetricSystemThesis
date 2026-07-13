@@ -44,7 +44,7 @@ from color_presets import COLOR_PRESETS
 from API.VzenseDS_api import *
 from auth import create_access_token, create_refresh_token, get_password_hash, verify_password, verify_token
 from Bundle2 import objIdentifier
-from CalibrationDefTkinter import calibrateAPI, maskAPI, manualWorkspaceDraw
+from CalibrationDefTkinter import calibrateAPI, maskAPI
 from CameraOptions import startCamera, stopCamera, setFPS, processHDR, setFlyingPixelFilter, setFillHoleFilter, setSpatialFilter, setConfidenceFilter
 from MinDepth2 import MinDepthAPI
 from VolumeTkinter import volumeSingleBundleAPI, volumeMultiBundleAPI, volumeRealAPI, volumeIndividualAPI
@@ -193,7 +193,6 @@ async def lifespan(app: FastAPI):
 
             modeState.expositionMode = config["expositionMode"]
             modeState.volumeMode = config["volumeMode"]
-            modeState.calibrationMode = config["calibrationMode"]
             modeState.speedMode = config["speedMode"]
             modeState.workingMode = config["workingMode"]
             modeState.debugMode = config["debugMode"]
@@ -594,9 +593,6 @@ def clickSet_maskColor(data: ColorCoords, current_user: dict = Depends(get_curre
         if lower[0] <= hsv[0] <= upper[0] and lower[1] <= hsv[1] <= upper[1] and lower[2] <= hsv[2] <= upper[2]:
             color_ack = True
             print("Color:", color_name)
-            if color_name == "Red2":
-                color_name = "Red"
-            print("Color:", color_name)
             maskState.color = color_name
     if color_ack == False:
         min_dist = float("inf")
@@ -610,8 +606,6 @@ def clickSet_maskColor(data: ColorCoords, current_user: dict = Depends(get_curre
                 min_dist = dist
                 closest_color = color_name
                 
-        if closest_color == "Red2":
-            closest_color = "Red"
         print("Closest Color:", closest_color)
         maskState.color = closest_color
     return{"color": maskState.color}
@@ -1642,10 +1636,10 @@ def get_configuration_status(current_user: dict = Depends(get_current_user)):
         with open(path, "r") as f:
             data = json.load(f)
 
-        if "expositionMode" not in data or "volumeMode" not in data:
+        if "expositionMode" not in data or "volumeMode" not in data or "speedMode" not in data:
             return {"configured": False}
 
-        return {"configured": True, "expositionMode": data["expositionMode"], "volumeMode": data["volumeMode"], "calibrationMode": data["calibrationMode"], "speedMode": data["speedMode"]}
+        return {"configured": True, "expositionMode": data["expositionMode"], "volumeMode": data["volumeMode"], "speedMode": data["speedMode"]}
 
     except:
         return {"configured": False}

@@ -1,8 +1,8 @@
 {
     "expositionMode": "HDR",
-    "volumeMode": "Multi Bundle",
+    "volumeMode": "Real",
     "calibrationMode": "Automatic",
-    "speedMode": "Slow",
+    "speedMode": "Intermedium",
     "workingMode": "Static",
     "debugMode": "Off",
     "exposureTime": 1200,

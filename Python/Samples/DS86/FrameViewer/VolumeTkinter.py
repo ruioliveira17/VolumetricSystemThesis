@@ -415,10 +415,6 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
         objAngle = []
         realVolume = 0
         last_area = 0
-
-        #print("Irregular")
-        #print(irregular)
-        #print("-------------")
         
         for i, obj in enumerate(allObjPtsM):
             height_meters_overlappedObject = 0
@@ -436,43 +432,39 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
             ws_d_h = float(workspace_depth)
             height_meters = (ws_d_h - depths[i]) / 1000
 
-            #print(i)
-            #if i!=0:
-            #    print(irregular[i-1])
-
             if i!= 0:
-                #if irregular[i-1]:
                 print("Calculating through Contour")
                 if i-1 > 0:
                     area = cv2.contourArea(allObjContour[i-1]) - last_area
                 else:
                     area = cv2.contourArea(allObjContour[i-1])
                     
+                debug_img = frameState.colorToDepthFrame.copy()
+
+                contour = allObjPixel[i-1]
+
+                if contour is not None and len(contour) > 0:
+
+                    contour = contour.astype("int32")
+
+                    if contour.ndim == 2:
+                        contour = contour.reshape((-1, 1, 2))
+
+                    cv2.drawContours(
+                        debug_img,
+                        [contour],
+                        -1,
+                        (0, 255, 0),
+                        2
+                    )
+
+                cv2.imwrite(f"contour_debug{i}.png", debug_img)
+
                 last_area = area
                 volume = area * height_meters
                 print("Area:", cv2.contourArea(allObjContour[i-1]))
-                #else:
-                #    if i!=0 and i < (len(allObjPtsM) - 1):
-                #        print("Verifying object")
-                #        for j in range(i + 1, len(allObjPtsM)):
-                #            if isInsideHull(allObjPtsM[i], allObjPtsM[j]):
-                #                if isInsideContour(allObjPtsM[i], allObjPtsM[j]):# or isCloseToTheContour(allObjPixel[i-1], allObjPixel[j-1]):
-                #                    if intersection_edge(allObjPixel[i-1], allObjPixel[j-1], depthFrame):
-                #                        print("Inside")
-                #                        height_meters = (depths[j] - depths[i]) / 1000
-                #                        height_meters_overlappedObject = ((ws_d_h - depths[i]) / 1000) - height_meters
-                #                        break
-                #                    else:
-                #                        print("Outside")
-                #                else:
-                #                    print("Outside")
-                #            else:
-                #                print("Outside")
 
             if i != 0:
-                #if not irregular[i-1]:
-                #    print("Calulating through Width, Length, Height")
-                #    volume = width_meters * length_meters * height_meters
                 totalVolume += volume
                 realVolume += volume
                 print("Volume:", volume)
