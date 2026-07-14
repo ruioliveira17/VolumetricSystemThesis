@@ -33,6 +33,7 @@ from FrameState import frameState
 from MaskState import maskState
 from ModeState import modeState
 from VolumeState import volumeState
+from WeightState import weightState
 from WorkspaceState import workspaceState
 
 #------------------------------------------------------   Preset    --------------------------------------------------------
@@ -48,7 +49,7 @@ from CalibrationDefTkinter import calibrateAPI, maskAPI
 from CameraOptions import startCamera, stopCamera, setFPS, processHDR, setFlyingPixelFilter, setFillHoleFilter, setSpatialFilter, setConfidenceFilter
 from MinDepth2 import MinDepthAPI
 from VolumeTkinter import volumeSingleBundleAPI, volumeMultiBundleAPI, volumeRealAPI, volumeIndividualAPI
-from Weight import getWeight
+from Weight import weight_loop, weight_lock
 
 #------------------------------------------------------   Services    ------------------------------------------------------
 
@@ -128,6 +129,12 @@ class RegisterData(BaseModel):
     role: str
     code: Optional[str] = None
 
+class CropWindow(BaseModel):
+    x: float
+    y: float
+    width: float
+    height: float
+
 class SystemUpdate(BaseModel):
     exposureTime: Optional[int] = Field(None, ge=100, le=4000)
     colorSlope: Optional[int] = Field(None, ge=150, le=5000)
@@ -140,6 +147,8 @@ class SystemUpdate(BaseModel):
     confidenceFilter: Optional[StrictBool] = None 
     fps: Optional[int] = Field(None, ge=1, le=15)
     countdown: Optional[int] = Field(None, ge=0, le=10)
+    cropWindow: Optional[CropWindow] = None
+    cropArea: Optional[CropWindow] = None
 
 class CurrentMenu(BaseModel):
     currentMenu: str
@@ -214,6 +223,13 @@ async def lifespan(app: FastAPI):
         config = None
 
     startCamera()
+
+    thread = threading.Thread(
+        target=weight_loop,
+        daemon=True
+    )
+    thread.start()
+
     try:
         yield
     finally:
@@ -1040,7 +1056,7 @@ def volume_SingleBundle(current_user: dict = Depends(get_current_user)):
 
     if depthState.objects_info is not None:
         volumeState.processing = "Identifying Objects..."
-        depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine = objIdentifier(colorFrame, colorToDepthFrame, depthFrame, frameState.calibrationColorFrame, frameState.calibrationDepthFrame, modeState.volumeMode, depthState.objects_info, workspaceState.workspace_depth, depthState.threshold, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb, camState.fx_d, camState.fy_d, camState.fx_rgb, camState.fy_rgb)
+        depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine, volumeState.united_contours = objIdentifier(colorFrame, colorToDepthFrame, depthFrame, frameState.calibrationColorFrame, frameState.calibrationDepthFrame, modeState.volumeMode, depthState.objects_info, workspaceState.workspace_depth, depthState.threshold, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb, camState.fx_d, camState.fy_d, camState.fx_rgb, camState.fy_rgb)
         if volumeState.depths:
             depthState.minimum_depth = min(volumeState.depths)
             if volumeState.box_limits is not None and len(volumeState.box_limits) > 0:
@@ -1147,7 +1163,7 @@ def volume_MultiBundle(current_user: dict = Depends(get_current_user)):
     if depthState.objects_info is not None:
         times[4] = time.perf_counter()
         volumeState.processing = "Identifying Objects..."
-        depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine = objIdentifier(colorFrame, colorToDepthFrame, depthFrame, frameState.calibrationColorFrame, frameState.calibrationDepthFrame, modeState.volumeMode, depthState.objects_info, workspaceState.workspace_depth, depthState.threshold, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb, camState.fx_d, camState.fy_d, camState.fx_rgb, camState.fy_rgb)
+        depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine, volumeState.united_contours = objIdentifier(colorFrame, colorToDepthFrame, depthFrame, frameState.calibrationColorFrame, frameState.calibrationDepthFrame, modeState.volumeMode, depthState.objects_info, workspaceState.workspace_depth, depthState.threshold, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb, camState.fx_d, camState.fy_d, camState.fx_rgb, camState.fy_rgb)
         times[5] = time.perf_counter()
         if volumeState.depths:       
             if volumeState.box_limits is not None and len(volumeState.box_limits) > 0:
@@ -1291,44 +1307,38 @@ def volume_Real(current_user: dict = Depends(get_current_user)):
 
     if depthState.objects_info is not None:
         volumeState.processing = "Identifying Objects..."
-        depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine = objIdentifier(colorFrame, colorToDepthFrame, depthFrame, frameState.calibrationColorFrame, frameState.calibrationDepthFrame, modeState.volumeMode, depthState.objects_info, workspaceState.workspace_depth, depthState.threshold, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb, camState.fx_d, camState.fy_d, camState.fx_rgb, camState.fy_rgb)
+        depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine, volumeState.united_contours = objIdentifier(colorFrame, colorToDepthFrame, depthFrame, frameState.calibrationColorFrame, frameState.calibrationDepthFrame, modeState.volumeMode, depthState.objects_info, workspaceState.workspace_depth, depthState.threshold, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb, camState.fx_d, camState.fy_d, camState.fx_rgb, camState.fy_rgb)
         t2 = time.perf_counter()
         print("objIdentifier:", (t2 - t0) * 1000, "ms")
         if volumeState.depths:
             if volumeState.box_limits is not None and len(volumeState.box_limits) > 0:
                 volumeState.processing = "Calculating Volumes..."
-                volumeState.volume, volumeState.width_meters, volumeState.length_meters, volumeState.height_meters, volumeState.obj_center, volumeState.obj_angles, volumeState.objOverlappedHeights, volumeState.objContours = volumeRealAPI(depthFrame, frameState.calibrationDepthFrame, workspaceState.workspace_depth, volumeState.box_limits, volumeState.depths, camState.fx_d, camState.fy_d, camState.cx_d, camState.cy_d)
+                volumeState.volume, volumeState.width_meters, volumeState.length_meters, volumeState.height_meters, volumeState.obj_center, volumeState.obj_angles = volumeRealAPI(depthFrame, frameState.calibrationDepthFrame, workspaceState.workspace_depth, volumeState.box_limits, volumeState.united_contours, volumeState.depths, camState.fx_d, camState.fy_d, camState.cx_d, camState.cy_d)
                 t3 = time.perf_counter()
                 print("volumeRealAPI:", (t3 - t2) * 1000, "ms")
             else:
-                volumeState.volume = 0
-                volumeState.width_meters = 0
-                volumeState.length_meters = 0
-                volumeState.height_meters = 0
-                volumeState.obj_center = 0
-                volumeState.obj_angles = 0
-                volumeState.objOverlappedHeights = 0
-                volumeState.objContours = 0
+                volumeState.volume = [0]
+                volumeState.width_meters = [[0]]
+                volumeState.length_meters = [[0]]
+                volumeState.height_meters = [[0]]
+                volumeState.obj_center = [[]]
+                volumeState.obj_angles = [[]]
                 depthState.minimum_depth = workspaceState.workspace_depth
         else:
-            volumeState.volume = 0
-            volumeState.width_meters = 0
-            volumeState.length_meters = 0
-            volumeState.height_meters = 0
-            volumeState.obj_center = 0
-            volumeState.obj_angles = 0
-            volumeState.objOverlappedHeights = 0
-            volumeState.objContours = 0
+            volumeState.volume = [0]
+            volumeState.width_meters = [[0]]
+            volumeState.length_meters = [[0]]
+            volumeState.height_meters = [[0]]
+            volumeState.obj_center = [[]]
+            volumeState.obj_angles = [[]]
             depthState.minimum_depth = workspaceState.workspace_depth
     else:
-        volumeState.volume = 0
-        volumeState.width_meters = 0
-        volumeState.length_meters = 0
-        volumeState.height_meters = 0
-        volumeState.obj_center = 0
-        volumeState.obj_angles = 0
-        volumeState.objOverlappedHeights = 0
-        volumeState.objContours = 0
+        volumeState.volume = [0]
+        volumeState.width_meters = [[0]]
+        volumeState.length_meters = [[0]]
+        volumeState.height_meters = [[0]]
+        volumeState.obj_center = [[]]
+        volumeState.obj_angles = [[]]
         depthState.minimum_depth = workspaceState.workspace_depth
 
     volumeState.width_meters = scale_nested(volumeState.width_meters, 100)
@@ -1349,8 +1359,6 @@ def volume_Real(current_user: dict = Depends(get_current_user)):
         "ws_depth": workspaceState.workspace_depth / 10,
         "objCenter": volumeState.obj_center,
         "objAngles": volumeState.obj_angles,
-        "objOverlappedHeights" : volumeState.objOverlappedHeights,
-        #"objContours": [[contour.tolist() for contour in group] for group in volumeState.objContours]
     }
 
 def buildVolumeRealResponse():
@@ -1362,8 +1370,6 @@ def buildVolumeRealResponse():
     heights = volumeState.height_meters if isinstance(volumeState.height_meters, list) else [volumeState.height_meters]
     obj_center = volumeState.obj_center if isinstance(volumeState.obj_center, list) else [volumeState.obj_center]
     obj_angles = volumeState.obj_angles if isinstance(volumeState.obj_angles, list) else [volumeState.obj_angles]
-    obj_overlappedHeights = volumeState.objOverlappedHeights if isinstance(volumeState.objOverlappedHeights, list) else [volumeState.objOverlappedHeights]
-    #obj_contours = volumeState.objContours if isinstance(volumeState.objContours, list) else [volumeState.objContours]
 
     num_objects = min(
         len(volumes),
@@ -1373,16 +1379,17 @@ def buildVolumeRealResponse():
     )
 
     for i in range(num_objects):
+        if volumes[i] is None or float(volumes[i]) <= 0:
+            continue
+
         response[f"{i+1}"] = {
             "volume_m": round(float(volumes[i]), 6),
             "volume_cm": round(float(volumes[i] * 1000000), 2),
             "x": [round(float(w), 1) for w in widths[i]],
             "y": [round(float(l), 1) for l in lengths[i]],
             "z": [round(float(h), 1) for h in heights[i]],
-            "obj_center": [[round(float(x), 3), round(float(y), 3)] for (x, y) in obj_center[i]],
-            "obj_angles":  [round(float(a), 1) for a in obj_angles[i]],
-            "obj_overlappedHeights": [round(float(oh), 3) for oh in obj_overlappedHeights[i]],
-            #"obj_contours": [contour.tolist() for contour in obj_contours[i]]
+            "obj_center": [[round(float(x), 3), round(float(y), 3)] for (x, y) in (obj_center[i] if obj_center[i] else [])],
+            "obj_angles":  [round(float(a), 1) for a in (obj_angles[i] if obj_angles[i] else [])],
         }
 
     response["Total"] = {
@@ -1443,7 +1450,7 @@ def volume_Individual(current_user: dict = Depends(get_current_user)):
 
     if depthState.not_set == 0:
         volumeState.processing = "Identifying Objects..."
-        depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine = objIdentifier(colorFrame, colorToDepthFrame, depthFrame, frameState.calibrationColorFrame, frameState.calibrationDepthFrame, modeState.volumeMode, depthState.objects_info, workspaceState.workspace_depth, depthState.threshold, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb, camState.fx_d, camState.fy_d, camState.fx_rgb, camState.fy_rgb)
+        depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine, volumeState.united_contours = objIdentifier(colorFrame, colorToDepthFrame, depthFrame, frameState.calibrationColorFrame, frameState.calibrationDepthFrame, modeState.volumeMode, depthState.objects_info, workspaceState.workspace_depth, depthState.threshold, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb, camState.fx_d, camState.fy_d, camState.fx_rgb, camState.fy_rgb)
         t2 = time.perf_counter()
         print("objIdentifier:", (t2 - t0) * 1000, "ms")
         if volumeState.depths:
@@ -1618,6 +1625,12 @@ def update_systemInfo(info: SystemUpdate, current_user: dict = Depends(require_a
     if info.countdown is not None:
         volumeState.countdown = info.countdown
 
+    if info.cropWindow is not None:
+        volumeState.cropWindow = info.cropWindow
+
+    if info.cropArea is not None:
+        volumeState.cropArea = info.cropArea
+
     return {"status": "updated"}
 
 # --------------------------------------- Config Status ---------------------------------------
@@ -1639,7 +1652,7 @@ def get_configuration_status(current_user: dict = Depends(get_current_user)):
         if "expositionMode" not in data or "volumeMode" not in data or "speedMode" not in data:
             return {"configured": False}
 
-        return {"configured": True, "expositionMode": data["expositionMode"], "volumeMode": data["volumeMode"], "speedMode": data["speedMode"]}
+        return {"configured": True, "expositionMode": data["expositionMode"], "volumeMode": data["volumeMode"], "speedMode": data["speedMode"], "cropArea": data["cropArea"], "cropWindow": data["cropWindow"]}
 
     except:
         return {"configured": False}
@@ -1659,6 +1672,17 @@ def get_countdownTimer(current_user: dict = Depends(get_current_user)):
         "countdown": volumeState.countdown,
     }
 
+@app.get("/cropWindow/value", summary="Retrieves the value of the crop window",
+         description="""
+         Obtains the value of the crop window. 
+         """,
+         tags=["Configuration"])
+def get_cropWindow(current_user: dict = Depends(get_current_user)):
+    return{
+        "cropWindow": volumeState.cropWindow,
+        "cropArea": volumeState.cropArea,
+    }
+
 @app.get("/depth/status")
 def depth_status(current_user : dict = Depends(get_current_user)):
     return {
@@ -1673,7 +1697,8 @@ def depth_status(current_user : dict = Depends(get_current_user)):
          """,
          tags=["Weight"])
 def get_weight(current_user: dict = Depends(get_current_user)):
-    return getWeight()
+    with weight_lock:
+        return weightState.weight.copy()
 
 # --------------------------------------  Menu  ----------------------------------------
 

@@ -182,7 +182,7 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
     object_outOfLine = []
     belongs_to_previous = False
     pending_merges = []
-    contours_united = []
+    contours_united = set()
     binaryImgs = []
     curr_index = 0
 
@@ -350,7 +350,7 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
                                 print("Unite Contour")
                                 new_c = max(contorno, key=cv2.contourArea)
                                 if cv2.contourArea(new_c) > 0:
-                                    contours_united.append((curr_index, i_prev_obj))
+                                    contours_united.add((curr_index, i_prev_obj))
                                     c = new_c
                                 cv2.drawContours(imagIna, [new_c], -1, 255, 2)
                             else:
@@ -448,12 +448,15 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
 
                     to_delete.add(prev_index)
 
+                    new_contours_united = set()
                     for k, (a, b) in enumerate(contours_united):
                         if a > prev_index:
                             a -= 1
                         if b > prev_index:
                             b -= 1
-                        contours_united[k] = (a, b)
+                        new_contours_united.add((a, b))
+
+                    contours_united = new_contours_united
 
                     print(f"Merged previous {prev_index} into current {current_index}")
 
@@ -464,12 +467,15 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
 
                     to_delete.add(current_index)
 
+                    new_contours_united = set()
                     for k, (a, b) in enumerate(contours_united):
                         if a > current_index:
                             a -= 1
                         if b > current_index:
                             b -= 1
-                        contours_united[k] = (a, b)
+                        new_contours_united.add((a, b))
+
+                    contours_united = new_contours_united
 
                     print(f"Merged current {current_index} into previous {prev_index}")
 
@@ -586,8 +592,6 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
         #     for j, c in enumerate(contour_list):
         #         print(" ", j, c.shape, cv2.contourArea(c))
 
-        print(contours_united)
-
         all_contours = [c for contour_list in contours for c in contour_list if c.size > 0]
         groups = []
         used = set()
@@ -598,7 +602,6 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
 
             stack = [i]
             group = []
-            uniteIdx = 0
 
             while stack:
                 idx = stack.pop()
@@ -609,14 +612,6 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
 
                 used.add(idx)
                 group.append(all_contours[idx])
-
-                for k, (a, b) in enumerate(contours_united):
-                    print(a,b)
-                    print(f"Entrei. Achas que o {b} é igual ao {idx}")
-                    if b == idx:
-                        print(f"O index {idx} tem de se juntar ao ...")
-                        uniteIdx = a
-                        break
 
                 for j in range(len(all_contours)):
                     if j in used:
@@ -629,12 +624,8 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
 
                     #if overlap_ratio(box_i, box_j) > OVERLAP_RATIO or intersection_edge(box_i, box_j, depthFrame):
                     if contours_overlap_by_points(box_i, box_j) or intersection_edge(box_i, box_j, depthFrame) or areContoursClose(box_i, box_j, 10):
-                        if uniteIdx == j:
-                            print(f"... index {j}!")
                         stack.append(j)
                         print(f"BUNDLE joined {i} with {j}")
-
-                stack.reverse()
 
             groups.append(group)
 
@@ -716,7 +707,7 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
     not_set = 1
     minimum_value = 6000
                     
-    return minimum_value, not_set, box_ws, box_limits, depths, object_outOfLine
+    return minimum_value, not_set, box_ws, box_limits, depths, object_outOfLine, contours_united
 
 ######################
 def is_suspect_blob(c, ctd):

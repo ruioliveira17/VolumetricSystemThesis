@@ -1,15 +1,27 @@
 {
     "expositionMode": "HDR",
-    "volumeMode": "Real",
+    "volumeMode": "Single Bundle",
     "calibrationMode": "Automatic",
     "speedMode": "Intermedium",
     "workingMode": "Static",
     "debugMode": "Off",
-    "exposureTime": 1200,
+    "exposureTime": 4000,
     "fps": 10,
     "flyingPixelFilter": true,
     "fillHoleFilter": true,
     "spatialFilter": true,
     "confidenceFilter": false,
-    "countdown": 0
+    "cropWindow": {
+        "x": 437.2549019607843,
+        "y": 304.9325980392157,
+        "width": 578.4313725490197,
+        "height": 582.3529411764707
+    },
+    "cropArea": {
+        "x": 437.2549019607843,
+        "y": 304.9325980392157,
+        "width": 578.4313725490197,
+        "height": 582.3529411764707
+    },
+    "countdown": 3
 }

@@ -1644,13 +1644,13 @@ body {
   height: 4%;
   display: flex;
   justify-content: center;
-  gap: 10%;
+  gap: 5%;
   margin-bottom: 1%;
   z-index: 30;
 }
 
 .crop-button{
-  width: 25%;
+  width: 20%;
   cursor: pointer;
   border-radius: 0.2vw;
   border: none;

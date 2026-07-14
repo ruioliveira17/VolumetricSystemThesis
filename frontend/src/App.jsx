@@ -42,16 +42,28 @@ function App() {
   const [currentMenu, setCurrentMenu] = useState("login-menu");
   const [lastMenu, setLastMenu] = useState("None");
 
+  const [cropVideoReady, setCropVideoReady] = useState(false);
+
   const detectionArea = useRef([0, 0, 0, 0]);
   const selectedPoint = useRef(null);
 
   const selectedCorner = useRef(null);
-  const [cropArea, setCropArea] = useState({
+
+  const ORIGINAL_CROP = {
+    x: 0,
+    y: 0,
+    width: 1600,
+    height: 1200
+  }
+
+  const DEFAULT_CROP = {
     x: 15,
     y: 15,
     width: 1570,
     height: 1170
-  });
+  }
+
+  const [cropArea, setCropArea] = useState(DEFAULT_CROP);
 
   const cameraLoopInterval = useRef(null);
   const tokenCheckInterval = useRef(null);
@@ -78,8 +90,6 @@ function App() {
   const [volInfo, setVolInfo] = useState(null);
   const [objCenters, setObjCenters] = useState([]);
   const [objAngles, setObjAngles] = useState([]);
-  const [objContours, setObjContours] = useState([]);
-  const [objOverlappedHeights, setOverlappedObjHeights] = useState([]);
   const [objectImage, setObjectImage] = useState(null);
 
   const [objectList, setObjectList] = useState([]);
@@ -134,6 +144,7 @@ function App() {
   const [showCropWindow, setShowCropWindow] = useState(false);
   const [videoCrop, setVideoCrop] = useState(null);
   const [cropTransform, setCropTransform] = useState(null);
+  const [lastVideoCrop, setLastVideoCrop] = useState(null);
 
   const [appReady, setAppReady] = useState(false);
 
@@ -257,13 +268,17 @@ function App() {
         }
 
         if (config_data.speedMode === "Slow"){
-          setSpeedMode("slow")
+          setSpeedMode("slow");
         } else if (config_data.speedMode === "Intermedium"){
-          setSpeedMode("intermedium")
+          setSpeedMode("intermedium");
         } else if (config_data.speedMode === "Fast"){
-          setSpeedMode("fast")
+          setSpeedMode("fast");
         }
 
+        if (config_data.cropArea && config_data.cropWindow){
+          setCropArea(config_data.cropArea);
+          setLastVideoCrop(config_data.cropWindow);
+        }
       }
 
       setMenuSideNavOpen(true);
@@ -272,6 +287,22 @@ function App() {
       setCurrentMenu("login-menu");
     }
   }
+
+  useEffect(() => {
+    if (currentMenu === "volume-menu" && lastVideoCrop !== null) {
+        console.log(lastVideoCrop);
+
+        setVideoCrop({
+          ...lastVideoCrop,
+          videoWidth: cameraVideo.current.videoWidth,
+          videoHeight: cameraVideo.current.videoHeight,
+          displayWidth: cameraVideo.current.clientWidth,
+          displayHeight: cameraVideo.current.clientHeight
+        });
+
+        setLastVideoCrop(null);
+    }
+  }, [currentMenu, cropVideoReady]);
 
   // ----------------------  Login Screen  -----------------------
 
@@ -606,6 +637,8 @@ function App() {
       const dataResponse = await fetch(`${API_URL}/volume/multiBundle/results`, {headers: { "Authorization": `Bearer ${access_token}`}});
       const volumeData = await dataResponse.json();
 
+      console.log(volumeData)
+
       setVolumeData(volumeData);
 
       const imgResp = await fetch(`${API_URL}/getFrame/detectedObjectsFrame`, {headers: { "Authorization": `Bearer ${access_token}` }});
@@ -664,6 +697,8 @@ function App() {
       const dataResponse = await fetch(`${API_URL}/volume/real/results`, {headers: { "Authorization": `Bearer ${access_token}`}});
       const volumeData = await dataResponse.json();
 
+      console.log(volumeData)
+
       setVolumeData(volumeData);
 
       const imgResp = await fetch(`${API_URL}/getFrame/detectedObjectsFrame`, {headers: { "Authorization": `Bearer ${access_token}` }});
@@ -684,8 +719,6 @@ function App() {
 
         setObjCenters(objData.obj_center ?? []);
         setObjAngles(objData.obj_angles ?? []);
-        setOverlappedObjHeights(objData.obj_overlappedHeights ?? []);
-        setObjContours(objData.obj_contours ?? []);
 
         setSelectedObject(key);
 
@@ -786,8 +819,6 @@ function App() {
 
     setObjCenters(objData.obj_center ?? []);
     setObjAngles(objData.obj_angles ?? []);
-    setOverlappedObjHeights(objData.obj_overlappedHeights ?? []);
-    setObjContours(objData.obj_contours ?? []);
   }, [selectedObject, multipleVolumeData]);
 
   // Drawing the Boxes
@@ -921,10 +952,6 @@ function App() {
         ? objAngles.slice().reverse()
         : objAngles;
 
-      const overlappedHeights = volumeMode === "real"
-        ? objOverlappedHeights.slice().reverse()
-        : objOverlappedHeights;
-
       const maxWidth = Math.max(...boxes.map(b => b.width));
       const maxLength = Math.max(...boxes.map(b => b.length));
       const maxHeight = Math.max(...boxes.map(b => b.height));
@@ -978,7 +1005,7 @@ function App() {
           y: x * sa + y * ca,
         });
 
-        const bottomHeight = overlappedHeights[i] ?? 0;
+        const bottomHeight =  0;
         if (i === 0 || bottomHeight === 0){
           bottom = baseHeight / maxDim;
           top = (baseHeight + h) / maxDim;
@@ -1825,6 +1852,20 @@ function App() {
     }
   }
 
+  async function cropWindow_Set(valueWindow, valueArea) {
+    try{
+      const access_token = localStorage.getItem("access_token");
+
+      await fetch(`${API_URL}/update_systemInfo`, {method: "POST", headers: {"Content-Type": "application/json", "Authorization": `Bearer ${access_token}`}, body: JSON.stringify({ cropWindow: valueWindow, cropArea:  valueArea})});
+
+      await fetch(`${API_URL}/saveInfo`, {method: "POST", headers: { "Authorization": `Bearer ${access_token}` } });
+
+    }catch(error){
+      console.error("CropWindow set error:", error);
+    }
+    
+  }
+
   // Change Color Slope
   async function colorSlopeSet_click() {
     const value = Number(colorSlope);
@@ -1874,7 +1915,7 @@ function App() {
           const dataResponse = await fetch(`${API_URL}/weight`, {headers: { "Authorization": `Bearer ${access_token}`}});
           const weightData = await dataResponse.json();
           setWeightInfo(weightData);
-          //console.log("Weight info:", weightData.flags["stable"]);
+          // console.log("Weight info:", weightData);
           setWeightStable(weightData.flags["stable"]);
         }catch (error) {
           console.error("Weight info error:", error);
@@ -2531,7 +2572,7 @@ function App() {
                 </button>
               </form>
 
-              {/*<p style={{ marginTop: "15px" }}>
+              <p style={{ marginTop: "300px" }}>
                 Don't have an account?{" "}
                 <span
                   onClick={showRegisterScreen}
@@ -2543,7 +2584,7 @@ function App() {
                 >
                   Register
                 </span>
-              </p>*/}
+              </p>
 
             </div>
 
@@ -2555,7 +2596,7 @@ function App() {
         )}
 
         {/* Register Screen Panel */}
-        {/*{currentMenu === "register" && (
+        {currentMenu === "register" && (
           <div className="menu">
             <h2>Register</h2>
 
@@ -2619,7 +2660,7 @@ function App() {
 
             <div style={{ color: "red" }}>{error.map((err, i) => (<p key={i}>{err}</p>))}</div>
           </div>
-        )}*/}
+        )}
           
         {/* Volume Panel */}
         {currentMenu === "volume-menu" && (
@@ -2663,11 +2704,14 @@ function App() {
                       autoPlay
                       playsInline
                       className="camera-video"
+                      onLoadedMetadata={() => {
+                        setCropVideoReady(true);
+                      }}
                       style={cropTransform}
                     />
                   ) : (
                     objectImage && (
-                      <img className="object-img" src={objectImage} style={cropTransform} alt="objects"/>
+                      <img className="object-img" src={objectImage} onLoadedMetadata={() => {setCropVideoReady(true);}} style={cropTransform} alt="objects"/>
                     )
                   )}
                 </div>
@@ -2790,8 +2834,6 @@ function App() {
                       ))}
                     </div>
 
-                    
-
                     <div className="object-total">
                       {multipleVolumeData ? (
                         <> 
@@ -2820,7 +2862,7 @@ function App() {
                   <div className="boxInfo-container">
                     <div className="background"></div>
                     
-                    {volInfo && selectedObject &&(
+                    {volInfo && selectedObject && (volInfo.width !== 0 || volInfo.length !== 0 || volInfo.height !== 0 || volInfo.volume_m !== 0 || volInfo.volume_cm !== 0) && (
                       <>
                         <canvas ref={canvasRef} className="volume-canvas"/>
                         <div className="boxInfoText-container">
@@ -3155,6 +3197,22 @@ function App() {
                 <button className="crop-button" onClick={() => setShowCropWindow(false)}>
                   <span className="text">Cancel</span>
                 </button>
+
+                <button className="crop-button" onClick={() => {
+                                                  setVideoCrop({...ORIGINAL_CROP,
+                                                    videoWidth: cropVideo.current.videoWidth,
+                                                    videoHeight: cropVideo.current.videoHeight,
+                                                    displayWidth: cropVideo.current.clientWidth,
+                                                    displayHeight: cropVideo.current.clientHeight
+                                                  });
+                                                  setCropArea(DEFAULT_CROP);
+                                                  setShowCropWindow(false);
+                                                  setShowSettingsPopup(false);
+                                                  cropWindow_Set(ORIGINAL_CROP, DEFAULT_CROP);
+                                                }}>
+                  <span className="text">Revert</span>
+                </button>
+
                 <button className="crop-button" onClick={() => {
                                                   setVideoCrop({
                                                     ...cropArea,
@@ -3165,6 +3223,7 @@ function App() {
                                                   })
                                                   setShowCropWindow(false);
                                                   setShowSettingsPopup(false);
+                                                  cropWindow_Set(cropArea, cropArea);
                                                 }}>
                   <span className="text">Confirm</span>
                 </button>

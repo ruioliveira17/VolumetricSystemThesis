@@ -197,7 +197,7 @@ def volumeMultiBundleAPI(depthFrame, calibrationDepthFrame, workspace_depth, box
 
     return volume, width_meters, length_meters, height_meters
 
-def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits, depths, fx_d, fy_d, cx_d, cy_d): 
+def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits, contours_united, depths, fx_d, fy_d, cx_d, cy_d): 
     volume = 0
     width_meters = 0
     length_meters = 0
@@ -206,7 +206,6 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
     groupWidths= []
     groupLengths = []
     groupHeights = []
-    groupHeightsOverlapped = []
     groupAngles = []
     groupRealVolume = []
 
@@ -222,6 +221,7 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
     allGroupObjPointsPixel = []
     allGroupsObjPoints = []
     allObjCenter = []
+    allOriginalIndexes = []
     groups = []
     used = set()
 
@@ -231,6 +231,8 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
     colorToDepthFrameX = frameState.colorToDepthFrame.copy()
 
     print("Box Limits Len:", len(box_limits))
+
+    print("Contours_United", contours_united)
 
     for i in range(len(box_limits)):
         if i in used:
@@ -246,22 +248,24 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
                 continue
 
             used.add(idx)
-            group.append((box_limits[idx], depths[idx]))
+            group.append((box_limits[idx], depths[idx], idx))
 
             for j in range(len(box_limits)):
                 if j in used:
                     continue
 
-                #box_i = cv2.boxPoints(cv2.minAreaRect(box_limits[idx]))
-                #box_j = cv2.boxPoints(cv2.minAreaRect(box_limits[j]))
                 box_i = box_limits[idx]
                 box_j = box_limits[j]
 
-                #if overlap_ratio(box_i, box_j) > OVERLAP_RATIO or intersection_edge(box_i, box_j, depthFrame):
                 if contours_overlap_by_points(box_i, box_j) or intersection_edge(box_i, box_j, depthFrame) or areContoursClose(box_i, box_j, 10):
                     stack.append(j)
 
+            stack.reverse()
+
         groups.append(group)
+
+    for group in groups:
+        print([item[2] for item in group])
 
     print("Number of groups:", len(groups))
     
@@ -274,17 +278,18 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
         allObj_pts = []
         allObj_pts_m = []
         depthsObj = []
+        originalIndex = []
         objCenter = []
         irregularGroup = []
         group = groups[i]
         group.sort(key=lambda x: x[1], reverse=False)
-        min_depth = min(depth for _, depth in group)
+        min_depth = min(depth for _, depth, _ in group)
         obj_height_mm = workspace_depth - min_depth
         if obj_height_mm < MIN_OBJ_HEIGHT_MM:
             print("Skipping ghost object", i, ": height", obj_height_mm, "mm")
             continue
 
-        for contour, depth in group:
+        for contour, depth, index in group:
             fill_img = numpy.zeros((480, 640), dtype=numpy.uint8)
             cv2.fillPoly(fill_img, [contour.astype(numpy.int32)], 255)
 
@@ -308,7 +313,7 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
 
         for j in range(len(group)):
             irregular = False
-            contour, depth = group[j]
+            contour, depth, idx = group[j]
             #print(group[j])
 
             img = numpy.zeros((480, 640, 3), dtype=numpy.uint8)
@@ -378,6 +383,7 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
             allObj_pts.append(pts_flat.copy())
             allObj_pts_m.append(numpy.column_stack([X, Y]).tolist())
             depthsObj.append(depth)
+            originalIndex.append(idx)
 
             #rect_px = cv2.minAreaRect(pts_flat.astype(numpy.float32))
             #box_px = cv2.boxPoints(rect_px)
@@ -395,6 +401,7 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
         allGroupsObjPoints.append((allObj_pts_m, irregularGroup))
         allDepths.append(depthsObj)
         allObjCenter.append(objCenter)
+        allOriginalIndexes.append(originalIndex)
         
         #print("Size of allGroupsObjPoints:", len(allGroupsObjPoints))
         #print("Size of allObj_pts_m:", len(allObj_pts_m))
@@ -403,6 +410,8 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
     for idx, (allObjPtsM, irregular) in enumerate(allGroupsObjPoints):
         allObjPixel = allGroupObjPointsPixel[idx]
         allObjContour = allGroupObjContours[idx]
+        allObjIndex = allOriginalIndexes[idx]
+
         #print("Grupo:", idx)
         #print("------------------------")
         #print("Size of allObjPtsM:", len(allObjPtsM))
@@ -411,13 +420,11 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
         objWidth= []
         objLength = []
         objHeight = []
-        objHeightOverlapped = []
         objAngle = []
         realVolume = 0
         last_area = 0
         
         for i, obj in enumerate(allObjPtsM):
-            height_meters_overlappedObject = 0
             allObjPtsM = [numpy.array(obj, dtype=numpy.float32) for obj in allObjPtsM]
             rect_m = cv2.minAreaRect(allObjPtsM[i])
             width_meters, length_meters = rect_m[1]
@@ -434,6 +441,15 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
 
             if i!= 0:
                 print("Calculating through Contour")
+                print("Index desta área", allObjIndex[i-1])
+                for a, b in contours_united:
+                    if allObjIndex[i-1] == a:
+                        print("Estou relacionado com:", b)
+                        prevIndex = allObjIndex.index(b)
+                        print(f"PrevIndex: {prevIndex}, corresponds to: {allObjIndex[prevIndex]}")
+                        print()
+                        last_area = cv2.contourArea(allObjContour[prevIndex])
+
                 if i-1 > 0:
                     area = cv2.contourArea(allObjContour[i-1]) - last_area
                 else:
@@ -460,7 +476,6 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
 
                 cv2.imwrite(f"contour_debug{i}.png", debug_img)
 
-                last_area = area
                 volume = area * height_meters
                 print("Area:", cv2.contourArea(allObjContour[i-1]))
 
@@ -479,18 +494,15 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
             objWidth.append(width_meters)
             objLength.append(length_meters)
             objHeight.append(height_meters)
-            objHeightOverlapped.append(height_meters_overlappedObject)
             objAngle.append(angle)
         
         groupWidths.append(objWidth)
         groupLengths.append(objLength)
         groupHeights.append(objHeight)
-        groupHeightsOverlapped.append(objHeightOverlapped)
         groupAngles.append(objAngle)
         groupRealVolume.append(realVolume)
         
     cv2.imwrite("Centers.png", colorToDepthFrameX)
-    #print(groupHeightsOverlapped)
     #print(allObjCenter)
     #print(groupAngles)
     #print("------------------------------")
@@ -505,7 +517,7 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
     length_meters = ength
     height_meters = eight
 
-    return volume, width_meters, length_meters, height_meters, allObjCenter, groupAngles, groupHeightsOverlapped, allGroupObjContours
+    return volume, width_meters, length_meters, height_meters, allObjCenter, groupAngles
 
 def volumeIndividualAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits, depths, fx_d, fy_d, cx_d, cy_d): 
     MIN_OBJ_HEIGHT_MM = 30
