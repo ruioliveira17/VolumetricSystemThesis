@@ -39,6 +39,8 @@ function App() {
   const TextCountdownValues = "Countdown Timer value must be between 0 and 10";
   const TextCountdownUpdateSuccessfull = "Countdown Timer updated successfully";
 
+  const TextNoObjectsDetected = "Failed to identify any object!"
+
   const [currentMenu, setCurrentMenu] = useState("login-menu");
   const [lastMenu, setLastMenu] = useState("None");
 
@@ -290,8 +292,6 @@ function App() {
 
   useEffect(() => {
     if (currentMenu === "volume-menu" && lastVideoCrop !== null) {
-        console.log(lastVideoCrop);
-
         setVideoCrop({
           ...lastVideoCrop,
           videoWidth: cameraVideo.current.videoWidth,
@@ -530,6 +530,7 @@ function App() {
         const start = performance.now();
         setObjectList([]);
         setSelectedObject("");
+        setError([TextClear]);
         setVolInfo(null);
         setVolumeData(null);
         setObjectImage(null);
@@ -585,7 +586,6 @@ function App() {
 
       const response = await fetch(`${API_URL}/getObjectsOutOfLine`, {headers: { "Authorization": `Bearer ${access_token}`}});
       const data = await response.json();
-      console.log(data.objects_outOfLine)
       const objectsOutOfLine = data.objects_outOfLine.map((val, i) => val ? i + 1 : null).filter(v => v !== null);
       if (objectsOutOfLine.length > 0) {
           setError([TextOutOfLine]);
@@ -595,13 +595,20 @@ function App() {
           const dataResponse = await fetch(`${API_URL}/volume/singleBundle/results`, {headers: { "Authorization": `Bearer ${access_token}`}});
           const volumeData = await dataResponse.json();
 
-          setVolInfo({
-            volume_m: volumeData.Bundle.volume_m,
-            volume_cm: volumeData.Bundle.volume_cm,
-            width: volumeData.Bundle.x,
-            length: volumeData.Bundle.y,
-            height: volumeData.Bundle.z
-          })
+          const bundle = volumeData.Bundle; 
+
+          if (bundle.volume_m === 0 || bundle.volume_cm === 0 || bundle.x === 0 || bundle.y === 0 || bundle.z === 0) {
+            setError([TextNoObjectsDetected])
+          } else {
+            setVolInfo({
+              volume_m: volumeData.Bundle.volume_m,
+              volume_cm: volumeData.Bundle.volume_cm,
+              width: volumeData.Bundle.x,
+              length: volumeData.Bundle.y,
+              height: volumeData.Bundle.z
+            })
+
+          }
       }
 
       const imgResp = await fetch(`${API_URL}/getFrame/detectedObjectsFrame`, {headers: { "Authorization": `Bearer ${access_token}` }});
@@ -637,8 +644,6 @@ function App() {
       const dataResponse = await fetch(`${API_URL}/volume/multiBundle/results`, {headers: { "Authorization": `Bearer ${access_token}`}});
       const volumeData = await dataResponse.json();
 
-      console.log(volumeData)
-
       setVolumeData(volumeData);
 
       const imgResp = await fetch(`${API_URL}/getFrame/detectedObjectsFrame`, {headers: { "Authorization": `Bearer ${access_token}` }});
@@ -652,7 +657,11 @@ function App() {
 
       const objIdentified = Object.keys(volumeData).filter(key => key !== "Total");
       
-      if (objIdentified.length === 1) {
+      if (objIdentified.length === 0) {
+
+        setError([TextNoObjectsDetected])
+
+      } else if (objIdentified.length === 1) {
         
         const key = objIdentified[0];
         const objData = volumeData[key];
@@ -697,8 +706,6 @@ function App() {
       const dataResponse = await fetch(`${API_URL}/volume/real/results`, {headers: { "Authorization": `Bearer ${access_token}`}});
       const volumeData = await dataResponse.json();
 
-      console.log(volumeData)
-
       setVolumeData(volumeData);
 
       const imgResp = await fetch(`${API_URL}/getFrame/detectedObjectsFrame`, {headers: { "Authorization": `Bearer ${access_token}` }});
@@ -712,7 +719,11 @@ function App() {
 
       const objIdentified = Object.keys(volumeData).filter(key => key !== "Total");
 
-      if (objIdentified.length === 1) {
+      if (objIdentified.length === 0) {
+        
+        setError([TextNoObjectsDetected])
+
+      } else if (objIdentified.length === 1) {
         
         const key = objIdentified[0];
         const objData = volumeData[key];
@@ -1915,7 +1926,6 @@ function App() {
           const dataResponse = await fetch(`${API_URL}/weight`, {headers: { "Authorization": `Bearer ${access_token}`}});
           const weightData = await dataResponse.json();
           setWeightInfo(weightData);
-          // console.log("Weight info:", weightData);
           setWeightStable(weightData.flags["stable"]);
         }catch (error) {
           console.error("Weight info error:", error);
@@ -2174,7 +2184,6 @@ function App() {
           }
         }
 
-        console.log("cropArea:", c)
         return c;
       });
 
@@ -2288,7 +2297,6 @@ function App() {
       translateY -= top;
     }
     if (right < video.clientWidth) {
-      console.log(right)
       translateX += video.clientWidth - right;
     }
     if (bottom < video.clientHeight) {
@@ -2686,7 +2694,7 @@ function App() {
               <div className="warning">
                 {processingMessage}
               </div>
-            )}  
+            )}
 
             <div className="menu-wrapper">
               <div className="title-container">
@@ -2698,7 +2706,6 @@ function App() {
               <div className="camera-container">
                 <div className="camera-video-wrapper">
                   {showCamera ? (
-                    
                     <video
                       ref={cameraVideo}
                       autoPlay
@@ -2862,7 +2869,7 @@ function App() {
                   <div className="boxInfo-container">
                     <div className="background"></div>
                     
-                    {volInfo && selectedObject && (volInfo.width !== 0 || volInfo.length !== 0 || volInfo.height !== 0 || volInfo.volume_m !== 0 || volInfo.volume_cm !== 0) && (
+                    {volInfo && selectedObject && (
                       <>
                         <canvas ref={canvasRef} className="volume-canvas"/>
                         <div className="boxInfoText-container">

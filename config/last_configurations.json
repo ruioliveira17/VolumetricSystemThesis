@@ -1,6 +1,6 @@
 {
     "expositionMode": "HDR",
-    "volumeMode": "Real",
+    "volumeMode": "Single Bundle",
     "calibrationMode": "Automatic",
     "speedMode": "Intermedium",
     "workingMode": "Static",
