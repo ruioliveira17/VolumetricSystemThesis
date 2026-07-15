@@ -1,3 +1,5 @@
+from BaseModels import CropWindow
+
 class VolumeState:
     def __init__(self):
         self.width = 0
@@ -15,8 +17,18 @@ class VolumeState:
         self.volume = 0
         self.objects_outOfLine = []
         self.countdown = 3
-        self.cropWindow = {"x": 0, "y": 0, "width": 1600, "height": 1200}
-        self.cropArea = {"x": 15, "y": 15, "width": 1570, "height": 1170}
+        self.cropWindow = CropWindow(
+                                        x=0,
+                                        y=0,
+                                        width=1600,
+                                        height=1200,
+                                    )
+        self.cropArea = CropWindow(
+                                        x=15,
+                                        y=15,
+                                        width=1570,
+                                        height=1170,
+                                    )
         self.click_timestamp = None
         self.hdrFinished = False
         self.united_contours = None

@@ -21,20 +21,20 @@ def volumeSingleBundleAPI(depthFrame, workspace_depth, minimum_depth, box_limits
 
     pts_m = []
 
-    print("Depths Len:", len(depths))
-    print("Box Limits Len:", len(box_limits))
+    #print("Depths Len:", len(depths))
+    #print("Box Limits Len:", len(box_limits))
 
     MIN_OBJ_HEIGHT_MM = 30
     for i in range((len(depths))):
         obj_height_mm = workspace_depth - depths[i]
         if obj_height_mm < MIN_OBJ_HEIGHT_MM:
-            print("Skipping ghost object", i, ": height", obj_height_mm, "mm")
+            #print("Skipping ghost object", i, ": height", obj_height_mm, "mm")
             continue
         pts_flat = box_limits[i].reshape(-1,2)
-        rect_px = cv2.minAreaRect(pts_flat.astype(numpy.float32))
-        box_px = cv2.boxPoints(rect_px)
-        cv2.drawContours(frameState.colorToDepthFrame, [numpy.int32(box_px)], 0, (0, 255, 0), 2)
-        cv2.imwrite(f"colorToDepthFrame{i}.png", frameState.colorToDepthFrame)
+        # rect_px = cv2.minAreaRect(pts_flat.astype(numpy.float32))
+        # box_px = cv2.boxPoints(rect_px)
+        # cv2.drawContours(frameState.colorToDepthFrame, [numpy.int32(box_px)], 0, (0, 255, 0), 2)
+        # cv2.imwrite(f"colorToDepthFrame{i}.png", frameState.colorToDepthFrame)
 
         DEPTH_TOL_MM = 40
         for (u,v) in pts_flat:
@@ -57,7 +57,7 @@ def volumeSingleBundleAPI(depthFrame, workspace_depth, minimum_depth, box_limits
 
     volume = width_meters * length_meters * height_meters
 
-    return volume, width_meters, length_meters, height_meters
+    return [volume], [width_meters], [length_meters], [height_meters]
 
 def volumeMultiBundleAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits, depths, fx_d, fy_d, cx_d, cy_d): 
     volume = 0
@@ -72,7 +72,6 @@ def volumeMultiBundleAPI(depthFrame, calibrationDepthFrame, workspace_depth, box
     eight = []
     totalVolume = 0
 
-    pts_m = []
     groups = []
     used = set()
     depthsObj = []
@@ -81,7 +80,7 @@ def volumeMultiBundleAPI(depthFrame, calibrationDepthFrame, workspace_depth, box
 
     calibrationDepthFrame_copy = calibrationDepthFrame.copy()
 
-    print("Box Limits Len:", len(box_limits))
+    #print("Box Limits Len:", len(box_limits))
 
     for i in range(len(box_limits)):
         if i in used:
@@ -111,11 +110,11 @@ def volumeMultiBundleAPI(depthFrame, calibrationDepthFrame, workspace_depth, box
                 #if overlap_ratio(box_i, box_j) > OVERLAP_RATIO or intersection_edge(box_i, box_j, depthFrame):
                 if contours_overlap_by_points(box_i, box_j) or intersection_edge(box_i, box_j, depthFrame) or areContoursClose(box_i, box_j, 10):
                     stack.append(j)
-                    print(f"joined {i} with {j}")
+                    #print(f"joined {i} with {j}")
 
         groups.append(group)
 
-    print("Number of groups:", len(groups))
+    #print("Number of groups:", len(groups))
 
     for i in range((len(groups))):
         objPoints = []
@@ -123,7 +122,7 @@ def volumeMultiBundleAPI(depthFrame, calibrationDepthFrame, workspace_depth, box
         min_depth = min(depth for _, depth in group)
         obj_height_mm = workspace_depth - min_depth
         if obj_height_mm < MIN_OBJ_HEIGHT_MM:
-            print("Skipping ghost object", i, ": height", obj_height_mm, "mm")
+            #print("Skipping ghost object", i, ": height", obj_height_mm, "mm")
             continue
          
         for contour, depth in group:
@@ -150,13 +149,13 @@ def volumeMultiBundleAPI(depthFrame, calibrationDepthFrame, workspace_depth, box
 
             objPoints.extend(numpy.column_stack([X,Y]))
 
-        all_points = numpy.vstack([contour for contour, _ in group])
-        pts_flat = all_points.reshape(-1,2)
+        # all_points = numpy.vstack([contour for contour, _ in group])
+        # pts_flat = all_points.reshape(-1,2)
 
-        rect_px = cv2.minAreaRect(pts_flat.astype(numpy.float32))
-        box_px = cv2.boxPoints(rect_px)
-        cv2.drawContours(frameState.colorToDepthFrame, [numpy.int32(box_px)], 0, (0, 255, 0), 2)
-        cv2.imwrite(f"colorToDepthFrame{i}.png", frameState.colorToDepthFrame)
+        # rect_px = cv2.minAreaRect(pts_flat.astype(numpy.float32))
+        # box_px = cv2.boxPoints(rect_px)
+        # cv2.drawContours(frameState.colorToDepthFrame, [numpy.int32(box_px)], 0, (0, 255, 0), 2)
+        # cv2.imwrite(f"colorToDepthFrame{i}.png", frameState.colorToDepthFrame)
 
         allObj_pts_m.append(objPoints)
         depthsObj.append(min_depth)
@@ -174,8 +173,8 @@ def volumeMultiBundleAPI(depthFrame, calibrationDepthFrame, workspace_depth, box
         #ws_d_h = float(numpy.median(ws_vals_h)) if ws_vals_h.size > 0 else float(workspace_depth)
         ws_d_h = float(workspace_depth)
 
-        print("WS_D_H:", ws_d_h)
-        print("OBJ_D:", depthsObj[idx])
+        #print("WS_D_H:", ws_d_h)
+        #print("OBJ_D:", depthsObj[idx])
 
         height_meters = (ws_d_h - depthsObj[idx]) / 1000
 
@@ -192,8 +191,8 @@ def volumeMultiBundleAPI(depthFrame, calibrationDepthFrame, workspace_depth, box
     length_meters = ength
     height_meters = eight
 
-    print("Volume:", volume)
-    print("Heights:", height_meters)
+    #print("Volume:", volume)
+    #print("Heights:", height_meters)
 
     return volume, width_meters, length_meters, height_meters
 
@@ -228,11 +227,11 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
     MIN_OBJ_HEIGHT_MM = 30
 
     calibrationDepthFrame_copy = calibrationDepthFrame.copy()
-    colorToDepthFrameX = frameState.colorToDepthFrame.copy()
+    #colorToDepthFrameX = frameState.colorToDepthFrame.copy()
 
-    print("Box Limits Len:", len(box_limits))
+    # print("Box Limits Len:", len(box_limits))
 
-    print("Contours_United", contours_united)
+    # print("Contours_United", contours_united)
 
     for i in range(len(box_limits)):
         if i in used:
@@ -264,13 +263,13 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
 
         groups.append(group)
 
-    for group in groups:
-        print([item[2] for item in group])
+    # for group in groups:
+    #     print([item[2] for item in group])
 
-    print("Number of groups:", len(groups))
+    # print("Number of groups:", len(groups))
     
-    print("Depths Len:", len(depths))
-    print("Box Limits Len:", len(box_limits))
+    # print("Depths Len:", len(depths))
+    # print("Box Limits Len:", len(box_limits))
 
     for i in range((len(groups))):
         objPoints = []
@@ -286,7 +285,7 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
         min_depth = min(depth for _, depth, _ in group)
         obj_height_mm = workspace_depth - min_depth
         if obj_height_mm < MIN_OBJ_HEIGHT_MM:
-            print("Skipping ghost object", i, ": height", obj_height_mm, "mm")
+            #print("Skipping ghost object", i, ": height", obj_height_mm, "mm")
             continue
 
         for contour, depth, index in group:
@@ -316,13 +315,13 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
             contour, depth, idx = group[j]
             #print(group[j])
 
-            img = numpy.zeros((480, 640, 3), dtype=numpy.uint8)
-            epsilon = 0.005 * cv2.arcLength(contour, True)
-            contour_smooth = cv2.approxPolyDP(contour, epsilon, True)
+            # img = numpy.zeros((480, 640, 3), dtype=numpy.uint8)
+            # epsilon = 0.005 * cv2.arcLength(contour, True)
+            # contour_smooth = cv2.approxPolyDP(contour, epsilon, True)
 
-            cv2.drawContours(img, [contour_smooth], -1, (0, 0, 255), 2)
+            # cv2.drawContours(img, [contour_smooth], -1, (0, 0, 255), 2)
 
-            cv2.imwrite(f"contours_compare{i}.png", img)
+            # cv2.imwrite(f"contours_compare{i}.png", img)
             #contour = contour_smooth
             contour_px = contour.reshape(-1, 2)
 
@@ -341,7 +340,7 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
 
             obj_height_mm = workspace_depth - depth
             if obj_height_mm < MIN_OBJ_HEIGHT_MM:
-                print("Skipping ghost object", i, ": height", obj_height_mm, "mm")
+                #print("Skipping ghost object", i, ": height", obj_height_mm, "mm")
                 continue
             
             pts_flat = contour.reshape(-1,2)
@@ -369,14 +368,14 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
             Xc = (max(X) + min(X)) / 2
             Yc = (max(Y) + min(Y)) / 2
 
-            Xcp = float(numpy.mean(xs_v))
-            Ycp = float(numpy.mean(ys_v))
+            # Xcp = float(numpy.mean(xs_v))
+            # Ycp = float(numpy.mean(ys_v))
 
-            cv2.circle(colorToDepthFrameX,
-                    (int(Xcp), int(Ycp)),
-                    7,
-                    (0, 0, 255),
-                    2)
+            # cv2.circle(colorToDepthFrameX,
+            #         (int(Xcp), int(Ycp)),
+            #         7,
+            #         (0, 0, 255),
+            #         2)
 
             objCenter.append((Xc * 100, Yc * 100))
             allObj_contours.append(contour_m)
@@ -430,24 +429,23 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
             width_meters, length_meters = rect_m[1]
             angle = rect_m[2]
 
-            pts_flat_h = allObjPtsM[i].reshape(-1, 2)
-            mask_h = numpy.zeros(calibrationDepthFrame_copy.shape, dtype=numpy.uint8)
-            cv2.fillPoly(mask_h, [pts_flat_h.astype(numpy.int32)], 255)
-            #ws_vals_h = calibrationDepthFrame_copy[mask_h == 255].astype(numpy.float32)
-            #ws_vals_h = ws_vals_h[(ws_vals_h >= 150) & (ws_vals_h <= workspace_depth + 15)]
-            #ws_d_h = float(numpy.median(ws_vals_h)) if ws_vals_h.size > 0 else float(workspace_depth)
+            # pts_flat_h = allObjPtsM[i].reshape(-1, 2)
+            # mask_h = numpy.zeros(calibrationDepthFrame_copy.shape, dtype=numpy.uint8)
+            # cv2.fillPoly(mask_h, [pts_flat_h.astype(numpy.int32)], 255)
+            # ws_vals_h = calibrationDepthFrame_copy[mask_h == 255].astype(numpy.float32)
+            # ws_vals_h = ws_vals_h[(ws_vals_h >= 150) & (ws_vals_h <= workspace_depth + 15)]
+            # ws_d_h = float(numpy.median(ws_vals_h)) if ws_vals_h.size > 0 else float(workspace_depth)
             ws_d_h = float(workspace_depth)
             height_meters = (ws_d_h - depths[i]) / 1000
 
             if i!= 0:
-                print("Calculating through Contour")
-                print("Index desta área", allObjIndex[i-1])
+                #print("Calculating through Contour")
+                #print("Index desta área", allObjIndex[i-1])
                 for a, b in contours_united:
                     if allObjIndex[i-1] == a:
-                        print("Estou relacionado com:", b)
+                        #print("Estou relacionado com:", b)
                         prevIndex = allObjIndex.index(b)
-                        print(f"PrevIndex: {prevIndex}, corresponds to: {allObjIndex[prevIndex]}")
-                        print()
+                        #print(f"PrevIndex: {prevIndex}, corresponds to: {allObjIndex[prevIndex]}")
                         last_area = cv2.contourArea(allObjContour[prevIndex])
 
                 if i-1 > 0:
@@ -455,38 +453,38 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
                 else:
                     area = cv2.contourArea(allObjContour[i-1])
                     
-                debug_img = frameState.colorToDepthFrame.copy()
+                # debug_img = frameState.colorToDepthFrame.copy()
 
-                contour = allObjPixel[i-1]
+                # contour = allObjPixel[i-1]
 
-                if contour is not None and len(contour) > 0:
+                # if contour is not None and len(contour) > 0:
 
-                    contour = contour.astype("int32")
+                #     contour = contour.astype("int32")
 
-                    if contour.ndim == 2:
-                        contour = contour.reshape((-1, 1, 2))
+                #     if contour.ndim == 2:
+                        # contour = contour.reshape((-1, 1, 2))
 
-                    cv2.drawContours(
-                        debug_img,
-                        [contour],
-                        -1,
-                        (0, 255, 0),
-                        2
-                    )
+                #     cv2.drawContours(
+                #         debug_img,
+                #         [contour],
+                #         -1,
+                #         (0, 255, 0),
+                #         2
+                #     )
 
-                cv2.imwrite(f"contour_debug{i}.png", debug_img)
+                # cv2.imwrite(f"contour_debug{i}.png", debug_img)
 
                 volume = area * height_meters
-                print("Area:", cv2.contourArea(allObjContour[i-1]))
+                #print("Area:", cv2.contourArea(allObjContour[i-1]))
 
             if i != 0:
                 totalVolume += volume
                 realVolume += volume
-                print("Volume:", volume)
-                print("Height:", height_meters)
-                print("Width:", width_meters)
-                print("Length:", length_meters)
-                print("------------------------------")
+                # print("Volume:", volume)
+                # print("Height:", height_meters)
+                # print("Width:", width_meters)
+                # print("Length:", length_meters)
+                # print("------------------------------")
             else:
                 height_meters = (ws_d_h - depths[i]) / 1000
                 volume = width_meters * length_meters * height_meters
@@ -502,7 +500,7 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
         groupAngles.append(objAngle)
         groupRealVolume.append(realVolume)
         
-    cv2.imwrite("Centers.png", colorToDepthFrameX)
+    # cv2.imwrite("Centers.png", colorToDepthFrameX)
     #print(allObjCenter)
     #print(groupAngles)
     #print("------------------------------")
@@ -747,7 +745,7 @@ def is_suspect_blob(c):
     else:
         validateValue = 0.85
 
-    print("Percentage", contourArea/rectArea)
+    #print("Percentage", contourArea/rectArea)
 
     return contourArea/rectArea <= validateValue
 

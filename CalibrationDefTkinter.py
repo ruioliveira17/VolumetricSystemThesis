@@ -3,12 +3,9 @@ import sys
 import os
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(BASE_DIR, "Python", "Samples", "DS86", "FrameViewer"))
-#from GetFrame import getFrame
-#from FrameState import frameState
 
 import cv2
 import numpy
-import requests
 
 from color_presets import COLOR_PRESETS
 
@@ -97,58 +94,6 @@ def maskAPI(colorToDepthFrame, lower, upper, color, cx_d, cy_d):
     finally :
         print('end')
 
-def manualWorkspaceDraw(colorToDepthFrame, detection_area, selected_point, cx_d, cy_d):
-    try:
-        colorToDepthFrame = cv2.resize(colorToDepthFrame, (640, 480))
-
-        h, w = colorToDepthFrame.shape[:2]
-
-        colorToDepthFrame_copy = colorToDepthFrame.copy()
-
-        detection_area = numpy.array([
-            [numpy.clip(x, 0, w - 1), numpy.clip(y, 0, h - 1)]
-            for x, y in detection_area
-        ], dtype=numpy.int32)
-        
-        cv2.drawContours(colorToDepthFrame_copy, [detection_area], 0, (255, 0, 0), 2)
-
-        # PONTO CENTRAL
-        
-        cv2.circle(colorToDepthFrame_copy, (cx_d, cy_d), radius=3, color=(255, 255, 255), thickness=1)
-
-        for i, (cx, cy) in enumerate(detection_area):
-            if selected_point is not None and i == selected_point:
-                color = (0, 255, 255)
-                thickness = 2
-                radius = 7
-            else:
-                color = (255, 255, 255)
-                thickness = 2
-                radius = 5
-
-            cv2.circle(
-                colorToDepthFrame_copy,
-                (cx, cy),
-                radius + 2,
-                (0, 0, 0),
-                thickness=2
-            )
-
-            cv2.circle(
-                colorToDepthFrame_copy,
-                (cx, cy),
-                radius=radius,
-                color=color,
-                thickness=thickness
-            )
-        
-        return colorToDepthFrame_copy, detection_area
-                
-    except Exception as e :
-        print(e)
-    finally :
-        print('end')
-
 def calibrateAPI(colorToDepthFrame, depthFrame, colorFrame, detection_area, lower, upper, colorSlope, cx_d, cy_d, fx_d, fy_d, caliMode):
     center_aligned = False # Ponto central tem a cor da calibração
 
@@ -162,17 +107,7 @@ def calibrateAPI(colorToDepthFrame, depthFrame, colorFrame, detection_area, lowe
 
     depth_copy = depthFrame.copy()
 
-    #ys, xs = numpy.indices(depth_copy.shape)
-
-    #D = depth_copy.astype(numpy.float32)
-
-    #depth_corrected = D / (numpy.sqrt(1 + ((xs - cx_d) / fx_d) ** 2 + ((ys - cy_d) / fy_d) ** 2))
-
-    #depth_copy = numpy.round(depth_corrected).astype(numpy.int32)
-
     depth_copy2 = depth_copy.copy()
-
-    #x_area, y_area, x_area_plus_width, y_area_plus_height = detection_area
 
     try:
         colorToDepthFrame = cv2.resize(colorToDepthFrame, (640, 480))
@@ -191,52 +126,50 @@ def calibrateAPI(colorToDepthFrame, depthFrame, colorFrame, detection_area, lowe
 
         if caliMode == "Automatic":
 
-            # ---------------- VERIFICAÇÃO COR ------------------
+            # # ---------------- VERIFICAÇÃO COR ------------------
+            #     # ------------ Lateral Esquerda ---------------
+            # LE = hsv_frame[y_area: y_area_plus_height, x_area + 3]
+            # mask_le = (((LE[:,0] >= h_min) & (LE[:,0] <= h_max)) & ((LE[:,1] >= s_min) & (LE[:,1] <= s_max)) & ((LE[:,2] >= v_min) & (LE[:,2] <= v_max)))
 
-            """####
-                # ------------ Lateral Esquerda ---------------
-            LE = hsv_frame[y_area: y_area_plus_height, x_area + 3]
-            mask_le = (((LE[:,0] >= h_min) & (LE[:,0] <= h_max)) & ((LE[:,1] >= s_min) & (LE[:,1] <= s_max)) & ((LE[:,2] >= v_min) & (LE[:,2] <= v_max)))
+            # valid_pixels_le = numpy.count_nonzero(mask_le)
+            # total_pixels_le = LE.shape[0]
+            # if total_pixels_le > 0:
+            #     proportion_le = valid_pixels_le / total_pixels_le
 
-            valid_pixels_le = numpy.count_nonzero(mask_le)
-            total_pixels_le = LE.shape[0]
-            if total_pixels_le > 0:
-                proportion_le = valid_pixels_le / total_pixels_le
+            #     # ------------------ Cima ---------------------
+            # C = hsv_frame[y_area + 3, x_area: x_area_plus_width]
+            # mask_c = (((C[:,0] >= h_min) & (C[:,0] <= h_max)) & ((C[:,1] >= s_min) & (C[:,1] <= s_max)) & ((C[:,2] >= v_min) & (C[:,2] <= v_max)))
 
-                # ------------------ Cima ---------------------
-            C = hsv_frame[y_area + 3, x_area: x_area_plus_width]
-            mask_c = (((C[:,0] >= h_min) & (C[:,0] <= h_max)) & ((C[:,1] >= s_min) & (C[:,1] <= s_max)) & ((C[:,2] >= v_min) & (C[:,2] <= v_max)))
+            # valid_pixels_c = numpy.count_nonzero(mask_c)
+            # total_pixels_c = C.shape[0]
+            # if total_pixels_c > 0:
+            #     proportion_c = valid_pixels_c / total_pixels_c
 
-            valid_pixels_c = numpy.count_nonzero(mask_c)
-            total_pixels_c = C.shape[0]
-            if total_pixels_c > 0:
-                proportion_c = valid_pixels_c / total_pixels_c
+            #     # ------------ Lateral Direita ---------------
+            # LD = hsv_frame[y_area: y_area_plus_height, x_area_plus_width - 3]
+            # mask_ld = (((LD[:,0] >= h_min) & (LD[:,0] <= h_max)) & ((LD[:,1] >= s_min) & (LD[:,1] <= s_max)) & ((LD[:,2] >= v_min) & (LD[:,2] <= v_max)))
 
-                # ------------ Lateral Direita ---------------
-            LD = hsv_frame[y_area: y_area_plus_height, x_area_plus_width - 3]
-            mask_ld = (((LD[:,0] >= h_min) & (LD[:,0] <= h_max)) & ((LD[:,1] >= s_min) & (LD[:,1] <= s_max)) & ((LD[:,2] >= v_min) & (LD[:,2] <= v_max)))
+            # valid_pixels_ld = numpy.count_nonzero(mask_ld)
+            # total_pixels_ld = LD.shape[0]
+            # if total_pixels_ld > 0:
+            #     proportion_ld = valid_pixels_ld / total_pixels_ld
 
-            valid_pixels_ld = numpy.count_nonzero(mask_ld)
-            total_pixels_ld = LD.shape[0]
-            if total_pixels_ld > 0:
-                proportion_ld = valid_pixels_ld / total_pixels_ld
+            #     # ----------------- Baixo -------------------
+            # B = hsv_frame[y_area_plus_height - 3, x_area: x_area_plus_width]
+            # mask_b = (((B[:,0] >= h_min) & (B[:,0] <= h_max)) & ((B[:,1] >= s_min) & (B[:,1] <= s_max)) & ((B[:,2] >= v_min) & (B[:,2] <= v_max)))
 
-                # ----------------- Baixo -------------------
-            B = hsv_frame[y_area_plus_height - 3, x_area: x_area_plus_width]
-            mask_b = (((B[:,0] >= h_min) & (B[:,0] <= h_max)) & ((B[:,1] >= s_min) & (B[:,1] <= s_max)) & ((B[:,2] >= v_min) & (B[:,2] <= v_max)))
+            # valid_pixels_b = numpy.count_nonzero(mask_b)
+            # total_pixels_b = B.shape[0]
+            # if total_pixels_b > 0:
+            #     proportion_b = valid_pixels_b / total_pixels_b
 
-            valid_pixels_b = numpy.count_nonzero(mask_b)
-            total_pixels_b = B.shape[0]
-            if total_pixels_b > 0:
-                proportion_b = valid_pixels_b / total_pixels_b
-
-            if (proportion_le >= 0.95) and (proportion_c >= 0.95) and (proportion_ld >= 0.95) and (proportion_b >= 0.95):
-                workspace_interrupted = False
-                print("Proporções:", proportion_le, proportion_c, proportion_ld, proportion_b)
-            else:
-                workspace_interrupted = True
-                print("Proporções:", proportion_le, proportion_c, proportion_ld, proportion_b)
-            ####"""
+            # if (proportion_le >= 0.95) and (proportion_c >= 0.95) and (proportion_ld >= 0.95) and (proportion_b >= 0.95):
+            #     workspace_interrupted = False
+            #     print("Proporções:", proportion_le, proportion_c, proportion_ld, proportion_b)
+            # else:
+            #     workspace_interrupted = True
+            #     print("Proporções:", proportion_le, proportion_c, proportion_ld, proportion_b)
+            
             kernel = numpy.ones((3,3), numpy.uint8)
             erode_exterior = cv2.erode(mask, kernel, iterations=3)
             erode_interior = cv2.erode(erode_exterior, kernel, iterations=2)
@@ -257,7 +190,7 @@ def calibrateAPI(colorToDepthFrame, depthFrame, colorFrame, detection_area, lowe
             debug[border == 255] = (0, 0, 255)  # vermelho sobre a fita
             cv2.imwrite("ZED.png", debug)
 
-            print("Proporção Cor:", proportionColor_valid)
+            # print("Proporção Cor:", proportionColor_valid)
 
             if proportionColor_valid >= 0.95:
                 workspace_interrupted = False
@@ -266,20 +199,6 @@ def calibrateAPI(colorToDepthFrame, depthFrame, colorFrame, detection_area, lowe
 
         else:
             workspace_interrupted = False
-
-        # VERIFICAÇÃO PONTO CENTRAL
-
-        #center_x_max = x_area + ((x_area_plus_width - x_area)/2) + 5
-        #center_x_min = x_area + ((x_area_plus_width - x_area)/2) - 5
-        #center_y_max = y_area + ((y_area_plus_height - y_area)/2) + 5
-        #center_y_min = y_area + ((y_area_plus_height - y_area)/2) - 5
-
-        #if (cx_d <= center_x_max) and (cx_d >= center_x_min) and (cy_d <= center_y_max) and (cy_d >= center_y_min):
-
-        #if (cx_d <= x_area_plus_width) and (cx_d >= x_area) and (cy_d <= y_area_plus_height) and (cy_d >= y_area):
-        #    center_aligned = True
-        #else:
-        #    center_aligned = False
 
         if cv2.pointPolygonTest(detection_area, (cx_d, cy_d), False) >= 0:
             center_aligned = True
@@ -301,14 +220,13 @@ def calibrateAPI(colorToDepthFrame, depthFrame, colorFrame, detection_area, lowe
         
         if valid_values.size > 0:
             avg_depth = numpy.mean(valid_values) # média da profundidade
-            print("Avg Depth:", avg_depth)
-            print("Workspace Depth", workspace_depth)
-            #count = numpy.sum(numpy.abs(valid_values - workspace_depth) <= 10)
+            # print("Avg Depth:", avg_depth)
+            # print("Workspace Depth", workspace_depth)
             count = numpy.sum(numpy.abs(valid_values - workspace_depth) <= 15)
-            print("Count:", count)
-            print("Size:", valid_values.size)
+            # print("Count:", count)
+            # print("Size:", valid_values.size)
             proportion_valid = round(count / valid_values.size, 2)
-            print("Proporção Profundidade:", proportion_valid)
+            # print("Proporção Profundidade:", proportion_valid)
 
             if proportion_valid >= 0.95:
                 workspace_free = True
@@ -316,16 +234,6 @@ def calibrateAPI(colorToDepthFrame, depthFrame, colorFrame, detection_area, lowe
                 #workspace_depth = avg_depth
             else:
                 workspace_free = False
-                
-        #img = numpy.int32(depthFrame)
-        #img = img*255/colorSlope
-        #img = numpy.clip(img, 0, 255)
-        #img = numpy.uint8(img)
-        #depthFrame = cv2.applyColorMap(img, cv2.COLORMAP_RAINBOW)
-
-        #depthFrame_copy = depthFrame.copy()
-        #cv2.rectangle(depthFrame_copy, (x_area, y_area), (x_area_plus_width, y_area_plus_height), (255, 0, 0), 2)
-        #cv2.rectangle(depthFrame_copy, (x_area + 3, y_area + 3), (x_area_plus_width - 3, y_area_plus_height - 3), (0, 0, 255), 2)
 
         if (not workspace_interrupted) and workspace_free:
             workspace_clear = True
@@ -342,25 +250,24 @@ def calibrateAPI(colorToDepthFrame, depthFrame, colorFrame, detection_area, lowe
         key = cv2.waitKey(1)
 
         if calibrated is True:
-            print("System calibrated successfully!")
-            print("Center is aligned")
-            print("Workspace is aligned! Depth:", workspace_depth, "Workspace:", detection_area)
-            cv2.destroyAllWindows()
-            print("---end---")
+            # print("System calibrated successfully!")
+            # print("Center is aligned")
+            # print("Workspace is aligned! Depth:", workspace_depth, "Workspace:", detection_area)
+            # print("---end---")
             
             return detection_area, workspace_depth, center_aligned, workspace_clear, colorFrame, depth_copy
-        else:
-            print("System isnt calibrated!")
-            print("Try Again!")
-            print("Remember: central point must be detected, workspace should be empty and all the yellow tape must be detected...")
-            if center_aligned is True:
-                print("Center Aligned!")
-            else: 
-                print("Center not Aligned!")
-            if workspace_clear is True:
-                print("Workspace is Empty!")
-            else:
-                print("Clear Workspace!")
+        # else:
+        #     print("System isnt calibrated!")
+        #     print("Try Again!")
+        #     print("Remember: central point must be detected, workspace should be empty and all the yellow tape must be detected...")
+        #     if center_aligned is True:
+        #         print("Center Aligned!")
+        #     else: 
+        #         print("Center not Aligned!")
+        #     if workspace_clear is True:
+        #         print("Workspace is Empty!")
+        #     else:
+        #         print("Clear Workspace!")
                 
     except Exception as e :
         print(e)

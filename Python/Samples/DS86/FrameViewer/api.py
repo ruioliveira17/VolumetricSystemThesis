@@ -2,18 +2,16 @@
 
 from aiortc import RTCPeerConnection, RTCSessionDescription
 from contextlib import asynccontextmanager
-from datetime import timedelta
+from datetime import timedelta # Not needed?
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, HTTPException, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.security import OAuth2PasswordBearer
-from jose import jwt
+from jose import jwt # Not needed?
 from jose.exceptions import JWTError, ExpiredSignatureError
 from PIL import Image
-from pydantic import BaseModel, Field, StrictBool
-from typing import List, Literal, Optional
 
 import asyncio
 import cv2
@@ -26,6 +24,7 @@ import threading
 
 #------------------------------------------------------   Classes    -------------------------------------------------------
 
+from BaseModels import CamValues, ColorCoords, HSVValue, LoginData, ManualWorkspace, RefreshData, RegisterData, CropWindow, SystemUpdate, CurrentMenu
 from CameraState import camState
 from DepthState import depthState
 from FilterState import filterState
@@ -94,65 +93,6 @@ def scale_nested(data, factor):
         return [scale_nested(x, factor) for x in data]
     return data * factor
 #----------------------------------------------------   Base Models    ----------------------------------------------------
-
-class CamValues(BaseModel):
-    colorSlope: Optional[int] = Field(1500, ge=100, le=4000)
-    exposureTime: Optional[int] = Field(700, ge=100, le=4000)
-
-class ColorCoords(BaseModel):
-    x : int
-    y : int
-
-class HSVValue(BaseModel):
-    hmin: Optional[int] = None
-    hmax: Optional[int] = None
-    smin: Optional[int] = None
-    smax: Optional[int] = None
-    vmin: Optional[int] = None
-    vmax: Optional[int] = None
-    color: Optional[str] = None
-
-class LoginData(BaseModel):
-    username: str
-    password: str
-
-class ManualWorkspace(BaseModel):
-    detection_area: List[List[float]] = None
-    selected_point: Optional[int] = None
-
-class RefreshData(BaseModel):
-    refresh_token: str
-
-class RegisterData(BaseModel):
-    username: str
-    password: str
-    role: str
-    code: Optional[str] = None
-
-class CropWindow(BaseModel):
-    x: float
-    y: float
-    width: float
-    height: float
-
-class SystemUpdate(BaseModel):
-    exposureTime: Optional[int] = Field(None, ge=100, le=4000)
-    colorSlope: Optional[int] = Field(None, ge=150, le=5000)
-    workingMode: Optional[Literal["Static", "Dynamic"]] = None
-    expositionMode: Optional[Literal["Fixed Exposition", "HDR"]] = None
-    debugMode: Optional[Literal["On", "Off"]] = None
-    flyingPixelFilter: Optional[StrictBool] = None
-    fillHoleFilter: Optional[StrictBool] = None
-    spatialFilter: Optional[StrictBool] = None
-    confidenceFilter: Optional[StrictBool] = None 
-    fps: Optional[int] = Field(None, ge=1, le=15)
-    countdown: Optional[int] = Field(None, ge=0, le=10)
-    cropWindow: Optional[CropWindow] = None
-    cropArea: Optional[CropWindow] = None
-
-class CurrentMenu(BaseModel):
-    currentMenu: str
-
 load_dotenv()
 ADMIN_REGISTER_CODE = os.environ.get("ADMIN_REGISTER_CODE")
 
@@ -1021,10 +961,9 @@ def volumeStatus(current_user: dict = Depends(get_current_user)):
          """,
          tags=["Volume"])
 def volume_SingleBundle(current_user: dict = Depends(get_current_user)):
-    t0 = time.perf_counter()
     volumeState.processing = "Processing Frames..."
     while True:
-        finished, times = processHDR(volumeState.click_timestamp, t0)
+        finished = processHDR(volumeState.click_timestamp)
         if finished:
             break
 
@@ -1063,39 +1002,31 @@ def volume_SingleBundle(current_user: dict = Depends(get_current_user)):
                 volumeState.processing = "Calculating Volumes..."
                 volumeState.volume, volumeState.width_meters, volumeState.length_meters, volumeState.height_meters = volumeSingleBundleAPI(depthFrame, workspaceState.workspace_depth, depthState.minimum_depth, volumeState.box_limits, volumeState.depths, camState.fx_d, camState.fy_d, camState.cx_d, camState.cy_d)
             else:
-                volumeState.volume = 0
-                volumeState.width_meters = 0
-                volumeState.length_meters = 0
-                volumeState.height_meters = 0
+                volumeState.volume = [0]
+                volumeState.width_meters = [0]
+                volumeState.length_meters = [0]
+                volumeState.height_meters = [0]
                 depthState.minimum_depth = workspaceState.workspace_depth
         else:
-                volumeState.volume = 0
-                volumeState.width_meters = 0
-                volumeState.length_meters = 0
-                volumeState.height_meters = 0
+                volumeState.volume = [0]
+                volumeState.width_meters = [0]
+                volumeState.length_meters = [0]
+                volumeState.height_meters = [0]
                 depthState.minimum_depth = workspaceState.workspace_depth
     else:
-        volumeState.volume = 0
-        volumeState.width_meters = 0
-        volumeState.length_meters = 0
+        volumeState.volume = [0]
+        volumeState.width_meters = [0]
+        volumeState.length_meters = [0]
+        volumeState.height_meters = [0]
         depthState.minimum_depth = workspaceState.workspace_depth
 
-    if isinstance(volumeState.width_meters, list):
-        volumeState.width_meters = [w * 100 for w in volumeState.width_meters]
-    else:
-        volumeState.width_meters = volumeState.width_meters * 100
-
-    if isinstance(volumeState.length_meters, list):
-        volumeState.length_meters = [w * 100 for w in volumeState.length_meters]
-    else:
-        volumeState.length_meters = volumeState.length_meters * 100
-
-    if isinstance(volumeState.height_meters, list):
-        volumeState.height_meters = [h * 100 for h in volumeState.height_meters]
-    else:
-        volumeState.height_meters = volumeState.height_meters * 100
-
+    volumeState.width_meters = scale_nested(volumeState.width_meters, 100)
+    volumeState.length_meters = scale_nested(volumeState.length_meters, 100)
+    volumeState.height_meters = scale_nested(volumeState.height_meters, 100)
+    
     volumeState.processing = ""
+
+    print(f"volume: {volumeState.volume}, width {volumeState.width_meters}, length: {volumeState.length_meters}, height: {volumeState.height_meters}")
 
     return{
         "volume": volumeState.volume,
@@ -1115,11 +1046,11 @@ def get_Volume_SingleBundle(current_user: dict = Depends(get_current_user)):
     response = {}
 
     response["Bundle"] = {
-            "volume_m": round(float(volumeState.volume), 6),
-            "volume_cm": round(float(volumeState.volume * 1000000), 2),
-            "x": round(float(volumeState.width_meters), 1),
-            "y": round(float(volumeState.length_meters), 1),
-            "z": round(float(volumeState.height_meters), 1)
+            "volume_m": round(float(volumeState.volume[0]), 6),
+            "volume_cm": round(float(volumeState.volume[0] * 1000000), 2),
+            "x": round(float(volumeState.width_meters[0]), 1),
+            "y": round(float(volumeState.length_meters[0]), 1),
+            "z": round(float(volumeState.height_meters[0]), 1)
         }
     
     return response
@@ -1130,14 +1061,11 @@ def get_Volume_SingleBundle(current_user: dict = Depends(get_current_user)):
          """,
          tags=["Volume"])
 def volume_MultiBundle(current_user: dict = Depends(get_current_user)):
-    times = [None] * 8
-    times[0] = time.perf_counter()
     volumeState.processing = "Processing Frames..."
     while True:
-        finished, timesssssssss = processHDR(volumeState.click_timestamp, times[0])
+        finished = processHDR(volumeState.click_timestamp)
         if finished:
             break
-    times[1] = time.perf_counter()
 
     colorFrame = frameState.colorFrame
 
@@ -1152,78 +1080,45 @@ def volume_MultiBundle(current_user: dict = Depends(get_current_user)):
         depthFrame = frameState.depthFrameHDR
 
     if workspaceState.workspace_warning is not None:
-        times[2] = time.perf_counter()
         volumeState.processing = "Finding Depths..."
         depthState.not_set, depthState.objects_info = MinDepthAPI(depthFrame, workspaceState.detection_area, workspaceState.workspace_warning, workspaceState.workspace_depth, depthState.threshold, depthState.not_set, camState.cx_d, camState.cy_d, camState.fx_d, camState.fy_d)
-        times[3] = time.perf_counter()
     if depthState.objects_info is not None and len(depthState.objects_info) != 0:
         depthState.minimum_depth = depthState.objects_info[0]["depth"]
         depthState.minimum_value = depthState.minimum_depth
 
     if depthState.objects_info is not None:
-        times[4] = time.perf_counter()
         volumeState.processing = "Identifying Objects..."
         depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine, volumeState.united_contours = objIdentifier(colorFrame, colorToDepthFrame, depthFrame, frameState.calibrationColorFrame, frameState.calibrationDepthFrame, modeState.volumeMode, depthState.objects_info, workspaceState.workspace_depth, depthState.threshold, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb, camState.fx_d, camState.fy_d, camState.fx_rgb, camState.fy_rgb)
-        times[5] = time.perf_counter()
         if volumeState.depths:       
             if volumeState.box_limits is not None and len(volumeState.box_limits) > 0:
-                times[6] = time.perf_counter()
                 volumeState.processing = "Calculating Volumes..."
                 volumeState.volume, volumeState.width_meters, volumeState.length_meters, volumeState.height_meters = volumeMultiBundleAPI(depthFrame, frameState.calibrationDepthFrame, workspaceState.workspace_depth, volumeState.box_limits, volumeState.depths, camState.fx_d, camState.fy_d, camState.cx_d, camState.cy_d)
-                times[7] = time.perf_counter()
             else:
-                volumeState.volume = 0
-                volumeState.width_meters = 0
-                volumeState.length_meters = 0
-                volumeState.height_meters = 0
+                volumeState.volume = [0]
+                volumeState.width_meters = [0]
+                volumeState.length_meters = [0]
+                volumeState.height_meters = [0]
                 depthState.minimum_depth = workspaceState.workspace_depth
         else:
-            volumeState.volume = 0
-            volumeState.width_meters = 0
-            volumeState.length_meters = 0
-            volumeState.height_meters = 0
+            volumeState.volume = [0]
+            volumeState.width_meters = [0]
+            volumeState.length_meters = [0]
+            volumeState.height_meters = [0]
             depthState.minimum_depth = workspaceState.workspace_depth
     else:
-        volumeState.volume = 0
-        volumeState.width_meters = 0
-        volumeState.length_meters = 0
+        volumeState.volume = [0]
+        volumeState.width_meters = [0]
+        volumeState.length_meters = [0]
+        volumeState.height_meters = [0]
         depthState.minimum_depth = workspaceState.workspace_depth
 
-    if isinstance(volumeState.width_meters, list):
-        volumeState.width_meters = [w * 100 for w in volumeState.width_meters]
-    else:
-        volumeState.width_meters = volumeState.width_meters * 100
-
-    if isinstance(volumeState.length_meters, list):
-        volumeState.length_meters = [l * 100 for l in volumeState.length_meters]
-    else:
-        volumeState.length_meters = volumeState.length_meters * 100
-
-    if isinstance(volumeState.height_meters, list):
-        volumeState.height_meters = [h * 100 for h in volumeState.height_meters]
-    else:
-        volumeState.height_meters = volumeState.height_meters * 100
-
-    if all(t is not None for t in times):
-        print("Time waiting for every frame that is missing", timesssssssss[0] * 1000, "ms")
-        print("Time waiting to build each HDR", timesssssssss[1] * 1000, "ms")
-        print("Time waiting to build last HDR", timesssssssss[2] * 1000, "ms")
-
-        print("Time to wait for HDR:", (times[1] - times[0]) * 1000, "ms")
-
-        print("Time between HDR done and MinDepthAPI:", (times[2] - times[1]) * 1000, "ms")
-        
-        print("Time for MinDepthAPI:", (times[3] - times[2]) * 1000, "ms")
-        
-        print("Time between MinDepthAPI and objIdentifier:", (times[4] - times[3]) * 1000, "ms")
-        
-        print("Time for objIdentifier:", (times[5] - times[4]) * 1000, "ms")
-        
-        print("Time between objIdentifier and volumeMultiBundleAPI:", (times[6] - times[5]) * 1000, "ms")
-        
-        print("Time for volumeMultiBundleAPI:", (times[7] - times[6]) * 1000, "ms")
+    volumeState.width_meters = scale_nested(volumeState.width_meters, 100)
+    volumeState.length_meters = scale_nested(volumeState.length_meters, 100)
+    volumeState.height_meters = scale_nested(volumeState.height_meters, 100)
 
     volumeState.processing = ""
+
+    print(f"volume: {volumeState.volume}, width {volumeState.width_meters}, length: {volumeState.length_meters}, height: {volumeState.height_meters}")
 
     return{
         "volume": volumeState.volume,
@@ -1278,14 +1173,12 @@ def get_Volume_MultiBundle(current_user: dict = Depends(get_current_user)):
          """,
          tags=["Volume"])
 def volume_Real(current_user: dict = Depends(get_current_user)):
-    t0 = time.perf_counter()
     volumeState.processing = "Processing Frames..."
     while True:
-        finished, times = processHDR(volumeState.click_timestamp, t0)
+        finished = processHDR(volumeState.click_timestamp)
         if finished:
             break
 
-    t0 = time.perf_counter()
     colorFrame = frameState.colorFrame
 
     if frameState.colorToDepthFrameHDR is None or modeState.expositionMode == "Fixed Exposition":
@@ -1308,14 +1201,10 @@ def volume_Real(current_user: dict = Depends(get_current_user)):
     if depthState.objects_info is not None:
         volumeState.processing = "Identifying Objects..."
         depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine, volumeState.united_contours = objIdentifier(colorFrame, colorToDepthFrame, depthFrame, frameState.calibrationColorFrame, frameState.calibrationDepthFrame, modeState.volumeMode, depthState.objects_info, workspaceState.workspace_depth, depthState.threshold, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb, camState.fx_d, camState.fy_d, camState.fx_rgb, camState.fy_rgb)
-        t2 = time.perf_counter()
-        print("objIdentifier:", (t2 - t0) * 1000, "ms")
         if volumeState.depths:
             if volumeState.box_limits is not None and len(volumeState.box_limits) > 0:
                 volumeState.processing = "Calculating Volumes..."
                 volumeState.volume, volumeState.width_meters, volumeState.length_meters, volumeState.height_meters, volumeState.obj_center, volumeState.obj_angles = volumeRealAPI(depthFrame, frameState.calibrationDepthFrame, workspaceState.workspace_depth, volumeState.box_limits, volumeState.united_contours, volumeState.depths, camState.fx_d, camState.fy_d, camState.cx_d, camState.cy_d)
-                t3 = time.perf_counter()
-                print("volumeRealAPI:", (t3 - t2) * 1000, "ms")
             else:
                 volumeState.volume = [0]
                 volumeState.width_meters = [[0]]
@@ -1345,10 +1234,9 @@ def volume_Real(current_user: dict = Depends(get_current_user)):
     volumeState.length_meters = scale_nested(volumeState.length_meters, 100)
     volumeState.height_meters = scale_nested(volumeState.height_meters, 100)
 
-    t4 = time.perf_counter()
-    print("TOTAL /volume/real:", (t4 - t0) * 1000, "ms")
-
     volumeState.processing = ""
+
+    print(f"volume: {volumeState.volume}, width {volumeState.width_meters}, length: {volumeState.length_meters}, height: {volumeState.height_meters}")
 
     return{
         "volume": volumeState.volume,
@@ -1413,14 +1301,12 @@ def get_Volume_Real(current_user: dict = Depends(get_current_user)):
          """,
          tags=["Volume"])
 def volume_Individual(current_user: dict = Depends(get_current_user)):
-    t0 = time.perf_counter()
     volumeState.processing = "Processing Frames..."
     while True:
-        finished, times = processHDR(volumeState.click_timestamp, t0)
+        finished = processHDR(volumeState.click_timestamp)
         if finished:
             break
 
-    t0 = time.perf_counter()
     colorFrame = frameState.colorFrame
 
     if frameState.colorToDepthFrameHDR is None or modeState.expositionMode == "Fixed Exposition":
@@ -1451,14 +1337,10 @@ def volume_Individual(current_user: dict = Depends(get_current_user)):
     if depthState.not_set == 0:
         volumeState.processing = "Identifying Objects..."
         depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine, volumeState.united_contours = objIdentifier(colorFrame, colorToDepthFrame, depthFrame, frameState.calibrationColorFrame, frameState.calibrationDepthFrame, modeState.volumeMode, depthState.objects_info, workspaceState.workspace_depth, depthState.threshold, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb, camState.fx_d, camState.fy_d, camState.fx_rgb, camState.fy_rgb)
-        t2 = time.perf_counter()
-        print("objIdentifier:", (t2 - t0) * 1000, "ms")
         if volumeState.depths:
             if volumeState.box_limits is not None and len(volumeState.box_limits) > 0:
                 volumeState.processing = "Calculating Volumes..."
                 volumeState.volume, volumeState.width_meters, volumeState.length_meters, volumeState.height_meters = volumeIndividualAPI(depthFrame, frameState.calibrationDepthFrame, workspaceState.workspace_depth, volumeState.box_limits, volumeState.depths, camState.fx_d, camState.fy_d, camState.cx_d, camState.cy_d)
-                t3 = time.perf_counter()
-                print("volumeIndividualAPI:", (t3 - t2) * 1000, "ms")
             else:
                 volumeState.volume = 0
                 volumeState.width_meters = 0
@@ -1491,9 +1373,6 @@ def volume_Individual(current_user: dict = Depends(get_current_user)):
         volumeState.height_meters = [h * 100 for h in volumeState.height_meters]
     else:
         volumeState.height_meters = volumeState.height_meters * 100
-
-    t4 = time.perf_counter()
-    print("TOTAL /volume/individual:", (t4 - t0) * 1000, "ms")
 
     volumeState.processing = ""
 

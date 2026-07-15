@@ -1,6 +1,6 @@
 {
     "expositionMode": "HDR",
-    "volumeMode": "Single Bundle",
+    "volumeMode": "Real",
     "calibrationMode": "Automatic",
     "speedMode": "Intermedium",
     "workingMode": "Static",
@@ -12,16 +12,16 @@
     "spatialFilter": true,
     "confidenceFilter": false,
     "cropWindow": {
-        "x": 437.2549019607843,
-        "y": 304.9325980392157,
-        "width": 578.4313725490197,
-        "height": 582.3529411764707
+        "x": 0.0,
+        "y": 0.0,
+        "width": 1600.0,
+        "height": 1200.0
     },
     "cropArea": {
-        "x": 437.2549019607843,
-        "y": 304.9325980392157,
-        "width": 578.4313725490197,
-        "height": 582.3529411764707
+        "x": 15.0,
+        "y": 15.0,
+        "width": 1570.0,
+        "height": 1170.0
     },
     "countdown": 3
 }

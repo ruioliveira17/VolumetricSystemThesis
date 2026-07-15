@@ -112,8 +112,8 @@ def MinDepthAPI(depthFrame, detection_area, workspace_warning, workspace_depth, 
             objects_info = sorted(objects_info, key=lambda obj: obj["depth"])
             not_set = 0
 
-        else:
-            print("Nenhum ponto válido encontrado dentro do workspace")
+        # else:
+        #     print("Nenhum ponto válido encontrado dentro do workspace")
 
     except Exception as e :
         print(e)
