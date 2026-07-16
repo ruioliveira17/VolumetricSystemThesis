@@ -1,10 +1,9 @@
-import os
-import json
-
 from CameraState import camState
 from FilterState import filterState
 from ModeState import modeState
 from VolumeState import volumeState
+
+from db.config_repo import save_last_configuration
 
 def save_configuration():
     data = {
@@ -25,7 +24,4 @@ def save_configuration():
         "countdown":         volumeState.countdown,
     }
 
-    os.makedirs("config", exist_ok=True)
-
-    with open("config/last_configurations.json", "w") as f:
-        json.dump(data, f, indent=4)
+    save_last_configuration(data)

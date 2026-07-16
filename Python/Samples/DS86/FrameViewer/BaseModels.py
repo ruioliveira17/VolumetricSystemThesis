@@ -9,6 +9,15 @@ class ColorCoords(BaseModel):
     x : int
     y : int
 
+class CropWindow(BaseModel):
+    x: float
+    y: float
+    width: float
+    height: float
+
+class CurrentMenu(BaseModel):
+    currentMenu: str
+
 class HSVValue(BaseModel):
     hmin: Optional[int] = None
     hmax: Optional[int] = None
@@ -18,28 +27,41 @@ class HSVValue(BaseModel):
     vmax: Optional[int] = None
     color: Optional[str] = None
 
+#Não seria melhor ser feito com o User?
 class LoginData(BaseModel):
-    username: str
+    email: str
     password: str
 
 class ManualWorkspace(BaseModel):
     detection_area: List[List[float]] = None
     selected_point: Optional[int] = None
 
+class ObjectIn(BaseModel):
+    idx: int
+    volume_m: float
+    volume_cm: float
+    x_cm: Optional[float] = None
+    y_cm: Optional[float] = None
+    z_cm: Optional[float] = None
+    depth_cm: Optional[float] = None
+    extra: Optional[dict] = None
+
+class MeasurementIn(BaseModel):
+    volume_mode: str
+    workspace_depth: Optional[float] = None
+    objects: List[ObjectIn]
+
 class RefreshData(BaseModel):
     refresh_token: str
 
+#Opção Username?
 class RegisterData(BaseModel):
-    username: str
+    email: str
     password: str
-    role: str
-    code: Optional[str] = None
+    confirm_password: str
 
-class CropWindow(BaseModel):
-    x: float
-    y: float
-    width: float
-    height: float
+class RoleUpdate(BaseModel):
+    role: Literal["user", "admin"]
 
 class SystemUpdate(BaseModel):
     exposureTime: Optional[int] = Field(None, ge=100, le=4000)
@@ -55,6 +77,3 @@ class SystemUpdate(BaseModel):
     countdown: Optional[int] = Field(None, ge=0, le=10)
     cropWindow: Optional[CropWindow] = None
     cropArea: Optional[CropWindow] = None
-
-class CurrentMenu(BaseModel):
-    currentMenu: str

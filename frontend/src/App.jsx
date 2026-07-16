@@ -25,7 +25,7 @@ function App() {
   const TextWsNotEmpty = "Workspace isn't Empty";
   const TextWsNotEmptyAndCenterNotAligned = "Center Point isn't Aligned and Workspace isn't Empty";
   
-  const TextOutOfLine = "There are objects outside the yellow stripes. To detect them, make sure they are inside the stripes.";
+  const TextOutOfLine = "There are objects outside the workspace area. To detect them, make sure they are inside.";
 
   const TextColorSlopeCaracters = "Only integer values are allowed for color slope";
   const TextColorSlopeValues = "Color Slope value must be between 150 and 5000";
@@ -76,10 +76,9 @@ function App() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState([TextLoginWelcome, TextLoginCredentials]);
 
-  const [regUsername, setRegUsername] = useState("");
+  const [regEmail, setRegEmail] = useState("");
   const [regPassword, setRegPassword] = useState("");
-  const [regRole, setRegRole] = useState("user");
-  const [regCode, setRegCode] = useState("");
+  const [regConfirmPassword, setRegConfirmPassword] = useState("");
 
   const [ExpHDR_toggle, setExpHDR] = useState(true);
   const [volumeMode, setVolumeMode] = useState("multi_bundle");
@@ -92,6 +91,8 @@ function App() {
   const [volInfo, setVolInfo] = useState(null);
   const [objCenters, setObjCenters] = useState([]);
   const [objAngles, setObjAngles] = useState([]);
+  const [savingMeasurement, setSavingMeasurement] = useState(false);
+  const [saveMsg, setSaveMsg] = useState("");
   const [objectImage, setObjectImage] = useState(null);
 
   const [objectList, setObjectList] = useState([]);
@@ -124,6 +125,10 @@ function App() {
   const [calibrationModalOpen, setCalibrationModalOpen] = useState(false);
   const [showSettingsPopup, setShowSettingsPopup] = useState(false);
   const [showUserPopup, setShowUserPopup] = useState(false);
+  const [showUsersPanel, setShowUsersPanel] = useState(false);
+  const [usersList, setUsersList] = useState([]);
+  const [usersLoading, setUsersLoading] = useState(false);
+  const [usersMsg, setUsersMsg] = useState("");
 
   const [loadingVolume, setLoadingVolume] = useState(false);
   const [loadingCalibration, setLoadingCalibration] = useState(false);
@@ -217,8 +222,21 @@ function App() {
       });
 
       if (res.status === 401) {
-        setCurrentMenu("login-menu");
-        return;
+        const refreshed = await refreshAccessToken();
+        if (!refreshed) {
+          setCurrentMenu("login-menu");
+          return;
+        }
+        access_token = localStorage.getItem("access_token");
+        res = await fetch(`${API_URL}/calibration/status`, {
+          headers: {
+            "Authorization": `Bearer ${access_token}`
+          }
+        });
+        if (res.status === 401) {
+          setCurrentMenu("login-menu");
+          return;
+        }
       }
 
       const data = await res.json();
@@ -311,10 +329,9 @@ function App() {
       setCurrentMenu("login-menu");
 
       setError([TextClear]);
-      setRegUsername("");
+      setRegEmail("");
       setRegPassword("");
-      setRegRole("user");
-      setRegCode("");
+      setRegConfirmPassword("");
       setMenuSideNavOpen("false");
   }
   
@@ -331,17 +348,18 @@ function App() {
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({ username, password })
+        body: JSON.stringify({ email: username, password })
       });
 
       if (response.ok) {
         const data = await response.json();
 
         const role = data.role;
+        const savedUsername = data.username;
 
         localStorage.setItem(
           "current_user",
-          JSON.stringify({ username, role })
+          JSON.stringify({ username: savedUsername, role })
         );
 
         setSavedUser(JSON.parse(localStorage.getItem("current_user")));
@@ -430,8 +448,13 @@ function App() {
   }
 
   async function register() {
-      if (!regUsername || !regPassword || (regRole === "admin" && !regCode)) {
+      if (!regEmail || !regPassword || !regConfirmPassword) {
           setError([TextFillAllFields]);
+          return;
+      }
+
+      if (regPassword !== regConfirmPassword) {
+          setError(["Passwords do not match!"]);
           return;
       }
 
@@ -441,7 +464,7 @@ function App() {
               headers: {
                   'Content-Type': 'application/json'
               },
-              body: JSON.stringify({ username: regUsername, password: regPassword, role: regRole, code: regCode })
+              body: JSON.stringify({ email: regEmail, password: regPassword, confirm_password: regConfirmPassword })
           });
           
           const data = await response.json();
@@ -579,6 +602,102 @@ function App() {
       }
   }
 
+  // -------------------------  Users (admin)  -------------------------
+
+  async function loadUsers() {
+    try {
+      setUsersLoading(true);
+      setUsersMsg("");
+      await refreshAccessToken();
+      const access_token = localStorage.getItem("access_token");
+      const res = await fetch(`${API_URL}/users`, { headers: { "Authorization": `Bearer ${access_token}` } });
+      if (res.ok) {
+        const data = await res.json();
+        setUsersList(data.users || []);
+      } else if (res.status === 403) {
+        setUsersMsg("Admin privileges required.");
+      } else {
+        setUsersMsg("Could not load users.");
+      }
+    } catch (e) {
+      setUsersMsg("Server connection error.");
+    } finally {
+      setUsersLoading(false);
+    }
+  }
+
+  async function openUsersPanel() {
+    setShowUserPopup(false);
+    setShowUsersPanel(true);
+    await loadUsers();
+  }
+
+  async function changeUserRole(userId, role) {
+    try {
+      await refreshAccessToken();
+      const access_token = localStorage.getItem("access_token");
+      const res = await fetch(`${API_URL}/users/${userId}/role`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${access_token}` },
+        body: JSON.stringify({ role })
+      });
+      if (res.ok) {
+        setUsersList(prev => prev.map(u => (u.id === userId ? { ...u, role } : u)));
+      } else {
+        setUsersMsg("Could not update role.");
+      }
+    } catch (e) {
+      setUsersMsg("Server connection error.");
+    }
+  }
+
+  async function deleteUserById(userId) {
+    try {
+      await refreshAccessToken();
+      const access_token = localStorage.getItem("access_token");
+      const res = await fetch(`${API_URL}/users/${userId}`, {
+        method: "DELETE",
+        headers: { "Authorization": `Bearer ${access_token}` }
+      });
+      if (res.ok) {
+        setUsersList(prev => prev.filter(u => u.id !== userId));
+      } else {
+        setUsersMsg("Could not delete user.");
+      }
+    } catch (e) {
+      setUsersMsg("Server connection error.");
+    }
+  }
+
+  // Save the current measurement (objects + snapshot images) in the database
+  async function saveMeasurement() {
+    try {
+      setSavingMeasurement(true);
+      setSaveMsg("");
+      await refreshAccessToken();
+      const access_token = localStorage.getItem("access_token");
+
+      const res = await fetch(`${API_URL}/measurements`, {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${access_token}` }
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setSaveMsg(`Measurement saved (#${data.id}).`);
+      } else if (res.status === 401) {
+        setSaveMsg("Session expired. Please login again.");
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setSaveMsg(data.detail || "Could not save the measurement.");
+      }
+    } catch (e) {
+      setSaveMsg("Server connection error.");
+    } finally {
+      setSavingMeasurement(false);
+    }
+  }
+
   // Single Bundle Volume Algorithm
   async function volumeSingleBundle(access_token) {
     try {
@@ -618,7 +737,6 @@ function App() {
       const url = URL.createObjectURL(blob);
       setObjectImage(url);
       setShowCamera(false);
-      //document.getElementById("object-img").removeAttribute("hidden");
 
     } catch (error) {
       setError([TextError]);
@@ -653,7 +771,6 @@ function App() {
       const url = URL.createObjectURL(blob);
       setObjectImage(url);
       setShowCamera(false);
-      //document.getElementById("object-img").removeAttribute("hidden");
 
       const objIdentified = Object.keys(volumeData).filter(key => key !== "Total");
       
@@ -2557,35 +2674,35 @@ function App() {
                 {error.map((err, i) => (<p key={i}>{err}</p>))}
               </div>
 
-              <form className="login-form" onSubmit={(e) => { e.preventDefault(); login(); }}>
+              <form className="login-form" style={{ gap: "1vh", height: "auto", top: "8vh" }} onSubmit={(e) => { e.preventDefault(); login(); }}>
                 <input
-                  className="login-input username"
-                  type="text"
+                  className="login-input"
+                  type="email"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  placeholder="Username"
+                  placeholder="Email"
                 />
 
                 <input
-                  className="login-input password"
+                  className="login-input"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Password"
                 />
 
-                <button className="login-button" type="submit">
+                <button className="login-button" type="submit" style={{ left: 0, top: 0, marginTop: "1.5vh" }}>
                   <div className="background"></div>
                   <span className="text">Login</span>
                 </button>
               </form>
 
-              <p style={{ marginTop: "300px" }}>
+              <p style={{ marginTop: "1.5vh" }}>
                 Don't have an account?{" "}
                 <span
                   onClick={showRegisterScreen}
                   style={{
-                    color: "black",
+                    color: "white",
                     cursor: "pointer",
                     textDecoration: "underline"
                   }}
@@ -2605,68 +2722,67 @@ function App() {
 
         {/* Register Screen Panel */}
         {currentMenu === "register" && (
-          <div className="menu">
-            <h2>Register</h2>
+          <div>
+            <img src="/Qubic.svg" className="qubic-logo" alt="Qubic Logo"/>
 
-            <form onSubmit={(e) => { e.preventDefault(); register(); }}>
-              <input
-                type="text"
-                value={regUsername}
-                onChange={(e) => setRegUsername(e.target.value)}
-                placeholder="Username"
-              />
-              <br />
-              <br />
+            <div className="login-panel">
+              <div className="login-panel-title">Register</div>
 
-              <input
-                type="password"
-                value={regPassword}
-                onChange={(e) => setRegPassword(e.target.value)}
-                placeholder="Password"
-              />
-              <br />
-              <br />
+              <div className="login-panel-error-or-info">
+                {error.map((err, i) => (<p key={i}>{err}</p>))}
+              </div>
 
-              <select
-                value={regRole}
-                onChange={(e) => setRegRole(e.target.value)}
-              >
-                <option value="user">User</option>
-                <option value="admin">Admin</option>
-              </select>
-              <br />
-              <br />
+              <form className="login-form" style={{ gap: "1vh", height: "auto", top: "8vh" }} onSubmit={(e) => { e.preventDefault(); register(); }}>
+                <input
+                  className="login-input"
+                  type="email"
+                  value={regEmail}
+                  onChange={(e) => setRegEmail(e.target.value)}
+                  placeholder="Email"
+                />
 
-              <input
-                type="text"
-                value={regCode}
-                onChange={(e) => setRegCode(e.target.value)}
-                placeholder="Admin Code"
-                disabled={regRole !== "admin"}
-              />
-              <br />
-              <br />
+                <input
+                  className="login-input"
+                  type="password"
+                  value={regPassword}
+                  onChange={(e) => setRegPassword(e.target.value)}
+                  placeholder="Password"
+                />
 
-              <button type="submit">
-                Register
-              </button>
-            </form>
+                <input
+                  className="login-input"
+                  type="password"
+                  value={regConfirmPassword}
+                  onChange={(e) => setRegConfirmPassword(e.target.value)}
+                  placeholder="Confirm Password"
+                />
 
-            <p style={{ marginTop: "15px" }}>
-              Already have an account?{" "}
-              <span
-                onClick={showLoginScreen}
-                style={{
-                  color: "black",
-                  cursor: "pointer",
-                  textDecoration: "underline"
-                }}
-              >
-                Login
-              </span>
-            </p>
+                <button className="login-button" type="submit" style={{ left: 0, top: 0, marginTop: "1.5vh" }}>
+                  <div className="background"></div>
+                  <span className="text">Register</span>
+                </button>
 
-            <div style={{ color: "red" }}>{error.map((err, i) => (<p key={i}>{err}</p>))}</div>
+                <p style={{ marginTop: "1.5vh" }}>
+                  Already have an account?{" "}
+                  <span
+                    onClick={showLoginScreen}
+                    style={{
+                      color: "white",
+                      cursor: "pointer",
+                      textDecoration: "underline"
+                    }}
+                  >
+                    Login
+                  </span>
+                </p>
+              </form>
+
+            </div>
+
+            <div className="powered-by-panel-login">
+                <div className="powered-by-text-login" translate="no">Powered by</div>
+                <img src="/MarquesLogo.svg" className="powered-by-logo-login" alt="Marques Logo"/>
+            </div>
           </div>
         )}
           
@@ -2745,6 +2861,20 @@ function App() {
                     </div>
                   </button>
 
+                  {/* Save Measurement */}
+                  {(volInfo) && (
+                    <div style={{ marginTop: "1vh", textAlign: "center" }}>
+                      <button onClick={saveMeasurement} className="volumeBundle-button" disabled={savingMeasurement}>
+                        <div className="volumeBundle-button-info-container">
+                          <span className="text">{savingMeasurement ? "Saving..." : "Save Measurement"}</span>
+                        </div>
+                      </button>
+                      {saveMsg && (
+                        <div style={{ color: "white", marginTop: "0.6vh", fontSize: "1.3vh" }}>{saveMsg}</div>
+                      )}
+                    </div>
+                  )}
+
                   {/* Info Objects */}
                   <div className="boxBundleInfo-container">
                     <div className="background"></div>
@@ -2810,6 +2940,20 @@ function App() {
                       <span className="text">Get Volume</span>
                     </div>
                   </button>
+
+                  {/* Save Measurement */}
+                  {(volInfo) && (
+                    <div style={{ marginTop: "1vh", textAlign: "center" }}>
+                      <button onClick={saveMeasurement} className="volumeBundle-button" disabled={savingMeasurement}>
+                        <div className="volumeBundle-button-info-container">
+                          <span className="text">{savingMeasurement ? "Saving..." : "Save Measurement"}</span>
+                        </div>
+                      </button>
+                      {saveMsg && (
+                        <div style={{ color: "white", marginTop: "0.6vh", fontSize: "1.3vh" }}>{saveMsg}</div>
+                      )}
+                    </div>
+                  )}
 
                   {/* Menu Select Object */}
                   <div className="object-selection-menu">
@@ -3172,13 +3316,69 @@ function App() {
                     <span className="text-role"> Role: {savedUser?.role} </span>
                   </div>
                 </div>
-              </div>            
+              </div>
 
-              <div className="logout-option" onClick={logout}>
-                Logout
+              <div style={{ position: "absolute", bottom: "6%", left: 0, right: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: "1.4vh" }}>
+                {savedUser?.role === "admin" && (
+                  <div className="logout-option" style={{ position: "static", bottom: "auto" }} onClick={openUsersPanel}>
+                    Manage Users
+                  </div>
+                )}
+
+                <div className="logout-option" style={{ position: "static", bottom: "auto" }} onClick={logout}>
+                  Logout
+                </div>
               </div>
             </div>
               
+          </>
+        )}
+
+        {showUsersPanel && (
+          <>
+            {/* Fundo Escuro */}
+            <div className="popup-overlay" onClick={() => setShowUsersPanel(false)}/>
+
+            {/* Modal proprio (centrado, independente do .user-popup do projeto) */}
+            <div style={{
+              position: "fixed",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              width: "min(560px, 90vw)",
+              maxHeight: "80vh",
+              overflowY: "auto",
+              background: "#1F1F1F",
+              border: "1px solid #99999939",
+              borderRadius: "12px",
+              padding: "20px 22px",
+              zIndex: 30,
+              boxSizing: "border-box"
+            }}>
+              <div style={{ color: "white", fontSize: "18px", textAlign: "center", marginBottom: "14px" }}>Manage Users</div>
+
+              {usersLoading && <div style={{ color: "white", textAlign: "center" }}>Loading...</div>}
+              {usersMsg && <div style={{ color: "#ffb3b3", textAlign: "center", marginBottom: "10px" }}>{usersMsg}</div>}
+
+              {!usersLoading && usersList.filter(u => u.username !== savedUser?.username).map(u => (
+                <div key={u.id} style={{ display: "flex", alignItems: "center", gap: "10px", padding: "9px 0", borderBottom: "1px solid rgba(255,255,255,0.12)" }}>
+                  <span style={{ color: "white", flex: 1, fontSize: "13px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={u.email}>{u.email}</span>
+                  <select value={u.role} onChange={(e) => changeUserRole(u.id, e.target.value)} style={{ fontSize: "13px", padding: "3px 4px" }}>
+                    <option value="user">user</option>
+                    <option value="admin">admin</option>
+                  </select>
+                  <button onClick={() => deleteUserById(u.id)} style={{ cursor: "pointer", fontSize: "12px", padding: "4px 10px" }}>Delete</button>
+                </div>
+              ))}
+
+              {!usersLoading && usersList.filter(u => u.username !== savedUser?.username).length === 0 && !usersMsg && (
+                <div style={{ color: "#bbbbbb", textAlign: "center", padding: "10px 0" }}>No other users.</div>
+              )}
+
+              <div onClick={() => setShowUsersPanel(false)} style={{ marginTop: "16px", textAlign: "center", color: "white", cursor: "pointer", textDecoration: "underline" }}>
+                Close
+              </div>
+            </div>
           </>
         )}
 

@@ -2,9 +2,8 @@
 
 from aiortc import RTCPeerConnection, RTCSessionDescription
 from contextlib import asynccontextmanager
-from datetime import timedelta # Not needed?
 from dotenv import load_dotenv
-from fastapi import Depends, FastAPI, HTTPException, Request, Response, status
+from fastapi import Body, Depends, FastAPI, HTTPException, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
@@ -12,6 +11,7 @@ from fastapi.security import OAuth2PasswordBearer
 from jose import jwt # Not needed?
 from jose.exceptions import JWTError, ExpiredSignatureError
 from PIL import Image
+from typing import Optional
 
 import asyncio
 import cv2
@@ -19,12 +19,24 @@ import io
 import json
 import numpy
 import os
+import sys
 import time
 import threading
 
+#------------------------------------------------------    Paths     -------------------------------------------------------
+
+PROJECT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, PROJECT)
+
+os.environ.setdefault("DATABASE_PATH", os.path.join(PROJECT, "data", "dev_app.db"))
+
 #------------------------------------------------------   Classes    -------------------------------------------------------
 
-from BaseModels import CamValues, ColorCoords, HSVValue, LoginData, ManualWorkspace, RefreshData, RegisterData, CropWindow, SystemUpdate, CurrentMenu
+from db.migrate import run_migrations
+from db import measurements_repo
+from db.users_repo import get_by_login, get_by_username, get_by_id, create_user, list_users, set_role, delete_user
+
+from BaseModels import CamValues, ColorCoords, CropWindow, CurrentMenu, HSVValue, LoginData, ManualWorkspace, MeasurementIn, ObjectIn, RefreshData, RegisterData, RoleUpdate, SystemUpdate
 from CameraState import camState
 from DepthState import depthState
 from FilterState import filterState
@@ -58,6 +70,10 @@ from services.stream import generateRGB_Stream, generateCalibrationCTD_Stream, g
 from services.utils import rgb_to_hsv
 from services.users import load_users, save_users
 
+#----------------------------------------------------   DB Migration   ----------------------------------------------------
+
+run_migrations(hash_password=get_password_hash)
+
 #----------------------------------------------------      OAuth2      ----------------------------------------------------
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login",
@@ -88,15 +104,18 @@ def require_admin(user: dict = Depends(get_current_user)):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin privileges required.")
     return user
 
-def scale_nested(data, factor):
-    if isinstance(data, list):
-        return [scale_nested(x, factor) for x in data]
-    return data * factor
 #----------------------------------------------------   Base Models    ----------------------------------------------------
 load_dotenv()
 ADMIN_REGISTER_CODE = os.environ.get("ADMIN_REGISTER_CODE")
 
 pcs = set()
+
+#--------------------------------------------------  Scaling Variables   --------------------------------------------------
+
+def scale_nested(data, factor):
+    if isinstance(data, list):
+        return [scale_nested(x, factor) for x in data]
+    return data * factor
 
 #-----------------------------------------------------   Lifespan   -------------------------------------------------------
 
@@ -213,28 +232,26 @@ def serve_manager():
 
 @app.post("/login", summary="Login Request",
          description="""
-         Authenticates a user with the provided username and password. Returns the user's role if the credentials are valid. Otherwise, it returns an error message indicating invalid username or password.
+         Authenticates a user with the provided email and password. Returns the user's role if the credentials are valid. Otherwise, it returns an error message indicating invalid username or password.
          
          Restrictions:
          - All fields must be filled. If any field is missing, an error message will be returned.
          """,
          tags=["User"])
 def login(login_data: LoginData):
-    users = load_users()
+    user = get_by_login(login_data.email)
 
-    user = users.get(login_data.username)
-
-    if not user or not verify_password(login_data.password, user["password"]):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid username or password.")
+    if not user or not verify_password(login_data.password, user["password_hash"]):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password.")
     
-    access_token = create_access_token({"sub": login_data.username, "role": user["role"]})
-    refresh_token = create_refresh_token({"sub": login_data.username, "role": user["role"]})
+    access_token = create_access_token({"sub": user["username"], "role": user["role"]})
+    refresh_token = create_refresh_token({"sub": user["username"], "role": user["role"]})
 
-    return {"role": user["role"], "access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"}
+    return {"role": user["role"], "username": user["username"], "access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"}
 
 @app.post("/register", summary="Register Request",
          description="""
-         Creates a new user account with the provided username and password. Returns a message indicating that the process was successful.
+         Creates a new user account with the provided email and password. Returns a message indicating that the process was successful.
 
          Restrictions:
          - All fields must be filled. If any field is missing, an error message will be returned.
@@ -243,24 +260,16 @@ def login(login_data: LoginData):
          """,
          tags=["User"])
 def register(register_data: RegisterData):
-    users = load_users()
-
-    if not register_data.username or not register_data.password:
+    if not register_data.email or not register_data.password or not register_data.confirm_password:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Please fill all fields!")
     
-    if register_data.username in users:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username already used! Choose another username.")
+    if register_data.password != register_data.confirm_password:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Passwords do not match!")
+
+    if get_by_login(register_data.email) is not None:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username already used! Choose another email.")
     
-    given_role = "user"
-    if register_data.role == "admin":
-        if register_data.code != ADMIN_REGISTER_CODE:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid admin code! Please provide a valid admin code to create an admin user.")
-        given_role = "admin"
-
-    password_hash = get_password_hash(register_data.password)
-
-    users[register_data.username] = {"password": password_hash, "role": given_role}
-    save_users(users)
+    create_user(username=register_data.email, email=register_data.email, password_hash=get_password_hash(register_data.password), role="user")
 
     return {"message": "Utilizador criado com sucesso!"}
 
@@ -281,15 +290,82 @@ def refresh(data: RefreshData):
         raise HTTPException(status_code=401, detail="Invalid token.")
 
     username = payload["sub"]
-    users = load_users()
+    user = get_by_username(username)
 
-    if username not in users:
+    if user is None:
         raise HTTPException(status_code=401, detail="User not found.")
 
-    new_access_token = create_access_token({"sub": username, "role": users[username]["role"]})
-    new_refresh_token = create_refresh_token({"sub": username, "role": users[username]["role"]})
+    new_access_token = create_access_token({"sub": username, "role": user["role"]})
+    new_refresh_token = create_refresh_token({"sub": username, "role": user["role"]})
 
     return {"access_token": new_access_token, "refresh_token": new_refresh_token}
+
+#-------------------------------------------------------   Falta Aplicar   -------------------------------------------------------
+
+@app.get("/users")
+def get_users(current_user: dict = Depends(require_admin)):
+    return {"users": list_users()}
+
+
+@app.patch("/users/{user_id}/role")
+def update_role(user_id: int, data: RoleUpdate, current_user: dict = Depends(require_admin)):
+    if get_by_id(user_id) is None:
+        raise HTTPException(status_code=404, detail="User not found.")
+    set_role(user_id, data.role)
+    return {"id": user_id, "role": data.role}
+
+
+@app.delete("/users/{user_id}")
+def remove_user(user_id: int, current_user: dict = Depends(require_admin)):
+    if get_by_id(user_id) is None:
+        raise HTTPException(status_code=404, detail="User not found.")
+    delete_user(user_id)
+    return {"deleted": user_id}
+
+
+@app.post("/measurements")
+def save_measurement(data: Optional[MeasurementIn] = Body(default=None), current_user: dict = Depends(get_current_user)):
+    owner = get_by_username(current_user["username"])
+    if owner is None:
+        raise HTTPException(status_code=404, detail="User not found.")
+
+    # Sem corpo: sintetiza uma medicao de exemplo (o backend real leria o volumeState da camara)
+    if data is None:
+        volume_mode = "Single Bundle"
+        objects = [{"idx": 1, "volume_m": 0.02, "volume_cm": 20000.0,
+                    "x_cm": 30.0, "y_cm": 20.0, "z_cm": 33.0, "depth_cm": 55.0, "extra": None}]
+        workspace_depth = 800.0
+    else:
+        volume_mode = data.volume_mode
+        objects = [o.model_dump() for o in data.objects]
+        workspace_depth = data.workspace_depth
+
+    if not objects:
+        raise HTTPException(status_code=400, detail="No measurement available to save.")
+    total_m = round(sum(o["volume_m"] for o in objects), 6)
+    total_cm = round(total_m * 1000000, 2)
+    mid = measurements_repo.create_measurement(
+        user_id=owner["id"], volume_mode=volume_mode, object_count=len(objects),
+        total_volume_m=total_m, total_volume_cm=total_cm, workspace_depth=workspace_depth, objects=objects,
+    )
+    return {"id": mid, "object_count": len(objects), "total_volume_cm": total_cm}
+
+
+@app.get("/measurements")
+def list_measurements_endpoint(current_user: dict = Depends(get_current_user)):
+    if current_user["role"] == "admin":
+        return {"measurements": measurements_repo.list_measurements()}
+    owner = get_by_username(current_user["username"])
+    return {"measurements": measurements_repo.list_measurements(user_id=owner["id"]) if owner else []}
+
+
+@app.get("/measurements/{measurement_id}")
+def get_measurement_endpoint(measurement_id: int, current_user: dict = Depends(get_current_user)):
+    data = measurements_repo.get_measurement(measurement_id)
+    if data is None:
+        raise HTTPException(status_code=404, detail="Measurement not found.")
+    return data
+
 
 #-------------------------------------------------------   Stream   -------------------------------------------------------
 
@@ -944,6 +1020,7 @@ def debugOn(current_user: dict = Depends(require_admin)):
     return {"Debug Mode:": modeState.debugMode}
 
 #------------------------------------------------------- Volume -------------------------------------------------------
+
 @app.post("/volume/clickTimestamp")
 def click_timestamp(current_user: dict = Depends(get_current_user)):
     volumeState.click_timestamp = time.monotonic()
@@ -1589,6 +1666,175 @@ def get_weight(current_user: dict = Depends(get_current_user)):
 def updateCurrentMenu(data: CurrentMenu, current_user: dict = Depends(get_current_user)):
     modeState.currentMenu = data.currentMenu
     return{"message:": "Success"}
+
+# --------------------------------------- Measurements ---------------------------------------
+
+def _as_list(value):
+    return value if isinstance(value, list) else [value]
+
+def build_measurement_objects(mode):
+    objects = []
+    volumes = _as_list(volumeState.volume)
+    widths = _as_list(volumeState.width_meters)
+    lengths = _as_list(volumeState.length_meters)
+    heights = _as_list(volumeState.height_meters)
+
+    if mode == "Real":
+        centers = _as_list(volumeState.obj_center)
+        angles = _as_list(volumeState.obj_angles)
+        count = min(len(volumes), len(widths), len(lengths), len(heights))
+        for i in range(count):
+            if volumes[i] is None or float(volumes[i]) <= 0:
+                continue
+            objects.append({
+                "idx": i + 1,
+                "volume_m": round(float(volumes[i]), 6),
+                "volume_cm": round(float(volumes[i] * 1000000), 2),
+                "x_cm": None,
+                "y_cm": None,
+                "z_cm": None,
+                "depth_cm": None,
+                "extra": {
+                    "x": [round(float(w), 1) for w in widths[i]],
+                    "y": [round(float(l), 1) for l in lengths[i]],
+                    "z": [round(float(h), 1) for h in heights[i]],
+                    "obj_center": [[round(float(x), 3), round(float(y), 3)] for (x, y) in (centers[i] if i < len(centers) and centers[i] else [])],
+                    "obj_angles": [round(float(a), 1) for a in (angles[i] if i < len(angles) and angles[i] else [])],
+                },
+            })
+    else:
+        depths = _as_list(volumeState.depths)
+        count = min(len(volumes), len(widths), len(lengths), len(heights))
+        for i in range(count):
+            if volumes[i] is None or float(volumes[i]) <= 0:
+                continue
+            objects.append({
+                "idx": i + 1,
+                "volume_m": round(float(volumes[i]), 6),
+                "volume_cm": round(float(volumes[i] * 1000000), 2),
+                "x_cm": round(float(widths[i]), 1),
+                "y_cm": round(float(lengths[i]), 1),
+                "z_cm": round(float(heights[i]), 1),
+                "depth_cm": round(float(depths[i]), 1) if i < len(depths) and depths[i] is not None else None,
+                "extra": None,
+            })
+
+    return objects
+
+def _save_png(frame, path):
+    if frame is None:
+        return False
+    if frame.dtype != numpy.uint8:
+        frame = (numpy.clip(frame, 0, 1) * 255).astype(numpy.uint8)
+    Image.fromarray(frame[:, :, ::-1]).save(path, format="PNG")
+    return True
+
+def _snapshot_measurement_frames(measurement_id):
+    folder = os.path.join("data", "measurements", str(measurement_id))
+    os.makedirs(folder, exist_ok=True)
+
+    frames = {
+        "color": frameState.colorFrame,
+        "colorToDepth": frameState.colorToDepthFrame,
+        "detectedObjects": frameState.detectedObjectsFrame,
+    }
+
+    images = []
+    for kind, frame in frames.items():
+        path = os.path.join(folder, kind + ".png")
+        if _save_png(frame, path):
+            images.append({"kind": kind, "path": path})
+    return images
+
+def _owns_measurement(current_user, measurement):
+    if current_user["role"] == "admin":
+        return True
+    owner = get_by_username(current_user["username"])
+    return owner is not None and measurement["user_id"] == owner["id"]
+
+@app.post("/measurements", summary="Saves the current measurement",
+         description="""
+         Persists the last computed volume measurement (objects and snapshot images) for the current user.
+         """,
+         tags=["Measurements"])
+def save_measurement(current_user: dict = Depends(get_current_user)):
+    owner = get_by_username(current_user["username"])
+    if owner is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found.")
+
+    mode = modeState.volumeMode
+    objects = build_measurement_objects(mode)
+    if not objects:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No measurement available to save.")
+
+    total_m = round(sum(obj["volume_m"] for obj in objects), 6)
+    total_cm = round(total_m * 1000000, 2)
+    workspace_depth = float(workspaceState.workspace_depth) if workspaceState.workspace_depth is not None else None
+
+    measurement_id = measurements_repo.create_measurement(
+        user_id=owner["id"],
+        volume_mode=mode,
+        object_count=len(objects),
+        total_volume_m=total_m,
+        total_volume_cm=total_cm,
+        workspace_depth=workspace_depth,
+        objects=objects,
+    )
+
+    images = _snapshot_measurement_frames(measurement_id)
+    if images:
+        measurements_repo.add_images(measurement_id, images)
+
+    return {"id": measurement_id, "object_count": len(objects), "total_volume_cm": total_cm}
+
+@app.get("/measurements", summary="Lists measurements",
+         description="""
+         Lists measurements. Admins get every measurement; regular users get only their own.
+         """,
+         tags=["Measurements"])
+def list_measurements_endpoint(current_user: dict = Depends(get_current_user)):
+    if current_user["role"] == "admin":
+        return {"measurements": measurements_repo.list_measurements()}
+
+    owner = get_by_username(current_user["username"])
+    if owner is None:
+        return {"measurements": []}
+    return {"measurements": measurements_repo.list_measurements(user_id=owner["id"])}
+
+@app.get("/measurements/{measurement_id}", summary="Gets a measurement detail",
+         description="""
+         Returns a measurement with its objects and images. Feeds the measurement detail modal.
+         """,
+         tags=["Measurements"])
+def get_measurement_endpoint(measurement_id: int, current_user: dict = Depends(get_current_user)):
+    data = measurements_repo.get_measurement(measurement_id)
+    if data is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Measurement not found.")
+
+    if not _owns_measurement(current_user, data["measurement"]):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden.")
+
+    return data
+
+@app.get("/measurements/{measurement_id}/image/{kind}", summary="Gets a measurement image",
+         description="""
+         Returns one of the snapshot images (color, colorToDepth, detectedObjects) of a measurement.
+         """,
+         tags=["Measurements"])
+def get_measurement_image(measurement_id: int, kind: str, current_user: dict = Depends(get_current_user)):
+    data = measurements_repo.get_measurement(measurement_id)
+    if data is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Measurement not found.")
+
+    if not _owns_measurement(current_user, data["measurement"]):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden.")
+
+    for image in data["images"]:
+        if image["kind"] == kind and os.path.exists(image["path"]):
+            return FileResponse(image["path"], media_type="image/png")
+
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Image not found.")
+
 
 # ----------------------------------- Server  Status -----------------------------------
 @app.get("/status", summary="Checks the status of the server",
