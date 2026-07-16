@@ -353,11 +353,14 @@ body {
 
 .login-panel {
   position: absolute;
-  top: 50vh;
-  left: 50vw;
+  top: 50%;
+  left: 50%;
   transform: translate(-50%, -50%);
-  width: 30vw;
-  height: 50vh;
+
+  width: clamp(320px, 32vw, 520px);
+  max-height: 92vh;
+  padding: 3.2vh 2vw;
+  box-sizing: border-box;
 
   background: linear-gradient(180deg, #FFFFFF1A 0%, #0000003E 100%);
   border-radius: 1.4vw;
@@ -366,16 +369,18 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
+  gap: 2.2vh;
+  overflow-y: auto;
 }
 
 .login-panel-title {
-  position: relative;
-  top: 4vh;
-  
-  width: 7.5vw;
-  height: 2.5vh;
+  position: static;
+  width: auto;
+  height: auto;
+  margin: 0;
 
-  font-size: 1.7vh;
+  font-size: clamp(12px, 1.7vh, 17px);
   text-align: center;
   color: #999999;
   text-transform: uppercase;
@@ -383,66 +388,66 @@ body {
 }
 
 .login-panel-error-or-info{
-  position: relative;
-  top: 12.5vh; 
+  position: static;
+  width: 100%;
+  height: auto;
+  margin: 0;
 
-  width: 24vw;
-  height: 4vh;
-
-  font-size: 1.7vh;
+  font-size: clamp(11px, 1.6vh, 16px);
   text-align: center;
   color: #FFFFFF;
   opacity: 1;
 }
 
 .login-form {
-  position: relative;
-  top: 16.5vh;
-  width: 26vw;
-  height: 22vh;
+  position: static;
+  width: 100%;
+  height: auto;
 
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 1.6vh;
 }
 
 .login-input {
-  position: relative;
+  position: static;
+  top: auto;
 
-  width: 26vw;
-  height: 6vh;
+  width: 100%;
+  height: clamp(40px, 6vh, 54px);
 
-  font-size: 1.4vh;
-  background: #000000 0% 0% no-repeat padding-box;
-  border: 0.4vh solid rgba(255,255,255,0.1);
-  border-radius: 0.12vh;
-  opacity: 0.2;
+  font-size: clamp(12px, 1.5vh, 16px);
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
 
   color: white;
   padding-left: 0.8vw;
   box-sizing: border-box;
 }
 
-.username {
-  top: 0vh;
+.login-input::placeholder {
+  color: rgba(255, 255, 255, 0.45);
 }
 
-.password {
-  top: 1.6vh;
+.username, .password {
+  top: 0;
 }
 
 .login-button {
   position: relative;
+  top: 0;
+  left: 0;
+  margin-top: 0.4vh;
 
-  top: 4.4vh;
-  left: 8.2vw;
-
-  width: 10.4vw;
-  height: 5.1vh;
+  width: clamp(150px, 12vw, 210px);
+  height: clamp(38px, 5.1vh, 50px);
 
   cursor: pointer;
-  border-radius: 0.12vh;
+  border-radius: 6px;
   border: none;
+  overflow: hidden;
 
   display: flex;
   justify-content: center;
@@ -450,15 +455,19 @@ body {
 }
 
 .login-button .background {
-  background: #FFFFFF 0% 0% no-repeat padding-box;
+  position: absolute;
+  inset: 0;
+  background: #FFFFFF;
   opacity: 0.2;
 }
 
 .login-button .text{
+  position: relative;
+  z-index: 1;
   color: #FFFFFF;
   text-transform: uppercase;
   opacity: 1;
-  font-size: 1.5vh;
+  font-size: clamp(12px, 1.5vh, 16px);
 }
 
 /* ----------------- */

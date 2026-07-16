@@ -1,6 +1,5 @@
 import cv2
 import os
-import json
 import numpy
 
 from FrameState import frameState
@@ -8,7 +7,10 @@ from CameraState import camState
 from WorkspaceState import workspaceState
 from MaskState import maskState
 
+from db.calibration_repo import save_calibration
+
 def save_WS_calibration():
+    os.makedirs("config", exist_ok=True)
     cv2.imwrite("config/calibrationColorFrame.png", frameState.calibrationColorFrame)
     numpy.save("config/calibrationDepthFrame.npy", frameState.calibrationDepthFrame)
 
@@ -26,10 +28,7 @@ def save_WS_calibration():
         "colorRGB": maskState.colorRGB,
         "colorSlope": int(camState.colorSlope),
         "calibrationColorFrame_path": "config/calibrationColorFrame.png",
-        "calibrationDepthFrame_path": "config/calibrationDepthFrame.npy"
+        "calibrationDepthFrame_path": "config/calibrationDepthFrame.npy",
     }
 
-    os.makedirs("config", exist_ok=True)
-
-    with open("config/workspace_calibration.json", "w") as f:
-        json.dump(data, f, indent=4)
+    save_calibration(data)

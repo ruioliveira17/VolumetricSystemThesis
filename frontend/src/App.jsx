@@ -4,6 +4,14 @@ import viteLogo from './assets/vite.svg'
 import heroImg from './assets/hero.png'
 import './App.css'
 
+// O detalhe de erro do FastAPI e string (HTTPException) OU um array de objetos (422 do
+// pydantic). Renderizar o objeto direto rebenta o React, por isso normaliza-se sempre a texto.
+function errorText(detail, fallback) {
+  if (typeof detail === "string") return detail;
+  if (Array.isArray(detail)) return detail.map(e => (e && e.msg) ? e.msg : JSON.stringify(e)).join("; ");
+  return fallback;
+}
+
 function App() {
   const API_URL = import.meta.env.VITE_API_URL;
 
@@ -76,6 +84,7 @@ function App() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState([TextLoginWelcome, TextLoginCredentials]);
 
+  const [regUsername, setRegUsername] = useState("");
   const [regEmail, setRegEmail] = useState("");
   const [regPassword, setRegPassword] = useState("");
   const [regConfirmPassword, setRegConfirmPassword] = useState("");
@@ -208,15 +217,16 @@ function App() {
 
   // Restore Session Algorithm
   async function restoreSession() {
-    const access_token = localStorage.getItem("access_token");
+    let access_token = localStorage.getItem("access_token");
     const refresh_token = localStorage.getItem("refresh_token");
 
-    if (!access_token & !refresh_token) {
+    if (!access_token && !refresh_token) {
       logout();
+      return;
     }
 
     try {
-      const res = await fetch(`${API_URL}/calibration/status`, {
+      let res = await fetch(`${API_URL}/calibration/status`, {
         headers: {
           "Authorization": `Bearer ${access_token}`
         }
@@ -330,6 +340,7 @@ function App() {
       setCurrentMenu("login-menu");
 
       setError([TextClear]);
+      setRegUsername("");
       setRegEmail("");
       setRegPassword("");
       setRegConfirmPassword("");
@@ -349,7 +360,7 @@ function App() {
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({ email: username, password })
+        body: JSON.stringify({ username, password })
       });
 
       if (response.ok) {
@@ -376,7 +387,7 @@ function App() {
 
       } else {
         const data = await response.json();
-        setError([data.detail]);
+        setError([errorText(data.detail, TextServerConnection)]);
       }
 
     } catch (error) {
@@ -449,7 +460,7 @@ function App() {
   }
 
   async function register() {
-      if (!regEmail || !regPassword || !regConfirmPassword) {
+      if (!regUsername || !regEmail || !regPassword || !regConfirmPassword) {
           setError([TextFillAllFields]);
           return;
       }
@@ -465,13 +476,13 @@ function App() {
               headers: {
                   'Content-Type': 'application/json'
               },
-              body: JSON.stringify({ email: regEmail, password: regPassword, confirm_password: regConfirmPassword })
+              body: JSON.stringify({ username: regUsername, email: regEmail, password: regPassword, confirm_password: regConfirmPassword })
           });
           
           const data = await response.json();
 
           if (!response.ok) {
-            setError([data.detail || TextRegistrationError]);
+            setError([errorText(data.detail, TextRegistrationError)]);
             return;
           }
 
@@ -559,6 +570,7 @@ function App() {
         setVolumeData(null);
         setObjectImage(null);
         setShowCamera(true);
+        setMeasurementData(null);
         refreshAccessToken();
         const access_token = localStorage.getItem("access_token");
 
@@ -691,7 +703,7 @@ function App() {
         setSaveMsg("Session expired. Please login again.");
       } else {
         const data = await res.json().catch(() => ({}));
-        setSaveMsg(data.detail || "Could not save the measurement.");
+        setSaveMsg(errorText(data.detail, "Could not save the measurement."));
       }
     } catch (e) {
       setSaveMsg("Server connection error.");
@@ -817,7 +829,7 @@ function App() {
         setVolInfo(null);
       }
 
-      if (objIdentified.lenght >= 1){
+      if (objIdentified.length > 0){
         const objects = Object.entries(volumeData)
           .filter(([key]) => key !== "Total")
           .map(([key, obj]) => ({
@@ -903,7 +915,7 @@ function App() {
         setVolInfo(null);
       }
 
-      if (objIdentified.lenght >= 1){
+      if (objIdentified.length > 0){
         const objects = Object.entries(volumeData)
           .filter(([key]) => key !== "Total")
           .map(([key, obj]) => ({
@@ -1886,6 +1898,7 @@ function App() {
     setSelectedObject("");
     setVolInfo(null);
     setVolumeData(null);
+    setMeasurementData(null);
 
     refreshAccessToken();
     const access_token = localStorage.getItem("access_token");
@@ -2710,13 +2723,13 @@ function App() {
 
           <img
             src="/settings.svg"
-            className={`nav-icon ${!menuSideNav ? "hidden" : ""}`}
+            className={`nav-icon ${(currentMenu === "login-menu" || currentMenu === "register" || !menuSideNav) ? "hidden" : ""}`}
             onClick={() => setShowSettingsPopup(true)}
           />
 
           <img
             src="/user.svg"
-            className={`nav-icon ${currentMenu === "login-menu" ? "hidden" : ""}`}
+            className={`nav-icon ${currentMenu === "login-menu" || currentMenu === "register" ? "hidden" : ""}`}
             /*onClick={toggleUserMenu}*/
             onClick={() => setShowUserPopup(true)}
           />
@@ -2738,10 +2751,10 @@ function App() {
               <form className="login-form" style={{ gap: "1vh", height: "auto", top: "8vh" }} onSubmit={(e) => { e.preventDefault(); login(); }}>
                 <input
                   className="login-input"
-                  type="email"
+                  type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  placeholder="Email"
+                  placeholder="Username"
                 />
 
                 <input
@@ -2794,6 +2807,14 @@ function App() {
               </div>
 
               <form className="login-form" style={{ gap: "1vh", height: "auto", top: "8vh" }} onSubmit={(e) => { e.preventDefault(); register(); }}>
+                <input
+                  className="login-input"
+                  type="text"
+                  value={regUsername}
+                  onChange={(e) => setRegUsername(e.target.value)}
+                  placeholder="Username"
+                />
+
                 <input
                   className="login-input"
                   type="email"
@@ -2923,7 +2944,7 @@ function App() {
                   </button>
 
                   {/* Save Measurement */}
-                  {(volInfo) && (
+                  {(measurementData) && (
                     <div style={{ marginTop: "1vh", textAlign: "center" }}>
                       <button onClick={saveMeasurement} className="volumeBundle-button" disabled={savingMeasurement}>
                         <div className="volumeBundle-button-info-container">
@@ -3003,7 +3024,7 @@ function App() {
                   </button>
 
                   {/* Save Measurement */}
-                  {(volInfo) && (
+                  {(measurementData) && (
                     <div style={{ marginTop: "1vh", textAlign: "center" }}>
                       <button onClick={saveMeasurement} className="volume-button" disabled={savingMeasurement}>
                         <div className="volume-button-info-container">

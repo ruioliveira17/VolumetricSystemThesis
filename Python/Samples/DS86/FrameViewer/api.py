@@ -33,8 +33,8 @@ os.environ.setdefault("DATABASE_PATH", os.path.join(PROJECT, "data", "dev_app.db
 #------------------------------------------------------   Classes    -------------------------------------------------------
 
 from db.migrate import run_migrations
-from db import measurements_repo
-from db.users_repo import get_by_login, get_by_username, get_by_id, create_user, list_users, set_role, delete_user
+from db import measurements_repo, config_repo, calibration_repo
+from db.users_repo import get_by_login, get_by_username, get_by_email, get_by_id, create_user, list_users, set_role, delete_user
 
 from BaseModels import CamValues, ColorCoords, CropWindow, CurrentMenu, HSVValue, LoginData, ManualWorkspace, MeasurementIn, ObjectIn, RefreshData, RegisterData, RoleUpdate, SystemUpdate
 from CameraState import camState
@@ -121,14 +121,9 @@ def scale_nested(data, factor):
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # STARTUP
-    path = "config/workspace_calibration.json"
-    config_path = "config/last_configurations.json"
-
-    if os.path.exists(path):
+    calib = calibration_repo.get_calibration()
+    if calib:
         try:
-            with open(path, "r") as f:
-                calib = json.load(f)
-
             workspaceState.detection_area = calib["detection_area"]
             workspaceState.workspace_warning = calib["workspace_warning"]
             workspaceState.workspace_depth = calib["workspace_depth"]
@@ -143,21 +138,17 @@ async def lifespan(app: FastAPI):
             camState.colorSlope = calib["colorSlope"]
             frameState.calibrationColorFrame = cv2.imread(calib["calibrationColorFrame_path"])
             frameState.calibrationDepthFrame = numpy.load(calib["calibrationDepthFrame_path"])
-            
+
             print("Calibration loaded!")
 
         except Exception as e:
             print("Error loading calibration:", e)
-            calib = None
     else:
         print("Its necessary to realize a calibration!")
-        calib = None
 
-    if os.path.exists(config_path):
+    config = config_repo.get_last_configuration()
+    if config:
         try:
-            with open(config_path, "r") as f:
-                config = json.load(f)
-
             modeState.expositionMode = config["expositionMode"]
             modeState.volumeMode = config["volumeMode"]
             modeState.speedMode = config["speedMode"]
@@ -170,15 +161,13 @@ async def lifespan(app: FastAPI):
             camState.spatialFilter = config["spatialFilter"]
             camState.confidenceFilter = config["confidenceFilter"]
             volumeState.countdown = config["countdown"]
-            
+
             print("Last configurations loaded!")
 
         except Exception as e:
             print("Error loading last configuration:", e)
-            config = None
     else:
         print("There arent any last configurations!")
-        config = None
 
     startCamera()
 
@@ -238,10 +227,10 @@ def serve_manager():
          """,
          tags=["User"])
 def login(login_data: LoginData):
-    user = get_by_login(login_data.email)
+    user = get_by_login(login_data.username)
 
     if not user or not verify_password(login_data.password, user["password_hash"]):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password.")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid username or password.")
     
     access_token = create_access_token({"sub": user["username"], "role": user["role"]})
     refresh_token = create_refresh_token({"sub": user["username"], "role": user["role"]})
@@ -259,16 +248,19 @@ def login(login_data: LoginData):
          """,
          tags=["User"])
 def register(register_data: RegisterData):
-    if not register_data.email or not register_data.password or not register_data.confirm_password:
+    if not register_data.username or not register_data.email or not register_data.password or not register_data.confirm_password:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Please fill all fields!")
-    
+
     if register_data.password != register_data.confirm_password:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Passwords do not match!")
 
-    if get_by_login(register_data.email) is not None:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username already used! Choose another email.")
-    
-    create_user(username=register_data.email, email=register_data.email, password_hash=get_password_hash(register_data.password), role="user")
+    if get_by_username(register_data.username) is not None:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username already used! Choose another username.")
+
+    if get_by_email(register_data.email) is not None:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already used! Choose another email.")
+
+    create_user(username=register_data.username, email=register_data.email, password_hash=get_password_hash(register_data.password), role="user")
 
     return {"message": "Utilizador criado com sucesso!"}
 
@@ -345,8 +337,13 @@ def save_measurement(data: Optional[MeasurementIn] = Body(default=None), current
     total_cm = round(total_m * 1000000, 2)
     mid = measurements_repo.create_measurement(
         user_id=owner["id"], volume_mode=volume_mode, object_count=len(objects),
-        total_volume_m=total_m, total_volume_cm=total_cm, weight = weight, objects=objects,
+        total_volume_m=total_m, total_volume_cm=total_cm, weight=weight, objects=objects,
     )
+
+    images = _snapshot_measurement_frames(mid)
+    if images:
+        measurements_repo.add_images(mid, images)
+
     return {"id": mid, "object_count": len(objects), "total_volume_cm": total_cm}
 
 
@@ -716,20 +713,13 @@ def apply_manualWS(data: ManualWorkspace, current_user: dict = Depends(get_curre
          """,
          tags=["Calibration"])
 def get_calibration_status(current_user: dict = Depends(get_current_user)):
-    path = "config/workspace_calibration.json"
+    data = calibration_repo.get_calibration()
 
-    if not os.path.exists(path):
+    if not data or data.get("detection_area") is None:
         return {"calibrated": False}
 
     try:
-        with open(path, "r") as f:
-            data = json.load(f)
-
-        if "detection_area" not in data:
-            return {"calibrated": False}
-
         return {"calibrated": True, "colorRGB": data["colorRGB"]}
-
     except:
         return {"calibrated": False}
 
@@ -796,9 +786,6 @@ def saveCalibration(current_user: dict = Depends(get_current_user)):
          tags=["Calibration"])
 def getCalibrationParameters(current_user: dict = Depends(get_current_user)):
     return {
-        "Detection Area": [
-            [int(x), int(y)] for x, y in workspaceState.detection_area
-        ],
         "Detected Area": [
             [int(x), int(y)] for x, y in workspaceState.detected_area
         ],
@@ -1595,15 +1582,12 @@ def update_systemInfo(info: SystemUpdate, current_user: dict = Depends(require_a
          """,
          tags=["Configuration"])
 def get_configuration_status(current_user: dict = Depends(get_current_user)):
-    path = "config/last_configurations.json"
+    data = config_repo.get_last_configuration()
 
-    if not os.path.exists(path):
+    if not data:
         return {"configured": False}
 
     try:
-        with open(path, "r") as f:
-            data = json.load(f)
-
         if "expositionMode" not in data or "volumeMode" not in data or "speedMode" not in data:
             return {"configured": False}
 
@@ -1750,70 +1734,6 @@ def _owns_measurement(current_user, measurement):
         return True
     owner = get_by_username(current_user["username"])
     return owner is not None and measurement["user_id"] == owner["id"]
-
-@app.post("/measurements", summary="Saves the current measurement",
-         description="""
-         Persists the last computed volume measurement (objects and snapshot images) for the current user.
-         """,
-         tags=["Measurements"])
-def save_measurement(current_user: dict = Depends(get_current_user)):
-    owner = get_by_username(current_user["username"])
-    if owner is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found.")
-
-    mode = modeState.volumeMode
-    objects = build_measurement_objects(mode)
-    if not objects:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No measurement available to save.")
-
-    total_m = round(sum(obj["volume_m"] for obj in objects), 6)
-    total_cm = round(total_m * 1000000, 2)
-    workspace_depth = float(workspaceState.workspace_depth) if workspaceState.workspace_depth is not None else None
-
-    measurement_id = measurements_repo.create_measurement(
-        user_id=owner["id"],
-        volume_mode=mode,
-        object_count=len(objects),
-        total_volume_m=total_m,
-        total_volume_cm=total_cm,
-        workspace_depth=workspace_depth,
-        objects=objects,
-    )
-
-    images = _snapshot_measurement_frames(measurement_id)
-    if images:
-        measurements_repo.add_images(measurement_id, images)
-
-    return {"id": measurement_id, "object_count": len(objects), "total_volume_cm": total_cm}
-
-@app.get("/measurements", summary="Lists measurements",
-         description="""
-         Lists measurements. Admins get every measurement; regular users get only their own.
-         """,
-         tags=["Measurements"])
-def list_measurements_endpoint(current_user: dict = Depends(get_current_user)):
-    if current_user["role"] == "admin":
-        return {"measurements": measurements_repo.list_measurements()}
-
-    owner = get_by_username(current_user["username"])
-    if owner is None:
-        return {"measurements": []}
-    return {"measurements": measurements_repo.list_measurements(user_id=owner["id"])}
-
-@app.get("/measurements/{measurement_id}", summary="Gets a measurement detail",
-         description="""
-         Returns a measurement with its objects and images. Feeds the measurement detail modal.
-         """,
-         tags=["Measurements"])
-def get_measurement_endpoint(measurement_id: int, current_user: dict = Depends(get_current_user)):
-    data = measurements_repo.get_measurement(measurement_id)
-    if data is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Measurement not found.")
-
-    if not _owns_measurement(current_user, data["measurement"]):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden.")
-
-    return data
 
 @app.get("/measurements/{measurement_id}/image/{kind}", summary="Gets a measurement image",
          description="""

@@ -3,6 +3,26 @@ import json
 from db.connection import get_connection, write_lock, row_to_dict, rows_to_dicts
 
 
+def _scalar(value):
+    """Só números vão para colunas escalares; None/listas/dicts/bool -> None.
+    O SQLite não sabe bindar listas (o caso 'arrays dentro de arrays' do modo Real)."""
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, (int, float)):
+        return value
+    return None
+
+
+def _dim(value, extra, key):
+    """Devolve o valor para a coluna escalar. Se vier em lista/aninhado (Real),
+    encaminha-o para o extra_json e deixa a coluna a None."""
+    if isinstance(value, (int, float)) and not isinstance(value, bool):
+        return value
+    if value is not None:
+        extra.setdefault(key, value)
+    return None
+
+
 def create_measurement(user_id, volume_mode, object_count, total_volume_m, total_volume_cm, weight, objects):
     with write_lock:
         conn = get_connection()
@@ -11,25 +31,30 @@ def create_measurement(user_id, volume_mode, object_count, total_volume_m, total
                 "INSERT INTO measurements "
                 "(user_id, volume_mode, object_count, total_volume_m, total_volume_cm, weight) "
                 "VALUES (?, ?, ?, ?, ?, ?)",
-                (user_id, volume_mode, object_count, total_volume_m, total_volume_cm, weight),
+                (user_id, volume_mode, object_count, _scalar(total_volume_m), _scalar(total_volume_cm), _scalar(weight)),
             )
             measurement_id = cursor.lastrowid
 
             for obj in objects:
-                extra = obj.get("extra")
+                extra = dict(obj.get("extra") or {})
+                # Dimensoes: escalares vao para as colunas; listas/aninhados vao para o extra_json.
+                x_cm = _dim(obj.get("x_cm"), extra, "x")
+                y_cm = _dim(obj.get("y_cm"), extra, "y")
+                z_cm = _dim(obj.get("z_cm"), extra, "z")
+
                 conn.execute(
                     "INSERT INTO measurement_objects "
                     "(measurement_id, idx, volume_m, volume_cm, x_cm, y_cm, z_cm, extra_json) "
                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
                     (
                         measurement_id,
-                        obj["idx"],
-                        obj.get("volume_m"),
-                        obj.get("volume_cm"),
-                        obj.get("x_cm"),
-                        obj.get("y_cm"),
-                        obj.get("z_cm"),
-                        json.dumps(extra) if extra is not None else None,
+                        obj.get("idx"),
+                        _scalar(obj.get("volume_m")),
+                        _scalar(obj.get("volume_cm")),
+                        x_cm,
+                        y_cm,
+                        z_cm,
+                        json.dumps(extra) if extra else None,
                     ),
                 )
 

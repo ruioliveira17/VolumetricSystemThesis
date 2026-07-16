@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field, StrictBool
-from typing import List, Literal, Optional
+from typing import Any, List, Literal, Optional
 
 class CamValues(BaseModel):
     colorSlope: Optional[int] = Field(1500, ge=100, le=4000)
@@ -29,7 +29,7 @@ class HSVValue(BaseModel):
 
 #Não seria melhor ser feito com o User?
 class LoginData(BaseModel):
-    email: str
+    username: str
     password: str
 
 class ManualWorkspace(BaseModel):
@@ -37,19 +37,20 @@ class ManualWorkspace(BaseModel):
     selected_point: Optional[int] = None
 
 class ObjectIn(BaseModel):
+    # Campos numericos como Any: no modo Real vem em listas (arrays dentro de arrays).
+    # O adaptador em measurements_repo.create_measurement encaminha listas -> extra_json
+    # e mete escalares nas colunas, por isso o modelo so precisa de aceitar o payload.
     idx: int
-    volume_m: float
-    volume_cm: float
-    x_cm: Optional[float] = None
-    y_cm: Optional[float] = None
-    z_cm: Optional[float] = None
-    depth_cm: Optional[float] = None
+    volume_m: Optional[Any] = None
+    volume_cm: Optional[Any] = None
+    x_cm: Optional[Any] = None
+    y_cm: Optional[Any] = None
+    z_cm: Optional[Any] = None
     extra: Optional[dict] = None
 
 class MeasurementIn(BaseModel):
     volume_mode: str
-    workspace_depth: Optional[float] = None
-    weight: Optional[float] = None
+    weight: Optional[Any] = None
     objects: List[ObjectIn]
 
 class RefreshData(BaseModel):
@@ -57,6 +58,7 @@ class RefreshData(BaseModel):
 
 #Opção Username?
 class RegisterData(BaseModel):
+    username: str
     email: str
     password: str
     confirm_password: str
