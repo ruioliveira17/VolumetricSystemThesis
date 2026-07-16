@@ -49,6 +49,7 @@ class ObjectIn(BaseModel):
 class MeasurementIn(BaseModel):
     volume_mode: str
     workspace_depth: Optional[float] = None
+    weight: Optional[float] = None
     objects: List[ObjectIn]
 
 class RefreshData(BaseModel):

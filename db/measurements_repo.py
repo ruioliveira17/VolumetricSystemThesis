@@ -3,15 +3,15 @@ import json
 from db.connection import get_connection, write_lock, row_to_dict, rows_to_dicts
 
 
-def create_measurement(user_id, volume_mode, object_count, total_volume_m, total_volume_cm, workspace_depth, objects):
+def create_measurement(user_id, volume_mode, object_count, total_volume_m, total_volume_cm, weight, objects):
     with write_lock:
         conn = get_connection()
         try:
             cursor = conn.execute(
                 "INSERT INTO measurements "
-                "(user_id, volume_mode, object_count, total_volume_m, total_volume_cm, workspace_depth) "
+                "(user_id, volume_mode, object_count, total_volume_m, total_volume_cm, weight) "
                 "VALUES (?, ?, ?, ?, ?, ?)",
-                (user_id, volume_mode, object_count, total_volume_m, total_volume_cm, workspace_depth),
+                (user_id, volume_mode, object_count, total_volume_m, total_volume_cm, weight),
             )
             measurement_id = cursor.lastrowid
 
@@ -19,8 +19,8 @@ def create_measurement(user_id, volume_mode, object_count, total_volume_m, total
                 extra = obj.get("extra")
                 conn.execute(
                     "INSERT INTO measurement_objects "
-                    "(measurement_id, idx, volume_m, volume_cm, x_cm, y_cm, z_cm, depth_cm, extra_json) "
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    "(measurement_id, idx, volume_m, volume_cm, x_cm, y_cm, z_cm, extra_json) "
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
                     (
                         measurement_id,
                         obj["idx"],
@@ -29,7 +29,6 @@ def create_measurement(user_id, volume_mode, object_count, total_volume_m, total
                         obj.get("x_cm"),
                         obj.get("y_cm"),
                         obj.get("z_cm"),
-                        obj.get("depth_cm"),
                         json.dumps(extra) if extra is not None else None,
                     ),
                 )

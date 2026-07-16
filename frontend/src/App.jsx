@@ -89,6 +89,7 @@ function App() {
   const toggleMenu = () => setMenuSideNavOpen(prev => !prev);
 
   const [volInfo, setVolInfo] = useState(null);
+  const [measurementData, setMeasurementData] = useState(null);
   const [objCenters, setObjCenters] = useState([]);
   const [objAngles, setObjAngles] = useState([]);
   const [savingMeasurement, setSavingMeasurement] = useState(false);
@@ -679,7 +680,8 @@ function App() {
 
       const res = await fetch(`${API_URL}/measurements`, {
         method: "POST",
-        headers: { "Authorization": `Bearer ${access_token}` }
+        headers: { "Authorization": `Bearer ${access_token}`, "Content-Type": "application/json" },
+        body: JSON.stringify(measurementData)
       });
 
       if (res.ok) {
@@ -719,12 +721,28 @@ function App() {
           if (bundle.volume_m === 0 || bundle.volume_cm === 0 || bundle.x === 0 || bundle.y === 0 || bundle.z === 0) {
             setError([TextNoObjectsDetected])
           } else {
+            setMeasurementData({
+              volume_mode: "Single Bundle",
+              weight: weightInfo.weight ?? 0,
+              objects: [
+                {
+                  idx: 1,
+                  volume_m: bundle.volume_m,
+                  volume_cm: bundle.volume_cm,
+                  x_cm: bundle.x,
+                  y_cm: bundle.y,
+                  z_cm: bundle.z,
+                  extra: null
+                }
+              ]
+            });
+
             setVolInfo({
-              volume_m: volumeData.Bundle.volume_m,
-              volume_cm: volumeData.Bundle.volume_cm,
-              width: volumeData.Bundle.x,
-              length: volumeData.Bundle.y,
-              height: volumeData.Bundle.z
+              volume_m: bundle.volume_m,
+              volume_cm: bundle.volume_cm,
+              width: bundle.x,
+              length: bundle.y,
+              height: bundle.z
             })
 
           }
@@ -798,6 +816,27 @@ function App() {
         setSelectedObject("");
         setVolInfo(null);
       }
+
+      if (objIdentified.lenght >= 1){
+        const objects = Object.entries(volumeData)
+          .filter(([key]) => key !== "Total")
+          .map(([key, obj]) => ({
+            idx: Number(key),
+            volume_m: obj.volume_m,
+            volume_cm: obj.volume_cm,
+            x_cm: obj.x,
+            y_cm: obj.y,
+            z_cm: obj.z,
+            extra: null
+          }));
+
+          setMeasurementData({
+          volume_mode: "Multi Bundle",
+          weight: weightInfo.weight ?? 0,
+          objects
+        });
+      }
+
     } catch (error) {
       setVolInfo(null);
       setError([TextError]);
@@ -863,6 +902,28 @@ function App() {
         setSelectedObject("");
         setVolInfo(null);
       }
+
+      if (objIdentified.lenght >= 1){
+        const objects = Object.entries(volumeData)
+          .filter(([key]) => key !== "Total")
+          .map(([key, obj]) => ({
+            idx: Number(key),
+            volume_m: obj.volume_m,
+            volume_cm: obj.volume_cm,
+            x_cm: obj.x,
+            y_cm: obj.y,
+            z_cm: obj.z,
+            extra: null
+          }));
+
+          setMeasurementData({
+          volume_mode: "Real",
+          weight: weightInfo.weight ?? 0,
+          objects
+        });
+      }
+
+
     } catch (error) {
       setVolInfo(null);
       setError([TextError]);
@@ -2944,8 +3005,8 @@ function App() {
                   {/* Save Measurement */}
                   {(volInfo) && (
                     <div style={{ marginTop: "1vh", textAlign: "center" }}>
-                      <button onClick={saveMeasurement} className="volumeBundle-button" disabled={savingMeasurement}>
-                        <div className="volumeBundle-button-info-container">
+                      <button onClick={saveMeasurement} className="volume-button" disabled={savingMeasurement}>
+                        <div className="volume-button-info-container">
                           <span className="text">{savingMeasurement ? "Saving..." : "Save Measurement"}</span>
                         </div>
                       </button>

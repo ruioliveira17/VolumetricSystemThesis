@@ -68,7 +68,6 @@ from services.saveCalibration import save_WS_calibration
 from services.saveConfiguration import save_configuration
 from services.stream import generateRGB_Stream, generateCalibrationCTD_Stream, generateCalibrationMask_Stream, CameraTrack, CTDTrack
 from services.utils import rgb_to_hsv
-from services.users import load_users, save_users
 
 #----------------------------------------------------   DB Migration   ----------------------------------------------------
 
@@ -332,13 +331,13 @@ def save_measurement(data: Optional[MeasurementIn] = Body(default=None), current
     # Sem corpo: sintetiza uma medicao de exemplo (o backend real leria o volumeState da camara)
     if data is None:
         volume_mode = "Single Bundle"
+        weight = 55.0
         objects = [{"idx": 1, "volume_m": 0.02, "volume_cm": 20000.0,
-                    "x_cm": 30.0, "y_cm": 20.0, "z_cm": 33.0, "depth_cm": 55.0, "extra": None}]
-        workspace_depth = 800.0
+                    "x_cm": 30.0, "y_cm": 20.0, "z_cm": 33.0, "extra": None}]
     else:
         volume_mode = data.volume_mode
+        weight = data.weight
         objects = [o.model_dump() for o in data.objects]
-        workspace_depth = data.workspace_depth
 
     if not objects:
         raise HTTPException(status_code=400, detail="No measurement available to save.")
@@ -346,7 +345,7 @@ def save_measurement(data: Optional[MeasurementIn] = Body(default=None), current
     total_cm = round(total_m * 1000000, 2)
     mid = measurements_repo.create_measurement(
         user_id=owner["id"], volume_mode=volume_mode, object_count=len(objects),
-        total_volume_m=total_m, total_volume_cm=total_cm, workspace_depth=workspace_depth, objects=objects,
+        total_volume_m=total_m, total_volume_cm=total_cm, weight = weight, objects=objects,
     )
     return {"id": mid, "object_count": len(objects), "total_volume_cm": total_cm}
 
