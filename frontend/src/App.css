@@ -308,6 +308,36 @@ body {
 }
 
 /* ----------------- */
+/*  LOADING SYSTEM  */
+
+.systemLoader{
+  position: relative;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  width: 15%;
+}
+
+
+.initText{
+  position: relative;
+  top: 50%;
+  left: 50%;
+  transform: translateX(-50%);
+
+  width: 12.7%;
+  height: 6%;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  font-size: 1.7vh;
+  color: white;
+}
+
+/* ----------------- */
 /* ----- LOGIN ----- */
 
 .qubic-logo{
@@ -1687,112 +1717,266 @@ body {
   color: black;
 }
 
-
 /* ----------------- */
 
-.under-text {
-  margin-top: 2vh;
+.measurementHistory-container{
+  position: absolute;
+  left: 1.6%;
+  top: 15.2%;
+  width: 96.8%;
+  height: 81.7%;
+
+  display: flex;
+  flex-direction: column;
+
+  padding: 2vh 1.5vw;
+  box-sizing: border-box;
+
+  font-size: 2vh;
+
+  justify-content: flex-start;
+  align-items: flex-start;
+  z-index: 1;
+  overflow-y: auto;
 }
 
-.switch {
+.measurementHistory-container .background{
+  position: absolute;
+  inset: 0;
+  background: #000000 0% 0% no-repeat padding-box;
+  border-radius: 0.8vw;
+  opacity: 0.3;
+  z-index: 0;
+}
+
+.searchBar {
   position: relative;
-  display: inline-block;
-  width: 3vw;
-  height: 3.6vh;
+  width: 95%;
+  height: 10%;
+  margin: 0 auto;
+  top: 2%;
+  z-index: 50;
 }
 
-.switch input { 
-  opacity: 0;
-  width: 0;
-  height: 0;
+.sort-container {
+  width: 20%;
+  height: 80%;
+  background-color: rgba(255,255,255,0.08);
+  border-radius: 0.3vw;
+  z-index: 51;
 }
 
-.switch-row {
-  display: flex;
-  align-items: center;
-  gap: 0.5vw;
-  font-size: 1vw;
-  margin-bottom: 2vh;
+.sort-container:hover {
+  background-color: rgba(255,255,255,0.04);
 }
 
-.slider {
-  position: absolute;
+.sort-selected{
   cursor: pointer;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background-color: #ccc;
-  transition: .4s;
-  border-radius: 2.6vh;
 }
 
-.slider:before {
-  position: absolute;
-  content: "";
-  height: 2.6vh; width: 1.2vw;
-  left: 0.25vw; bottom: 0.4vh;
-  background-color: white;
-  transition: .4s;
-  border-radius: 50%;
+.sort-title{
+  font-size: 1.3vh;
+  color: #999;
 }
 
-input:checked + .slider {
-  background-color: turquoise;
+.sort-value{
+  font-size: 2vh;
+  color: white;
+
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
 }
 
-input:checked + .slider:before {
-  transform: translateX(1.2vw);
+.sort-dropdown{
+  width:100%;
+  border-radius:0.5vw;
+  background-color: rgba(255,255,255,0.04);
 }
 
-.input-box {
-  display: flex;
+.sort-option{
+  padding:1vh;
+
+  color:white;
+
+  display:flex;
+  justify-content:space-between;
+
+  cursor:pointer;
+}
+
+
+.sort-option:hover{
+  background-color: rgba(255,255,255,0.08);
+}
+
+.history-container {
+  position: relative;
+  width: 95%;
+  height: 90%;
+  margin: 0 auto;
+  top: 3%;
+}
+
+.history-table{
+  height: 90%;
+  overflow-y: auto;
+  justify-content: flex-start;
+  align-items: flex-start;
+
+
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.history-table::-webkit-scrollbar {
+  display: none;
+}
+
+.history-header,
+.history-row {
+  display: grid;
+  grid-template-columns: 
+    0.5fr 
+    0.8fr 
+    1.5fr 
+    1fr 
+    1.2fr 
+    1fr 
+    1.8fr
+    0.5fr;
+
   align-items: center;
-  gap: 1vw;
-  font-size: 1vw;
-  margin-bottom: 2vh;
-  width: fit-content;
 }
 
-.input-box label{
-  display: inline-block;
-  width: 7vw;
-  text-align: left;
+
+.history-header div {
+  color: white;
+  text-align: center;
 }
 
-.input-box input {
-  font-size: 1vw;
-  padding: 0.3vh 0.5vw;
-  border: 0.2vh solid black;
+.history-header{
+  height: 6%;
 }
 
-.input-box button {
-  font-size: 1vw;
-  padding: 0.3vh 0.5vw;
+.history-row {
+  height: 14%;
+}
+
+.history-row div {
+  color: white;
+  justify-content: center;
+  align-items: center;
+}
+
+.history-row.even {
+  background-color: rgba(255,255,255,0.08);
+}
+
+.history-row:hover {
+  background: rgba(255,255,255,0.03);
+}
+
+.history-header-text{
+  font-size: 1.7vh;
+}
+
+.history-row-text{
+  display: flex;
+  font-size: 1.6vh;
+}
+
+.action-button {
+  color: white;
   cursor: pointer;
-  border: 0.2vh solid black;
+  font-size: 2.4vh;
+  text-align: center;
 }
 
-.readonly-slider {
+.action-button:hover {
+  transform: scale(1.10);
+  transition: 0.3s;
+}
+
+.measurements-config-modal{
+  position: absolute;
+  width: 8%;
+  height: 5%;
+  transform: translate(-125%, 70%);
   display: flex;
   align-items: center;
-  pointer-events: none; 
+  justify-content: center;
+  z-index: 1000;
 }
 
-input[type="range"] {
-  appearance: none;  
-  width: 26vw;
+.measurements-config-modal .background{
+  position: absolute;
+  inset: 0;
+
+  background: #1F1F1F;
+  border-radius: 0.3vw;
+  border: 1px solid #99999939;
+
+  z-index: 1020;
 }
 
-input[type="range"]::-webkit-slider-runnable-track {
-  height: 1.9vh;          /* grossura da barra */
-  background: #ccc;      /* cor da barra */
-  border-radius: 0.5vw;
+.measurements-config-modal .deleteMeasurements-icon {
+  height: 2vh;
+  object-fit: contain;
+  
+  margin-right: 1vw;
+
+  transition: opacity 0.3s;
+  color: #ff6666;
+
+  z-index: 1021;
 }
 
-input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  height: 3.2vh;           /* altura da bolinha */
-  width: 1.6vw;            /* largura da bolinha */
-  background: #ccc;
-  border: 0.2vh solid #9d9d9d;
-  border-radius: 50%;
-  margin-top: -0.6vh;      /* para centralizar a bolinha na barra */
+.measurements-config-modal .deleteMeasurements-text{
+  font-size: 1.6vh;
+  color: #ff6666;
+  z-index: 1021;
 }
+
+.measurement-config-modal{
+  position: absolute;
+  width: 8%;
+  height: 5%;
+  transform: translate(-125%, 70%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.measurement-config-modal .background{
+  position: absolute;
+  inset: 0;
+
+  background: #1F1F1F;
+  border-radius: 0.3vw;
+  border: 1px solid #99999939;
+
+  z-index: 1020;
+}
+
+.measurement-config-modal .deleteMeasurement-icon {
+  height: 2vh;
+  object-fit: contain;
+  
+  margin-right: 1vw;
+
+  transition: opacity 0.3s;
+  color: #ff6666;
+
+  z-index: 1021;
+}
+
+.measurement-config-modal .deleteMeasurement-text{
+  font-size: 1.6vh;
+  color: #ff6666;
+  z-index: 1021;
+  cursor: pointer;
+}
+
+/* ----------------- */

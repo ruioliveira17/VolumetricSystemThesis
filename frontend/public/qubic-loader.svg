@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 54">
+  <defs>
+    <style>
+      .cls-1{ fill:#fff; }
+
+      .loader-frame{
+        fill:none;
+        stroke:#fff;
+        stroke-width:4.4;
+        stroke-linecap:butt;
+        stroke-linejoin:miter;
+      }
+    </style>
+  </defs>
+
+  <g id="Layer_1-2">
+
+    <!-- QUBIC lettering — stays fully intact, never animated -->
+    <path id="Path_26768" class="cls-1" d="M41.34,40.31c0-3.63-5.67-5.67-8.44-6.83-5.13-.17-10.97.26-10.97-6.65,0-5.41,2.88-6.97,7.89-6.97,5.3,0,7.83,1.73,7.83,7.29,0,1.27-.24,2.54-.72,3.72-.06.11-.09.23-.09.35,0,.52,3.43,2.3,3.72,2.3.13,0,.25-.03.35-.11,1.86-1.68,2.84-4.12,2.68-6.62,0-8.06-6.48-11.09-13.65-11.09s-13.94,3-13.94,11.17c0,9.57,9.27,10.78,16.79,10.78.95.52,7.57,4.32,7.95,4.32.61,0,.61-1.27.61-1.64ZM70.92,32.59v-16.01c.02-.3-.21-.56-.51-.58-.02,0-.04,0-.07,0h-4.67c-.3-.02-.56.21-.58.51,0,.02,0,.04,0,.07v16.79h-13.07v-16.79c.02-.3-.21-.56-.51-.58-.02,0-.04,0-.07,0h-4.69c-.3-.02-.56.21-.58.51,0,.02,0,.04,0,.07v16.27c0,4.23,2.07,4.69,5.79,4.69h12.96c3.86,0,5.99-.58,5.99-4.96ZM74.26,37.05c-.02.29.21.53.49.55.03,0,.06,0,.08,0h13.14c4.29,0,11.72-.66,11.72-6.42,0-3.08-2.79-4.44-5.47-4.72,2.19-.52,3.17-2.76,3.17-4.84,0-4.84-5.7-5.79-9.47-5.79h-13.57c-.28-.02-.53.18-.55.46,0,.04,0,.08,0,.11,0,3.23,2.76,3.6,5.33,3.6h8.78c1.47,0,3.54.4,3.54,2.27s-2.02,2.27-3.54,2.27h-13.08c-.3-.02-.56.21-.58.51,0,.02,0,.04,0,.07v11.92ZM80.22,28.76h7.78c1.7,0,5.76,0,5.76,2.48,0,2.25-4.2,2.51-5.82,2.51h-7.72v-4.98ZM102.63,37.63l4.72-.03c.3.02.56-.21.58-.51,0-.02,0-.04,0-.07l-.06-20.45c.02-.3-.21-.56-.51-.58-.02,0-.04,0-.07,0h-4.72c-.3-.02-.56.21-.58.51,0,.02,0,.04,0,.07l.06,20.48c-.02.3.21.56.51.57.02,0,.04,0,.06,0ZM134.37,37v-3.02c.02-.3-.21-.56-.51-.58-.02,0-.04,0-.07,0h-2.39l-4.78.03h-2.39c-4.95,0-7.78-1.41-7.78-6.8s2.91-6.42,7.78-6.42h2.39l4.78-.03h2.39c.3.02.56-.21.58-.51,0-.02,0-.04,0-.07v-3.02c.02-.3-.21-.56-.51-.58-.02,0-.04,0-.07,0h-2.39l-4.78.03h-2.39c-7.08,0-13.71,2.71-13.71,10.83s6.6,10.74,13.71,10.74h2.39l4.78-.03h2.39c.3.02.56-.21.58-.51,0-.02,0-.05,0-.07Z"/>
+
+    <!-- The 4 corner-lines: path starts mid-top-edge (never at a vertex) so no dash boundary ever
+         crosses a corner — every corner keeps its clean mitered right angle throughout the loop.
+         At rest (t=0 and t=1) this renders pixel-identical to the original 4 corner brackets. -->
+    <path class="loader-frame"
+          d="M75,2.2 H147.8 V51.8 H2.2 V2.2 Z"
+          stroke-dasharray="22 27.6 22 123.6 22 27.6 22 123.6"
+          stroke-dashoffset="-61.8">
+
+      <!-- Ease-in/ease-out rotation: one complete clockwise lap, landing back exactly
+           on the starting offset (perimeter length added is exactly one full loop). -->
+      <animate attributeName="stroke-dashoffset"
+        dur="3.6s" repeatCount="indefinite"
+        calcMode="spline"
+        keyTimes="0;1"
+        keySplines="0.65 0 0.35 1"
+        values="-61.8;-452.2"/>
+
+      <!-- The 4 lines lengthen and become evenly spaced mid-lap, then contract back
+           to the original corner size at the exact moment the lap completes. -->
+      <animate attributeName="stroke-dasharray"
+        dur="3.6s" repeatCount="indefinite"
+        calcMode="spline"
+        keyTimes="0;0.5;1"
+        keySplines="0.65 0 0.35 1;0.65 0 0.35 1"
+        values="22 27.6 22 123.6 22 27.6 22 123.6;
+                32 65.6 32 65.6 32 65.6 32 65.6;
+                22 27.6 22 123.6 22 27.6 22 123.6"/>
+    </path>
+
+  </g>
+</svg>

@@ -128,3 +128,15 @@ def get_measurement(measurement_id):
         }
     finally:
         conn.close()
+
+def delete_measurement(measurement_id):
+    with write_lock:
+        conn = get_connection()
+        try:
+            conn.execute("DELETE FROM measurement_objects WHERE measurement_id = ?", (measurement_id,))
+            conn.execute("DELETE FROM measurement_images WHERE measurement_id = ?", (measurement_id,))
+            cursor = conn.execute("DELETE FROM measurements WHERE id = ?", (measurement_id,))
+            conn.commit()
+            return cursor.rowcount
+        finally:
+            conn.close()

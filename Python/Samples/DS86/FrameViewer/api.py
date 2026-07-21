@@ -248,7 +248,7 @@ def login(login_data: LoginData):
          """,
          tags=["User"])
 def register(register_data: RegisterData):
-    if not register_data.username or not register_data.email or not register_data.password or not register_data.confirm_password:
+    if not register_data.username or not register_data.password or not register_data.confirm_password:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Please fill all fields!")
 
     if register_data.password != register_data.confirm_password:
@@ -257,8 +257,8 @@ def register(register_data: RegisterData):
     if get_by_username(register_data.username) is not None:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username already used! Choose another username.")
 
-    if get_by_email(register_data.email) is not None:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already used! Choose another email.")
+    #if get_by_email(register_data.email) is not None:
+    #    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already used! Choose another email.")
 
     create_user(username=register_data.username, email=register_data.email, password_hash=get_password_hash(register_data.password), role="user")
 
@@ -294,7 +294,7 @@ def refresh(data: RefreshData):
 #-------------------------------------------------------   Falta Aplicar   -------------------------------------------------------
 
 @app.get("/users")
-def get_users(current_user: dict = Depends(require_admin)):
+def get_users(current_user: dict = Depends(get_current_user)):
     return {"users": list_users()}
 
 
@@ -314,18 +314,14 @@ def remove_user(user_id: int, current_user: dict = Depends(require_admin)):
     return {"deleted": user_id}
 
 
-@app.post("/measurements")
+@app.post("/saveMeasurements")
 def save_measurement(data: Optional[MeasurementIn] = Body(default=None), current_user: dict = Depends(get_current_user)):
     owner = get_by_username(current_user["username"])
     if owner is None:
         raise HTTPException(status_code=404, detail="User not found.")
 
-    # Sem corpo: sintetiza uma medicao de exemplo (o backend real leria o volumeState da camara)
     if data is None:
-        volume_mode = "Single Bundle"
-        weight = 55.0
-        objects = [{"idx": 1, "volume_m": 0.02, "volume_cm": 20000.0,
-                    "x_cm": 30.0, "y_cm": 20.0, "z_cm": 33.0, "extra": None}]
+        raise HTTPException(status_code=400, detail="No measurement available to save.")
     else:
         volume_mode = data.volume_mode
         weight = data.weight
@@ -362,7 +358,10 @@ def get_measurement_endpoint(measurement_id: int, current_user: dict = Depends(g
         raise HTTPException(status_code=404, detail="Measurement not found.")
     return data
 
-
+@app.delete("/measurements/delete/{measurement_id}")
+def remove_measurements(measurement_id: int, current_user: dict = Depends(get_current_user)):
+    measurements_repo.delete_measurement(measurement_id)
+    return {"deleted": measurement_id}
 #-------------------------------------------------------   Stream   -------------------------------------------------------
 
 @app.post("/offer")
@@ -1717,8 +1716,8 @@ def _snapshot_measurement_frames(measurement_id):
     os.makedirs(folder, exist_ok=True)
 
     frames = {
-        "color": frameState.colorFrame,
-        "colorToDepth": frameState.colorToDepthFrame,
+        #"color": frameState.colorFrame,
+        #"colorToDepth": frameState.colorToDepthFrame,
         "detectedObjects": frameState.detectedObjectsFrame,
     }
 
