@@ -1844,7 +1844,7 @@ body {
     1.2fr 
     1fr 
     1.8fr
-    0.5fr;
+    0.15fr;
 
   align-items: center;
 }
@@ -1878,31 +1878,40 @@ body {
 }
 
 .history-header-text{
-  font-size: 1.7vh;
+  font-size: 1.4vh;
+  opacity: 1;
 }
 
 .history-row-text{
   display: flex;
+  opacity: 0.6;
   font-size: 1.6vh;
 }
 
-.action-button {
-  color: white;
+.more-options-button {
+  opacity: 0.6;
   cursor: pointer;
   font-size: 2.4vh;
   text-align: center;
 }
 
-.action-button:hover {
+.more-options-button:hover {
   transform: scale(1.10);
+  opacity: 0.8;
+  transition: 0.3s;
+}
+
+.more-options-button.active {
+  transform: scale(1.10);
+  opacity: 1;
   transition: 0.3s;
 }
 
 .measurements-config-modal{
   position: absolute;
-  width: 8%;
+  width: 7%;
   height: 5%;
-  transform: translate(-125%, 70%);
+  transform: translate(-94%, 60%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1927,7 +1936,6 @@ body {
   margin-right: 1vw;
 
   transition: opacity 0.3s;
-  color: #ff6666;
 
   z-index: 1021;
 }
@@ -1940,12 +1948,11 @@ body {
 
 .measurement-config-modal{
   position: absolute;
-  width: 8%;
-  height: 5%;
-  transform: translate(-125%, 70%);
+  width: 6%;
+  height: 8%;
+  transform: translate(-94%, 40%);
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
   z-index: 1000;
 }
 
@@ -1960,14 +1967,45 @@ body {
   z-index: 1020;
 }
 
-.measurement-config-modal .deleteMeasurement-icon {
-  height: 2vh;
+.menu-item {
+  position: relative;
+  height: 40%;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 5% 10%;
+  z-index: 1021;
+}
+
+.menu-item:hover {
+  opacity: 1;
+}
+
+.measurement-config-modal .viewMeasurement-icon{
+  height: 80%;
   object-fit: contain;
   
-  margin-right: 1vw;
+  margin-right: 15%;
 
   transition: opacity 0.3s;
-  color: #ff6666;
+
+  z-index: 1021;
+}
+
+.measurement-config-modal .viewMeasurement-text{
+  font-size: 1.6vh;
+  color: white;
+  z-index: 1021;
+  cursor: pointer;
+}
+
+.measurement-config-modal .deleteMeasurement-icon {
+  height: 80%;
+  object-fit: contain;
+  
+  margin-right: 15%;
+
+  transition: opacity 0.3s;
 
   z-index: 1021;
 }
@@ -1976,7 +2014,318 @@ body {
   font-size: 1.6vh;
   color: #ff6666;
   z-index: 1021;
+}
+
+.measurement-info-popup {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(2px);
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  z-index: 2000;
+}
+
+.measurement-info-window {
+  position:relative;
+  width: 90%;
+  height: 75%;
+
+  background: #3E3E3E;
+  border-radius: 0.8vw;
+}
+
+.measurement-info-title {
+  position: absolute;
+  left: 2%;
+  margin-top: 2%;
+  width: 15%;
+  color: white;
+  font-size: 2vh;
+  text-transform: uppercase;
+  text-align: left;
+  font-family: "Inter Regular", sans-serif;
+  transition: color 0.3s ease;
+}
+
+.measurement-info-button{
+  position: absolute;
+  top: 2%;
+  right: 1%;
+  width: 2%;
   cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0.6;
+
+  transition: all 0.3s ease;
+}
+
+.measurement-info-button:hover {
+  opacity: 1;
+}
+
+.measurement-info-button:hover .text {
+  color: black;
+}
+
+.measurement-info-img-wrapper {
+  position: absolute;
+  top: 52%;
+  left: 2%;
+  transform: translateY(-50%);
+
+  width: 44%;
+
+  object-fit: contain;
+  overflow: hidden;
+  border-radius: 0.8vw;
+}
+
+.measurement-object-img{
+  width: 100%;
+  height: 100%;
+  border-radius: 0.8vw;
+
+  object-fit: cover;
+  
+  display: block;
+  z-index: 1;
+}
+
+.measurement-boxInfo-container{
+  position: absolute;
+  left: 63%;
+  top: 52%;
+  width: 35%;
+  height: 83%;
+
+  transform: translateY(-50%);
+
+  display: flex;
+  flex-direction: column;
+
+  padding: 2vh 1.5vw;
+  box-sizing: border-box;
+
+  font-size: 2vh;
+
+  justify-content: flex-start;
+  align-items: flex-start;
+}
+
+.measurement-boxInfo-container .background{
+  position: absolute;
+  inset: 0;
+  background: #000000 0% 0% no-repeat padding-box;
+  border-radius: 0.8vw;
+  opacity: 0.5;
+  z-index: 0;
+}
+
+.measurement-boxInfoText-container{
+  position: absolute;
+  top: 67.8%;
+  left: 4.7%;
+  height: 28.4%;
+  width:90.5%;
+}
+
+.measurement-boxInfo-text{
+  display: flex;
+  align-items: center;
+  margin-bottom: 2%;
+}
+
+.measurement-boxInfo-text .label {
+  width: 90.5%;
+  text-align: left;
+}
+
+.measurement-boxInfo-text .value {
+  width: 8vw;
+  text-align: right;
+}
+
+.measurement-boxInfo-message {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  
+  font-size: 1.7vh;
+  font-family: "Inter Regular", sans-serif;
+  opacity: 0.8;
+  text-align: center;
+}
+
+.measurement-volume-canvas {
+  width: 100%;
+  height: 60%;
+  z-index: 1;
+}
+
+.measurement-object-selection-menu{
+  position: relative;
+  left: 47%;
+  top: 52%;
+  transform: translateY(-50%);
+  width: 15%;
+  height: 83%;
+
+  display: flex;
+  flex-direction: column;
+
+  font-size: 2vh;
+
+  padding: 2vh 0.75vw;
+  box-sizing: border-box;
+
+  overflow-y: auto;
+}
+
+.measurement-object-selection-menu .background{
+  position: absolute;
+  inset: 0;
+  background: #000000 0% 0% no-repeat padding-box;
+  border-radius: 0.8vw;
+  opacity: 0.5;
+  z-index: 0;
+}
+
+.measurement-object-list {
+  flex: 1;
+  overflow-y: auto;
+
+  display: flex;
+  flex-direction: column;
+  z-index: 1;
+}
+
+.measurement-object-item{
+  cursor: pointer;
+  opacity: 0.8;
+
+  display: flex;
+  align-items: center;
+
+  margin-bottom: 1.6vh;
+}
+
+.measurement-arrow {
+  width: 0.8vw;
+  font-size: 1vh;
+  text-align: left;
+}
+
+.measurement-object-item:hover{
+  color: white;
+  opacity: 0.8;
+}
+
+.measurement-object-item.selected {
+  color: #38E1FF;
+  opacity: 1;
+}
+
+.measurement-object-total {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+
+  padding-top: 0.8vh;
+  margin-top: 0.8vh;
+  margin-bottom: 1.6vh;
+  margin-left: 0.8vw;
+
+  cursor: default;
+  color: white;
+  z-index: 1;
+}
+
+.measurement-total-value {
+  font-family: "Inter Bold", sans-serif;
+}
+
+.measurement-boxBundleInfo-container{
+  position: absolute;
+  left: 48%;
+  top: 52%;
+  width: 50%;
+  height: 83%;
+
+  transform: translateY(-50%);
+
+  display: flex;
+  flex-direction: column;
+
+  padding: 2vh 1.5vw;
+  box-sizing: border-box;
+
+  font-size: 2vh;
+
+  justify-content: flex-start;
+  align-items: flex-start;
+}
+
+.measurement-boxBundleInfo-container .background{
+  position: absolute;
+  inset: 0;
+  background: #000000 0% 0% no-repeat padding-box;
+  border-radius: 0.8vw;
+  opacity: 0.5;
+  z-index: 0;
+}
+
+.measurement-boxBundleInfoText-container{
+  position: absolute;
+  top: 50%;
+  left: 4.7%;
+  height: 36.4%;
+  width:30.5%;
+  transform: translate(0, -50%);
+}
+
+.measurement-boxBundleInfo-text{
+  display: flex;
+  align-items: center;
+  margin-bottom: 6%;
+}
+
+.measurement-boxBundleInfo-text .label {
+  width: 90.5%;
+  text-align: left;
+}
+
+.measurement-boxBundleInfo-text .value {
+  width: 8vw;
+  text-align: right;
+}
+
+.measurement-boxBundleInfo-message {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  
+  font-size: 1.7vh;
+  font-family: "Inter Regular", sans-serif;
+  opacity: 0.8;
+  text-align: center;
+}
+
+.measurement-bundle-canvas {
+  position: absolute;
+  top: 50%;
+  left: 20.7%;
+  width: 100%;
+  height: 60%;
+  transform: translate(0, -50%);
+  z-index: 1;
 }
 
 /* ----------------- */

@@ -330,7 +330,7 @@ def save_measurement(data: Optional[MeasurementIn] = Body(default=None), current
     if not objects:
         raise HTTPException(status_code=400, detail="No measurement available to save.")
     total_m = round(sum(o["volume_m"] for o in objects), 6)
-    total_cm = round(total_m * 1000000, 2)
+    total_cm = round(sum(o["volume_cm"] for o in objects), 2)
     mid = measurements_repo.create_measurement(
         user_id=owner["id"], volume_mode=volume_mode, object_count=len(objects),
         total_volume_m=total_m, total_volume_cm=total_cm, weight=weight, objects=objects,

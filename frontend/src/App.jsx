@@ -4,8 +4,6 @@ import viteLogo from './assets/vite.svg'
 import heroImg from './assets/hero.png'
 import './App.css'
 
-// O detalhe de erro do FastAPI e string (HTTPException) OU um array de objetos (422 do
-// pydantic). Renderizar o objeto direto rebenta o React, por isso normaliza-se sempre a texto.
 function errorText(detail, fallback) {
   if (typeof detail === "string") return detail;
   if (Array.isArray(detail)) return detail.map(e => (e && e.msg) ? e.msg : JSON.stringify(e)).join("; ");
@@ -218,6 +216,17 @@ function App() {
 
     return sortOrder === "asc" ? comparison : -comparison;
   });
+
+ const [showMeasurementInfo, setShowMeasurementInfo] = useState(false);
+ const [measureObjectImage, setMeasureObjectImage] = useState(null);
+ const [measurementMode, setMeasurementMode] = useState("");
+
+ const [measureSelectedObject, setMeasureSelectedObject] = useState("");
+ const [measureVolumeInfo, setMeasureVolumeInfo] = useState(null);
+ const [measureMultipleVolumeData ,setMeasureMultipleVolumeData] = useState(null);
+ const [measureObjectList, setMeasureObjectList] = useState([]);
+ const [measureObjCenters, setMeasureObjCenters] = useState([]);
+ const [measureObjAngles, setMeasureObjAngles] = useState([]);
 
   // ---------------  Wait For Server to be Alive  ---------------
 
@@ -618,8 +627,6 @@ function App() {
 
   async function deleteMeasurement(measurementID){
     try {
-      console.log(measurementID);
-      console.log(selectedID);
       await refreshAccessToken();
       const access_token = localStorage.getItem("access_token");
       const res = await fetch(`${API_URL}/measurements/delete/${measurementID}`, {
@@ -803,7 +810,6 @@ function App() {
       const res = await fetch(`${API_URL}/measurements`, { headers: { "Authorization": `Bearer ${access_token}` } });
       if (res.ok) {
         const data = await res.json();
-        console.log(data);
         setMeasurementsList(data.measurements || []);
       } else {
         setError(["Could not load measurements."]);
@@ -1000,7 +1006,6 @@ function App() {
       const url = URL.createObjectURL(blob);
       setObjectImage(url);
       setShowCamera(false);
-      //document.getElementById("object-img").removeAttribute("hidden");
 
       const objIdentified = Object.keys(volumeData).filter(key => key !== "Total");
 
@@ -1089,7 +1094,6 @@ function App() {
       const url = URL.createObjectURL(blob);
       setObjectImage(url);
       setShowCamera(false);
-      //document.getElementById("object-img").removeAttribute("hidden");
 
       const objIdentified = Object.keys(volumeData).filter(key => key !== "Total");
       
@@ -1144,14 +1148,24 @@ function App() {
 
   // Drawing the Boxes
   useEffect(() => {
-    if (currentMenu !== "volume-menu") return;
+    if (currentMenu !== "volume-menu" && currentMenu !== "measurementHistory-menu") return;
 
-    if (!volBundleMode){
-      if(!selectedObject) return;
+    if(currentMenu === "volume-menu"){
+      if (!volBundleMode){
+        if(!selectedObject) return;
+      }
+
+      if(volBundleMode){
+        if(multipleVolumeData) return;
+      }
     }
 
-    if(volBundleMode){
-      if(multipleVolumeData) return;
+    if (currentMenu === "measurementHistory-menu"){
+      if (measurementMode === "Single Bundle"){
+        if(measureMultipleVolumeData) return; 
+      } else {
+        if(!measureSelectedObject) return;
+      }
     }
 
     const canvas = canvasRef.current;
@@ -1172,7 +1186,7 @@ function App() {
     ctx.lineJoin = "round";
     ctx.lineCap = "round";
 
-    if (!volInfo) {
+    if (!volInfo && !measureVolumeInfo) {
       ctx.clearRect(0, 0, rect.width, rect.height);
       return;
     }
@@ -1257,21 +1271,45 @@ function App() {
 
       ctx.clearRect(0, 0, W, H);
 
-      const boxes = volumeMode === "real"
-        ? volInfo.width.slice(1).map((_, i) => ({
-            width: volInfo.width[i + 1],
-            length: volInfo.length[i + 1],
-            height: volInfo.height[i + 1],
+      let boxes = []
+      let centers = []
+      let angles = []
+
+      if (currentMenu === "volume-menu"){
+        boxes = volumeMode === "real"
+          ? volInfo.width.slice(1).map((_, i) => ({
+              width: volInfo.width[i + 1],
+              length: volInfo.length[i + 1],
+              height: volInfo.height[i + 1],
+            })).reverse()
+          : [volInfo];
+      } else if (currentMenu === "measurementHistory-menu"){
+        boxes = measurementMode === "Real"
+          ? measureVolumeInfo.width.slice(1).map((_, i) => ({
+            width: measureVolumeInfo.width[i + 1],
+            length: measureVolumeInfo.length[i + 1],
+            height: measureVolumeInfo.height[i + 1],
           })).reverse()
-        : [volInfo];
+        : [measureVolumeInfo];
+      }
 
-      const centers = volumeMode === "real"
-        ? objCenters.slice().reverse()
-        : objCenters;
+      if (currentMenu === "volume-menu"){
+        centers = volumeMode === "real"
+          ? objCenters.slice().reverse()
+          : objCenters;
 
-      const angles = volumeMode === "real"
-        ? objAngles.slice().reverse()
-        : objAngles;
+        angles = volumeMode === "real"
+          ? objAngles.slice().reverse()
+          : objAngles;
+      } else if (currentMenu === "measurementHistory-menu"){
+        centers = measurementMode === "Real"
+          ? measureObjCenters.slice().reverse()
+          : measureObjCenters;
+
+        angles = measurementMode === "Real"
+          ? measureObjAngles.slice().reverse()
+          : measureObjAngles;
+      }
 
       const maxWidth = Math.max(...boxes.map(b => b.width));
       const maxLength = Math.max(...boxes.map(b => b.length));
@@ -1293,7 +1331,7 @@ function App() {
 
       let baseHeight = 0
 
-      if (volumeMode === "real"){
+      if (volumeMode === "real" || measurementMode === "Real"){
         baseHeight = - maxHeight / 2;
       } else {
         baseHeight = - totalHeight / 2;
@@ -1416,11 +1454,20 @@ function App() {
         edges.forEach(([a,b,color,type]) => {
           drawEdge(v[a], v[b], color);
 
-          const value =
-            type === "Width" ? volInfo.width :
-            type === "Length" ? volInfo.length:
-            type === "Height" ? volInfo.height :
-            ""
+          if(currentMenu === "volume-menu"){
+            const value =
+              type === "Width" ? volInfo.width :
+              type === "Length" ? volInfo.length:
+              type === "Height" ? volInfo.height :
+              ""
+          } else if(currentMenu === "measurementHistory-menu"){
+            const value =
+              type === "Width" ? measureVolumeInfo.width :
+              type === "Length" ? measureVolumeInfo.length:
+              type === "Height" ? measureVolumeInfo.height :
+              ""
+          }
+          
 
           {/*if (type == "Width"){
             drawLabel(v[a], v[b], `${value} cm`, color, "width");
@@ -1468,7 +1515,7 @@ function App() {
       window.removeEventListener("mousemove", move);
       window.removeEventListener("mouseup", up);
     };
-  }, [volInfo, currentMenu]);
+  }, [volInfo, measureVolumeInfo, currentMenu]);
 
   // ----------------  Calibration Menu Options  -----------------
 
@@ -2840,6 +2887,124 @@ function App() {
 
   }, []);
 
+  useEffect(() => {
+    console.log("Chamei");
+    if (!measureSelectedObject || !measureMultipleVolumeData) return;
+    const objData = measureMultipleVolumeData[measureSelectedObject];
+    if (!objData) return;
+
+    setMeasureVolumeInfo({
+      volume_m: objData.volume_m,
+      volume_cm: objData.volume_cm,
+      width: objData.width,
+      length: objData.length,
+      height: objData.height
+    });
+
+    setMeasureObjCenters(objData.obj_center ?? []);
+    setMeasureObjAngles(objData.obj_angles ?? []);
+  }, [measureSelectedObject, measureMultipleVolumeData]);
+
+  async function viewMeasurement(selectedID){
+    try{
+      await refreshAccessToken();
+      const access_token = localStorage.getItem("access_token");
+
+      const res = await fetch(`${API_URL}/measurements/${selectedID}`, {
+        headers: {
+          Authorization: `Bearer ${access_token}`
+        }
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to load measurement");
+      }
+
+      const data = await res.json();
+      console.log(data);
+
+      setMeasurementMode(data.measurement?.volume_mode);
+
+      if(data.measurement?.volume_mode === "Single Bundle"){
+        setMeasureVolumeInfo({
+          "volume_m": data.measurement?.total_volume_m,
+          "volume_cm": data.measurement?.total_volume_cm,
+          "width": data.objects?.[0]?.x_cm,
+          "length": data.objects?.[0]?.y_cm,
+          "height": data.objects?.[0]?.z_cm,
+          "weight": data.measurement?.weight
+        })
+        setMeasureMultipleVolumeData(null);
+      } else {
+        const objects = data.objects ?? [];
+        const measureData = {}
+
+        if (objects.length === 1){
+          const obj = objects[0];
+
+          setMeasureObjectList(["1"]);
+          setMeasureSelectedObject("1");
+
+          if(data.measurement?.volume_mode === "Multi Bundle"){
+            objects.forEach((obj, index) => {
+              measureData[`${index + 1}`] = {
+                volume_m: obj.volume_m,
+                volume_cm: obj.volume_cm,
+                width: obj.x_cm,
+                length: obj.y_cm,
+                height: obj.z_cm,
+              };
+            });
+
+            setMeasureVolumeInfo({
+              "volume_m": data.measurement?.total_volume_m,
+              "volume_cm": data.measurement?.total_volume_cm,
+              "width": data.objects?.[0]?.x_cm,
+              "length": data.objects?.[0]?.y_cm,
+              "height": data.objects?.[0]?.z_cm,
+              "weight": data.measurement?.weight
+            });
+          } else if (data.measurement?.volume_mode === "Real"){
+            setMeasureVolumeInfo(null);
+          }
+          
+        } else {
+          if(data.measurement?.volume_mode === "Multi Bundle"){
+            objects.forEach((obj, index) => {
+              measureData[`${index + 1}`] = {
+                volume_m: obj.volume_m,
+                volume_cm: obj.volume_cm,
+                width: obj.x_cm,
+                length: obj.y_cm,
+                height: obj.z_cm,
+              };
+            });
+          } else if (data.measurement?.volume_mode === "Real"){
+            
+          }
+
+          setMeasureObjectList(Object.keys(measureData).filter(key => key !== "Total"));
+          setMeasureSelectedObject("");
+          setMeasureVolumeInfo(null);
+        }
+        measureData.Total = {
+          volume_m: data.measurement?.total_volume_m,
+          volume_cm: data.measurement?.total_volume_cm,
+          weight: data.measurement?.weight
+        }
+
+        setMeasureMultipleVolumeData(measureData);
+      }
+
+      setMeasureObjectImage(data.images?.data ?? null);
+
+    } catch (err){
+      console.error(err);
+    } finally {
+      setShowMeasurementInfo(true);
+    }
+  }
+
   if(appReady){
     return (
       <>
@@ -3485,14 +3650,14 @@ function App() {
                     <div className="history-header-text">Total Volume</div>
                     <div className="history-header-text">Weight</div>
                     <div className="history-header-text">Measurement Date</div>
-                    <div className="action-button" onClick={(e) => {
+                    <img src="/more_options.svg" className={`more-options-button ${measurementsConfigModal ? "active" : ""}`} onClick={(e) => {
                       const rect = e.currentTarget.getBoundingClientRect();
                       setMeasurementsModalPosition({
                         x: rect.right,
                         y: rect.top
                       });
                       toggleMeasurementsModal();
-                    }}>...</div>
+                    }}/>
                   </div>
 
                   <div className="history-table">
@@ -3505,7 +3670,7 @@ function App() {
                         <div className="history-row-text">{measurement.total_volume_m.toFixed(6)} m³</div>
                         <div className="history-row-text">{measurement.weight} kg</div>
                         <div className="history-row-text">{new Date(measurement.created_at).toLocaleString()}</div>
-                        <div className="action-button" onClick={(e) => {
+                        <img src="/more_options.svg" className={`more-options-button ${measurementConfigModal && selectedID === measurement.id ? "active" : ""}`} onClick={(e) => {
                           const rect = e.currentTarget.getBoundingClientRect();
                           setMeasurementModalPosition({
                             x: rect.right,
@@ -3513,7 +3678,7 @@ function App() {
                           });
                           toggleMeasurementModal(); 
                           setSelectedID(measurement.id);
-                        }}>...</div>
+                        }}/>
                       </div>
                     ))}
                   </div>
@@ -3525,8 +3690,15 @@ function App() {
               <>
                 <div className="measurement-config-modal" style={{left: `${measurementConfigModalPosition.x}px`, top: `${measurementConfigModalPosition.y}px`}}>
                   <div className="background"></div>
-                  <img src="/MarquesLogo.svg" className="deleteMeasurement-icon"/>   
-                  <div className="deleteMeasurement-text" onClick={() => {deleteMeasurement(selectedID); toggleMeasurementModal();}}>Delete</div>                
+                  <div className="menu-item" onClick={() => {viewMeasurement(selectedID);}}>
+                    <img src="/visibility.svg" className="viewMeasurement-icon" />
+                    <div className="viewMeasurement-text" >View</div>
+                  </div>
+
+                  <div className="menu-item" onClick={() => {deleteMeasurement(selectedID); toggleMeasurementModal();}}>
+                    <img src="/delete_forever.svg" className="deleteMeasurement-icon"/>   
+                    <div className="deleteMeasurement-text" >Delete</div>  
+                  </div>
                 </div>
               </>
             )}
@@ -3535,8 +3707,174 @@ function App() {
               <>
                 <div className="measurements-config-modal" style={{left: `${measurementsConfigModalPosition.x}px`, top: `${measurementsConfigModalPosition.y}px`}}>
                   <div className="background"></div>
-                  <img src="/MarquesLogo.svg" className="deleteMeasurements-icon"/>   
-                  <div className="deleteMeasurements-text" onClick={() => {deleteAllMeasurements()}}>Delete All</div>                
+                  <div className="menu-item" onClick={() => {deleteAllMeasurements()}}>
+                    <img src="/delete_forever.svg" className="deleteMeasurements-icon"/>   
+                    <div className="deleteMeasurements-text">Delete All</div>  
+                  </div>
+                                
+                </div>
+              </>
+            )}
+
+            {showMeasurementInfo && (
+              <>
+                <div className="measurement-info-popup">
+                  <div className="measurement-info-window">
+                    <div className="measurement-info-title">
+                      <span> Measurement Info </span>
+                    </div>
+
+                    <div className="measurement-info-img-wrapper">
+                      {measureObjectImage && (
+                        <img className="measurement-object-img" src={measureObjectImage} alt="objects"/>
+                      )}
+                    </div>
+
+                    {measurementMode === "Single Bundle" && (
+                      <>
+                        {/* Info Objects */}
+                        <div className="measurement-boxBundleInfo-container">
+                          <div className="background"></div>
+
+                          {measureVolumeInfo && !measureMultipleVolumeData && (
+                            <>
+                              <canvas ref={canvasRef} className="measurement-bundle-canvas"/>
+                              <div className="measurement-boxBundleInfoText-container">
+                                <div style={{ color: "#6CD08A" }} className="measurement-boxBundleInfo-text">
+                                  <span className="label">Width (cm):</span>
+                                  <span className="value">{measureVolumeInfo.width.toFixed(1)}</span>
+                                </div>
+
+                                <div style={{ color: "#C66D6D" }} className="measurement-boxBundleInfo-text">
+                                  <span className="label">Length (cm):</span>
+                                  <span className="value">{measureVolumeInfo.length.toFixed(1)}</span>
+                                </div>
+
+                                <div style={{ color: "#9EB0FD" }} className="measurement-boxBundleInfo-text">
+                                  <span className="label">Height (cm):</span>
+                                  <span className="value">{measureVolumeInfo.height.toFixed(1)}</span>
+                                </div>
+
+                                <div style={{ color: "#FFFFFF" }} className="measurement-boxBundleInfo-text">
+                                  <span className="label">Volume (m³):</span>
+                                  <span className="value">{measureVolumeInfo.volume_m.toFixed(6)}</span>
+                                </div>
+
+                                <div style={{ color: "#FFFFFF" }} className="measurement-boxBundleInfo-text">
+                                  <span className="label">Volume (cm³):</span>
+                                  <span className="value">{measureVolumeInfo.volume_cm.toFixed(2)}</span>
+                                </div>
+
+                                <div style={{ color: "#FFFFFF" }} className="measurement-boxBundleInfo-text">
+                                  <span className="label">Weight (kg):</span>
+                                  <span className="value">{measureVolumeInfo?.weight != null ? Number(measureVolumeInfo.weight).toFixed(2) : "0.00"}</span>
+                                </div>
+
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      </>
+                    )}
+
+                    {(measurementMode === "Multi Bundle" || measurementMode === "Real") && (
+                      <>
+                        <div className="measurement-object-selection-menu">
+                          <div className="background"></div>
+
+                          <div className="measurement-object-list">
+                            {measureObjectList.map((obj) => (
+                              <span
+                                key={obj}
+                                className={`object-item ${measureSelectedObject === obj ? "selected" : ""}`}
+                                onClick={() => {
+                                  setMeasureSelectedObject(prev => {
+                                    const isSame = prev === obj;
+
+                                    if (isSame) {
+                                      setMeasureVolumeInfo(null);
+                                      return "";
+                                    }
+
+                                    return obj;
+                                  });
+                                }}
+                              >
+                                <span className="measurement-arrow">
+                                  {measureSelectedObject === obj ? "▶" : ""}
+                                </span>
+                                <span className="measurement-object-name">Object {obj}</span>
+                              </span>
+                            ))}
+                          </div>
+
+                          <div className="measurement-object-total">
+                            {measureMultipleVolumeData ? (
+                              <> 
+                                <div>TOTAL WEIGHT:</div>
+                                <div className="measurement-total-value">
+                                  {measureMultipleVolumeData?.Total?.weight != null ? Number(measureMultipleVolumeData?.Total?.weight).toFixed(2) : "0.00"} Kg
+                                </div>
+
+                                <div>TOTAL VOLUME:</div>
+                                <div className="measurement-total-value">
+                                  {measureMultipleVolumeData?.Total?.volume_m ?? 0} m³
+                                </div>
+                              </>
+                            ) : null}
+                          </div>
+
+                        </div> 
+                        
+                        <div className="measurement-boxInfo-container">
+                          <div className="background"></div>
+                          
+                          {measureVolumeInfo && measureSelectedObject && (
+                            <>
+                              <canvas ref={canvasRef} className="measurement-volume-canvas"/>
+                              <div className="measurement-boxInfoText-container">
+                                <div style={{ color: "#6CD08A" }} className="measurement-boxInfo-text">
+                                  <span className="label">Width (cm):</span>
+                                  <span className="value">{measureVolumeInfo?.width}</span>
+                                </div>
+
+                                <div style={{ color: "#C66D6D" }} className="measurement-boxInfo-text">
+                                  <span className="label">Length (cm):</span>
+                                  <span className="value">{measureVolumeInfo?.length}</span>
+                                </div>
+
+                                <div style={{ color: "#9EB0FD" }} className="measurement-boxInfo-text">
+                                  <span className="label">Height (cm):</span>
+                                  <span className="value">{measureVolumeInfo?.height}</span>
+                                </div>
+
+                                <div style={{ color: "#FFFFFF" }} className="measurement-boxInfo-text">
+                                  <span className="label">Volume (m³):</span>
+                                  <span className="value">{measureVolumeInfo?.volume_m}</span>
+                                </div>
+
+                                <div style={{ color: "#FFFFFF" }} className="measurement-boxInfo-text">
+                                  <span className="label">Volume (cm³):</span>
+                                  <span className="value">{measureVolumeInfo?.volume_cm}</span>
+                                </div>
+
+                              </div>
+                            </>
+                          )}
+
+                          {/* {!measureVolumeInfo && measureMultipleVolumeData &&(
+                            <>
+                              <div className="measurement-boxInfo-message">Selecione um objeto</div>
+                            </>
+                          )}*/}
+                        </div>
+                      </>
+                    )}
+
+                    <div className="measurement-info-button">
+                      <img src="/close.svg" onClick={() => {setShowMeasurementInfo(false); setMeasureVolumeInfo(null); toggleMeasurementModal();}}/>
+                    </div>
+                  </div>
                 </div>
               </>
             )}

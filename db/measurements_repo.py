@@ -1,7 +1,8 @@
+import base64
 import json
+import mimetypes
 
 from db.connection import get_connection, write_lock, row_to_dict, rows_to_dicts
-
 
 def _scalar(value):
     """Só números vão para colunas escalares; None/listas/dicts/bool -> None.
@@ -12,7 +13,6 @@ def _scalar(value):
         return value
     return None
 
-
 def _dim(value, extra, key):
     """Devolve o valor para a coluna escalar. Se vier em lista/aninhado (Real),
     encaminha-o para o extra_json e deixa a coluna a None."""
@@ -21,7 +21,6 @@ def _dim(value, extra, key):
     if value is not None:
         extra.setdefault(key, value)
     return None
-
 
 def create_measurement(user_id, volume_mode, object_count, total_volume_m, total_volume_cm, weight, objects):
     with write_lock:
@@ -63,7 +62,6 @@ def create_measurement(user_id, volume_mode, object_count, total_volume_m, total
         finally:
             conn.close()
 
-
 def add_images(measurement_id, images):
     with write_lock:
         conn = get_connection()
@@ -76,7 +74,6 @@ def add_images(measurement_id, images):
             conn.commit()
         finally:
             conn.close()
-
 
 def list_measurements(user_id=None):
     conn = get_connection()
@@ -96,6 +93,21 @@ def list_measurements(user_id=None):
     finally:
         conn.close()
 
+def image_to_base64(image_path):
+    try:
+        with open(image_path, "rb") as image_file:
+            image_bytes = image_file.read()
+
+        encoded = base64.b64encode(image_bytes).decode("utf-8")
+
+        mime_type, _ = mimetypes.guess_type(image_path)
+        if mime_type is None:
+            mime_type = "image/png"
+
+        return f"data:{mime_type};base64,{encoded}"
+
+    except FileNotFoundError:
+        return None
 
 def get_measurement(measurement_id):
     conn = get_connection()
@@ -121,10 +133,17 @@ def get_measurement(measurement_id):
             obj["extra"] = json.loads(obj["extra_json"]) if obj["extra_json"] else None
             objects.append(obj)
 
+        detected_image = None
+        for image in image_rows:
+            if image["kind"] == "detectedObjects":
+                detected_image = dict(image)
+                detected_image["data"] = image_to_base64(detected_image["path"])
+                break
+
         return {
             "measurement": row_to_dict(measurement),
             "objects": objects,
-            "images": rows_to_dicts(image_rows),
+            "images": detected_image,
         }
     finally:
         conn.close()
