@@ -27,7 +27,6 @@ class HSVValue(BaseModel):
     vmax: Optional[int] = None
     color: Optional[str] = None
 
-#Não seria melhor ser feito com o User?
 class LoginData(BaseModel):
     username: str
     password: str
@@ -56,10 +55,9 @@ class MeasurementIn(BaseModel):
 class RefreshData(BaseModel):
     refresh_token: str
 
-#Opção Username?
 class RegisterData(BaseModel):
     username: str
-    email: str
+    email: Optional[str] = None
     password: str
     confirm_password: str
 

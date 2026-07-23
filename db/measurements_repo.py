@@ -36,7 +36,7 @@ def create_measurement(user_id, volume_mode, object_count, total_volume_m, total
 
             for obj in objects:
                 extra = dict(obj.get("extra") or {})
-                # Dimensoes: escalares vao para as colunas; listas/aninhados vao para o extra_json.
+
                 x_cm = _dim(obj.get("x_cm"), extra, "x")
                 y_cm = _dim(obj.get("y_cm"), extra, "y")
                 z_cm = _dim(obj.get("z_cm"), extra, "z")

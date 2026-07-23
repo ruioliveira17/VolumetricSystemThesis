@@ -307,6 +307,14 @@ body {
   opacity: 1;
 }
 
+.info-message {
+  color: white;
+}
+
+.error-message {
+  color: #ff5555;
+}
+
 /* ----------------- */
 /*  LOADING SYSTEM  */
 
@@ -318,7 +326,6 @@ body {
 
   width: 15%;
 }
-
 
 .initText{
   position: relative;
@@ -422,6 +429,7 @@ body {
   width: 100%;
   height: auto;
   margin: 0;
+  margin-bottom: 3%;
 
   font-size: clamp(11px, 1.6vh, 16px);
   text-align: center;
@@ -440,55 +448,105 @@ body {
   gap: 1.6vh;
 }
 
+.input-container {
+  position: relative;
+  width: 100%;
+  height: clamp(40px, 6vh, 54px);
+}
+
+.input-container:hover {
+  cursor: pointer;
+}
+
+.input-container label {
+  position: absolute;
+  left: 0%;
+  top: 50%;
+  transform: translatey(-50%);
+  text-align: left;
+  width: 100%;
+  color: #FFFFFF;
+  opacity: 0.6;
+  font-size: clamp(12px, 1.5vh, 16px); 
+  padding-left: 0.8vw;
+  pointer-events: none;
+  transition: 0.2s ease;
+}
+
+.input-container label.active {
+  top: 25%;
+  font-size: clamp(11px, 1vh, 16px);
+}
+
+.input-container:hover label {
+  opacity: 1;
+}
+
 .login-input {
   position: static;
   top: auto;
-
   width: 100%;
   height: clamp(40px, 6vh, 54px);
 
   font-size: clamp(12px, 1.5vh, 16px);
-  background: rgba(0, 0, 0, 0.35);
+  background: #000000 0% 0% no-repeat padding-box;
+  opacity: 0.2;
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 6px;
 
-  color: white;
   padding-left: 0.8vw;
+  padding-top: 1.5vh;
   box-sizing: border-box;
 }
 
-.login-input::placeholder {
-  color: rgba(255, 255, 255, 0.45);
+.login-input:hover {
+  opacity: 0.3;
+  cursor: pointer;
 }
 
-.username, .password {
+.login-input:focus {
+  outline: none;
+}
+
+.login-actions {
+  position: relative;
   top: 0;
+  left: 0;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-top: 1.5vh;
 }
 
 .login-button {
   position: relative;
-  top: 0;
-  left: 0;
-  margin-top: 0.4vh;
-
-  width: clamp(150px, 12vw, 210px);
+  overflow: hidden;
+  width: 40%;
   height: clamp(38px, 5.1vh, 50px);
 
   cursor: pointer;
-  border-radius: 6px;
+  border-radius: 4px;
   border: none;
   overflow: hidden;
 
   display: flex;
   justify-content: center;
   align-items: center;
+  align-self: flex-end;
 }
 
 .login-button .background {
   position: absolute;
   inset: 0;
-  background: #FFFFFF;
+  background: #FFFFFF 0% 0% no-repeat padding-box;
   opacity: 0.2;
+  transition: all 0.3s ease;
+}
+
+.login-button:hover .background {
+  opacity: 1;
 }
 
 .login-button .text{
@@ -498,7 +556,41 @@ body {
   text-transform: uppercase;
   opacity: 1;
   font-size: clamp(12px, 1.5vh, 16px);
+  transition: all 0.3s ease;
 }
+
+.login-button:hover .text{
+  z-index: 1;
+  color: #3E3E3E;
+}
+
+.login-options{
+  width: 50%;
+  height: clamp(38px, 5.1vh, 50px);
+  align-self: flex-start;
+}
+
+.login-options p {
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+  color: #DEDEDE;
+  opacity: 0.8;
+  transition: all 0.3s ease;
+}
+
+.login-options:hover p{
+  color: #FFFFFF;
+}
+
+.login-options span {
+  text-decoration: none;
+}
+
+.login-options:hover span {
+  text-decoration: underline;
+}
+
 
 /* ----------------- */
 /* ---- VOLUME ----- */
@@ -1718,6 +1810,7 @@ body {
 }
 
 /* ----------------- */
+/* -- MEASUREMENT HISTORY -- */
 
 .measurementHistory-container{
   position: absolute;
@@ -1849,7 +1942,6 @@ body {
   align-items: center;
 }
 
-
 .history-header div {
   color: white;
   text-align: center;
@@ -1861,6 +1953,7 @@ body {
 
 .history-row {
   height: 14%;
+  cursor: pointer;
 }
 
 .history-row div {
@@ -1949,8 +2042,8 @@ body {
 .measurement-config-modal{
   position: absolute;
   width: 6%;
-  height: 8%;
-  transform: translate(-94%, 40%);
+  height: 4%;
+  transform: translate(-94%, 70%);
   display: flex;
   flex-direction: column;
   z-index: 1000;
@@ -1969,7 +2062,7 @@ body {
 
 .menu-item {
   position: relative;
-  height: 40%;
+  height: 100%;
   display: flex;
   align-items: center;
   cursor: pointer;
@@ -1979,24 +2072,6 @@ body {
 
 .menu-item:hover {
   opacity: 1;
-}
-
-.measurement-config-modal .viewMeasurement-icon{
-  height: 80%;
-  object-fit: contain;
-  
-  margin-right: 15%;
-
-  transition: opacity 0.3s;
-
-  z-index: 1021;
-}
-
-.measurement-config-modal .viewMeasurement-text{
-  font-size: 1.6vh;
-  color: white;
-  z-index: 1021;
-  cursor: pointer;
 }
 
 .measurement-config-modal .deleteMeasurement-icon {

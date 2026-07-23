@@ -45,7 +45,7 @@ def create_user(username, email, password_hash, role="user"):
         try:
             cursor = conn.execute(
                 "INSERT INTO users (username, email, password_hash, role) VALUES (?, ?, ?, ?)",
-                (username, email, password_hash, role),
+                (username, email if email else None, password_hash, role),
             )
             conn.commit()
             return cursor.lastrowid

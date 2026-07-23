@@ -14,38 +14,38 @@ function App() {
   const API_URL = import.meta.env.VITE_API_URL;
 
   // Errors and Info
-  const TextLoginWelcome = "Welcome!"
-  const TextLoginCredentials = "Please insert your login credentials.";
+  const TextLoginWelcome = {text: "Welcome!", type: "info"};
+  const TextLoginCredentials = {text: "Please insert your login credentials.", type: "info"};
 
-  const TextClear = "";
-  const TextError = "Error";
-  const TextServerConnection = "Server connection error";
+  const TextClear = {text: "", type: "info"};
+  const TextError = {text: "Error", type: "error"};
+  const TextServerConnection = {text: "Server connection error", type: "error"};
   
-  const TextFillAllFields = "Please fill in all fields";
-  const TextRegistrationError = "Registration failed";
-  const TextRegistrationSuccessfull = "Registration successful";
+  const TextFillAllFields = {text: "Please fill in all fields", type: "error"};
+  const TextRegistrationError = {text: "Registration failed", type: "error"};
+  const TextRegistrationSuccessfull = {text: "Registration successful", type: "info"};
 
-  const TextCalibrated = "System Calibrated";
-  const TextNotCalibrated = "System was not Calibrated";
-  const TextCenterNotAligned = "Center Point isn't Aligned";
-  const TextWsNotEmpty = "Workspace isn't Empty";
-  const TextWsNotEmptyAndCenterNotAligned = "Center Point isn't Aligned and Workspace isn't Empty";
+  const TextCalibrated = {text: "System Calibrated", type: "info"};
+  const TextNotCalibrated = {text: "System was not Calibrated", type: "error"};
+  const TextCenterNotAligned = {text: "Center Point isn't Aligned", type: "error"};
+  const TextWsNotEmpty = {text: "Workspace isn't Empty", type: "error"};
+  const TextWsNotEmptyAndCenterNotAligned = {text: "Center Point isn't Aligned and Workspace isn't Empty", type: "error"};
   
-  const TextOutOfLine = "There are objects outside the workspace area. To detect them, make sure they are inside.";
+  const TextOutOfLine = {text: "There are objects outside the workspace area. To detect them, make sure they are inside.", type: "error"};
 
-  const TextColorSlopeCaracters = "Only integer values are allowed for color slope";
-  const TextColorSlopeValues = "Color Slope value must be between 150 and 5000";
-  const TextColorSlopeUpdateSuccessfull = "Color Slope updated successfully";
+  const TextColorSlopeCaracters = {text: "Only integer values are allowed for color slope", type: "error"};
+  const TextColorSlopeValues = {text: "Color Slope value must be between 150 and 5000", type: "error"};
+  const TextColorSlopeUpdateSuccessfull = {text: "Color Slope updated successfully", type: "info"};
 
-  const TextExposureCaracters = "Only integer values are allowed for exposure time";
-  const TextExposureValues = "Exposure Time value must be between 100 and 4000";
-  const TextExposureUpdateSuccessfull = "Exposure Time updated successfully";
+  const TextExposureCaracters = {text: "Only integer values are allowed for exposure time", type: "error"};
+  const TextExposureValues = {text: "Exposure Time value must be between 100 and 4000", type: "error"};
+  const TextExposureUpdateSuccessfull = {text: "Exposure Time updated successfully", type: "info"};
 
-  const TextCountdownCaracters = "Only integer values are allowed for the Countdown Timer";
-  const TextCountdownValues = "Countdown Timer value must be between 0 and 10";
-  const TextCountdownUpdateSuccessfull = "Countdown Timer updated successfully";
+  const TextCountdownCaracters = {text: "Only integer values are allowed for the Countdown Timer", type: "error"};
+  const TextCountdownValues = {text: "Countdown Timer value must be between 0 and 10", type: "error"};
+  const TextCountdownUpdateSuccessfull = {text: "Countdown Timer updated successfully", type: "info"};
 
-  const TextNoObjectsDetected = "Failed to identify any object!"
+  const TextNoObjectsDetected = {text: "Failed to identify any object!", type: "error"};
 
   const [currentMenu, setCurrentMenu] = useState("login-menu");
   const [lastMenu, setLastMenu] = useState("None");
@@ -78,7 +78,7 @@ function App() {
   
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState([TextLoginWelcome, TextLoginCredentials]);
+  const [message, setMessage] = useState([TextLoginWelcome, TextLoginCredentials]);
 
   const [regUsername, setRegUsername] = useState("");
   const [regEmail, setRegEmail] = useState("");
@@ -227,6 +227,12 @@ function App() {
  const [measureObjectList, setMeasureObjectList] = useState([]);
  const [measureObjCenters, setMeasureObjCenters] = useState([]);
  const [measureObjAngles, setMeasureObjAngles] = useState([]);
+
+ const [usernameFocus, setUsernameFocus] = useState(false);
+ const [passwordFocus, setPasswordFocus] = useState(false);
+ const [regUsernameFocus, setRegUsernameFocus] = useState(false);
+ const [regPasswordFocus, setRegPasswordFocus] = useState(false);
+ const [regConfirmPasswordFocus, setRegConfirmPasswordFocus] = useState(false);
 
   // ---------------  Wait For Server to be Alive  ---------------
 
@@ -402,18 +408,20 @@ function App() {
   function showLoginScreen() {
       setCurrentMenu("login-menu");
 
-      setError([TextClear]);
+      setMessage([TextClear]);
       setRegUsername("");
       setRegEmail("");
       setRegPassword("");
       setRegConfirmPassword("");
       setMenuSideNavOpen("false");
+      setUsernameFocus(false);
+      setPasswordFocus(false);
   }
   
   // Login Algorithm
   async function login() {
     if (!username || !password) {
-      setError([TextFillAllFields]);
+      setMessage([TextFillAllFields]);
       return;
     }
 
@@ -446,15 +454,15 @@ function App() {
 
         setMenuSideNavOpen(true);
 
-        setError([TextClear]);
+        setMessage([TextClear]);
 
       } else {
         const data = await response.json();
-        setError([errorText(data.detail, TextServerConnection)]);
+        setMessage([{text: errorText(data.detail, TextServerConnection), type: "error"}]);
       }
 
     } catch (error) {
-      setError([TextServerConnection]);
+      setMessage([TextServerConnection]);
     }
   }
 
@@ -513,23 +521,32 @@ function App() {
     setSelectedObject("");
     setVolInfo(null);
     setVolumeData(null);
+
+    setRegUsernameFocus(false);
+    setPasswordFocus(false);
+    setRegUsernameFocus(false);
+    setRegPasswordFocus(false);
+    setRegConfirmPasswordFocus(false);
   }
 
   function showRegisterScreen() {
       setCurrentMenu("register");
-      setError([TextClear]);
+      setMessage([TextClear]);
       setUsername("");
       setPassword("");
+      setRegUsernameFocus(false);
+      setRegPasswordFocus(false);
+      setRegConfirmPasswordFocus(false);
   }
 
   async function register() {
       if (!regUsername || !regPassword || !regConfirmPassword) {
-          setError([TextFillAllFields]);
+          setMessage([TextFillAllFields]);
           return;
       }
 
       if (regPassword !== regConfirmPassword) {
-          setError(["Passwords do not match!"]);
+          setMessage(["Passwords do not match!"]);
           return;
       }
 
@@ -545,16 +562,16 @@ function App() {
           const data = await response.json();
 
           if (!response.ok) {
-            setError([errorText(data.detail, TextRegistrationError)]);
+            setMessage([{text: errorText(data.detail, TextRegistrationError), type: "error"}]);
             return;
           }
 
       } catch (error) {
-          setError([TextServerConnection]);
+          setMessage([TextServerConnection]);
           return;
       }
 
-      setError([TextRegistrationSuccessfull]);
+      setMessage([TextRegistrationSuccessfull]);
       showLoginScreen();
   }
 
@@ -563,7 +580,7 @@ function App() {
   async function loadUsers() {
     try {
       setUsersLoading(true);
-      setError([TextClear]);
+      setMessage([TextClear]);
       await refreshAccessToken();
       const access_token = localStorage.getItem("access_token");
       const res = await fetch(`${API_URL}/users`, { headers: { "Authorization": `Bearer ${access_token}` } });
@@ -571,12 +588,12 @@ function App() {
         const data = await res.json();
         setUsersList(data.users || []);
       } else if (res.status === 403) {
-        setError(["Admin privileges required."]);
+        setMessage(["Admin privileges required."]);
       } else {
-        setError(["Could not load users."]);
+        setMessage(["Could not load users."]);
       }
     } catch (e) {
-      setError(["Server connection error."]);
+      setMessage(["Server connection error."]);
     } finally {
       setUsersLoading(false);
     }
@@ -618,10 +635,10 @@ function App() {
       if (res.ok) {
         setUsersList(prev => prev.filter(u => u.id !== userId));
       } else {
-        setError(["Could not delete user."]);
+        setMessage(["Could not delete user."]);
       }
     } catch (e) {
-      setError(["Server connection error."]);
+      setMessage(["Server connection error."]);
     }
   }
 
@@ -636,10 +653,10 @@ function App() {
       if (res.ok) {
         setMeasurementsList(prev => prev.filter(u => u.id !== measurementID));
       } else {
-        setError(["Could not delete measurement."]);
+        setMessage(["Could not delete measurement."]);
       }
     } catch (e) {
-      setError(["Server connection error."]);
+      setMessage(["Server connection error."]);
     }
   }
 
@@ -648,13 +665,13 @@ function App() {
   // Aplies Change Effects
   useEffect(() => {
     if (currentMenu === "login-menu") {
-      setError([TextLoginWelcome, TextLoginCredentials]);
+      setMessage([TextLoginWelcome, TextLoginCredentials]);
     }
 
     if (currentMenu === "login-menu" || currentMenu === "register") return;
 
     refreshAccessToken();
-    setError([TextClear]);
+    setMessage([TextClear]);
 
     if (currentMenu === "calibration-menu") {
       workspaceDrawing();
@@ -717,7 +734,7 @@ function App() {
         const start = performance.now();
         setObjectList([]);
         setSelectedObject("");
-        setError([TextClear]);
+        setMessage([TextClear]);
         setVolInfo(null);
         setVolumeData(null);
         setObjectImage(null);
@@ -769,7 +786,7 @@ function App() {
   // Save the current measurement (objects + snapshot images) in the database
   async function saveMeasurement(measurementData) {
     try {
-      setError([TextClear]);
+      setMessage([TextClear]);
       setSavingMeasurement(true);
       await refreshAccessToken();
       const access_token = localStorage.getItem("access_token");
@@ -782,15 +799,15 @@ function App() {
 
       if (res.ok) {
         const data = await res.json();
-        setError([`Measurement saved (#${data.id}).`]);
+        setMessage([`Measurement saved (#${data.id}).`]);
       } else if (res.status === 401) {
-        setError(["Session expired. Please login again."]);
+        setMessage(["Session expired. Please login again."]);
       } else {
         const data = await res.json().catch(() => ({}));
-        setError([errorText(data.detail, "Could not save the measurement.")]);
+        setMessage([{text: errorText(data.detail, "Could not save the measurement."), type: "error"}]);
       }
     } catch (e) {
-      setError(["Server connection error."]);
+      setMessage(["Server connection error."]);
       setSavingMeasurement(false);
     } finally {
       setSavingMeasurement(false);
@@ -799,7 +816,7 @@ function App() {
 
   useEffect(() => {
     if (savingMeasurement) {
-      setError(["Saving..."]);
+      setMessage(["Saving..."]);
     }
   }, [savingMeasurement]);
 
@@ -812,19 +829,19 @@ function App() {
         const data = await res.json();
         setMeasurementsList(data.measurements || []);
       } else {
-        setError(["Could not load measurements."]);
+        setMessage(["Could not load measurements."]);
       }
       const user_res = await fetch(`${API_URL}/users`, { headers: { "Authorization": `Bearer ${access_token}` } });
       if (user_res.ok) {
         const data = await user_res.json();
         setUsersIDList(data.users || []);
       } else if (user_res.status === 403) {
-        setError(["Admin privileges required."]);
+        setMessage(["Admin privileges required."]);
       } else {
-        setError(["Could not load users."]);
+        setMessage(["Could not load users."]);
       }
     } catch (e) {
-      setError(["Server connection error."]);
+      setMessage(["Server connection error."]);
     } finally {
       setUsersLoading(false);
     }
@@ -839,9 +856,9 @@ function App() {
       const data = await response.json();
       const objectsOutOfLine = data.objects_outOfLine.map((val, i) => val ? i + 1 : null).filter(v => v !== null);
       if (objectsOutOfLine.length > 0) {
-          setError([TextOutOfLine]);
+          setMessage([TextOutOfLine]);
       } else {
-          setError([TextClear]);
+          setMessage([TextClear]);
 
           const dataResponse = await fetch(`${API_URL}/volume/singleBundle/results`, {headers: { "Authorization": `Bearer ${access_token}`}});
           const volumeData = await dataResponse.json();
@@ -849,7 +866,7 @@ function App() {
           const bundle = volumeData.Bundle; 
 
           if (bundle.volume_m === 0 || bundle.volume_cm === 0 || bundle.x === 0 || bundle.y === 0 || bundle.z === 0) {
-            setError([TextNoObjectsDetected])
+            setMessage([TextNoObjectsDetected])
           } else {
             const measurementData = ({
               volume_mode: "Single Bundle",
@@ -889,7 +906,7 @@ function App() {
       setShowCamera(false);
 
     } catch (error) {
-      setError([TextError]);
+      setMessage([TextError]);
       console.error(error);
     } finally {
       setLoadingVolume(false);
@@ -904,9 +921,9 @@ function App() {
       const data = await response.json();
       const objectsOutOfLine = data.objects_outOfLine.map((val, i) => val ? i + 1 : null).filter(v => v !== null);
       if (objectsOutOfLine.length > 0) {
-          setError([TextOutOfLine]);
+          setMessage([TextOutOfLine]);
       } else {
-          setError([TextClear]);
+          setMessage([TextClear]);
       }
 
       const dataResponse = await fetch(`${API_URL}/volume/multiBundle/results`, {headers: { "Authorization": `Bearer ${access_token}`}});
@@ -926,7 +943,7 @@ function App() {
       
       if (objIdentified.length === 0) {
 
-        setError([TextNoObjectsDetected])
+        setMessage([TextNoObjectsDetected])
 
       } else if (objIdentified.length === 1) {
         
@@ -973,7 +990,7 @@ function App() {
 
     } catch (error) {
       setVolInfo(null);
-      setError([TextError]);
+      setMessage([TextError]);
       console.error(error);
     } finally {
       setLoadingVolume(false);
@@ -989,9 +1006,9 @@ function App() {
       const data = await response.json();
       const objectsOutOfLine = data.objects_outOfLine.map((val, i) => val ? i + 1 : null).filter(v => v !== null);
       if (objectsOutOfLine.length > 0) {
-          setError([TextOutOfLine]);
+          setMessage([TextOutOfLine]);
       } else {
-          setError([TextClear]);
+          setMessage([TextClear]);
       }
 
       const dataResponse = await fetch(`${API_URL}/volume/real/results`, {headers: { "Authorization": `Bearer ${access_token}`}});
@@ -1011,7 +1028,7 @@ function App() {
 
       if (objIdentified.length === 0) {
         
-        setError([TextNoObjectsDetected])
+        setMessage([TextNoObjectsDetected])
 
       } else if (objIdentified.length === 1) {
         
@@ -1047,7 +1064,10 @@ function App() {
             x_cm: obj.x,
             y_cm: obj.y,
             z_cm: obj.z,
-            extra: null
+            extra: {
+              angles: obj.obj_angles,
+              centers: obj.obj_center
+            }
           }));
 
         const measurementData = ({
@@ -1062,7 +1082,7 @@ function App() {
 
     } catch (error) {
       setVolInfo(null);
-      setError([TextError]);
+      setMessage([TextError]);
       console.error(error);
     } finally {
       setLoadingVolume(false);
@@ -1077,9 +1097,9 @@ function App() {
       const data = await response.json();
       const objectsOutOfLine = data.objects_outOfLine.map((val, i) => val ? i + 1 : null).filter(v => v !== null);
       if (objectsOutOfLine.length > 0) {
-          setError([TextOutOfLine]);
+          setMessage([TextOutOfLine]);
       } else {
-          setError([TextClear]);
+          setMessage([TextClear]);
       }
 
       const dataResponse = await fetch(`${API_URL}/volume/individual/results`, {headers: { "Authorization": `Bearer ${access_token}`}});
@@ -1119,7 +1139,7 @@ function App() {
       }
     } catch (error) {
       setVolInfo(null);
-      setError([TextError]);
+      setMessage([TextError]);
       console.error(error);
     } finally {
       setLoadingVolume(false);
@@ -1944,7 +1964,7 @@ function App() {
   async function calibrate_click() {
     try {
       setLoadingCalibration(true);
-      setError([TextClear]);
+      setMessage([TextClear]);
       refreshAccessToken();
       const access_token = localStorage.getItem("access_token");
 
@@ -1977,17 +1997,17 @@ function App() {
       const ws_clear = data["Workspace Clear"];
 
       if (center_aligned && ws_clear) {
-        setError([TextCalibrated, TextClear]);
+        setMessage([TextCalibrated, TextClear]);
         setCalibrationModalOpen(true);
       }
       else if (center_aligned && !ws_clear) {
-        setError([TextNotCalibrated, TextWsNotEmpty]);
+        setMessage([TextNotCalibrated, TextWsNotEmpty]);
       }
       else if (!center_aligned && ws_clear) {
-        setError([TextNotCalibrated, TextCenterNotAligned]);
+        setMessage([TextNotCalibrated, TextCenterNotAligned]);
       }
       else {
-        setError([TextNotCalibrated, TextWsNotEmptyAndCenterNotAligned]);
+        setMessage([TextNotCalibrated, TextWsNotEmptyAndCenterNotAligned]);
       }
 
       /*const r = await fetch(`${API_URL}/calibrate/mode`, {headers: { "Authorization": `Bearer ${access_token}`}});
@@ -1999,7 +2019,7 @@ function App() {
       selectedPoint.current = null;
 
     } catch (error) {
-      setError([TextError]);
+      setMessage([TextError]);
       console.error(error);
     } finally {
       setLoadingCalibration(false);
@@ -2010,7 +2030,7 @@ function App() {
   async function confirm_calibration(confirm) {
     try {
       setCalibrationModalOpen(false);
-      setError([TextClear]);
+      setMessage([TextClear]);
       refreshAccessToken();
       const access_token = localStorage.getItem("access_token");
 
@@ -2025,13 +2045,13 @@ function App() {
         if (!calibrateResponse.ok) throw new Error("Save calibration request failed");
         setLockMenu(false);
         setCurrentMenu("volume-menu");
-        setError([TextCalibrated, TextClear]);
+        setMessage([TextCalibrated, TextClear]);
       }else{
-        setError([TextNotCalibrated, TextClear]);
+        setMessage([TextNotCalibrated, TextClear]);
       }
 
     } catch (error) {
-      setError([TextError]);
+      setMessage([TextError]);
       console.error(error);
     }
   }
@@ -2163,12 +2183,12 @@ function App() {
     const value = Number(exposureTime);
     
     if (!Number.isInteger(value)) {
-        setError([TextExposureCaracters]);
+        setMessage([TextExposureCaracters]);
         return;
     }
 
     if (value < 100 || value > 4000) {
-        setError([TextExposureValues]);
+        setMessage([TextExposureValues]);
         return;
     }
 
@@ -2180,7 +2200,7 @@ function App() {
 
         await fetch(`${API_URL}/saveInfo`, {method: "POST", headers: { "Authorization": `Bearer ${access_token}` } });
 
-        setError([TextExposureUpdateSuccessfull]);
+        setMessage([TextExposureUpdateSuccessfull]);
     } catch (error) {
         console.error("Exposure set error:", error);
     }
@@ -2191,12 +2211,12 @@ function App() {
     const value = Number(countdownTimer);
     
     if (!Number.isInteger(value)) {
-        setError([TextCountdownCaracters]);
+        setMessage([TextCountdownCaracters]);
         return;
     }
 
     if (value < 0 || value > 10) {
-        setError([TextCountdownValues]);
+        setMessage([TextCountdownValues]);
         return;
     }
 
@@ -2214,7 +2234,7 @@ function App() {
 
         await fetch(`${API_URL}/saveInfo`, {method: "POST", headers: { "Authorization": `Bearer ${access_token}` } });
 
-        setError([TextCountdownUpdateSuccessfull]);
+        setMessage([TextCountdownUpdateSuccessfull]);
     } catch (error) {
         console.error("Countdown set error:", error);
     }
@@ -2238,12 +2258,12 @@ function App() {
   async function colorSlopeSet_click() {
     const value = Number(colorSlope);
     if (!Number.isInteger(value)) {
-        setError([TextColorSlopeCaracters]);
+        setMessage([TextColorSlopeCaracters]);
         return;
     }
 
     if (value < 150 || value > 5000) {
-        setError([TextColorSlopeValues]);
+        setMessage([TextColorSlopeValues]);
         return;
     }
 
@@ -2259,7 +2279,7 @@ function App() {
             body: JSON.stringify({ colorSlope: value })
         });
 
-        setError([TextColorSlopeUpdateSuccessfull]);
+        setMessage([TextColorSlopeUpdateSuccessfull]);
     } catch (error) {
         console.error("Color slope set error:", error);
     }
@@ -2888,7 +2908,6 @@ function App() {
   }, []);
 
   useEffect(() => {
-    console.log("Chamei");
     if (!measureSelectedObject || !measureMultipleVolumeData) return;
     const objData = measureMultipleVolumeData[measureSelectedObject];
     if (!objData) return;
@@ -2901,8 +2920,8 @@ function App() {
       height: objData.height
     });
 
-    setMeasureObjCenters(objData.obj_center ?? []);
-    setMeasureObjAngles(objData.obj_angles ?? []);
+    setMeasureObjCenters(objData.centers ?? []);
+    setMeasureObjAngles(objData.angles ?? []);
   }, [measureSelectedObject, measureMultipleVolumeData]);
 
   async function viewMeasurement(selectedID){
@@ -2965,7 +2984,29 @@ function App() {
               "weight": data.measurement?.weight
             });
           } else if (data.measurement?.volume_mode === "Real"){
-            setMeasureVolumeInfo(null);
+            objects.forEach((obj, index) => {
+              measureData[`${index + 1}`] = {
+                volume_m: obj.volume_m,
+                volume_cm: obj.volume_cm,
+                width: obj.extra.x,
+                length: obj.extra.y,
+                height: obj.extra.z,
+                angles: obj.extra.angles,
+                centers: obj.extra.centers
+              };
+            });
+
+            setMeasureVolumeInfo({
+              "volume_m": data.measurement?.total_volume_m,
+              "volume_cm": data.measurement?.total_volume_cm,
+              "width": data.objects?.[0]?.extra.x,
+              "length": data.objects?.[0]?.extra.y,
+              "height": data.objects?.[0]?.extra.z,
+              "weight": data.measurement?.weight
+            });
+
+            setMeasureObjAngles(data.objects?.[0]?.extra.angles)
+            setMeasureObjCenters(data.objects?.[0]?.extra.centers)
           }
           
         } else {
@@ -2980,7 +3021,17 @@ function App() {
               };
             });
           } else if (data.measurement?.volume_mode === "Real"){
-            
+            objects.forEach((obj, index) => {
+              measureData[`${index + 1}`] = {
+                volume_m: obj.volume_m,
+                volume_cm: obj.volume_cm,
+                width: obj.extra.x,
+                length: obj.extra.y,
+                height: obj.extra.z,
+                angles: obj.extra.angles,
+                centers: obj.extra.centers
+              };
+            });
           }
 
           setMeasureObjectList(Object.keys(measureData).filter(key => key !== "Total"));
@@ -3056,45 +3107,63 @@ function App() {
               <div className="login-panel-title">Login</div>
 
               <div className="login-panel-error-or-info">
-                {error.map((err, i) => (<p key={i}>{err}</p>))}
+                {message.map((msg, i) => (
+                  <p
+                    key={i}
+                    className={msg.type === "error" ? "error-message" : "info-message"}
+                  >
+                    {msg.text}
+                  </p>
+                ))}
               </div>
 
-              <form className="login-form" style={{ gap: "1vh", height: "auto", top: "8vh" }} onSubmit={(e) => { e.preventDefault(); login(); }}>
-                <input
-                  className="login-input"
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  placeholder="Username"
-                />
+              <form className="login-form" onSubmit={(e) => { e.preventDefault(); login();}}>
+                <div className="input-container">
+                  <input
+                    className="login-input"
+                    type="text"
+                    value={username}
+                    onFocus={() => setUsernameFocus(true)}
+                    onBlur={() => setUsernameFocus(false)}
+                    onChange={(e) => setUsername(e.target.value)}
+                  />
+                  <label className={usernameFocus || username ? "active" : ""}>
+                    Username
+                  </label>
+                </div>
 
-                <input
-                  className="login-input"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Password"
-                />
+                <div className="input-container">
+                  <input
+                    className="login-input"
+                    type="password"
+                    value={password}
+                    onFocus={() => setPasswordFocus(true)}
+                    onBlur={() => setPasswordFocus(false)}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                  <label className={passwordFocus || password ? "active" : ""}>
+                    Password
+                  </label>
+                </div>
+                
 
-                <button className="login-button" type="submit" style={{ left: 0, top: 0, marginTop: "1.5vh" }}>
-                  <div className="background"></div>
-                  <span className="text">Login</span>
-                </button>
+                <div className="login-actions">
+                  <div className="login-options">
+                    <p onClick={showRegisterScreen}>
+                      Don't have an account?{" "}
+                      <span>
+                        Register
+                      </span>
+                    </p>
+                  </div>
+
+                  <button className="login-button" type="submit">
+                    <span className="text">Login</span>
+                  </button>
+                </div>
               </form>
 
-              <p style={{ marginTop: "1.5vh" }}>
-                Don't have an account?{" "}
-                <span
-                  onClick={showRegisterScreen}
-                  style={{
-                    color: "white",
-                    cursor: "pointer",
-                    textDecoration: "underline"
-                  }}
-                >
-                  Register
-                </span>
-              </p>
+              
 
             </div>
 
@@ -3115,52 +3184,74 @@ function App() {
               <div className="login-panel-title">Register</div>
 
               <div className="login-panel-error-or-info">
-                {error.map((err, i) => (<p key={i}>{err}</p>))}
+                {message.map((msg, i) => (
+                  <p
+                    key={i}
+                    className={msg.type === "error" ? "error-message" : "info-message"}
+                  >
+                    {msg.text}
+                  </p>
+                ))}
               </div>
 
-              <form className="login-form" style={{ gap: "1vh", height: "auto", top: "8vh" }} onSubmit={(e) => { e.preventDefault(); register(); }}>
-                <input
-                  className="login-input"
-                  type="text"
-                  value={regUsername}
-                  onChange={(e) => setRegUsername(e.target.value)}
-                  placeholder="Username"
-                />
+              <form className="login-form" onSubmit={(e) => { e.preventDefault(); register(); }}>
+                <div className="input-container">
+                  <input
+                    className="login-input"
+                    type="text"
+                    value={regUsername}
+                    onFocus={() => setRegUsernameFocus(true)}
+                    onBlur={() => setRegUsernameFocus(false)}
+                    onChange={(e) => setRegUsername(e.target.value)}
+                  />
+                  <label className={regUsernameFocus || regUsername ? "active" : ""}>
+                    Username
+                  </label>
+                </div>
 
-                <input
-                  className="login-input"
-                  type="password"
-                  value={regPassword}
-                  onChange={(e) => setRegPassword(e.target.value)}
-                  placeholder="Password"
-                />
+                <div className="input-container">
+                  <input
+                    className="login-input"
+                    type="password"
+                    value={regPassword}
+                    onFocus={() => setRegPasswordFocus(true)}
+                    onBlur={() => setRegPasswordFocus(false)}
+                    onChange={(e) => setRegPassword(e.target.value)}
+                  />
+                  <label className={regPasswordFocus || regPassword ? "active" : ""}>
+                    Password
+                  </label>
+                </div>
 
-                <input
-                  className="login-input"
-                  type="password"
-                  value={regConfirmPassword}
-                  onChange={(e) => setRegConfirmPassword(e.target.value)}
-                  placeholder="Confirm Password"
-                />
+                <div className="input-container">
+                  <input
+                    className="login-input"
+                    type="password"
+                    value={regConfirmPassword}
+                    onChange={(e) => setRegConfirmPassword(e.target.value)}
+                    onFocus={() => setRegConfirmPasswordFocus(true)}
+                    onBlur={() => setRegConfirmPasswordFocus(false)}
+                  />
+                  <label className={regConfirmPasswordFocus || regConfirmPassword ? "active" : ""}>
+                    Confirm Password
+                  </label>
+                </div>
 
-                <button className="login-button" type="submit" style={{ left: 0, top: 0, marginTop: "1.5vh" }}>
-                  <div className="background"></div>
-                  <span className="text">Register</span>
-                </button>
+                <div className="login-actions">
+                  <div className="login-options">
+                    <p onClick={showLoginScreen}>
+                      Already have an account?{" "}
+                      <span>
+                        Login
+                      </span>
+                    </p>
+                  </div>
 
-                <p style={{ marginTop: "1.5vh" }}>
-                  Already have an account?{" "}
-                  <span
-                    onClick={showLoginScreen}
-                    style={{
-                      color: "white",
-                      cursor: "pointer",
-                      textDecoration: "underline"
-                    }}
-                  >
-                    Login
-                  </span>
-                </p>
+                  <button className="login-button" type="submit">
+                    <div className="background"></div>
+                    <span className="text">Register</span>
+                  </button>
+                </div>
               </form>
 
             </div>
@@ -3187,8 +3278,13 @@ function App() {
 
             {/* Warning */}
             <div className="warning">
-              {error.map((err, i) => (
-                <p key={i}>{err}</p>
+              {message.map((msg, i) => (
+                <p
+                  key={i}
+                  className={msg.type === "error" ? "error-message" : "info-message"}
+                >
+                  {msg.text}
+                </p>
               ))}
             </div>
 
@@ -3437,8 +3533,13 @@ function App() {
 
             {/* Warning */}
             <div className="warning">
-              {error.map((err, i) => (
-                <p key={i}>{err}</p>
+              {message.map((msg, i) => (
+                <p
+                  key={i}
+                  className={msg.type === "error" ? "error-message" : "info-message"}
+                >
+                  {msg.text}
+                </p>
               ))}
             </div>
 
@@ -3564,8 +3665,13 @@ function App() {
 
             {/* Warning */}
             <div className="warning">
-              {error.map((err, i) => (
-                <p key={i}>{err}</p>
+              {message.map((msg, i) => (
+                <p
+                  key={i}
+                  className={msg.type === "error" ? "error-message" : "info-message"}
+                >
+                  {msg.text}
+                </p>
               ))}
             </div>
 
@@ -3662,7 +3768,9 @@ function App() {
 
                   <div className="history-table">
                     {sortedMeasurements.map((measurement, index) => (
-                      <div key={measurement.id} className={`history-row ${index % 2 === 0 ? "even" : "odd"}`}>
+                      <div key={measurement.id} className={`history-row ${index % 2 === 0 ? "even" : "odd"}`} onClick={(e) => { if (e.target.closest(".more-options-button")) return;
+                                                                                                                                    viewMeasurement(measurement.id);
+                                                                                                                              }}>
                         <div className="history-row-text">{measurement.id}</div>
                         <div className="history-row-text">{(() => {const user = usersIDList.find(u => u.id === measurement.user_id); return user ? `[${user.id}] ${user.username}` : `[${measurement.user_id}]`;})()}</div>
                         <div className="history-row-text">{measurement.volume_mode}</div>
@@ -3690,11 +3798,6 @@ function App() {
               <>
                 <div className="measurement-config-modal" style={{left: `${measurementConfigModalPosition.x}px`, top: `${measurementConfigModalPosition.y}px`}}>
                   <div className="background"></div>
-                  <div className="menu-item" onClick={() => {viewMeasurement(selectedID);}}>
-                    <img src="/visibility.svg" className="viewMeasurement-icon" />
-                    <div className="viewMeasurement-text" >View</div>
-                  </div>
-
                   <div className="menu-item" onClick={() => {deleteMeasurement(selectedID); toggleMeasurementModal();}}>
                     <img src="/delete_forever.svg" className="deleteMeasurement-icon"/>   
                     <div className="deleteMeasurement-text" >Delete</div>  
@@ -3835,17 +3938,17 @@ function App() {
                               <div className="measurement-boxInfoText-container">
                                 <div style={{ color: "#6CD08A" }} className="measurement-boxInfo-text">
                                   <span className="label">Width (cm):</span>
-                                  <span className="value">{measureVolumeInfo?.width}</span>
+                                  <span className="value">{measurementMode === "Real" ? measureVolumeInfo.width?.[0] : measureVolumeInfo?.width}</span>
                                 </div>
 
                                 <div style={{ color: "#C66D6D" }} className="measurement-boxInfo-text">
                                   <span className="label">Length (cm):</span>
-                                  <span className="value">{measureVolumeInfo?.length}</span>
+                                  <span className="value">{measurementMode === "Real" ? measureVolumeInfo.length?.[0] : measureVolumeInfo?.length}</span>
                                 </div>
 
                                 <div style={{ color: "#9EB0FD" }} className="measurement-boxInfo-text">
                                   <span className="label">Height (cm):</span>
-                                  <span className="value">{measureVolumeInfo?.height}</span>
+                                  <span className="value">{measurementMode === "Real" ? measureVolumeInfo.height?.[0] : measureVolumeInfo?.height}</span>
                                 </div>
 
                                 <div style={{ color: "#FFFFFF" }} className="measurement-boxInfo-text">
@@ -3862,17 +3965,17 @@ function App() {
                             </>
                           )}
 
-                          {/* {!measureVolumeInfo && measureMultipleVolumeData &&(
+                          {!measureVolumeInfo && measureMultipleVolumeData &&(
                             <>
                               <div className="measurement-boxInfo-message">Selecione um objeto</div>
                             </>
-                          )}*/}
+                          )}
                         </div>
                       </>
                     )}
 
                     <div className="measurement-info-button">
-                      <img src="/close.svg" onClick={() => {setShowMeasurementInfo(false); setMeasureVolumeInfo(null); toggleMeasurementModal();}}/>
+                      <img src="/close.svg" onClick={() => {setShowMeasurementInfo(false); setMeasureVolumeInfo(null);}}/>
                     </div>
                   </div>
                 </div>
