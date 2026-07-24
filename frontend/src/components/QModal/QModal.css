@@ -1,0 +1,112 @@
+/* ==========================
+   QMODAL — reusable modal
+========================== */
+
+.qmodal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(0px);
+  padding: 24px;
+  animation: qmodal-overlay-in 0.15s ease-out;
+}
+
+.qmodal {
+  position: relative;
+  background: var(--color-modal-bg);
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  max-width: 100%;
+  max-height: calc(100vh - 48px);
+  display: flex;
+  flex-direction: column;
+  animation: qmodal-in 0.2s ease-out;
+}
+
+.qmodal__header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 20px 15px 20px;
+  gap: 16px;
+}
+
+/* Centered-title variant: title sits in the middle of the modal width,
+   close button anchors to the right edge regardless of title length. */
+.qmodal__header--center-title {
+  justify-content: center;
+}
+
+.qmodal__header--center-title .qmodal__title {
+  flex: 0 0 auto;
+  text-align: center;
+}
+
+.qmodal__header--center-title .qmodal__close {
+  position: absolute;
+  right: 28px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.qmodal__title {
+  font-size: var(--font-lg);
+  color: var(--color-text);
+  flex: 1;
+  font-weight: normal;
+}
+
+.qmodal__close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: transparent;
+  color: var(--color-white-70);
+  cursor: pointer;
+  border-radius: 50%;
+  transition: background 0.15s ease, color 0.15s ease;
+  flex-shrink: 0;
+  margin-right: -4px;
+}
+
+.qmodal__close:hover {
+  background: var(--color-white-10);
+  color: var(--color-white-100);
+}
+
+.qmodal__close svg {
+  width: 20px;
+  height: 20px;
+}
+
+.qmodal__body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 20px 20px;
+}
+
+/* ---- Animations ---- */
+
+@keyframes qmodal-overlay-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes qmodal-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}

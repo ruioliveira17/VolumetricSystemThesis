@@ -1,0 +1,64 @@
+/* ==========================
+   QBUTTON
+========================== */
+
+.qbutton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-md);
+}
+
+/* When an icon is provided, lay out as flex row centered with 5px gap */
+.qbutton--with-icon {
+  flex-direction: row;
+  gap: 5px;
+}
+/* set icon color  */
+.qbutton--with-icon:hover .qbutton__icon > svg path {
+  fill: var(--color-text-dark);
+}
+
+/* Disabled / loading state */
+.qbutton:disabled {
+  opacity: 0.2;
+  cursor: not-allowed;
+}
+
+.qbutton--loading {
+  gap: 5px;
+}
+
+/* Icon wrapper — keeps SVGs/text properly aligned */
+.qbutton__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+}
+
+.qbutton__icon-svg {
+  width: 24px;
+  height: 24px;
+}
+
+/* .qbutton__icon > svg {
+  width: 1em;
+  height: 1em;
+} */
+
+/* Spinner shown while loading */
+.qbutton__spinner {
+  width: 0.9em;
+  height: 0.9em;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: qbutton-spin 0.8s linear infinite;
+}
+
+@keyframes qbutton-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

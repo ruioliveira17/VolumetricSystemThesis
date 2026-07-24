@@ -312,7 +312,7 @@ body {
 }
 
 .error-message {
-  color: #ff5555;
+  color: #ff6666;
 }
 
 /* ----------------- */
@@ -411,6 +411,55 @@ body {
   overflow-y: auto;
 }
 
+.login-panel-login{
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  width: clamp(320px, 32vw, 520px);
+  height: 40%;
+  max-height: 92vh;
+  padding: 3.2vh 2vw;
+  box-sizing: border-box;
+
+  background: linear-gradient(180deg, #FFFFFF1A 0%, #0000003E 100%);
+  border-radius: 1.4vw;
+  opacity: 1;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2.2vh;
+  overflow-y: auto;
+}
+
+.login-panel-register{
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  width: clamp(320px, 32vw, 520px);
+  height: 46%;
+  max-height: 92vh;
+  padding: 3.2vh 2vw;
+  box-sizing: border-box;
+
+  background: linear-gradient(180deg, #FFFFFF1A 0%, #0000003E 100%);
+  border-radius: 1.4vw;
+  opacity: 1;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2.2vh;
+  overflow-y: auto;
+  overflow-x: auto;
+}
+
 .login-panel-title {
   position: static;
   width: auto;
@@ -427,7 +476,7 @@ body {
 .login-panel-error-or-info{
   position: static;
   width: 100%;
-  height: auto;
+  height: 30%;
   margin: 0;
   margin-bottom: 3%;
 
@@ -492,7 +541,7 @@ body {
   background: #000000 0% 0% no-repeat padding-box;
   opacity: 0.2;
   border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 6px;
+  border-radius: 4px;
 
   padding-left: 0.8vw;
   padding-top: 1.5vh;
@@ -506,6 +555,22 @@ body {
 
 .login-input:focus {
   outline: none;
+}
+
+.login-input-error {
+  opacity: 1;
+  border: 1px solid rgba(255, 102, 102, 1);
+  background-color: rgba(255, 102, 102, 0.2);
+}
+
+.login-input-error:hover {
+  opacity: 1;
+  cursor: pointer;
+}
+
+.login-input-error:focus {
+  background: #000000 0% 0% no-repeat padding-box;
+  border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .login-actions {

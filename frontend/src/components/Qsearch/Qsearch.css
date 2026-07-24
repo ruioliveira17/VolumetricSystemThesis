@@ -1,0 +1,29 @@
+/* ==========================
+   QSEARCH — input with trailing icon
+========================== */
+
+.qsearch {
+  position: relative;
+  width: 100%;
+}
+
+.qsearch__field {
+  width: 100%;
+  /* padding: 0.85rem 2.8rem 0.85rem 0.9rem; */
+  padding: 17px 16px;
+}
+
+.qsearch__field::-webkit-search-cancel-button {
+  display: none;
+}
+
+.qsearch__icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  color: var(--color-white-70);
+  pointer-events: none;
+}

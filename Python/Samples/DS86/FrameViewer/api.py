@@ -283,7 +283,7 @@ def refresh(data: RefreshData):
     username = payload["sub"]
     user = get_by_username(username)
 
-    if user is None:
+    if user is None or user.get("deleted_at") is not None:
         raise HTTPException(status_code=401, detail="User not found.")
 
     new_access_token = create_access_token({"sub": username, "role": user["role"]})

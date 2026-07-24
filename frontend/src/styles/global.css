@@ -1,0 +1,32 @@
+@font-face {
+  font-family: "Inter Regular";
+  src:
+    local("Inter_18pt-Regular"),
+    url("./assets/fonts/Inter_18pt-Regular.ttf") format("truetype");
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "Inter Bold";
+  src:
+    local("Inter_24pt-Bold"),
+    url("./assets/fonts/Inter_24pt-Bold.ttf") format("truetype");
+  font-weight: bold;
+}
+
+/* ----- BODY ----- */
+
+body {
+  background-image: url("/qubic_background.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  
+  overflow-x: hidden;
+
+  margin: 0;
+  height: 100vh;
+  width: 100vw;
+
+  font-family: "Inter Regular", sans-serif;
+}

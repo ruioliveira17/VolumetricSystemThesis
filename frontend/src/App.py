@@ -234,6 +234,11 @@ function App() {
  const [regPasswordFocus, setRegPasswordFocus] = useState(false);
  const [regConfirmPasswordFocus, setRegConfirmPasswordFocus] = useState(false);
 
+ const [usernameFormError, setUsernameFormError] = useState(false);
+ const [passwordFormError, setPasswordFormError] = useState(false);
+ const [regUsernameFormError, setRegUsernameFormError] = useState(false);
+ const [regPasswordFormError, setRegPasswordFormError] = useState(false);
+ const [regConfirmPasswordFormError, setRegConfirmPasswordFormError] = useState(false); 
   // ---------------  Wait For Server to be Alive  ---------------
 
   async function waitForServer(maxAttempts = 20, delay = 1000) {
@@ -416,12 +421,17 @@ function App() {
       setMenuSideNavOpen("false");
       setUsernameFocus(false);
       setPasswordFocus(false);
+
+      setUsernameFormError(false);
+      setPasswordFormError(false);
   }
   
   // Login Algorithm
   async function login() {
     if (!username || !password) {
       setMessage([TextFillAllFields]);
+      setUsernameFormError(true);
+      setPasswordFormError(true);
       return;
     }
 
@@ -459,6 +469,8 @@ function App() {
       } else {
         const data = await response.json();
         setMessage([{text: errorText(data.detail, TextServerConnection), type: "error"}]);
+        setUsernameFormError(true);
+        setPasswordFormError(true);
       }
 
     } catch (error) {
@@ -522,11 +534,17 @@ function App() {
     setVolInfo(null);
     setVolumeData(null);
 
-    setRegUsernameFocus(false);
+    setUsernameFocus(false);
     setPasswordFocus(false);
     setRegUsernameFocus(false);
     setRegPasswordFocus(false);
     setRegConfirmPasswordFocus(false);
+    
+    setUsernameFormError(false);
+    setPasswordFormError(false);
+    setRegUsernameFormError(false);
+    setRegPasswordFormError(false);
+    setRegConfirmPasswordFormError(false);
   }
 
   function showRegisterScreen() {
@@ -537,16 +555,26 @@ function App() {
       setRegUsernameFocus(false);
       setRegPasswordFocus(false);
       setRegConfirmPasswordFocus(false);
+      
+      setRegUsernameFormError(false);
+      setRegPasswordFormError(false);
+      setRegConfirmPasswordFormError(false);
   }
 
   async function register() {
       if (!regUsername || !regPassword || !regConfirmPassword) {
           setMessage([TextFillAllFields]);
+          setRegUsernameFormError(true);
+          setRegPasswordFormError(true);
+          setRegConfirmPasswordFormError(true);
           return;
       }
 
       if (regPassword !== regConfirmPassword) {
           setMessage(["Passwords do not match!"]);
+          setRegUsernameFormError(true);
+          setRegPasswordFormError(true);
+          setRegConfirmPasswordFormError(true);
           return;
       }
 
@@ -563,11 +591,17 @@ function App() {
 
           if (!response.ok) {
             setMessage([{text: errorText(data.detail, TextRegistrationError), type: "error"}]);
+            setRegUsernameFormError(true);
+            setRegPasswordFormError(true);
+            setRegConfirmPasswordFormError(true);
             return;
           }
 
       } catch (error) {
           setMessage([TextServerConnection]);
+          setRegUsernameFormError(true);
+          setRegPasswordFormError(true);
+          setRegConfirmPasswordFormError(true);
           return;
       }
 
@@ -3103,7 +3137,7 @@ function App() {
           <div>
             <img src="/Qubic.svg" className="qubic-logo" alt="Qubic Logo"/> 
 
-            <div className="login-panel">
+            <div className="login-panel-login">
               <div className="login-panel-title">Login</div>
 
               <div className="login-panel-error-or-info">
@@ -3120,10 +3154,10 @@ function App() {
               <form className="login-form" onSubmit={(e) => { e.preventDefault(); login();}}>
                 <div className="input-container">
                   <input
-                    className="login-input"
+                    className={`login-input ${usernameFormError ? "login-input-error" : ""}`}
                     type="text"
                     value={username}
-                    onFocus={() => setUsernameFocus(true)}
+                    onFocus={() => {setUsernameFocus(true); setUsernameFormError(false);}}
                     onBlur={() => setUsernameFocus(false)}
                     onChange={(e) => setUsername(e.target.value)}
                   />
@@ -3134,10 +3168,10 @@ function App() {
 
                 <div className="input-container">
                   <input
-                    className="login-input"
+                    className={`login-input ${passwordFormError ? "login-input-error" : ""}`}
                     type="password"
                     value={password}
-                    onFocus={() => setPasswordFocus(true)}
+                    onFocus={() => {setPasswordFocus(true); setPasswordFormError(false);}}
                     onBlur={() => setPasswordFocus(false)}
                     onChange={(e) => setPassword(e.target.value)}
                   />
@@ -3162,9 +3196,6 @@ function App() {
                   </button>
                 </div>
               </form>
-
-              
-
             </div>
 
             <div className="powered-by-panel-login">
@@ -3180,7 +3211,7 @@ function App() {
           <div>
             <img src="/Qubic.svg" className="qubic-logo" alt="Qubic Logo"/>
 
-            <div className="login-panel">
+            <div className="login-panel-register">
               <div className="login-panel-title">Register</div>
 
               <div className="login-panel-error-or-info">

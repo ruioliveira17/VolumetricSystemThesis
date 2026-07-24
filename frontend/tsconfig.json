@@ -1,0 +1,50 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+
+    "lib": [
+      "ES2020",
+      "DOM",
+      "DOM.Iterable"
+    ],
+
+    "paths": {
+      "@components/*": [
+        "./src/components/*"
+      ],
+      "@assets/*": [
+        "./src/assets/*"
+      ]
+    },
+
+    "allowJs": true,
+    "checkJs": false,
+
+    "skipLibCheck": true,
+
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+
+    "strict": true,
+
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+
+    "resolveJsonModule": true,
+
+    "types": [
+      "react",
+      "react-dom",
+      "vite/client"
+    ],
+
+    "jsx": "react-jsx",
+
+    "noEmit": true
+  },
+
+  "include": [
+    "src"
+  ]
+}

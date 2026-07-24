@@ -1,0 +1,76 @@
+/* ==========================
+   QTOAST (sonner, unstyled)
+========================== */
+
+.qtoast {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  min-width: 320px;
+  padding: 12px 15px;
+  border-radius: 4px;
+  color: var(--color-white-100);
+  font-family: var(--font-family);
+  font-size: var(--font-md-lg);
+  box-shadow: 0 8px 24px var(--color-black-25);
+  width: max-content;
+}
+
+/* Type backgrounds */
+.qtoast[data-type='success'] {
+  background: var(--color-accent-success);
+}
+
+.qtoast[data-type='error'] {
+  background: var(--color-notification);
+}
+
+/* Icon (success only) */
+.qtoast__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+}
+
+.qtoast__check {
+  width: 24px;
+  height: 24px;
+}
+
+/* check_icon.svg ships with a green fill; force white on the colored background */
+.qtoast__check path:last-child {
+  fill: var(--color-white-100);
+}
+
+/* Message */
+.qtoast__title {
+  flex: 1;
+  font-family: var(--font-family);
+  font-weight: normal;
+  font-size: var(--font-lg);
+  width: max-content;
+}
+
+/* "FECHAR" close action */
+.qtoast__close {
+  flex-shrink: 0;
+  margin-left: auto;
+  padding: 4px 6px;
+  background: transparent;
+  border: none;
+  color: var(--color-text);
+  font-family: var(--font-family-semibold);
+  font-size: var(--font-lg);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.qtoast__close:hover {
+  opacity: 0.75;
+}

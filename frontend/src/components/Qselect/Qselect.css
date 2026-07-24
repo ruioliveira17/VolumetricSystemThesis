@@ -1,0 +1,224 @@
+/* ==========================
+   QSELECT — custom dropdown with floating label
+
+   Structure:
+     .qselect            wrapper, reserves layout space (min-height)
+       .qselect__panel   THE single bg surface — absolute, contains everything
+         .qselect__field button, transparent (panel bg shows through)
+         .qselect__label floating label
+         .qselect__list  options, grows from max-height 0 → 240px
+
+   Only the panel has a background — that's how field + list look like
+   one continuous surface. Field/list backgrounds are transparent.
+   The panel is absolute so the wrapper's box stays the size of the
+   closed field (no layout shift when opening).
+========================== */
+
+.qselect {
+  position: relative;
+  display: block;
+  width: 100%;
+  /* Reserve layout space matching the closed panel height so the absolute
+     panel can grow downward without disturbing siblings. */
+  min-height: 3.3rem;
+}
+
+/* The single bg surface */
+.qselect__panel {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  border-radius: 4px;
+  background: var(--color-black-20);
+  overflow: hidden;
+  z-index: 5;
+  transition: box-shadow 0.18s ease;
+}
+
+.qselect__panel:not(.qselect__panel--open):hover {
+  background: var(--color-black-30);
+}
+
+.qselect__panel--open {
+  z-index: 20;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  border-radius: 8px;
+  background: var(--color-dropdown-bg);
+}
+
+/* Field — transparent always so the panel bg is what you see.
+   Doubled selector + :hover/:focus variants outrank `.input` / `.input:focus`
+   from global.css regardless of source order. */
+.qselect__field.qselect__field,
+.qselect__field.qselect__field:hover,
+.qselect__field.qselect__field:focus {
+  background: transparent;
+  border-color: transparent;
+  outline: none;
+  border-radius: 0;
+}
+
+.qselect__field {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  /* extra right padding reserves space for the absolute-positioned chevron */
+  /* padding: 1.6rem 2.25rem 0.45rem 0.8rem; */
+  padding: 25px 10px 9px 10px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.qselect__value {
+  color: var(--color-text);
+  font-size: var(--font-md);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.qselect__value--placeholder {
+  color: var(--color-white-40);
+}
+
+/* Leading icon — absolute-positioned (like the chevron) so it stays at the
+   true vertical middle of the field regardless of the asymmetric label/value
+   padding. When present, the field content + floating label shift right to
+   clear it (see .qselect--with-icon rules below). */
+.qselect__icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-white-90);
+  pointer-events: none;
+}
+
+.qselect__icon svg {
+  width: 24px;
+  height: 24px;
+  display: block;
+}
+
+/* Reserve space for the icon: 0.8rem (icon left) + 24px (icon) + 10px gap. */
+.qselect--with-icon .qselect__field {
+  padding-left: calc(0.8rem + 34px);
+}
+
+.qselect--with-icon .qselect__label {
+  left: calc(0.8rem + 34px);
+}
+
+/* Chevron — absolute-positioned so it sits at the true vertical middle
+   of the field, independent of the asymmetric label/value padding. */
+.qselect__chevron {
+  position: absolute;
+  top: 50%;
+  right: 0.8rem;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  color: var(--color-white-70);
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.qselect__field--open .qselect__chevron {
+  transform: translateY(-50%) rotate(180deg);
+}
+
+/* Floating label — sits at the top, anchored to the panel */
+.qselect__label {
+  position: absolute;
+  left: 0.8rem;
+  top: 0.35rem;
+  font-size: 0.7rem;
+  color: var(--color-white-60);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Dropdown list — in normal flow inside the panel. Transparent bg; the panel
+   provides the surface. max-height + opacity grow it from 0 → open size. */
+.qselect__list {
+  background: transparent;
+  border-radius: 0;
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  pointer-events: none;
+  transition:
+    max-height 0.18s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.18s ease;
+}
+
+.qselect__list--open {
+  animation: qselect-open-animation 0.18s ease forwards;
+}
+
+@keyframes qselect-open-animation {
+  0% {
+    max-height: 0;
+    opacity: 0;
+    overflow-y: hidden;
+  }
+  /* Hold overflow hidden for the whole grow so no scrollbar flashes while the
+     list is still shorter than its content — a discrete property otherwise
+     flips at the animation's midpoint. It becomes `auto` only at the end (and
+     `forwards` keeps it there), so the scrollbar can show once fully open. */
+  99% {
+    overflow-y: hidden;
+  }
+  100% {
+    max-height: 240px;
+    overflow-y: auto;
+    pointer-events: auto;
+    opacity: 1;
+  }
+}
+
+.qselect__list > li:not(:last-child) {
+  border-bottom: 1px solid var(--color-white-10);
+}
+
+.qselect__option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  font-size: var(--font-md);
+  color: var(--color-white-90);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.qselect__option:hover {
+  background: var(--color-white-10);
+  color: var(--color-white-100);
+}
+
+.qselect__option-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.qselect__option-check {
+  width: 16px;
+  height: 16px;
+  color: var(--color-white-90);
+  flex-shrink: 0;
+}
+
+.qselect__option--selected .qselect__option-check {
+  color: var(--color-text);
+}

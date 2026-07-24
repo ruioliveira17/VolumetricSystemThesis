@@ -1,0 +1,73 @@
+/* ==========================
+   QCONFIRMATION MODAL
+========================== */
+
+.qconfirmation-modal {
+  width: 100%;
+  max-width: 480px;
+}
+
+.qconfirmation-modal .qmodal__header {
+  padding-top: 30px;
+  /* padding-bottom: 30px; */
+}
+
+.qconfirmation-modal .qmodal__body {
+  padding: 15px 24px 24px 24px;
+}
+
+.qconfirmation-modal__content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Illustrative icon (e.g. a trash can) centered above the message. */
+.qconfirmation-modal__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text);
+}
+
+.qconfirmation-modal__icon svg {
+  width: 48px;
+  height: 48px;
+}
+
+.qconfirmation-modal__subtitle {
+  margin: 0;
+  font-size: var(--font-md);
+  color: var(--color-text);
+  text-align: center;
+  white-space: pre-line;
+  margin-bottom: 30px;
+}
+
+/* Emphasised fragment within the message (e.g. the entity name). */
+.qconfirmation-modal__subtitle strong {
+  color: var(--color-text);
+  font-family: var(--font-family-bold)
+}
+
+.qconfirmation-modal__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-top: 4px;
+}
+
+.qbutton.qconfirmation-modal__cancel {
+  padding: 14px 24px;
+  background: transparent;
+}
+
+.qbutton.qconfirmation-modal__confirm {
+  padding: 14px 48px;
+}
+
+.qbutton.qconfirmation-modal__confirm--danger {
+  background: var(--color-notification);
+  color: var(--color-white-100);
+}

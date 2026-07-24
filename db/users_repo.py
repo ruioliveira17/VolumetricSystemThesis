@@ -5,7 +5,8 @@ def get_by_login(login):
     conn = get_connection()
     try:
         row = conn.execute(
-            "SELECT * FROM users WHERE email = ? OR username = ?", (login, login)
+            "SELECT * FROM users WHERE (email = ? OR username = ?) AND deleted_at IS NULL",
+            (login, login),
         ).fetchone()
         return row_to_dict(row)
     finally:
@@ -57,7 +58,8 @@ def list_users():
     conn = get_connection()
     try:
         rows = conn.execute(
-            "SELECT id, username, email, role, created_at FROM users ORDER BY id"
+            "SELECT id, username, email, role, created_at FROM users "
+            "WHERE deleted_at IS NULL ORDER BY id"
         ).fetchall()
         return rows_to_dicts(rows)
     finally:
@@ -79,7 +81,11 @@ def delete_user(user_id):
     with write_lock:
         conn = get_connection()
         try:
-            cursor = conn.execute("DELETE FROM users WHERE id = ?", (user_id,))
+            cursor = conn.execute(
+                "UPDATE users SET deleted_at = datetime('now') "
+                "WHERE id = ? AND deleted_at IS NULL",
+                (user_id,),
+            )
             conn.commit()
             return cursor.rowcount
         finally:

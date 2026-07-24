@@ -1,0 +1,280 @@
+.powered-by-panel{
+  position: absolute;
+  left: 1.6vw;
+  bottom: 1vh;
+
+  width: 10.4vw;
+  height: 4.4vh;
+
+  display: flex;
+  align-items: center;
+
+  gap: 4.2%;
+  flex-wrap: nowrap;
+}
+
+.powered-by-text{
+  position: relative;
+  top: 0vh;
+  width: 4.1vw;
+  height: 1.56vh;
+  font-size: 1.5vh;
+  color: #999999;
+  white-space: nowrap;
+}
+
+.powered-by-logo{
+  position: relative;
+  width: 5.8vw;
+  height: 4.4vh;
+}
+
+.logo{
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  top: 2.86vh;
+  left: 2.9vw;
+
+  z-index: 1;
+
+  background: transparent;
+  border: none;
+  padding: none;
+  appearance: none;
+}
+
+.logo img{
+  width: 6.2vw;
+  object-fit: contain;
+}
+
+.menu-img {
+  position: absolute;
+  display: flex;
+  cursor: pointer;
+  justify-content: center;
+  align-items: center;
+
+  top: 4%;
+  right: 1.46%;
+  height: 4.5vh;
+
+  z-index: 1;
+  transition: 0.3s;
+
+  background: transparent;
+  border:  none;
+  padding: none;
+  appearance: none;
+}
+
+.menu-img img {
+  height: 100%;
+  object-fit: contain;
+}
+
+.menu-img img:hover {
+  transform: scale(1.05);
+}
+
+.menuSideNav {
+  position: absolute;
+  top: 4%;
+  right: 4.47%;
+  height: 4.5vh;
+
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  white-space: nowrap;
+  
+  background-color: transparent;
+}
+
+.menuSideNav .nav-item {
+  display: none;
+  cursor: pointer;
+  
+  font-size: 2vh;
+  margin-right: 1.5vw;
+
+  padding-left: 16px;
+  position: relative;
+
+  opacity: 0;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.menuSideNav.open .nav-item{
+  display: flex;
+  opacity: 1;
+}
+
+.menuSideNav .nav-item:hover {
+  color: white;
+  transform: scale(1.10);
+  transition: 0.3s;
+}
+
+.menuSideNav .nav-item.active {
+  display: flex;
+  opacity: 1;
+  color: white;
+}
+
+.menuSideNav .nav-item.active::before {
+  content: '•';
+  position: absolute;
+  left: 4px;
+}
+
+.menuSideNav .nav-icon {
+  height: 3vh;
+  object-fit: contain;
+  
+  margin-right: 1vw;
+
+  cursor: pointer;
+
+  transition: opacity 0.3s;
+  color: white;
+}
+
+.menuSideNav .nav-icon:hover {
+  transform: scale(1.10);
+  transition: 0.3s;
+}
+
+.menuSideNav .nav-icon.hidden {
+  display: none;
+}
+
+.user-img {
+  position: absolute;
+  display: flex;
+  cursor: pointer;
+  justify-content: center;
+  align-items: center;
+
+  top: 2vh;
+  right: 1vw;
+
+  z-index: 1;
+  transition: 0.3s;
+
+  background: transparent;
+  border:  none;
+  padding: none;
+  appearance: none;
+}
+
+.user-img img {
+  width: 2vw;
+  object-fit: contain;
+}
+
+.user-img img:hover {
+  transform: scale(1.05);
+}
+
+.userSideNav {
+  position: absolute;
+  top: 2.8vh;
+  right: 3.5vw;
+
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  white-space: nowrap;
+
+  transform: translateX(1.5vw);
+  opacity: 0;
+  pointer-events: none;
+
+  transition: transform 0.5s ease, opacity 0.5s ease;
+  
+  /*background-color: #1F1F1F;*/
+  background-color: transparent;
+}
+
+.userSideNav.open {
+  transform: translateX(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.navUser-item {
+  cursor: pointer;
+  font-size: 2vh;
+  margin-right: 2vw;
+  margin-left: 1.5vw;
+}
+
+.navUser-item:hover {
+  color: white;
+  transform: scale(1.10);
+  transition: 0.3s;
+}
+
+.title-container{
+  position: absolute;
+  top: 4.7%;
+  left: 1.5%;
+  height: 7%;
+  width: 25%;
+  
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.menu-title {
+  position: absolute;
+  top: 0%;
+  left: 0%;
+  font-size: 3.3vh;
+  color: white;
+  text-align: left;
+}
+
+.menu-info {
+  position: absolute;
+  top: 65%;
+  left: 0%;
+  font-size: 1.7vh;
+  color: white;
+  text-align: left;
+}
+
+.warning {
+  position: absolute;
+  top: 13vh;
+  left: 50vw;
+  transform: translateX(-50%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 0.8vw;
+}
+
+.menu-wrapper{
+  position: absolute;
+  top: 10.4vh;
+  left: 1.5vw;
+  width: 97.1vw;
+  height: 83.3vh;
+  background: transparent linear-gradient(180deg, #FFFFFF1A 0%, #0000003E 100%) 0% 0% no-repeat padding-box;
+  border-radius: 2.2vh;
+  opacity: 1;
+}
+
+.info-message {
+  color: white;
+}
+
+.error-message {
+  color: #ff6666;
+}
