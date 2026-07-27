@@ -236,6 +236,7 @@
 
 .calibration-instructions .bold{
   font-family: "Inter Bold";
+  font-weight: 700;
 }
 
 .calibration-instructions .regular{

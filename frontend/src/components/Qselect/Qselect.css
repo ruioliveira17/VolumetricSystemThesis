@@ -17,7 +17,7 @@
 .qselect {
   position: relative;
   display: block;
-  width: 100%;
+  width: 30%;
   /* Reserve layout space matching the closed panel height so the absolute
      panel can grow downward without disturbing siblings. */
   min-height: 3.3rem;
@@ -30,14 +30,14 @@
   left: 0;
   right: 0;
   border-radius: 4px;
-  background: var(--color-black-20);
+  background: rgba(255, 255, 255, 0.08);
   overflow: hidden;
   z-index: 5;
   transition: box-shadow 0.18s ease;
 }
 
 .qselect__panel:not(.qselect__panel--open):hover {
-  background: var(--color-black-30);
+  background: rgba(255,255,255,0.03);
 }
 
 .qselect__panel--open {
@@ -179,7 +179,7 @@
   }
   100% {
     max-height: 240px;
-    overflow-y: auto;
+    overflow-y: hidden;
     pointer-events: auto;
     opacity: 1;
   }

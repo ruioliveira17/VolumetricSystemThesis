@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next';
 import QModal from '@components/QModal';
 import Qbutton from '@components/Qbutton';
 
+import CheckIcon from '@assets/icons/check_icon.svg?react';
+
 import './QConfirmationModal.css';
 
 interface QConfirmationModalProps {
@@ -12,8 +14,6 @@ interface QConfirmationModalProps {
   title?: ReactNode;
   subtitle?: ReactNode;
   /** Optional illustrative icon shown centered above the subtitle. */
-  icon?: ReactNode;
-  /** Confirm button label. Defaults to `shared.confirm`. */
   confirmText?: string;
   /** Cancel button label. Defaults to `shared.cancel`. */
   cancelText?: string;
@@ -35,7 +35,6 @@ function QConfirmationModal({
   onConfirm,
   title,
   subtitle,
-  icon,
   confirmText,
   cancelText,
   isConfirming = false,
@@ -62,18 +61,17 @@ function QConfirmationModal({
       onClose={onClose}
       title={title}
       showClose
-      closeOnOverlayClick={!isConfirming}
+      closeOnOverlayClick={false}
       closeOnEscape={!isConfirming}
       centerTitle={centerTitle}
       titleColor={titleColor}
       className={modalClass}
     >
       <div className="qconfirmation-modal__content">
-        {icon !== undefined && (
-          <span className="qconfirmation-modal__icon" aria-hidden="true">
-            {icon}
-          </span>
-        )}
+        <span className="qconfirmation-modal__icon" aria-hidden="true">
+          <CheckIcon />
+        </span>
+        
 
         {subtitle !== undefined && (
           <p className="qconfirmation-modal__subtitle">{subtitle}</p>

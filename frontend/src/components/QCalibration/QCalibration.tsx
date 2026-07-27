@@ -1,5 +1,6 @@
 import { RefObject } from "react";
 import "./QCalibration.css";
+import { QConfirmationModal } from "../QConfirmationModal"
 
 interface Message {
   type: string;
@@ -146,17 +147,15 @@ function QCalibration({
 
       {/* Modal */}
       {calibrationModalOpen && (
-        <div className="calibration-modal">
-          <div className="background"></div>
-          <div className="calibration-modal-content">
-            <p>Do you want to confirm the changes?</p>
-
-            <div className="calibration-modal-buttons">
-              <button onClick={() => confirm_calibration(true)}>Yes</button>
-              <button onClick={() => confirm_calibration(false)}>No</button>
-            </div>
-          </div>
-        </div>
+        <QConfirmationModal
+          open={calibrationModalOpen}
+          onClose={() => confirm_calibration(false)}
+          onConfirm={() => confirm_calibration(true)}
+          title="Confirm Calibration"
+          subtitle="Do you want to confirm the changes?"
+          confirmText="Yes"
+          cancelText="No"
+        />
       )}
 
       {/* Powered By */}

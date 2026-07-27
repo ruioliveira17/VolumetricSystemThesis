@@ -35,6 +35,9 @@
   margin: 0 auto;
   top: 2%;
   z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 2%;
 }
 
 .sort-container {
@@ -134,7 +137,7 @@
 }
 
 .history-header{
-  height: 6%;
+  height: 8%;
 }
 
 .history-row {
@@ -168,14 +171,17 @@
 }
 
 .more-options-button {
+  margin-right: 10px;
   opacity: 0.6;
   cursor: pointer;
   font-size: 2.4vh;
+  padding: 4px;
+  border-radius: 20px;
   text-align: center;
 }
 
 .more-options-button:hover {
-  transform: scale(1.10);
+  background: rgba(255, 255, 255, 0.2);
   opacity: 0.8;
   transition: 0.3s;
 }
@@ -186,14 +192,27 @@
   transition: 0.3s;
 }
 
+.menu-item {
+  position: relative;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 5% 10%;
+  z-index: 1021;
+}
+
+.menu-item:hover {
+  opacity: 1;
+}
+
 .measurements-config-modal{
   position: absolute;
   width: 7%;
-  height: 5%;
-  transform: translate(-94%, 60%);
+  height: 4%;
+  transform: translate(-100%, 90%);
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
   z-index: 1000;
 }
 
@@ -209,10 +228,10 @@
 }
 
 .measurements-config-modal .deleteMeasurements-icon {
-  height: 2vh;
+  height: 88%;
   object-fit: contain;
   
-  margin-right: 1vw;
+  margin-right: 15%;
 
   transition: opacity 0.3s;
 
@@ -229,7 +248,7 @@
   position: absolute;
   width: 6%;
   height: 4%;
-  transform: translate(-94%, 70%);
+  transform: translate(-100%, 100%);
   display: flex;
   flex-direction: column;
   z-index: 1000;
@@ -244,20 +263,6 @@
   border: 1px solid #99999939;
 
   z-index: 1020;
-}
-
-.menu-item {
-  position: relative;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-  padding: 5% 10%;
-  z-index: 1021;
-}
-
-.menu-item:hover {
-  opacity: 1;
 }
 
 .measurement-config-modal .deleteMeasurement-icon {

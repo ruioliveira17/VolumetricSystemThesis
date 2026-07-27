@@ -17,9 +17,11 @@
 
 .qmodal {
   position: relative;
-  background: var(--color-modal-bg);
-  border-radius: 20px;
+  background: var(--color-modal-bg);;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  /* background: #1F1F1F;
+  border: 1px solid #99999939;*/
+  border-radius: 20px;
   max-width: 100%;
   max-height: calc(100vh - 48px);
   display: flex;
@@ -59,14 +61,15 @@
   color: var(--color-text);
   flex: 1;
   font-weight: normal;
+  text-transform: uppercase;
 }
 
 .qmodal__close {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
+  width: 38px;
+  height: 38px;
   border: none;
   background: transparent;
   color: var(--color-white-70);

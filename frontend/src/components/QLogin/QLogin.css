@@ -183,6 +183,10 @@
   opacity: 1;
 }
 
+.input-container:hover label.active {
+  opacity: 0.6;
+}
+
 .login-input {
   position: static;
   top: auto;
@@ -190,8 +194,8 @@
   height: clamp(40px, 6vh, 54px);
 
   font-size: clamp(12px, 1.5vh, 16px);
-  background: #000000 0% 0% no-repeat padding-box;
-  opacity: 0.2;
+  background: rgba(0, 0, 0, 0.2);
+  opacity: 1;
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 4px;
 
@@ -202,7 +206,7 @@
 }
 
 .login-input:hover {
-  opacity: 0.3;
+  background: rgba(0, 0, 0, 0.3);
   cursor: pointer;
 }
 

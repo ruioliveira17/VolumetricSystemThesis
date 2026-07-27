@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import ArrowDropDown from '@assets/icons/arrow_drop_down_24dp.svg?react';
+import ArrowDropDown from '@assets/icons/arrow_drop_down.svg?react';
 import './Qselect.css';
 
 export interface QselectOption<T extends string = string> {
@@ -58,7 +58,7 @@ function Qselect<T extends string = string>({
   }, [open]);
 
   const selected = options.find((option) => option.value === value);
-  const placeholderText = placeholder ?? t('shared.select');
+  const placeholderText = placeholder ?? t('');
   const showPlaceholder = open || !selected;
   const displayLabel = showPlaceholder ? placeholderText : selected!.label;
 

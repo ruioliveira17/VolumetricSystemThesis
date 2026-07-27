@@ -1,8 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import "./styles/global.css";
 import "./styles/common.css";
-// CSS legado do App.py, necessário para os ecrãs ainda por migrar para
-// componentes com estilo próprio (histórico, side-nav, calibração, config).
 
 // --------------------------------------------------------------------- //
 // |                            Imports                                | //
@@ -16,6 +14,8 @@ import { QSystemLoader } from "./components/QSystemLoader";
 import { QWindowResizer } from "./components/QWindowResizer";
 import { QUserModal, QUserPanel } from "./components/QUser";
 import { QSideBarMenu } from "./components/QSideBarMenu";
+
+import { QToaster, notify } from "./components/QToast";
 // --------------------------------------------------------------------- //
 // |                           Interfaces                              | //
 // --------------------------------------------------------------------- //
@@ -284,7 +284,6 @@ function App(){
     const [measurementsList, setMeasurementsList] = useState<any[]>([]);
     const [usersIDList, setUsersIDList] = useState<any[]>([]);
 
-    const [sortOpen, setSortOpen] = useState<boolean>(false);
     const [sortField, setSortField] = useState<string>("created_at");
     const [sortOrder, setSortOrder] = useState<string>("desc");
 
@@ -326,11 +325,31 @@ function App(){
         return sortOrder === "asc" ? comparison : -comparison;
     });
 
+    const [searchValue, setSearchValue] = useState("");
+
+    const filteredMeasurements = sortedMeasurements.filter((measurement) => {
+        const search = searchValue.toLowerCase();
+
+        const user = usersIDList.find(
+            (u) => u.id === measurement.user_id
+        );
+
+        return (
+            measurement.id.toString().includes(search) ||
+            measurement.volume_mode.toLowerCase().includes(search) ||
+            user?.username.toLowerCase().includes(search)
+        );
+    });
+
     const [selectedID, setSelectedID] = useState<number | null>(null);
 
     const [measurementConfigModal, setShowMeasurementConfigModal] = useState<boolean>(false);
     const [measurementConfigModalPosition, setMeasurementModalPosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
     const toggleMeasurementModal = () => setShowMeasurementConfigModal(prev => !prev);
+
+    const [measurementsConfigModal, setShowMeasurementsConfigModal] = useState<boolean>(false);
+    const [measurementsConfigModalPosition, setMeasurementsModalPosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+    const toggleMeasurementsModal = () => setShowMeasurementsConfigModal(prev => !prev);
 
     const [showMeasurementInfo, setShowMeasurementInfo] = useState<boolean>(false);
     const [measureObjectImage, setMeasureObjectImage] = useState<string | null>(null);
@@ -1738,7 +1757,7 @@ function App(){
             return;
         }
 
-        setMessage([TextRegistrationSuccessfull]);
+        notify.success("Utilizador registado com sucesso");
 
         showLoginScreen();
     }
@@ -2730,7 +2749,7 @@ function App(){
                 if (!calibrateResponse.ok) throw new Error("Save calibration request failed");
                 setLockMenu(false);
                 setCurrentMenu("volume-menu");
-                setMessage([TextCalibrated, TextClear]);
+                notify.success("Calibração realizada com sucesso");
             } else {
                 setMessage([TextNotCalibrated, TextClear]);
             }
@@ -3030,6 +3049,9 @@ function App(){
                     setShowUserPopup={setShowUserPopup}
                 />
 
+                <QToaster />
+
+                {/* Login Menu */}
                 {currentMenu === "login-menu" && (
                     <QLogin
                         message={message}
@@ -3058,6 +3080,7 @@ function App(){
                     />
                 )}
 
+                {/* Register Menu */}
                 {currentMenu === "register" && (
                     <QRegister
                         message={message}
@@ -3084,6 +3107,7 @@ function App(){
                     />
                 )}
 
+                {/* Volume Menu */}
                 {currentMenu === "volume-menu" && (
                     <QVolume
                         message={message}
@@ -3125,14 +3149,13 @@ function App(){
                     />
                 )}
 
+                {/* Measurement History Menu */}
                 {currentMenu === "measurementHistory-menu" && (
                     <QMeasureHistory
                         message={message}
 
                         toggleMenu={toggleMenu}
 
-                        sortOpen={sortOpen}
-                        setSortOpen={setSortOpen}
                         sortField={sortField}
                         setSortField={setSortField}
                         sortOrder={sortOrder}
@@ -3140,12 +3163,21 @@ function App(){
                         sortOptions={sortOptions}
                         sortedMeasurements={sortedMeasurements}
 
+                        searchValue = {searchValue}
+                        setSearchValue = {setSearchValue}
+                        filteredMeasurements = {filteredMeasurements}
+
                         usersIDList={usersIDList}
 
                         measurementConfigModal={measurementConfigModal}
                         toggleMeasurementModal={toggleMeasurementModal}
                         measurementConfigModalPosition={measurementConfigModalPosition}
                         setMeasurementModalPosition={setMeasurementModalPosition}
+
+                        measurementsConfigModal={measurementsConfigModal}
+                        toggleMeasurementsModal={toggleMeasurementsModal}
+                        measurementsConfigModalPosition={measurementsConfigModalPosition}
+                        setMeasurementsModalPosition={setMeasurementsModalPosition}
 
                         selectedID={selectedID}
                         setSelectedID={setSelectedID}
@@ -3168,6 +3200,7 @@ function App(){
                     />
                 )}
 
+                {/* Calibration Menu */}
                 {currentMenu === "calibration-menu" && (
                     <QCalibration
                         message={message}
@@ -3189,7 +3222,7 @@ function App(){
                     />
                 )}
 
-                {/* User PopUp */}
+                {/* User Panel */}
                 {showUserPopup && (
                     <QUserModal
                         savedUser={savedUser}
@@ -3199,7 +3232,7 @@ function App(){
                     />
                 )}
 
-                {/* Manage Users Panel */}
+                {/* Manage Users */}
                 {showUsersPanel && (
                     <QUserPanel
                         usersList={usersList}
@@ -3214,7 +3247,7 @@ function App(){
                     />
                 )}
 
-                {/* Settings PopUp */}
+                {/* Settings Panel */}
                 {showSettingsPopup && (
                     <QSettings
                         setShowSettingsPopup={setShowSettingsPopup}
@@ -3240,7 +3273,7 @@ function App(){
                     />
                 )}
 
-                {/* Crop Window */}
+                {/* Window Resizer Panel */}
                 {showCropWindow && (
                     <QWindowResizer
                         cropVideo={cropVideo}

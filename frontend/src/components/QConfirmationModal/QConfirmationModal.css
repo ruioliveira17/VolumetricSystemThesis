@@ -31,8 +31,9 @@
 }
 
 .qconfirmation-modal__icon svg {
-  width: 48px;
-  height: 48px;
+  width: 38px;
+  height: 38px;
+  color: #28a745;
 }
 
 .qconfirmation-modal__subtitle {
@@ -53,21 +54,37 @@
 .qconfirmation-modal__footer {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 16px;
+  justify-content: center;
+  gap: 50px;
   padding-top: 4px;
 }
 
-.qbutton.qconfirmation-modal__cancel {
-  padding: 14px 24px;
-  background: transparent;
+.qbutton.qconfirmation-modal__cancel,
+.qbutton.qconfirmation-modal__confirm {
+  padding: 14px 35px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  border: none;
+
+  transition: all 0.3s ease;
+  cursor: pointer;
+
+  color: white;
+  font-family: "Inter Regular", sans-serif;
 }
 
-.qbutton.qconfirmation-modal__confirm {
-  padding: 14px 48px;
+.qbutton.qconfirmation-modal__cancel:hover,
+.qbutton.qconfirmation-modal__confirm:hover {
+  background: white;
+  color: black;
 }
 
 .qbutton.qconfirmation-modal__confirm--danger {
   background: var(--color-notification);
   color: var(--color-white-100);
+}
+
+.qbutton.qconfirmation-modal__confirm--danger:hover {
+  background: white;
+  color: black;
 }

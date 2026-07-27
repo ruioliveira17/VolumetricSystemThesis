@@ -1,6 +1,8 @@
 import React from "react";
 import { RefObject } from "react";
 import "./QMeasureHistory.css";
+import Qselect from "../Qselect"
+import Qsearch from "../Qsearch"
 
 interface Message {
   type: string;
@@ -23,14 +25,16 @@ interface QMeasureHistoryProps {
   toggleMenu: () => void;
 
   // Sort
-  sortOpen: boolean;
-  setSortOpen: React.Dispatch<React.SetStateAction<boolean>>;
   sortField: string;
   setSortField: React.Dispatch<React.SetStateAction<string>>;
   sortOrder: string;
   setSortOrder: React.Dispatch<React.SetStateAction<string>>;
   sortOptions: SortOption[];
   sortedMeasurements: any[];
+
+  searchValue: string;
+  setSearchValue: React.Dispatch<React.SetStateAction<string>>;
+  filteredMeasurements: any[];
 
   // Users (for the "User" column)
   usersIDList: any[];
@@ -41,11 +45,17 @@ interface QMeasureHistoryProps {
   measurementConfigModalPosition: Position;
   setMeasurementModalPosition: React.Dispatch<React.SetStateAction<Position>>;
 
+  measurementsConfigModal: boolean;
+  toggleMeasurementsModal: () => void;
+  measurementsConfigModalPosition: Position;
+  setMeasurementsModalPosition: React.Dispatch<React.SetStateAction<Position>>;
+
   selectedID: number | null;
   setSelectedID: React.Dispatch<React.SetStateAction<number | null>>;
 
   viewMeasurement: (id: number) => void;
   deleteMeasurement: (id: number | null) => void;
+  deleteMeasurements: () => void;
 
   // Measurement info popup
   showMeasurementInfo: boolean;
@@ -66,8 +76,6 @@ function QMeasureHistory({
   message,
   toggleMenu,
 
-  sortOpen,
-  setSortOpen,
   sortField,
   setSortField,
   sortOrder,
@@ -75,12 +83,21 @@ function QMeasureHistory({
   sortOptions,
   sortedMeasurements,
 
+  searchValue,
+  setSearchValue,
+  filteredMeasurements,
+
   usersIDList,
 
   measurementConfigModal,
   toggleMeasurementModal,
   measurementConfigModalPosition,
   setMeasurementModalPosition,
+
+  measurementsConfigModal,
+  toggleMeasurementsModal,
+  measurementsConfigModalPosition,
+  setMeasurementsModalPosition,
 
   selectedID,
   setSelectedID,
@@ -102,6 +119,14 @@ function QMeasureHistory({
   canvasRef
 
 }: QMeasureHistoryProps) {
+  function handleSortChange(value: string) {
+    if (sortField === value) {
+      setSortOrder(sortOrder === "desc" ? "asc" : "desc");
+    } else {
+      setSortField(value);
+      setSortOrder("desc");
+    }
+  }
 
   return (
     <div>
@@ -137,49 +162,17 @@ function QMeasureHistory({
         <div className="measurementHistory-container">
           <div className="background"></div>
           <div className="searchBar">
-            <div className="sort-container">
-              <div
-                className="sort-selected"
-                onClick={() => setSortOpen(!sortOpen)}
-              >
-                <div className="sort-title">
-                  Sort By:
-                </div>
-
-                <div className="sort-value">
-                  {sortOptions.find(x => x.value === sortField)?.label}
-
-                  <span>
-                    {sortOpen ? "▲" : "▼"}
-                  </span>
-                </div>
-              </div>
-
-              {sortOpen && (
-                <div className="sort-dropdown">
-                  {sortOptions.map(option => (
-                    <div
-                      key={option.value}
-                      className="sort-option"
-                      onClick={() => {
-                        if (sortField === option.value) {
-                          setSortOrder(sortOrder === "desc" ? "asc" : "desc");
-                        } else {
-                          setSortField(option.value);
-                          setSortOrder("desc");
-                        }
-                      }}
-                    >
-                      <span>{option.label}</span>
-
-                      {sortField === option.value && (
-                        <span>{sortOrder === "desc" ? "▼" : "▲"}</span>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+            <Qsearch
+              placeholder="Search..."
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
+            />
+            <Qselect
+              label="Sort By"
+              value={sortField}
+              options={sortOptions}
+              onChange={handleSortChange}
+            />
           </div>
 
           <div className="history-container">
@@ -191,14 +184,19 @@ function QMeasureHistory({
               <div className="history-header-text">Total Volume</div>
               <div className="history-header-text">Weight</div>
               <div className="history-header-text">Measurement Date</div>
-              {/* NOTE (port): no App.py havia aqui um botão "more_options" que
-                  abria um modal com "Delete All" -> deleteAllMeasurements().
-                  Essa função NUNCA foi definida no App.py (bug latente), por isso
-                  o botão foi omitido de propósito para não inventar comportamento. */}
+              <img
+                src="/more_options.svg"
+                className={`more-options-button ${measurementsConfigModal ? "active" : ""}`}
+                onClick={(e) => {
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  setMeasurementsModalPosition({ x: rect.right, y: rect.top });
+                  toggleMeasurementsModal();
+                }}
+              />
             </div>
 
             <div className="history-table">
-              {sortedMeasurements.map((measurement, index) => (
+              {filteredMeasurements.map((measurement, index) => (
                 <div
                   key={measurement.id}
                   className={`history-row ${index % 2 === 0 ? "even" : "odd"}`}
@@ -235,6 +233,22 @@ function QMeasureHistory({
           </div>
         </div>
       </div>
+
+      {measurementsConfigModal && (
+        <div
+          className="measurements-config-modal"
+          style={{ left: `${measurementsConfigModalPosition.x}px`, top: `${measurementsConfigModalPosition.y}px` }}
+        >
+          <div className="background"></div>
+          <div
+            className="menu-item"
+            onClick={() => { deleteMeasurements(); toggleMeasurementsModal(); }}
+          >
+            <img src="/delete_forever.svg" className="deleteMeasurements-icon" />
+            <div className="deleteMeasurements-text">Delete All</div>
+          </div>
+        </div>
+      )}
 
       {measurementConfigModal && (
         <div

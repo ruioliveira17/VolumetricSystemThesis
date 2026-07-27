@@ -52,15 +52,16 @@
   flex-direction: column;
   align-items: flex-start;
   justify-content: flex-start;
+  color: white;
 }
 
 .user-info-container .text-user{
   font-size: 1.9vh;
-  color: white;
 }
 
 .user-info-container .text-role{
   font-size: 1.5vh;
+  opacity: 0.7;
 }
 
 .user-options {

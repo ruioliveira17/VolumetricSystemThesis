@@ -42,6 +42,7 @@
 }
 
 .menuSideNav .nav-item {
+  font-family: "Inter Regular";
   display: none;
   cursor: pointer;
   
@@ -49,8 +50,11 @@
   margin-right: 1.5vw;
 
   padding-left: 16px;
+  padding-right: 16px;
   position: relative;
 
+  text-align: center;
+  color: white;
   opacity: 0;
   transition: opacity 0.3s ease, transform 0.3s ease;
 }
@@ -61,15 +65,20 @@
 }
 
 .menuSideNav .nav-item:hover {
-  color: white;
-  transform: scale(1.10);
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
   transition: 0.3s;
 }
 
+.menuSideNav .nav-item.active:hover {
+  background: rgba(255, 255, 255, 0);
+}
+
 .menuSideNav .nav-item.active {
+  font-family: "Inter Bold";
   display: flex;
   opacity: 1;
-  color: white;
+  font-weight: 700;
 }
 
 .menuSideNav .nav-item.active::before {
