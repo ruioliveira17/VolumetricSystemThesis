@@ -1,0 +1,310 @@
+.calibration-colorToDepthimg-wrapper {
+  position: relative;
+  left: 47.2%;
+  top: 3.1%;
+  width: 51.2%;
+  object-fit: contain;
+  z-index: 0;
+}
+
+.calibration-colorToDepthimg {
+  width: 100%;
+  height: 100%;
+  border-radius: 0.8vw;
+
+  object-fit: cover;
+
+  display: block;
+
+  -webkit-user-drag: none;
+  user-select: none;
+  touch-action: none;
+}
+
+.calibration-colorToDepthimg:hover {
+  cursor: url('/eyedropper.svg') 0 32, auto;
+}
+
+.calibration-colorToDepthimg:active {
+  cursor: url('/eyedropper-click.svg') 0 32, auto;
+}
+
+.calibration-colorToDepthimg[data-manual="true"] {
+  cursor: default;
+}
+
+.calibration-colorToDepthimg[data-manual="true"]:hover {
+  cursor: default;
+}
+
+.workspace-overlay {
+  position:absolute;
+
+  left:0;
+  top:0;
+
+  width:100%;
+  height:100%;
+}
+
+.calibration-button {
+  position: absolute;
+  left: 4.3%;
+  top: 83.8%;
+  width: 91.7%;
+  height: 10.7%;
+
+  cursor: pointer;
+  border-radius: 0.2vw;
+  border: none;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  background: rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+}
+
+.calibration-button-info-container{
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  height: 70%;
+  width: 20%;
+  transform: translate(-50%, -50%);
+
+  display: flex;
+  align-items: center;
+  gap: 5%
+}
+
+.calibration-button .icon {
+  width: 25%;
+  height: 100%;
+  transition: filter 0.3s ease;
+  margin-left: 5%;
+}
+
+.calibration-button .text {
+  color: white;
+  text-transform: uppercase;
+  width: 60%;
+  font-family: "Inter Regular", sans-serif;
+  font-size: 1.9vh;
+  transition: color 0.3s ease;
+  margin-right: 5%;
+}
+
+.calibration-button:hover {
+  background: white;
+}
+
+.calibration-button:hover .text {
+  color: black;
+}
+
+.calibration-button:hover .icon {
+  filter: invert(1);
+}
+
+.calibrationInfo-container{
+  position: absolute;
+  left: 1.6%;
+  top: 15.2%;
+  width: 44%;
+  height: 81.7%;
+
+  display: flex;
+  flex-direction: column;
+
+  padding: 2vh 1.5vw;
+  box-sizing: border-box;
+
+  font-size: 2vh;
+
+  justify-content: flex-start;
+  align-items: flex-start;
+  z-index: 1;
+}
+
+.calibrationInfo-container .background{
+  position: absolute;
+  inset: 0;
+  background: #000000 0% 0% no-repeat padding-box;
+  border-radius: 0.8vw;
+  opacity: 0.3;
+  z-index: 0;
+}
+
+.btn-group {
+  position: absolute;
+  top: 29.75%;
+  left: 4.3%;
+  width: 91.7%;
+  max-width: 860px;
+  height: 8%;
+  
+  border-radius: 8vw;
+  border: 1px solid white;
+  
+  display: flex;
+  overflow: hidden;
+  z-index: 2;
+}
+
+.btn-mode {
+  width: 50%;
+  
+  background: transparent;
+  border: none;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+
+  transition: ease 0.3s;
+  white-space: nowrap;
+}
+
+.btn-content {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-mode .icon{
+  width: 3vh;
+  transition: filter 0.3s ease;
+  margin-left: 0%;
+  filter: invert(0);
+}
+
+.btn-mode .text{
+  color: white;
+  text-transform: uppercase;
+  width: 60%;
+  font-family: "Inter Regular", sans-serif;
+  font-size: 1.9vh;
+  transition: color 0.3s ease;
+  margin-right: 0%;
+}
+
+.btn-mode:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.btn-mode.active {
+  background:white;
+}
+
+.btn-mode.active .icon{
+  filter: invert(1);
+}
+
+.btn-mode.active .text{
+  color: black;
+}
+
+.color-swatch {
+  position: absolute;
+  left: 2%;
+  height: 60.28%;
+  width: 4%;
+  
+  border-radius: 50%;
+  border: 1px solid #666666;
+  flex-shrink: 0;
+}
+
+.calibration-instructions{
+  position: absolute;
+  top: 5.4%;
+  left: 4.3%;
+  width: 90.8%;
+  height: 20.5%;
+
+  color: white;
+  font-size: 1.7vh;
+  
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 15%;
+}
+
+.calibration-instructions .bold{
+  font-family: "Inter Bold";
+}
+
+.calibration-instructions .regular{
+  font-family: "Inter Regular", sans-serif;
+  display: block;
+  text-align: left;
+}
+
+.loadingCalibration-icon {
+  position: absolute;
+  display: flex;
+  justify-content: center;
+
+  top: 20vh;
+}
+
+.loadingCalibration-icon img{
+  width: 3vw;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+}
+
+.calibration-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+
+  width: 100vw;
+  height: 100vh;
+
+  background: linear-gradient(180deg, #FFFFFF1A 0%, #0000003E 100%);
+  border-radius: 0.8vw;
+  opacity: 1;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  z-index: 50;
+}
+
+.calibration-modal-content {
+  background: white;
+  padding: 2vw;
+  border-radius: 1vw;
+
+  display: flex;
+  flex-direction: column;
+  gap: 1vw;
+
+  min-width: 20vw;
+  text-align: center;
+}
+
+.calibration-modal-buttons {
+  display: flex;
+  gap: 1vw;
+  justify-content: center;
+}
+
+.calibration-modal-buttons button {
+  padding: 0.5vw 1vw;
+  border: none;
+  border-radius: 0.5vw;
+  cursor: pointer;
+  background: #222;
+  color: white;
+}
+
+.calibration-modal-buttons button:hover {
+  background: #444;
+}

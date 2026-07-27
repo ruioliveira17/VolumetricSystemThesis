@@ -1,5 +1,4 @@
 import React from "react";
-import { useEffect, useRef, useState } from "react";
 import { RefObject } from "react";
 import "./QVolume.css";
 
@@ -91,9 +90,9 @@ function QVolume({
   return (
     <div>
         {/* Logo */}
-        <button className="logo">
+        <div className="logo">
             <img src="/Qubic.svg" alt="BM Logo" />
-        </button>
+        </div>
 
 
         {/* Menu */}

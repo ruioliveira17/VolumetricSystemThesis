@@ -376,7 +376,6 @@ def buildHDRColor(colorFrames):
 def processHDR(click_timestamp):
     global colorArray, depthArray, timestampArray
     finished = False
-    times = []
 
     if click_timestamp is None:
         click_timestamp = 0

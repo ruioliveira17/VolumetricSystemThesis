@@ -1,0 +1,100 @@
+.menu-img {
+  position: absolute;
+  display: flex;
+  cursor: pointer;
+  justify-content: center;
+  align-items: center;
+
+  top: 4%;
+  right: 1.46%;
+  height: 4.5vh;
+
+  z-index: 1;
+  transition: 0.3s;
+
+  background: transparent;
+  border:  none;
+  padding: none;
+  appearance: none;
+}
+
+.menu-img img {
+  height: 100%;
+  object-fit: contain;
+}
+
+.menu-img img:hover {
+  transform: scale(1.05);
+}
+
+.menuSideNav {
+  position: absolute;
+  top: 4%;
+  right: 4.47%;
+  height: 4.5vh;
+
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  white-space: nowrap;
+  
+  background-color: transparent;
+}
+
+.menuSideNav .nav-item {
+  display: none;
+  cursor: pointer;
+  
+  font-size: 2vh;
+  margin-right: 1.5vw;
+
+  padding-left: 16px;
+  position: relative;
+
+  opacity: 0;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.menuSideNav.open .nav-item{
+  display: flex;
+  opacity: 1;
+}
+
+.menuSideNav .nav-item:hover {
+  color: white;
+  transform: scale(1.10);
+  transition: 0.3s;
+}
+
+.menuSideNav .nav-item.active {
+  display: flex;
+  opacity: 1;
+  color: white;
+}
+
+.menuSideNav .nav-item.active::before {
+  content: '•';
+  position: absolute;
+  left: 4px;
+}
+
+.menuSideNav .nav-icon {
+  height: 3vh;
+  object-fit: contain;
+  
+  margin-right: 1vw;
+
+  cursor: pointer;
+
+  transition: opacity 0.3s;
+  color: white;
+}
+
+.menuSideNav .nav-icon:hover {
+  transform: scale(1.10);
+  transition: 0.3s;
+}
+
+.menuSideNav .nav-icon.hidden {
+  display: none;
+}

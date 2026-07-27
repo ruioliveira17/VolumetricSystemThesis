@@ -164,12 +164,12 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
 
     if len(objects_info) != 0:
         for i, obj in enumerate(objects_info):
-            mask = numpy.zeros(depth_copy.shape, dtype = numpy.uint8)
+            mask = numpy.ones(depth_copy.shape, dtype = numpy.uint8)
             #print("Obj Workspace Limits:", obj["workspace_limits"])
 
-            box = numpy.array(obj["workspace_limits"], dtype=numpy.int32)
+            #box = numpy.array(obj["workspace_limits"], dtype=numpy.int32)
 
-            cv2.fillPoly(mask, [box], 255)
+            #cv2.fillPoly(mask, [box], 255)
 
             workspace_area2 = cv2.bitwise_and(depth_copy, depth_copy, mask=mask)
 
@@ -184,27 +184,32 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
                     mask2 = (workspace_area2 >= (obj["depth"] - threshold)) & (workspace_area2 <= (obj["depth"] + threshold))
             
             binary = mask2.astype(numpy.uint8) * 255
+            #cv2.imwrite(f"binary_{i}_0_mask.png", binary)
 
             # Remove ruído pequeno
             element_open = numpy.ones((3, 3), numpy.uint8)
             binary = cv2.morphologyEx(binary, cv2.MORPH_OPEN, element_open)
+            #cv2.imwrite(f"binary_{i}_1_mask.png", binary)
 
             # Fecha buracos e regulariza a forma
             element_close = numpy.ones((7, 7), numpy.uint8)
             binary = cv2.morphologyEx(binary, cv2.MORPH_CLOSE, element_close)
+            #cv2.imwrite(f"binary_{i}_2_mask.png", binary)
 
             contour, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-            # for j, c in enumerate(contour):
-            #     colorToDepth_copy4 = colorToDepthFrame.copy()
+            for j, c in enumerate(contour):
+                colorToDepth_copy4 = colorToDepthFrame.copy()
                 
-            #     cv2.drawContours(colorToDepth_copy4, [c], -1, (0, 255, 0), 2)
+                cv2.drawContours(colorToDepth_copy4, [c], -1, (0, 255, 0), 2)
+                box = numpy.array(obj["workspace_limits"], dtype=numpy.int32)
+                cv2.drawContours(colorToDepth_copy4, [box], 0, (0, 0, 255), 2)
                 
-            #     texto = f"{float(obj['depth']):.1f}"
-            #     cv2.putText(colorToDepth_copy4, texto, (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 0), 6, cv2.LINE_AA)
-            #     cv2.putText(colorToDepth_copy4, texto, (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 255, 0), 2, cv2.LINE_AA)
+                texto = f"{float(obj['depth']):.1f}"
+                cv2.putText(colorToDepth_copy4, texto, (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 0), 6, cv2.LINE_AA)
+                cv2.putText(colorToDepth_copy4, texto, (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 255, 0), 2, cv2.LINE_AA)
                 
-            #     cv2.imwrite(f"DEPTHS{i}_contour{j}.png", colorToDepth_copy4)
+                cv2.imwrite(f"DEPTHS{i}_contour{j}.png", colorToDepth_copy4)
 
             # print("Depth:", obj["depth"])
 
@@ -291,6 +296,18 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
                     #print("New")
                     workspace_warning = obj["workspace_limits"]
                     ws_poly = numpy.array(workspace_warning, dtype = numpy.int32)
+                    #Giving a little margin to identify objects on the border
+                    margin = 3
+                    xmin = ws_poly[:, 0].min() - margin
+                    xmax = ws_poly[:, 0].max() + margin
+                    ymin = ws_poly[:, 1].min() - margin
+                    ymax = ws_poly[:, 1].max() + margin
+                    ws_poly = numpy.array([
+                        [xmin, ymin],
+                        [xmax, ymin],
+                        [xmax, ymax],
+                        [xmin, ymax]
+                    ], dtype=numpy.int32)
                     value = False
 
                     for pt in box:
@@ -516,7 +533,7 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
     #cv2.imwrite("Objects.png", colorToDepth_copy3)
     box_limits = [c for contour_list in contours for c in contour_list if c.size > 0]
     #print("Número Objetos:", len(box_limits))
-    #print("OutOfLine", object_outOfLine)
+    print("OutOfLine", object_outOfLine)
 
     not_set = 1
     minimum_value = 6000

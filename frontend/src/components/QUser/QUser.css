@@ -1,0 +1,181 @@
+.user-popup {
+  position: fixed;
+  top: 10%;
+  left: 87%;
+  transform: translate(-50%, 0%);
+
+  width: 15%;
+  height: 50%;
+
+  background: #1F1F1F;
+  border-radius: 0.8vw;
+  border: 1px solid #99999939;
+
+  z-index: 20;
+}
+
+.user-info-container{
+  position: relative;
+  top: 2%;
+  left: 50%;
+  transform: translate(-50%, 0%);
+
+  width: 90%;
+  height: 95%;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.user-row{
+  display: flex;
+  align-items: center;
+
+  gap: 5%;
+}
+
+.user-info-container .user-icon{
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+
+  position: relative;
+  top: 2%;
+
+  width: 20%;
+
+  object-fit: contain;
+}
+
+.user-info-container .user-texts{
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+}
+
+.user-info-container .text-user{
+  font-size: 1.9vh;
+  color: white;
+}
+
+.user-info-container .text-role{
+  font-size: 1.5vh;
+}
+
+.user-options {
+    position: absolute;
+    bottom: 6%;
+    left: 0;
+    right: 0;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    gap: 1.4vh;
+}
+
+.user-popup .logout-option{
+  position: relative;
+  bottom: 3%;
+
+  font-size: 1.8vh;
+  color: white;
+
+  cursor: pointer;
+}
+
+.user-panel {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+
+    transform: translate(-50%, -50%);
+
+    width: min(560px, 90vw);
+    max-height: 80vh;
+
+    overflow-y: auto;
+
+    background: #1F1F1F;
+    border: 1px solid #99999939;
+    border-radius: 12px;
+
+    padding: 20px 22px;
+
+    z-index: 30;
+    box-sizing: border-box;
+}
+
+.user-panel-title {
+    color: white;
+    font-size: 18px;
+    text-align: center;
+    margin-bottom: 14px;
+}
+
+.user-panel-loading {
+    color: white;
+    text-align: center;
+}
+
+.user-panel-error {
+    color: #ffb3b3;
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.user-item {
+    display: flex;
+    align-items: center;
+
+    gap: 10px;
+
+    padding: 9px 0;
+
+    border-bottom: 1px solid rgba(255,255,255,0.12);
+}
+
+.user-name {
+    color: white;
+
+    flex: 1;
+
+    font-size: 13px;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.user-item select {
+    font-size: 13px;
+    padding: 3px 4px;
+}
+
+.user-item button {
+    cursor: pointer;
+
+    font-size: 12px;
+
+    padding: 4px 10px;
+}
+
+.no-users {
+    color: #bbbbbb;
+    text-align: center;
+    padding: 10px 0;
+}
+
+.close-users-panel {
+    margin-top: 16px;
+
+    text-align: center;
+
+    color: white;
+
+    cursor: pointer;
+
+    text-decoration: underline;
+}

@@ -1023,11 +1023,14 @@ def volumeStatus(current_user: dict = Depends(get_current_user)):
          """,
          tags=["Volume"])
 def volume_SingleBundle(current_user: dict = Depends(get_current_user)):
-    volumeState.processing = "Processing Frames..."
-    while True:
-        finished = processHDR(volumeState.click_timestamp)
-        if finished:
-            break
+    if modeState.expositionMode == "HDR":
+        volumeState.processing = "Processing Frames..."
+        while True:
+            finished = processHDR(volumeState.click_timestamp)
+            if finished:
+                break
+    else:
+        volumeState.processing = "Processing Image..."
 
     colorFrame = frameState.colorFrame
 
@@ -1123,11 +1126,14 @@ def get_Volume_SingleBundle(current_user: dict = Depends(get_current_user)):
          """,
          tags=["Volume"])
 def volume_MultiBundle(current_user: dict = Depends(get_current_user)):
-    volumeState.processing = "Processing Frames..."
-    while True:
-        finished = processHDR(volumeState.click_timestamp)
-        if finished:
-            break
+    if modeState.expositionMode == "HDR":
+        volumeState.processing = "Processing Frames..."
+        while True:
+            finished = processHDR(volumeState.click_timestamp)
+            if finished:
+                break
+    else:
+        volumeState.processing = "Processing Image..."
 
     colorFrame = frameState.colorFrame
 
@@ -1235,11 +1241,14 @@ def get_Volume_MultiBundle(current_user: dict = Depends(get_current_user)):
          """,
          tags=["Volume"])
 def volume_Real(current_user: dict = Depends(get_current_user)):
-    volumeState.processing = "Processing Frames..."
-    while True:
-        finished = processHDR(volumeState.click_timestamp)
-        if finished:
-            break
+    if modeState.expositionMode == "HDR":
+        volumeState.processing = "Processing Frames..."
+        while True:
+            finished = processHDR(volumeState.click_timestamp)
+            if finished:
+                break
+    else:
+        volumeState.processing = "Processing Image..."
 
     colorFrame = frameState.colorFrame
 
@@ -1491,6 +1500,7 @@ def get_Volume_Individual(current_user: dict = Depends(get_current_user)):
          """,
          tags=["Volume"])
 def get_Objects_OutOfLine(current_user: dict = Depends(get_current_user)):
+    print(volumeState.objects_outOfLine)
     return {"objects_outOfLine": volumeState.objects_outOfLine}
 
 #--------------------------------------------------------------------------------------------------------------------------
