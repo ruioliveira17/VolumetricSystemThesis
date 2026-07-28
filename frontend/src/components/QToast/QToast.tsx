@@ -5,7 +5,7 @@ import './QToast.css';
 import { createPortal } from 'react-dom';
 
 /** Dismiss action shown on every toast ("FECHAR"). */
-const CLOSE_ACTION = { label: 'FECHAR', onClick: () => {} };
+const CLOSE_ACTION = { label: 'CLOSE', onClick: () => {} };
 
 /**
  * App-wide toast container. Mount once near the app root.

@@ -1,5 +1,4 @@
 #------------------------------------------------------   Imports    -------------------------------------------------------
-
 from aiortc import RTCPeerConnection, RTCSessionDescription
 from contextlib import asynccontextmanager
 from dotenv import load_dotenv
@@ -359,9 +358,14 @@ def get_measurement_endpoint(measurement_id: int, current_user: dict = Depends(g
     return data
 
 @app.delete("/measurements/delete/{measurement_id}")
-def remove_measurements(measurement_id: int, current_user: dict = Depends(get_current_user)):
+def remove_measurement(measurement_id: int, current_user: dict = Depends(get_current_user)):
     measurements_repo.delete_measurement(measurement_id)
     return {"deleted": measurement_id}
+
+@app.delete("/measurements/deleteall")
+def remove_measurements(current_user: dict = Depends(get_current_user)):
+    measurements_repo.delete_all_measurements()
+    return {"message": "All measurements deleted"}
 #-------------------------------------------------------   Stream   -------------------------------------------------------
 
 @app.post("/offer")
@@ -745,7 +749,7 @@ def calibrate(data: HSVValue, current_user: dict = Depends(get_current_user)):
 
     detection_area, workspace_depth, center_aligned, workspace_clear, calibrationColorFrame, calibrationDepthFrame = calibrateAPI(colorToDepthFrame, depthFrame, colorFrame, workspaceState.detected_area, lower, upper, camState.colorSlope, int(camState.cx_d), int(camState.cy_d), int(camState.fx_d), int(camState.fy_d), modeState.calibrationMode)
 
-    if detection_area is None or workspace_depth is None:
+    if detection_area is None or workspace_clear is None:
         workspaceState.center_aligned = center_aligned
         workspaceState.workspace_clear = workspace_clear
         return{"message:": "Calibration failed!"}
@@ -839,7 +843,7 @@ def manualCalibration(current_user: dict = Depends(get_current_user)):
          Sets the speed mode to "Slow".
          """,
          tags=["Using Modes"])
-def slowSpeed(current_user: dict = Depends(require_admin)):
+def slowSpeed(current_user: dict = Depends(get_current_user)):
     modeState.speedMode = "Slow"
     return {"mode:": modeState.speedMode}
 
@@ -848,7 +852,7 @@ def slowSpeed(current_user: dict = Depends(require_admin)):
          Sets the speed mode to "Intermedium".
          """,
          tags=["Using Modes"])
-def intermediumSpeed(current_user: dict = Depends(require_admin)):
+def intermediumSpeed(current_user: dict = Depends(get_current_user)):
     modeState.speedMode = "Intermedium"
     return {"mode:": modeState.speedMode}
 
@@ -857,7 +861,7 @@ def intermediumSpeed(current_user: dict = Depends(require_admin)):
          Sets the speed mode to "Fast".
          """,
          tags=["Using Modes"])
-def fastSpeed(current_user: dict = Depends(require_admin)):
+def fastSpeed(current_user: dict = Depends(get_current_user)):
     modeState.speedMode = "Fast"
     return {"mode:": modeState.speedMode}
 
@@ -908,7 +912,7 @@ def get_expMode(current_user: dict = Depends(get_current_user)):
          Sets the exposition mode to "Fixed Exposition".
          """,
          tags=["Using Modes"])
-def fixedExp(current_user: dict = Depends(require_admin)):
+def fixedExp(current_user: dict = Depends(get_current_user)):
     modeState.expositionMode = "Fixed Exposition"
     camState.hdrEnabled = False
     camState.camera.VZ_SetExposureTime(VzSensorType.VzToFSensor, c_int32(camState.exposureTime))
@@ -919,7 +923,7 @@ def fixedExp(current_user: dict = Depends(require_admin)):
          Sets the exposition mode to "HDR".
          """,
          tags=["Using Modes"])
-def hdrExp(current_user: dict = Depends(require_admin)):
+def hdrExp(current_user: dict = Depends(get_current_user)):
     modeState.expositionMode = "HDR"
     
     camState.hdrEnabled = True
@@ -943,7 +947,7 @@ def get_mode(current_user: dict = Depends(get_current_user)):
          Sets the volume mode to "Single Bundle".
          """,
          tags=["Using Modes"])
-def single_bundle(current_user: dict = Depends(require_admin)):
+def single_bundle(current_user: dict = Depends(get_current_user)):
     modeState.volumeMode = "Single Bundle"
     return {"mode:": modeState.volumeMode}
 
@@ -952,7 +956,7 @@ def single_bundle(current_user: dict = Depends(require_admin)):
          Sets the volume mode to "Multi Bundle".
          """,
          tags=["Using Modes"])
-def multi_bundle(current_user: dict = Depends(require_admin)):
+def multi_bundle(current_user: dict = Depends(get_current_user)):
     modeState.volumeMode = "Multi Bundle"
     return {"mode:": modeState.volumeMode}
 
@@ -961,7 +965,7 @@ def multi_bundle(current_user: dict = Depends(require_admin)):
          Sets the volume mode to "Real".
          """,
          tags=["Using Modes"])
-def real(current_user: dict = Depends(require_admin)):
+def real(current_user: dict = Depends(get_current_user)):
     modeState.volumeMode = "Real"
     return {"mode:": modeState.volumeMode}
 
@@ -970,7 +974,7 @@ def real(current_user: dict = Depends(require_admin)):
          Sets the volume mode to "Individual".
          """,
          tags=["Using Modes"])
-def individual(current_user: dict = Depends(require_admin)):
+def individual(current_user: dict = Depends(get_current_user)):
     modeState.volumeMode = "Individual"
     return {"mode:": modeState.volumeMode}
 
@@ -1061,7 +1065,7 @@ def volume_SingleBundle(current_user: dict = Depends(get_current_user)):
     if depthState.objects_info is not None:
         volumeState.processing = "Identifying Objects..."
         depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine, volumeState.united_contours = objIdentifier(colorFrame, colorToDepthFrame, depthFrame, frameState.calibrationColorFrame, frameState.calibrationDepthFrame, modeState.volumeMode, depthState.objects_info, workspaceState.workspace_depth, depthState.threshold, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb, camState.fx_d, camState.fy_d, camState.fx_rgb, camState.fy_rgb)
-        if volumeState.depths:
+        if volumeState.depths or not any(volumeState.objects_outOfLine):
             depthState.minimum_depth = min(volumeState.depths)
             if volumeState.box_limits is not None and len(volumeState.box_limits) > 0:
                 volumeState.processing = "Calculating Volumes..."
@@ -1157,7 +1161,7 @@ def volume_MultiBundle(current_user: dict = Depends(get_current_user)):
     if depthState.objects_info is not None:
         volumeState.processing = "Identifying Objects..."
         depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine, volumeState.united_contours = objIdentifier(colorFrame, colorToDepthFrame, depthFrame, frameState.calibrationColorFrame, frameState.calibrationDepthFrame, modeState.volumeMode, depthState.objects_info, workspaceState.workspace_depth, depthState.threshold, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb, camState.fx_d, camState.fy_d, camState.fx_rgb, camState.fy_rgb)
-        if volumeState.depths:       
+        if volumeState.depths or not any(volumeState.objects_outOfLine):       
             if volumeState.box_limits is not None and len(volumeState.box_limits) > 0:
                 volumeState.processing = "Calculating Volumes..."
                 volumeState.volume, volumeState.width_meters, volumeState.length_meters, volumeState.height_meters = volumeMultiBundleAPI(depthFrame, frameState.calibrationDepthFrame, workspaceState.workspace_depth, volumeState.box_limits, volumeState.depths, camState.fx_d, camState.fy_d, camState.cx_d, camState.cy_d)
@@ -1272,7 +1276,7 @@ def volume_Real(current_user: dict = Depends(get_current_user)):
     if depthState.objects_info is not None:
         volumeState.processing = "Identifying Objects..."
         depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine, volumeState.united_contours = objIdentifier(colorFrame, colorToDepthFrame, depthFrame, frameState.calibrationColorFrame, frameState.calibrationDepthFrame, modeState.volumeMode, depthState.objects_info, workspaceState.workspace_depth, depthState.threshold, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb, camState.fx_d, camState.fy_d, camState.fx_rgb, camState.fy_rgb)
-        if volumeState.depths:
+        if volumeState.depths or not any(volumeState.objects_outOfLine):
             if volumeState.box_limits is not None and len(volumeState.box_limits) > 0:
                 volumeState.processing = "Calculating Volumes..."
                 volumeState.volume, volumeState.width_meters, volumeState.length_meters, volumeState.height_meters, volumeState.obj_center, volumeState.obj_angles = volumeRealAPI(depthFrame, frameState.calibrationDepthFrame, workspaceState.workspace_depth, volumeState.box_limits, volumeState.united_contours, volumeState.depths, camState.fx_d, camState.fy_d, camState.cx_d, camState.cy_d)
@@ -1408,7 +1412,7 @@ def volume_Individual(current_user: dict = Depends(get_current_user)):
     if depthState.not_set == 0:
         volumeState.processing = "Identifying Objects..."
         depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine, volumeState.united_contours = objIdentifier(colorFrame, colorToDepthFrame, depthFrame, frameState.calibrationColorFrame, frameState.calibrationDepthFrame, modeState.volumeMode, depthState.objects_info, workspaceState.workspace_depth, depthState.threshold, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb, camState.fx_d, camState.fy_d, camState.fx_rgb, camState.fy_rgb)
-        if volumeState.depths:
+        if volumeState.depths or not any(volumeState.objects_outOfLine):
             if volumeState.box_limits is not None and len(volumeState.box_limits) > 0:
                 volumeState.processing = "Calculating Volumes..."
                 volumeState.volume, volumeState.width_meters, volumeState.length_meters, volumeState.height_meters = volumeIndividualAPI(depthFrame, frameState.calibrationDepthFrame, workspaceState.workspace_depth, volumeState.box_limits, volumeState.depths, camState.fx_d, camState.fy_d, camState.cx_d, camState.cy_d)
@@ -1540,7 +1544,7 @@ def systemInfo(current_user: dict = Depends(require_admin)):
           Note: Any string value must be sent with the exact same format as specified, including capitalization and spacing. For example, to set the working mode to 'Static', the value must be exactly 'Static' and not 'static' or 'STATIC'.
           """,
           tags=["System"])
-def update_systemInfo(info: SystemUpdate, current_user: dict = Depends(require_admin)):
+def update_systemInfo(info: SystemUpdate, current_user: dict = Depends(get_current_user)):
     if info.exposureTime is not None:
         camState.exposureTime = info.exposureTime
         camState.camera.VZ_SetExposureTime(VzSensorType.VzToFSensor, c_int32(camState.exposureTime))

@@ -55,7 +55,7 @@ interface QMeasureHistoryProps {
 
   viewMeasurement: (id: number) => void;
   deleteMeasurement: (id: number | null) => void;
-  deleteMeasurements: () => void;
+  deleteAllMeasurements: () => void;
 
   // Measurement info popup
   showMeasurementInfo: boolean;
@@ -104,6 +104,7 @@ function QMeasureHistory({
 
   viewMeasurement,
   deleteMeasurement,
+  deleteAllMeasurements,
 
   showMeasurementInfo,
   setShowMeasurementInfo,
@@ -242,7 +243,7 @@ function QMeasureHistory({
           <div className="background"></div>
           <div
             className="menu-item"
-            onClick={() => { deleteMeasurements(); toggleMeasurementsModal(); }}
+            onClick={() => { deleteAllMeasurements(); toggleMeasurementsModal(); }}
           >
             <img src="/delete_forever.svg" className="deleteMeasurements-icon" />
             <div className="deleteMeasurements-text">Delete All</div>
@@ -331,7 +332,7 @@ function QMeasureHistory({
                     {measureObjectList.map((obj) => (
                       <span
                         key={obj}
-                        className={`object-item ${measureSelectedObject === obj ? "selected" : ""}`}
+                        className={`measurement-object-item ${measureSelectedObject === obj ? "selected" : ""}`}
                         onClick={() => {
                           setMeasureSelectedObject(prev => {
                             const isSame = prev === obj;
@@ -346,7 +347,7 @@ function QMeasureHistory({
                         <span className="measurement-arrow">
                           {measureSelectedObject === obj ? "▶" : ""}
                         </span>
-                        <span className="measurement-object-name">Object {obj}</span>
+                        <span>Object {obj}</span>
                       </span>
                     ))}
                   </div>
@@ -360,7 +361,7 @@ function QMeasureHistory({
                         </div>
 
                         <div>TOTAL VOLUME:</div>
-                        <div className="measurement-total-value">
+                        <div className="measurement-total-item">
                           {measureMultipleVolumeData?.Total?.volume_m ?? 0} m³
                         </div>
                       </>

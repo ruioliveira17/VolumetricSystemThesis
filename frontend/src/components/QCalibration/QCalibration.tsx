@@ -1,6 +1,7 @@
 import { RefObject } from "react";
 import "./QCalibration.css";
 import { QConfirmationModal } from "../QConfirmationModal"
+import WarningIcon from '@assets/icons/warning.svg?react';
 
 interface Message {
   type: string;
@@ -57,18 +58,6 @@ function QCalibration({
       <button className="menu-img" onClick={toggleMenu}>
         <img src="/menu-closed.svg" alt="Menu" />
       </button>
-
-      {/* Warning */}
-      <div className="warning">
-        {message.map((msg, i) => (
-          <p
-            key={i}
-            className={msg.type === "error" ? "error-message" : "info-message"}
-          >
-            {msg.text}
-          </p>
-        ))}
-      </div>
 
       <div id="caliErrorLabel" className="warning" style={{ marginTop: "1.4vh" }}></div>
 
@@ -129,6 +118,22 @@ function QCalibration({
               </div>
             </button>
           </div>
+
+          {message.length > 0 && message[0].type === "error" && (
+            <div className="error-modal">
+                <div className="background"></div>
+                <div className="icon">
+                    <WarningIcon />
+                </div>
+                <div className="text">
+                    {message
+                      .filter(msg => msg.type === "error")
+                      .map((msg, index) => (
+                          <span key={index}>{msg.text}</span>
+                      ))}
+                </div>
+            </div>
+          )}s
 
           {/* Button */}
           <button onClick={calibrate_click} className="calibration-button" disabled={loadingCalibration}>

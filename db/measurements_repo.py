@@ -159,3 +159,15 @@ def delete_measurement(measurement_id):
             return cursor.rowcount
         finally:
             conn.close()
+
+def delete_all_measurements():
+    with write_lock:
+        conn = get_connection()
+        try:
+            conn.execute("DELETE FROM measurement_objects")
+            conn.execute("DELETE FROM measurement_images")
+            cursor = conn.execute("DELETE FROM measurements")
+            conn.commit()
+            return cursor.rowcount
+        finally:
+            conn.close()

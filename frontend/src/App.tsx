@@ -89,33 +89,10 @@ function App(){
         type: "error"
     };
     
-    const TextRegistrationSuccessfull: Message = {
-        text: "Registration successful", 
-        type: "info"
-    };
-
-    const TextNoObjectsDetected: Message = {
-        text: "Failed to identify any object!", 
-        type: "error"
-    };
-
-    const TextOutOfLine: Message = {
-        text: "There are objects outside the workspace area. To detect them, make sure they are inside.",
-        type: "error"
-    };
-
-    const TextCalibrated: Message = { text: "System Calibrated", type: "info" };
-    const TextNotCalibrated: Message = { text: "System was not Calibrated", type: "error" };
-    const TextCenterNotAligned: Message = { text: "Center Point isn't Aligned", type: "error" };
-    const TextWsNotEmpty: Message = { text: "Workspace isn't Empty", type: "error" };
-    const TextWsNotEmptyAndCenterNotAligned: Message = { text: "Center Point isn't Aligned and Workspace isn't Empty", type: "error" };
-
-    const TextExposureCaracters: Message = { text: "Only integer values are allowed for exposure time", type: "error" };
-    const TextExposureValues: Message = { text: "Exposure Time value must be between 100 and 4000", type: "error" };
-    const TextExposureUpdateSuccessfull: Message = { text: "Exposure Time updated successfully", type: "info" };
-    const TextCountdownCaracters: Message = { text: "Only integer values are allowed for the Countdown Timer", type: "error" };
-    const TextCountdownValues: Message = { text: "Countdown Timer value must be between 0 and 10", type: "error" };
-    const TextCountdownUpdateSuccessfull: Message = { text: "Countdown Timer updated successfully", type: "info" };
+    const TextNotCalibrated: Message = { text: "System was not Calibrated.", type: "error" };
+    const TextCenterNotAligned: Message = { text: "Center Point isn't Aligned.", type: "error" };
+    const TextWsNotEmpty: Message = { text: "Workspace isn't Empty.", type: "error" };
+    const TextWsNotEmptyAndCenterNotAligned: Message = { text: "Center Point isn't Aligned and Workspace isn't Empty.", type: "error" };
 
     const ORIGINAL_CROP = { x: 0, y: 0, width: 1600, height: 1200 };
     const DEFAULT_CROP = { x: 15, y: 15, width: 1570, height: 1170 };
@@ -242,11 +219,8 @@ function App(){
 
     const [countdown, setCountdown] = useState<number | null>(null);
 
-    // -----------------------------
-    // Saving Measurement variables
-    // -----------------------------
-
-    const [savingMeasurement, setSavingMeasurement] = useState<boolean>(false);
+    const [noObjectsDetected, setNoObjectsDetected] = useState<boolean>(false);
+    const [objectsOutOfLine, setObjectsOutOfLine] = useState<boolean>(false);
 
     // -----------------------------
     // Calibration variables
@@ -328,17 +302,53 @@ function App(){
     const [searchValue, setSearchValue] = useState("");
 
     const filteredMeasurements = sortedMeasurements.filter((measurement) => {
-        const search = searchValue.toLowerCase();
+        const search = searchValue.trim().toLowerCase();
 
         const user = usersIDList.find(
             (u) => u.id === measurement.user_id
         );
 
-        return (
-            measurement.id.toString().includes(search) ||
-            measurement.volume_mode.toLowerCase().includes(search) ||
-            user?.username.toLowerCase().includes(search)
-        );
+        const formattedDate = new Date(measurement.created_at)
+            .toLocaleString("pt-PT", {
+                hour12: false,
+            });
+
+        const [prefix, ...rest] = search.split(":");
+        const value = rest.join(":").trim();
+
+        switch (prefix.toLowerCase()) {
+            case "id":
+                return measurement.id.toString().includes(value);
+
+            case "user":
+                return (
+                    measurement.user_id.toString().includes(value) ||
+                    user?.username.toLowerCase().includes(value.toLowerCase())
+                );
+
+            case "mode":
+                return measurement.volume_mode.toLowerCase().includes(value.toLowerCase());
+
+            case "object":
+                return measurement.object_count.toString().includes(value);
+
+            case "weight":
+                return measurement.weight.toString().includes(value);
+
+            case "date":
+                return formattedDate.toLowerCase().includes(value.toLowerCase());
+
+            default:
+                return (
+                    measurement.id.toString().includes(search.toLowerCase()) ||
+                    measurement.user_id.toString().includes(search.toLowerCase()) ||
+                    user?.username.toLowerCase().includes(search.toLowerCase()) ||
+                    measurement.volume_mode.toLowerCase().includes(search.toLowerCase()) ||
+                    measurement.object_count.toString().includes(search.toLowerCase()) ||
+                    measurement.weight.toString().includes(search.toLowerCase()) ||
+                    formattedDate.toLowerCase().includes(search.toLowerCase())
+                );
+        }
     });
 
     const [selectedID, setSelectedID] = useState<number | null>(null);
@@ -480,17 +490,6 @@ function App(){
         }
 
         }, [currentMenu]);
-
-    useEffect(() => {
-        if (savingMeasurement) {
-            setMessage([
-                {
-                    text: "Saving...",
-                    type: "info"
-                }
-            ]);
-        }
-    }, [savingMeasurement]);
 
     useEffect(() => {
         if (!showCamera) return;
@@ -1884,6 +1883,8 @@ function App(){
             setVolumeData(null);
             setObjectImage(null);
             setShowCamera(true);
+            setNoObjectsDetected(false);
+            setObjectsOutOfLine(false);
 
             refreshAccessToken();
 
@@ -1972,131 +1973,10 @@ function App(){
         }
     }
 
-    // Single Bundle Volume Algorithm
-    async function volumeSingleBundle(access_token: string): Promise<void> {
-        try {
-            await fetch(
-                `${API_URL}/volume/singleBundle`,
-                {
-                    method: "POST",
-                    headers: {
-                        "Authorization": `Bearer ${access_token}`
-                    }
-                }
-            );
-
-            const response = await fetch(
-                `${API_URL}/getObjectsOutOfLine`,
-                {
-                    headers: {
-                        "Authorization": `Bearer ${access_token}`
-                    }
-                }
-            );
-
-            const data = await response.json();
-
-            const objectsOutOfLine = data.objects_outOfLine
-                .map((val: boolean, i: number) => val ? i + 1 : null)
-                .filter((v: number | null) => v !== null);
-
-
-            if (objectsOutOfLine.length > 0) {
-                setMessage([TextOutOfLine]);
-
-            } else {
-                setMessage([TextClear]);
-
-                const dataResponse = await fetch(
-                    `${API_URL}/volume/singleBundle/results`,
-                    {
-                        headers: {
-                            "Authorization": `Bearer ${access_token}`
-                        }
-                    }
-                );
-
-                const volumeData = await dataResponse.json();
-
-                const bundle = volumeData.Bundle;
-
-
-                if (
-                    bundle.volume_m === 0 ||
-                    bundle.volume_cm === 0 ||
-                    bundle.x === 0 ||
-                    bundle.y === 0 ||
-                    bundle.z === 0
-                ) {
-                    setMessage([TextNoObjectsDetected]);
-
-                } else {
-
-                    const measurementData = {
-                        volume_mode: "Single Bundle",
-                        weight: Number(weightInfo.weight),
-                        objects: [
-                            {
-                                idx: 1,
-                                volume_m: bundle.volume_m,
-                                volume_cm: bundle.volume_cm,
-                                x_cm: bundle.x,
-                                y_cm: bundle.y,
-                                z_cm: bundle.z,
-                                extra: null
-                            }
-                        ]
-                    };
-
-                    saveMeasurement(measurementData);
-
-                    setVolInfo({
-                        volume_m: bundle.volume_m,
-                        volume_cm: bundle.volume_cm,
-                        width: bundle.x,
-                        length: bundle.y,
-                        height: bundle.z
-                    });
-                }
-            }
-            
-            const imgResp = await fetch(
-                `${API_URL}/getFrame/detectedObjectsFrame`,
-                {
-                    headers: {
-                        "Authorization": `Bearer ${access_token}`
-                    }
-                }
-            );
-
-            if (imgResp.status === 404) {
-                throw new Error("Frame not Available");
-            }
-
-
-            const blob = await imgResp.blob();
-
-            const url = URL.createObjectURL(blob);
-
-            setObjectImage(url);
-            setShowCamera(false);
-
-
-        } catch (error) {
-            setMessage([TextError]);
-            console.error(error);
-
-        } finally {
-            console.log("Finished");
-            setLoadingVolume(false);
-        }
-    }
-
     // Save the current measurement (objects + snapshot images) in the database
     async function saveMeasurement(measurementData: MeasurementData): Promise<void> {
         try {
             setMessage([TextClear]);
-            setSavingMeasurement(true);
 
             await refreshAccessToken();
 
@@ -2119,12 +1999,7 @@ function App(){
             if (res.ok) {
                 const data = await res.json();
 
-                setMessage([
-                    {
-                        text: `Measurement saved (#${data.id}).`,
-                        type: "info"
-                    }
-                ]);
+                notify.success(`Measurement saved (#${data.id}).`);
 
             } else if (res.status === 401) {
 
@@ -2160,8 +2035,6 @@ function App(){
                 }
             ]);
 
-        } finally {
-            setSavingMeasurement(false);
         }
     }
 
@@ -2208,6 +2081,27 @@ function App(){
                 setMeasurementsList(prev => prev.filter((u) => u.id !== measurementID));
             } else {
                 setMessage([{ text: "Could not delete measurement.", type: "error" }]);
+            }
+        } catch (e) {
+            setMessage([{ text: "Server connection error.", type: "error" }]);
+        }
+    }
+
+    async function deleteAllMeasurements(): Promise<void> {
+        try {
+            await refreshAccessToken();
+            const access_token = localStorage.getItem("access_token");
+
+            const res = await fetch(`${API_URL}/measurements/deleteall`, {
+                method: "DELETE",
+                headers: { "Authorization": `Bearer ${access_token}` }
+            });
+
+            if (res.ok) {
+                setMeasurementsList([]);
+            } else {
+                setMessage([{ text: "Could not delete measurement.", type: "error" }]);
+                setMessage([{ text: "Could not delete all measurements.", type: "error" }]);
             }
         } catch (e) {
             setMessage([{ text: "Server connection error.", type: "error" }]);
@@ -2264,12 +2158,12 @@ function App(){
                         });
 
                         setMeasureVolumeInfo({
-                            "volume_m": data.measurement?.total_volume_m,
-                            "volume_cm": data.measurement?.total_volume_cm,
-                            "width": data.objects?.[0]?.x_cm,
-                            "length": data.objects?.[0]?.y_cm,
-                            "height": data.objects?.[0]?.z_cm,
-                            "weight": data.measurement?.weight
+                            volume_m: data.measurement?.total_volume_m,
+                            volume_cm: data.measurement?.total_volume_cm,
+                            width: data.objects?.[0]?.x_cm,
+                            length: data.objects?.[0]?.y_cm,
+                            height: data.objects?.[0]?.z_cm,
+                            weight: data.measurement?.weight
                         });
                     } else if (data.measurement?.volume_mode === "Real") {
                         objects.forEach((obj: any, index: number) => {
@@ -2344,6 +2238,129 @@ function App(){
         }
     }
 
+    // Single Bundle Volume Algorithm
+    async function volumeSingleBundle(access_token: string): Promise<void> {
+        try {
+            await fetch(
+                `${API_URL}/volume/singleBundle`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${access_token}`
+                    }
+                }
+            );
+
+            const response = await fetch(
+                `${API_URL}/getObjectsOutOfLine`,
+                {
+                    headers: {
+                        "Authorization": `Bearer ${access_token}`
+                    }
+                }
+            );
+
+            const data = await response.json();
+
+            const objectsDetected = data.objects_outOfLine.length > 0;
+            const objectsOutOfLine = data.objects_outOfLine
+                .map((val: boolean, i: number) => val ? i + 1 : null)
+                .filter((v: number | null) => v !== null);
+
+            setNoObjectsDetected(!objectsDetected);
+
+            if(objectsDetected){
+                if (objectsOutOfLine.length > 0) {
+                    setObjectsOutOfLine(true);
+                } else {
+                    setMessage([TextClear]);
+
+                    const dataResponse = await fetch(
+                        `${API_URL}/volume/singleBundle/results`,
+                        {
+                            headers: {
+                                "Authorization": `Bearer ${access_token}`
+                            }
+                        }
+                    );
+
+                    const volumeData = await dataResponse.json();
+
+                    const bundle = volumeData.Bundle;
+
+
+                    if (
+                        bundle.volume_m === 0 ||
+                        bundle.volume_cm === 0 ||
+                        bundle.x === 0 ||
+                        bundle.y === 0 ||
+                        bundle.z === 0
+                    ) {
+                        setNoObjectsDetected(true);
+
+                    } else {
+
+                        const measurementData = {
+                            volume_mode: "Single Bundle",
+                            weight: Number(weightInfo.weight),
+                            objects: [
+                                {
+                                    idx: 1,
+                                    volume_m: bundle.volume_m,
+                                    volume_cm: bundle.volume_cm,
+                                    x_cm: bundle.x,
+                                    y_cm: bundle.y,
+                                    z_cm: bundle.z,
+                                    extra: null
+                                }
+                            ]
+                        };
+
+                        saveMeasurement(measurementData);
+
+                        setVolInfo({
+                            volume_m: bundle.volume_m,
+                            volume_cm: bundle.volume_cm,
+                            width: bundle.x,
+                            length: bundle.y,
+                            height: bundle.z
+                        });
+                    }
+                
+                    const imgResp = await fetch(
+                        `${API_URL}/getFrame/detectedObjectsFrame`,
+                        {
+                            headers: {
+                                "Authorization": `Bearer ${access_token}`
+                            }
+                        }
+                    );
+
+                    if (imgResp.status === 404) {
+                        throw new Error("Frame not Available");
+                    }
+
+
+                    const blob = await imgResp.blob();
+
+                    const url = URL.createObjectURL(blob);
+
+                    setObjectImage(url);
+                    setShowCamera(false);
+                
+                }
+            }
+
+        } catch (error) {
+            setMessage([TextError]);
+            console.error(error);
+
+        } finally {
+            console.log("Finished");
+            setLoadingVolume(false);
+        }
+    }
+
     // Multi Bundle Volume Algorithm
     async function volumeMultiBundle(access_token: string): Promise<void> {
         try {
@@ -2352,72 +2369,77 @@ function App(){
             const response = await fetch(`${API_URL}/getObjectsOutOfLine`, { headers: { "Authorization": `Bearer ${access_token}` } });
             const data = await response.json();
 
+            const objectsDetected = data.objects_outOfLine.length > 0;
             const objectsOutOfLine = data.objects_outOfLine
                 .map((val: boolean, i: number) => val ? i + 1 : null)
                 .filter((v: number | null) => v !== null);
 
-            if (objectsOutOfLine.length > 0) {
-                setMessage([TextOutOfLine]);
-            } else {
-                setMessage([TextClear]);
-            }
+            setNoObjectsDetected(!objectsDetected);
 
-            const dataResponse = await fetch(`${API_URL}/volume/multiBundle/results`, { headers: { "Authorization": `Bearer ${access_token}` } });
-            const volumeData = await dataResponse.json();
+            if(objectsDetected){
+                if (objectsOutOfLine.length > 0) {
+                    setObjectsOutOfLine(true);
+                } else {
+                    const dataResponse = await fetch(`${API_URL}/volume/multiBundle/results`, { headers: { "Authorization": `Bearer ${access_token}` } });
+                    const volumeData = await dataResponse.json();
 
-            setVolumeData(volumeData);
+                    setVolumeData(volumeData);
 
-            const imgResp = await fetch(`${API_URL}/getFrame/detectedObjectsFrame`, { headers: { "Authorization": `Bearer ${access_token}` } });
-            if (imgResp.status === 404) throw new Error("Frame not Available");
+                    const imgResp = await fetch(`${API_URL}/getFrame/detectedObjectsFrame`, { headers: { "Authorization": `Bearer ${access_token}` } });
+                    if (imgResp.status === 404) throw new Error("Frame not Available");
 
-            const blob = await imgResp.blob();
-            const url = URL.createObjectURL(blob);
-            setObjectImage(url);
-            setShowCamera(false);
+                    const blob = await imgResp.blob();
+                    const url = URL.createObjectURL(blob);
+                    setObjectImage(url);
+                    setShowCamera(false);
 
-            const objIdentified = Object.keys(volumeData).filter((key: string) => key !== "Total");
+                    const objIdentified = Object.keys(volumeData).filter((key: string) => key !== "Total");
 
-            if (objIdentified.length === 0) {
-                setMessage([TextNoObjectsDetected]);
-            } else if (objIdentified.length === 1) {
-                const key = objIdentified[0];
-                const objData = volumeData[key];
+                    if (objIdentified.length === 0) {
+                        setNoObjectsDetected(true);
+                    } else if (objIdentified.length === 1) {
+                        const key = objIdentified[0];
+                        const objData = volumeData[key];
 
-                setSelectedObject(key);
-                setObjectList([key]);
-                setVolInfo({
-                    volume_m: objData.volume_m,
-                    volume_cm: objData.volume_cm,
-                    width: objData.x,
-                    length: objData.y,
-                    height: objData.z
-                });
-            } else if (objIdentified.length > 1) {
-                setObjectList(objIdentified);
-                setSelectedObject("");
-                setVolInfo(null);
-            }
+                        setSelectedObject(key);
+                        setObjectList([key]);
+                        setVolInfo({
+                            volume_m: objData.volume_m,
+                            volume_cm: objData.volume_cm,
+                            width: objData.x,
+                            length: objData.y,
+                            height: objData.z
+                        });
+                    } else if (objIdentified.length > 1) {
+                        setObjectList(objIdentified);
+                        setSelectedObject("");
+                        setVolInfo(null);
+                    }
 
-            if (objIdentified.length > 0) {
-                const objects = Object.entries(volumeData)
-                    .filter(([key]) => key !== "Total")
-                    .map(([key, obj]: [string, any]) => ({
-                        idx: Number(key),
-                        volume_m: obj.volume_m,
-                        volume_cm: obj.volume_cm,
-                        x_cm: obj.x,
-                        y_cm: obj.y,
-                        z_cm: obj.z,
-                        extra: null
-                    }));
+                    if (objIdentified.length > 0) {
+                        const objects = Object.entries(volumeData)
+                            .filter(([key]) => key !== "Total")
+                            .map(([key, obj]: [string, any]) => ({
+                                idx: Number(key),
+                                volume_m: obj.volume_m,
+                                volume_cm: obj.volume_cm,
+                                x_cm: obj.x,
+                                y_cm: obj.y,
+                                z_cm: obj.z,
+                                extra: null
+                            }));
 
-                const measurementData: MeasurementData = {
-                    volume_mode: "Multi Bundle",
-                    weight: Number(weightInfo.weight),
-                    objects
-                };
+                        const measurementData: MeasurementData = {
+                            volume_mode: "Multi Bundle",
+                            weight: Number(weightInfo.weight),
+                            objects
+                        };
 
-                saveMeasurement(measurementData);
+                        saveMeasurement(measurementData);
+                    }
+
+                    setMessage([TextClear]);
+                }
             }
 
         } catch (error) {
@@ -2437,78 +2459,83 @@ function App(){
             const response = await fetch(`${API_URL}/getObjectsOutOfLine`, { headers: { "Authorization": `Bearer ${access_token}` } });
             const data = await response.json();
 
+            const objectsDetected = data.objects_outOfLine.length > 0;
             const objectsOutOfLine = data.objects_outOfLine
                 .map((val: boolean, i: number) => val ? i + 1 : null)
                 .filter((v: number | null) => v !== null);
 
-            if (objectsOutOfLine.length > 0) {
-                setMessage([TextOutOfLine]);
-            } else {
-                setMessage([TextClear]);
-            }
+            setNoObjectsDetected(!objectsDetected);
 
-            const dataResponse = await fetch(`${API_URL}/volume/real/results`, { headers: { "Authorization": `Bearer ${access_token}` } });
-            const volumeData = await dataResponse.json();
+            if(objectsDetected){
+                if (objectsOutOfLine.length > 0) {
+                    setObjectsOutOfLine(true);
+                } else {
+                    const dataResponse = await fetch(`${API_URL}/volume/real/results`, { headers: { "Authorization": `Bearer ${access_token}` } });
+                    const volumeData = await dataResponse.json();
 
-            setVolumeData(volumeData);
+                    setVolumeData(volumeData);
 
-            const imgResp = await fetch(`${API_URL}/getFrame/detectedObjectsFrame`, { headers: { "Authorization": `Bearer ${access_token}` } });
-            if (imgResp.status === 404) throw new Error("Frame not Available");
+                    const imgResp = await fetch(`${API_URL}/getFrame/detectedObjectsFrame`, { headers: { "Authorization": `Bearer ${access_token}` } });
+                    if (imgResp.status === 404) throw new Error("Frame not Available");
 
-            const blob = await imgResp.blob();
-            const url = URL.createObjectURL(blob);
-            setObjectImage(url);
-            setShowCamera(false);
+                    const blob = await imgResp.blob();
+                    const url = URL.createObjectURL(blob);
+                    setObjectImage(url);
+                    setShowCamera(false);
 
-            const objIdentified = Object.keys(volumeData).filter((key: string) => key !== "Total");
+                    const objIdentified = Object.keys(volumeData).filter((key: string) => key !== "Total");
 
-            if (objIdentified.length === 0) {
-                setMessage([TextNoObjectsDetected]);
-            } else if (objIdentified.length === 1) {
-                const key = objIdentified[0];
-                const objData = volumeData[key];
+                    if (objIdentified.length === 0) {
+                        setNoObjectsDetected(true);
+                    } else if (objIdentified.length === 1) {
+                        const key = objIdentified[0];
+                        const objData = volumeData[key];
 
-                setObjCenters(objData.obj_center ?? []);
-                setObjAngles(objData.obj_angles ?? []);
+                        setObjCenters(objData.obj_center ?? []);
+                        setObjAngles(objData.obj_angles ?? []);
 
-                setSelectedObject(key);
-                setObjectList([key]);
-                setVolInfo({
-                    volume_m: objData.volume_m,
-                    volume_cm: objData.volume_cm,
-                    width: objData.x,
-                    length: objData.y,
-                    height: objData.z
-                });
-            } else if (objIdentified.length > 1) {
-                setObjectList(objIdentified);
-                setSelectedObject("");
-                setVolInfo(null);
-            }
+                        setSelectedObject(key);
+                        setObjectList([key]);
+                        setVolInfo({
+                            volume_m: objData.volume_m,
+                            volume_cm: objData.volume_cm,
+                            width: objData.x,
+                            length: objData.y,
+                            height: objData.z
+                        });
+                    } else if (objIdentified.length > 1) {
+                        setObjectList(objIdentified);
+                        setSelectedObject("");
+                        setVolInfo(null);
+                    }
 
-            if (objIdentified.length > 0) {
-                const objects = Object.entries(volumeData)
-                    .filter(([key]) => key !== "Total")
-                    .map(([key, obj]: [string, any]) => ({
-                        idx: Number(key),
-                        volume_m: obj.volume_m,
-                        volume_cm: obj.volume_cm,
-                        x_cm: obj.x,
-                        y_cm: obj.y,
-                        z_cm: obj.z,
-                        extra: {
-                            angles: obj.obj_angles,
-                            centers: obj.obj_center
-                        }
-                    }));
+                    if (objIdentified.length > 0) {
+                        const objects = Object.entries(volumeData)
+                            .filter(([key]) => key !== "Total")
+                            .map(([key, obj]: [string, any]) => ({
+                                idx: Number(key),
+                                volume_m: obj.volume_m,
+                                volume_cm: obj.volume_cm,
+                                x_cm: obj.x,
+                                y_cm: obj.y,
+                                z_cm: obj.z,
+                                extra: {
+                                    angles: obj.obj_angles,
+                                    centers: obj.obj_center
+                                }
+                            }));
 
-                const measurementData: MeasurementData = {
-                    volume_mode: "Real",
-                    weight: Number(weightInfo.weight),
-                    objects
-                };
+                        const measurementData: MeasurementData = {
+                            volume_mode: "Real",
+                            weight: Number(weightInfo.weight),
+                            objects
+                        };
 
-                saveMeasurement(measurementData);
+                        saveMeasurement(measurementData);
+                    }
+
+                    setMessage([TextClear]);
+                }
             }
 
         } catch (error) {
@@ -2528,53 +2555,58 @@ function App(){
             const response = await fetch(`${API_URL}/getObjectsOutOfLine`, { headers: { "Authorization": `Bearer ${access_token}` } });
             const data = await response.json();
 
+            const objectsDetected = data.objects_outOfLine.length > 0;
             const objectsOutOfLine = data.objects_outOfLine
                 .map((val: boolean, i: number) => val ? i + 1 : null)
                 .filter((v: number | null) => v !== null);
 
-            if (objectsOutOfLine.length > 0) {
-                setMessage([TextOutOfLine]);
-            } else {
-                setMessage([TextClear]);
-            }
+            setNoObjectsDetected(!objectsDetected);
 
-            const dataResponse = await fetch(`${API_URL}/volume/individual/results`, { headers: { "Authorization": `Bearer ${access_token}` } });
-            const volumeData = await dataResponse.json();
+            if(objectsDetected){
+                if (objectsOutOfLine.length > 0) {
+                    setObjectsOutOfLine(true);
+                } else {
+                    const dataResponse = await fetch(`${API_URL}/volume/individual/results`, { headers: { "Authorization": `Bearer ${access_token}` } });
+                    const volumeData = await dataResponse.json();
 
-            setVolumeData(volumeData);
+                    setVolumeData(volumeData);
 
-            const imgResp = await fetch(`${API_URL}/getFrame/detectedObjectsFrame`, { headers: { "Authorization": `Bearer ${access_token}` } });
-            if (imgResp.status === 404) throw new Error("Frame not Available");
+                    const imgResp = await fetch(`${API_URL}/getFrame/detectedObjectsFrame`, { headers: { "Authorization": `Bearer ${access_token}` } });
+                    if (imgResp.status === 404) throw new Error("Frame not Available");
 
-            const blob = await imgResp.blob();
-            const url = URL.createObjectURL(blob);
-            setObjectImage(url);
-            setShowCamera(false);
+                    const blob = await imgResp.blob();
+                    const url = URL.createObjectURL(blob);
+                    setObjectImage(url);
+                    setShowCamera(false);
 
-            const objIdentified = Object.keys(volumeData).filter((key: string) => key !== "Total");
+                    const objIdentified = Object.keys(volumeData).filter((key: string) => key !== "Total");
 
-            if (objIdentified.length === 1) {
-                const key = objIdentified[0];
-                const objData = volumeData[key];
+                    if (objIdentified.length === 1) {
+                        const key = objIdentified[0];
+                        const objData = volumeData[key];
 
-                setSelectedObject(key);
-                setObjectList([key]);
-                setVolInfo({
-                    volume_m: objData.volume_m,
-                    volume_cm: objData.volume_cm,
-                    width: objData.x,
-                    length: objData.y,
-                    height: objData.z
-                });
-            } else if (objIdentified.length > 1) {
-                setObjectList(objIdentified);
-                setSelectedObject("");
-                setVolInfo(null);
-            }
+                        setSelectedObject(key);
+                        setObjectList([key]);
+                        setVolInfo({
+                            volume_m: objData.volume_m,
+                            volume_cm: objData.volume_cm,
+                            width: objData.x,
+                            length: objData.y,
+                            height: objData.z
+                        });
+                    } else if (objIdentified.length > 1) {
+                        setObjectList(objIdentified);
+                        setSelectedObject("");
+                        setVolInfo(null);
+                    }
 
-            // NOTE (port): no App.py original o modo Individual chamava saveMeasurement()
-            // sem argumentos (nunca construía measurementData) - guardar nunca chegou a
-            // ser implementado para este modo. Deixado por implementar de propósito.
+                    // NOTE (port): no App.py original o modo Individual chamava saveMeasurement()
+                    // sem argumentos (nunca construía measurementData) - guardar nunca chegou a
+                    // ser implementado para este modo. Deixado por implementar de propósito.
+
+                    setMessage([TextClear]);
+                }
+            } 
 
         } catch (error) {
             setVolInfo(null);
@@ -2712,7 +2744,6 @@ function App(){
             const ws_clear = data["Workspace Clear"];
 
             if (center_aligned && ws_clear) {
-                setMessage([TextCalibrated, TextClear]);
                 setCalibrationModalOpen(true);
             } else if (center_aligned && !ws_clear) {
                 setMessage([TextNotCalibrated, TextWsNotEmpty]);
@@ -2736,7 +2767,6 @@ function App(){
     async function confirm_calibration(confirm: boolean): Promise<void> {
         try {
             setCalibrationModalOpen(false);
-            setMessage([TextClear]);
             refreshAccessToken();
             const access_token = localStorage.getItem("access_token");
 
@@ -2749,9 +2779,7 @@ function App(){
                 if (!calibrateResponse.ok) throw new Error("Save calibration request failed");
                 setLockMenu(false);
                 setCurrentMenu("volume-menu");
-                notify.success("Calibração realizada com sucesso");
-            } else {
-                setMessage([TextNotCalibrated, TextClear]);
+                notify.success("System was calibrated with success.");
             }
 
         } catch (error) {
@@ -2867,6 +2895,8 @@ function App(){
         setSelectedObject("");
         setVolInfo(null);
         setVolumeData(null);
+        setNoObjectsDetected(false);
+        setObjectsOutOfLine(false);
 
         refreshAccessToken();
         const access_token = localStorage.getItem("access_token");
@@ -2921,12 +2951,12 @@ function App(){
         const value = Number(exposureTime);
 
         if (!Number.isInteger(value)) {
-            setMessage([TextExposureCaracters]);
+            notify.error("Only integer values are allowed for exposure time");
             return;
         }
 
-        if (value < 100 || value > 4000) {
-            setMessage([TextExposureValues]);
+        if (value < 100 || value > 2000) {
+            notify.error("Exposure Time value must be between 100 and 2000");
             return;
         }
 
@@ -2938,7 +2968,7 @@ function App(){
 
             await fetch(`${API_URL}/saveInfo`, { method: "POST", headers: { "Authorization": `Bearer ${access_token}` } });
 
-            setMessage([TextExposureUpdateSuccessfull]);
+            notify.success("Exposure Time updated successfully");
         } catch (error) {
             console.error("Exposure set error:", error);
         }
@@ -2949,12 +2979,12 @@ function App(){
         const value = Number(countdownTimer);
 
         if (!Number.isInteger(value)) {
-            setMessage([TextCountdownCaracters]);
+            notify.error("Only integer values are allowed for the Countdown Timer");
             return;
         }
 
         if (value < 0 || value > 10) {
-            setMessage([TextCountdownValues]);
+            notify.error("Countdown Timer value must be between 0 and 10");
             return;
         }
 
@@ -2970,7 +3000,7 @@ function App(){
 
             await fetch(`${API_URL}/saveInfo`, { method: "POST", headers: { "Authorization": `Bearer ${access_token}` } });
 
-            setMessage([TextCountdownUpdateSuccessfull]);
+            notify.success("Countdown Timer updated successfully");
         } catch (error) {
             console.error("Countdown set error:", error);
         }
@@ -3146,6 +3176,9 @@ function App(){
                         volumeMode={volumeMode}
                         toggleMenu={toggleMenu}
                         setVolInfo={setVolInfo}
+
+                        noObjectsDetected={noObjectsDetected}
+                        objectsOutOfLine={objectsOutOfLine}
                     />
                 )}
 
@@ -3184,6 +3217,7 @@ function App(){
 
                         viewMeasurement={viewMeasurement}
                         deleteMeasurement={deleteMeasurement}
+                        deleteAllMeasurements={deleteAllMeasurements}
 
                         showMeasurementInfo={showMeasurementInfo}
                         setShowMeasurementInfo={setShowMeasurementInfo}

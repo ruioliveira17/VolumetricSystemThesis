@@ -266,6 +266,7 @@
 }
 
 .login-button:hover .background {
+  background-color: white;
   opacity: 1;
 }
 

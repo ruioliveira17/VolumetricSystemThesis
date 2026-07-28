@@ -1,6 +1,7 @@
 import React from "react";
 import { RefObject } from "react";
 import "./QVolume.css";
+import WarningIcon from '@assets/icons/warning.svg?react';
 
 interface Message {
   type: string;
@@ -42,9 +43,11 @@ interface QVolumeProps {
   weightInfo: any;
 
   volumeMode: string;
-
   toggleMenu: () => void;
   setVolInfo: (value: any) => void;
+
+  noObjectsDetected: boolean;
+  objectsOutOfLine: boolean;
 }
 
 function QVolume({
@@ -81,9 +84,11 @@ function QVolume({
   weightInfo,
 
   volumeMode,
-
   toggleMenu,
-  setVolInfo
+  setVolInfo,
+
+  noObjectsDetected,
+  objectsOutOfLine
 
 }: QVolumeProps) {
 
@@ -99,27 +104,6 @@ function QVolume({
         <button className="menu-img" onClick={toggleMenu}>
             <img src="/menu-closed.svg" alt="Menu" />
         </button>
-
-
-        {/* Warning */}
-        <div className="warning">
-            {message.map((msg, i) => (
-                <p
-                    key={i}
-                    className={msg.type === "error" ? "error-message" : "info-message"}
-                >
-                    {msg.text}
-                </p>
-            ))}
-        </div>
-
-
-        {loadingVolume && (
-            <div className="warning">
-            {processingMessage}
-            </div>
-        )}
-
 
         <div className="menu-wrapper">
             <div className="title-container">
@@ -151,7 +135,23 @@ function QVolume({
 
                 <div className="switch-button-wrapper">
                     {objectImage && (
-                        <button onClick={() => setShowCamera(prev => !prev)} className="switch-button"></button>
+                        <>
+                            <div className="switch-group">
+                                <button
+                                    className={`switch-mode ${!showCamera ? "active" : ""}`}
+                                    onClick={() => setShowCamera(false)}
+                                >
+                                    <img src="/image.svg" alt="Image" className="icon" />
+                                </button>
+
+                                <button
+                                    className={`switch-mode ${showCamera ? "active" : ""}`}
+                                    onClick={() => setShowCamera(true)}
+                                >
+                                    <img src="/live_tv.svg" alt="Camera" className="icon" />
+                                </button>                                
+                            </div>
+                        </>
                     )}
                 </div>
             </div>
@@ -161,9 +161,14 @@ function QVolume({
                     {/* Button */}
                     <button onClick={volume_click} className="volumeBundle-button" disabled={loadingVolume || !weightStable}>
                         {loadingVolume && (
-                            <div className="loadingVolume-icon">
-                                <img src="/loading.svg" alt="loading"/>
-                            </div>
+                            <>
+                                <div className="loadingVolume-icon">
+                                    <img src="/loading.svg" alt="loading"/>
+                                </div>
+                                <div className="volume-processing">
+                                    {processingMessage}
+                                </div>
+                            </>
                         )}
 
                         <div className="volumeBundle-button-info-container">
@@ -215,6 +220,34 @@ function QVolume({
                             </>
                         )}
 
+                        {objectsOutOfLine && (
+                            <>
+                                <div className="error-modal">
+                                    <div className="background"></div>
+                                    <div className="icon">
+                                        <WarningIcon />
+                                    </div>
+                                    <div className="text">
+                                        <span>There are objects outside the workspace area.</span>
+                                        <span>To detect them, make sure they are inside.</span>
+                                    </div>
+                                </div>
+                            </>
+                        )}
+
+                        {noObjectsDetected && (
+                            <>
+                                <div className="error-modal">
+                                    <div className="background"></div>
+                                    <div className="icon">
+                                        <WarningIcon />
+                                    </div>
+                                    <div className="text">
+                                        <span>Failed to identify any objects.</span>
+                                    </div>
+                                </div>
+                            </>
+                        )}
 
                         {countdown && (
                             <div className="countdown">
@@ -230,9 +263,14 @@ function QVolume({
                     {/* Button */}
                     <button onClick={volume_click} className="volume-button" disabled={loadingVolume || !weightStable}>
                         {loadingVolume && (
-                            <div className="loadingVolume-icon">
-                                <img src="/loading.svg" alt="loading"/>
-                            </div>
+                            <>
+                                <div className="loadingVolume-icon">
+                                    <img src="/loading.svg" alt="loading"/>
+                                </div>
+                                <div className="volume-processing">
+                                    {processingMessage}
+                                </div>
+                            </>
                         )}
                         <div className="volume-button-info-container">
                             <img src="/VIEW_IN_AR.svg" alt="VIEW_IN_AR" className="icon"/>
@@ -262,13 +300,13 @@ function QVolume({
                                     }}
                                 >
                                     <span className="arrow">{selectedObject === obj ? "▶" : ""}</span>
-                                    <span className="object-name">Object {obj}</span>
+                                    <span>Object {obj}</span>
                                 </span>
                             ))}
                         </div>
 
                         <div className="object-total">
-                            {multipleVolumeData ? (
+                            {multipleVolumeData && (multipleVolumeData?.Total?.volume_m ?? 0) > 0 ? (
                                 <> 
                                     <div>TOTAL WEIGHT:</div>
                                     <div className="total-value">
@@ -327,7 +365,36 @@ function QVolume({
                             </>
                         )}
 
-                        {!volInfo && !loadingVolume && multipleVolumeData &&(
+                        {objectsOutOfLine && (
+                            <>
+                                <div className="error-modal">
+                                    <div className="background"></div>
+                                    <div className="icon">
+                                        <WarningIcon />
+                                    </div>
+                                    <div className="text">
+                                        <span>There are objects outside the workspace area.</span>
+                                        <span>To detect them, make sure they are inside.</span>
+                                    </div>
+                                </div>
+                            </>
+                        )}
+
+                        {noObjectsDetected && (
+                            <>
+                                <div className="error-modal">
+                                    <div className="background"></div>
+                                    <div className="icon">
+                                        <WarningIcon />
+                                    </div>
+                                    <div className="text">
+                                        <span>Failed to identify any objects.</span>
+                                    </div>
+                                </div>
+                            </>
+                        )}
+
+                        {!volInfo && !loadingVolume && multipleVolumeData && (multipleVolumeData?.Total?.volume_m ?? 0) !== 0 && (
                             <>
                                 <div className="boxInfo-message">Selecione um objeto</div>
                             </>
