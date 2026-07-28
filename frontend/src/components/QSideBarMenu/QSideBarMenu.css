@@ -42,10 +42,13 @@
 }
 
 .menuSideNav .nav-item {
+  position: relative;
   font-family: "Inter Regular";
   display: none;
   cursor: pointer;
-  
+
+  height: 70%;
+
   font-size: 2vh;
   margin-right: 1.5vw;
 
@@ -54,6 +57,8 @@
   position: relative;
 
   text-align: center;
+  align-items: center;  
+  justify-content: center;
   color: white;
   opacity: 0;
   transition: opacity 0.3s ease, transform 0.3s ease;

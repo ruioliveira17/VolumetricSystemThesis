@@ -54,7 +54,7 @@ function QSettings({
 
       {/* PopUp */}
       <div className="settings-popup">
-        <span className="text">Configurations</span>
+        <span className="text">Settings</span>
         <div className="settings-buttons-container">
           {/* Exposition */}
           <span className="text">Exposition Type</span>
