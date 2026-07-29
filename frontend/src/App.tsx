@@ -204,9 +204,7 @@ function App(){
 
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-    const [cropTransform, setCropTransform] = useState<React.CSSProperties | undefined>(undefined);
-
-    
+    const [cropTransform, setCropTransform] = useState<React.CSSProperties | undefined>(undefined);    
 
     const [weightInfo, setWeightInfo] = useState<any>(null);
 
@@ -1783,8 +1781,10 @@ function App(){
         setSavedUser(null);
         setMenuSideNavOpen(false);
         setShowUserPopup(false);
+        setObjectImage(null);
         setObjectList([]);
         setSelectedObject("");
+        setShowCamera(true);
         setVolInfo(null);
         setVolumeData(null);
         setRegUsernameFocus(false);
@@ -2113,6 +2113,10 @@ function App(){
         try {
             await refreshAccessToken();
             const access_token = localStorage.getItem("access_token");
+
+            const res_archived = await fetch(`${API_URL}/measurements/archived`, {
+                headers: { Authorization: `Bearer ${access_token}` }
+            });
 
             const res = await fetch(`${API_URL}/measurements/${selectedID}`, {
                 headers: { Authorization: `Bearer ${access_token}` }

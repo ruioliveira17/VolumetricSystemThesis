@@ -27,6 +27,11 @@ class HSVValue(BaseModel):
     vmax: Optional[int] = None
     color: Optional[str] = None
 
+class LanguageIn(BaseModel):
+    # A lista de codigos aceites esta em db/config_repo.SUPPORTED_LANGUAGES
+    # (validado no endpoint, para nao ter de mexer aqui quando houver mais linguas).
+    language: str = Field(min_length=2, max_length=5)
+
 class LoginData(BaseModel):
     username: str
     password: str

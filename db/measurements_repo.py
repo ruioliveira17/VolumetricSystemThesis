@@ -75,23 +75,30 @@ def add_images(measurement_id, images):
         finally:
             conn.close()
 
-def list_measurements(user_id=None):
+def _list(where, params):
     conn = get_connection()
     try:
-        if user_id is None:
-            rows = conn.execute(
-                "SELECT m.*, u.username AS username FROM measurements m "
-                "JOIN users u ON u.id = m.user_id ORDER BY m.id DESC"
-            ).fetchall()
-        else:
-            rows = conn.execute(
-                "SELECT m.*, u.username AS username FROM measurements m "
-                "JOIN users u ON u.id = m.user_id WHERE m.user_id = ? ORDER BY m.id DESC",
-                (user_id,),
-            ).fetchall()
+        rows = conn.execute(
+            "SELECT m.*, u.username AS username FROM measurements m "
+            "JOIN users u ON u.id = m.user_id "
+            "WHERE " + where + " ORDER BY m.id DESC",
+            params,
+        ).fetchall()
         return rows_to_dicts(rows)
     finally:
         conn.close()
+
+def list_measurements(user_id=None):
+    """Medições visíveis (as arquivadas ficam de fora)."""
+    if user_id is None:
+        return _list("m.archived_at IS NULL", ())
+    return _list("m.archived_at IS NULL AND m.user_id = ?", (user_id,))
+
+def list_archived_measurements(user_id=None):
+    """Medições arquivadas pelo 'apagar todas' (continuam na BD)."""
+    if user_id is None:
+        return _list("m.archived_at IS NOT NULL", ())
+    return _list("m.archived_at IS NOT NULL AND m.user_id = ?", (user_id,))
 
 def image_to_base64(image_path):
     try:
@@ -148,6 +155,78 @@ def get_measurement(measurement_id):
     finally:
         conn.close()
 
+def archive_measurement(measurement_id):
+    """Arquiva uma medição (soft delete): sai da lista mas nada é apagado."""
+    with write_lock:
+        conn = get_connection()
+        try:
+            cursor = conn.execute(
+                "UPDATE measurements SET archived_at = datetime('now') "
+                "WHERE id = ? AND archived_at IS NULL",
+                (measurement_id,),
+            )
+            conn.commit()
+            return cursor.rowcount
+        finally:
+            conn.close()
+
+def archive_all_measurements(user_id=None):
+    """Arquiva todas as medições visíveis. Com user_id, só as desse utilizador.
+    Devolve o número de medições arquivadas."""
+    with write_lock:
+        conn = get_connection()
+        try:
+            if user_id is None:
+                cursor = conn.execute(
+                    "UPDATE measurements SET archived_at = datetime('now') "
+                    "WHERE archived_at IS NULL"
+                )
+            else:
+                cursor = conn.execute(
+                    "UPDATE measurements SET archived_at = datetime('now') "
+                    "WHERE archived_at IS NULL AND user_id = ?",
+                    (user_id,),
+                )
+            conn.commit()
+            return cursor.rowcount
+        finally:
+            conn.close()
+
+def restore_measurement(measurement_id):
+    """Desarquiva uma medição (volta à lista)."""
+    with write_lock:
+        conn = get_connection()
+        try:
+            cursor = conn.execute(
+                "UPDATE measurements SET archived_at = NULL "
+                "WHERE id = ? AND archived_at IS NOT NULL",
+                (measurement_id,),
+            )
+            conn.commit()
+            return cursor.rowcount
+        finally:
+            conn.close()
+
+def restore_all_measurements(user_id=None):
+    """Desarquiva todas as medições arquivadas. Com user_id, só as desse utilizador."""
+    with write_lock:
+        conn = get_connection()
+        try:
+            if user_id is None:
+                cursor = conn.execute(
+                    "UPDATE measurements SET archived_at = NULL WHERE archived_at IS NOT NULL"
+                )
+            else:
+                cursor = conn.execute(
+                    "UPDATE measurements SET archived_at = NULL "
+                    "WHERE archived_at IS NOT NULL AND user_id = ?",
+                    (user_id,),
+                )
+            conn.commit()
+            return cursor.rowcount
+        finally:
+            conn.close()
+
 def delete_measurement(measurement_id):
     with write_lock:
         conn = get_connection()
@@ -160,13 +239,28 @@ def delete_measurement(measurement_id):
         finally:
             conn.close()
 
-def delete_all_measurements():
+def delete_all_measurements(user_id=None):
+    """Apaga fisicamente as medições (não tem volta). O 'apagar todas' do
+    frontend usa archive_all_measurements; isto fica para uma limpeza real."""
     with write_lock:
         conn = get_connection()
         try:
-            conn.execute("DELETE FROM measurement_objects")
-            conn.execute("DELETE FROM measurement_images")
-            cursor = conn.execute("DELETE FROM measurements")
+            if user_id is None:
+                conn.execute("DELETE FROM measurement_objects")
+                conn.execute("DELETE FROM measurement_images")
+                cursor = conn.execute("DELETE FROM measurements")
+            else:
+                conn.execute(
+                    "DELETE FROM measurement_objects WHERE measurement_id IN "
+                    "(SELECT id FROM measurements WHERE user_id = ?)",
+                    (user_id,),
+                )
+                conn.execute(
+                    "DELETE FROM measurement_images WHERE measurement_id IN "
+                    "(SELECT id FROM measurements WHERE user_id = ?)",
+                    (user_id,),
+                )
+                cursor = conn.execute("DELETE FROM measurements WHERE user_id = ?", (user_id,))
             conn.commit()
             return cursor.rowcount
         finally:

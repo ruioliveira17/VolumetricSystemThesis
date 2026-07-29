@@ -35,7 +35,7 @@ from db.migrate import run_migrations
 from db import measurements_repo, config_repo, calibration_repo
 from db.users_repo import get_by_login, get_by_username, get_by_email, get_by_id, create_user, list_users, set_role, delete_user
 
-from BaseModels import CamValues, ColorCoords, CropWindow, CurrentMenu, HSVValue, LoginData, ManualWorkspace, MeasurementIn, ObjectIn, RefreshData, RegisterData, RoleUpdate, SystemUpdate
+from BaseModels import CamValues, ColorCoords, CropWindow, CurrentMenu, HSVValue, LanguageIn, LoginData, ManualWorkspace, MeasurementIn, ObjectIn, RefreshData, RegisterData, RoleUpdate, SystemUpdate
 from CameraState import camState
 from DepthState import depthState
 from FilterState import filterState
@@ -349,6 +349,14 @@ def list_measurements_endpoint(current_user: dict = Depends(get_current_user)):
     owner = get_by_username(current_user["username"])
     return {"measurements": measurements_repo.list_measurements(user_id=owner["id"]) if owner else []}
 
+@app.get("/measurements/archived", summary="Lists the archived measurements",
+         description="Measurements archived by the 'delete all' action. They stay in the database.",
+         tags=["Measurements"])
+def list_archived_measurements_endpoint(current_user: dict = Depends(get_current_user)):
+    if current_user["role"] == "admin":
+        return {"measurements": measurements_repo.list_archived_measurements()}
+    owner = get_by_username(current_user["username"])
+    return {"measurements": measurements_repo.list_archived_measurements(user_id=owner["id"]) if owner else []}
 
 @app.get("/measurements/{measurement_id}")
 def get_measurement_endpoint(measurement_id: int, current_user: dict = Depends(get_current_user)):
@@ -362,10 +370,35 @@ def remove_measurement(measurement_id: int, current_user: dict = Depends(get_cur
     measurements_repo.delete_measurement(measurement_id)
     return {"deleted": measurement_id}
 
-@app.delete("/measurements/deleteall")
+@app.delete("/measurements/deleteall", summary="Archives the measurements instead of deleting them",
+            description="""
+            Stamps archived_at on every visible measurement: they disappear from the history but
+            nothing is removed from the database. An admin archives everything, a normal user only
+            archives their own measurements.
+            """,
+            tags=["Measurements"])
 def remove_measurements(current_user: dict = Depends(get_current_user)):
-    measurements_repo.delete_all_measurements()
-    return {"message": "All measurements deleted"}
+    if current_user["role"] == "admin":
+        archived = measurements_repo.archive_all_measurements()
+    else:
+        owner = get_by_username(current_user["username"])
+        if owner is None:
+            raise HTTPException(status_code=404, detail="User not found.")
+        archived = measurements_repo.archive_all_measurements(user_id=owner["id"])
+    return {"message": "All measurements archived", "archived": archived}
+
+@app.post("/measurements/restoreall", summary="Restores the archived measurements",
+          description="Clears archived_at so the measurements show up in the history again.",
+          tags=["Measurements"])
+def restore_measurements(current_user: dict = Depends(get_current_user)):
+    if current_user["role"] == "admin":
+        restored = measurements_repo.restore_all_measurements()
+    else:
+        owner = get_by_username(current_user["username"])
+        if owner is None:
+            raise HTTPException(status_code=404, detail="User not found.")
+        restored = measurements_repo.restore_all_measurements(user_id=owner["id"])
+    return {"message": "All measurements restored", "restored": restored}
 #-------------------------------------------------------   Stream   -------------------------------------------------------
 
 @app.post("/offer")
@@ -1608,6 +1641,31 @@ def get_configuration_status(current_user: dict = Depends(get_current_user)):
 
     except:
         return {"configured": False}
+
+@app.get("/configuration/language", summary="Obtains the selected interface language",
+         description="""
+         Returns the language saved in the settings table, plus the list of supported codes.
+         No authentication: the login screen needs the language before there is a token.
+         """,
+         tags=["Configuration"])
+def get_language():
+    return {"language": config_repo.get_language(), "supported": list(config_repo.SUPPORTED_LANGUAGES)}
+
+@app.put("/configuration/language", summary="Saves the selected interface language",
+         description="""
+         Persists the language chosen in the settings menu so it survives a restart.
+         Accepts one of the supported codes ('pt', 'en'), otherwise returns 400.
+         """,
+         tags=["Configuration"])
+def set_language(info: LanguageIn, current_user: dict = Depends(get_current_user)):
+    try:
+        language = config_repo.save_language(info.language)
+    except ValueError:
+        raise HTTPException(
+            status_code=400,
+            detail="Unsupported language. Supported: " + ", ".join(config_repo.SUPPORTED_LANGUAGES),
+        )
+    return {"language": language}
     
 @app.post("/saveInfo")
 def save_state():

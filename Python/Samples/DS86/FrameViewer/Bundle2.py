@@ -297,7 +297,7 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
                     workspace_warning = obj["workspace_limits"]
                     ws_poly = numpy.array(workspace_warning, dtype = numpy.int32)
                     #Giving a little margin to identify objects on the border
-                    margin = 3
+                    margin = 2
                     xmin = ws_poly[:, 0].min() - margin
                     xmax = ws_poly[:, 0].max() + margin
                     ymin = ws_poly[:, 1].min() - margin
