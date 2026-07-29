@@ -365,10 +365,41 @@ def get_measurement_endpoint(measurement_id: int, current_user: dict = Depends(g
         raise HTTPException(status_code=404, detail="Measurement not found.")
     return data
 
-@app.delete("/measurements/delete/{measurement_id}")
+@app.delete("/measurements/delete/{measurement_id}", summary="Archives one measurement instead of deleting it",
+            description="""
+            Stamps archived_at on the measurement: it disappears from the history but nothing is
+            removed from the database. A normal user can only archive their own measurements.
+            Archiving one that is already archived is a no-op (still 200).
+            """,
+            tags=["Measurements"])
 def remove_measurement(measurement_id: int, current_user: dict = Depends(get_current_user)):
-    measurements_repo.delete_measurement(measurement_id)
-    return {"deleted": measurement_id}
+    owner_id = measurements_repo.get_owner_id(measurement_id)
+    if owner_id is None:
+        raise HTTPException(status_code=404, detail="Measurement not found.")
+
+    if current_user["role"] != "admin":
+        owner = get_by_username(current_user["username"])
+        if owner is None or owner["id"] != owner_id:
+            raise HTTPException(status_code=403, detail="Not allowed to archive this measurement.")
+
+    measurements_repo.archive_measurement(measurement_id)
+    return {"archived": measurement_id}
+
+@app.post("/measurements/restore/{measurement_id}", summary="Restores one archived measurement",
+          description="Clears archived_at so the measurement shows up in the history again.",
+          tags=["Measurements"])
+def restore_one_measurement(measurement_id: int, current_user: dict = Depends(get_current_user)):
+    owner_id = measurements_repo.get_owner_id(measurement_id)
+    if owner_id is None:
+        raise HTTPException(status_code=404, detail="Measurement not found.")
+
+    if current_user["role"] != "admin":
+        owner = get_by_username(current_user["username"])
+        if owner is None or owner["id"] != owner_id:
+            raise HTTPException(status_code=403, detail="Not allowed to restore this measurement.")
+
+    measurements_repo.restore_measurement(measurement_id)
+    return {"restored": measurement_id}
 
 @app.delete("/measurements/deleteall", summary="Archives the measurements instead of deleting them",
             description="""

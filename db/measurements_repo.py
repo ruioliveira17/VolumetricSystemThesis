@@ -155,6 +155,19 @@ def get_measurement(measurement_id):
     finally:
         conn.close()
 
+def get_owner_id(measurement_id):
+    """user_id de uma medição (arquivada ou não), ou None se não existir.
+    Serve para o endpoint verificar de quem é a medição sem ter de carregar
+    o detalhe todo (o get_measurement traz a imagem em base64, é pesado)."""
+    conn = get_connection()
+    try:
+        row = conn.execute(
+            "SELECT user_id FROM measurements WHERE id = ?", (measurement_id,)
+        ).fetchone()
+        return row["user_id"] if row else None
+    finally:
+        conn.close()
+
 def archive_measurement(measurement_id):
     """Arquiva uma medição (soft delete): sai da lista mas nada é apagado."""
     with write_lock:
@@ -228,6 +241,8 @@ def restore_all_measurements(user_id=None):
             conn.close()
 
 def delete_measurement(measurement_id):
+    """Apaga fisicamente uma medição (não tem volta). O botão 'Delete' do
+    frontend usa archive_measurement; isto fica para uma limpeza real."""
     with write_lock:
         conn = get_connection()
         try:
