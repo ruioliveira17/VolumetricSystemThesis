@@ -1,5 +1,7 @@
 import React from "react";
 import "./QSettings.css";
+import CloseIcon from '@assets/icons/close.svg?react';
+import PopupConnection from '@assets/icons/popup_connection.svg?react';
 
 interface QSettingsProps {
   setShowSettingsPopup: React.Dispatch<React.SetStateAction<boolean>>;
@@ -50,11 +52,17 @@ function QSettings({
   return (
     <>
       {/* Fundo Escuro */}
-      <div className="popup-overlay" onClick={() => setShowSettingsPopup(false)} />
+      <div className="popup-overlay" />
 
       {/* PopUp */}
+      <div className="settings-popup-connection">
+        <PopupConnection />
+      </div>
       <div className="settings-popup">
         <span className="text">Settings</span>
+        <div className="close-button">
+          <CloseIcon onClick={() => setShowSettingsPopup(false)}/>
+        </div>
         <div className="settings-buttons-container">
           {/* Exposition */}
           <span className="text">Exposition Type</span>

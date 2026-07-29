@@ -1,4 +1,7 @@
 import "./QUser.css";
+import UserIcon from '@assets/icons/user.svg?react';
+import CloseIcon from '@assets/icons/close.svg?react';
+import PopupConnection from '@assets/icons/popup_connection.svg?react';
 
 interface QUserModalProps {
     savedUser: {
@@ -20,20 +23,18 @@ function QUserModal({
 
     return (
         <>
-            <div
-                className="popup-overlay"
-                onClick={() => setShowUserPopup(false)}
-            />
+            <div className="popup-overlay"/>
 
+            <div className="user-popup-connection">
+                <PopupConnection />
+            </div>
             <div className="user-popup">
 
                 <div className="user-info-container">
                     <div className="user-row">
 
-                        <img
-                            src="/user.svg"
+                        <UserIcon
                             className="user-icon"
-                            alt="User"
                         />
 
                         <div className="user-texts">
@@ -49,6 +50,9 @@ function QUserModal({
                     </div>
                 </div>
 
+                <div className="close-button">
+                    <CloseIcon onClick={() => setShowUserPopup(false)}/>
+                </div>
 
                 <div
                     className="user-options"

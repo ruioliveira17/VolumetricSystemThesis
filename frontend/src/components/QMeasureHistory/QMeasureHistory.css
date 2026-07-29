@@ -187,7 +187,6 @@
 }
 
 .more-options-button.active {
-  transform: scale(1.10);
   opacity: 1;
   transition: 0.3s;
 }
@@ -361,6 +360,8 @@
   
   display: block;
   z-index: 1;
+  -webkit-user-drag: none;
+  user-select: none;
 }
 
 .measurement-boxInfo-container{

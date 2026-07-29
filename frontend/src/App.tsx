@@ -171,6 +171,10 @@ function App(){
     const [showCropWindow, setShowCropWindow] = useState<boolean>(false);
     const [videoCrop, setVideoCrop] = useState<any>(null);
 
+    const ASPECT_RATIO = 4/3;
+    const draggingCrop = useRef<boolean>(false);
+    const dragOffset = useRef({x: 0, y:0});
+
     const cropVideo = useRef<HTMLVideoElement | null>(null);
     const cropCanvas = useRef<HTMLCanvasElement | null>(null);
     const selectedCorner = useRef<string | null>(null);
@@ -931,6 +935,23 @@ function App(){
                     drawCrop();
                     return;
                 }
+
+                if (
+                    x >= cropArea.x &&
+                    x <= cropArea.x + cropArea.width &&
+                    y >= cropArea.y &&
+                    y <= cropArea.y + cropArea.height
+                ) {
+
+                    draggingCrop.current = true;
+
+                    dragOffset.current = {
+                        x: x - cropArea.x,
+                        y: y - cropArea.y
+                    };
+
+                    return;
+                }
             }
 
             selectedCorner.current = null;
@@ -939,6 +960,37 @@ function App(){
         }
 
         function mouseMove(event: MouseEvent) {
+            if (draggingCrop.current) {
+
+                const { x, y } = getMousePos(event);
+
+                setCropArea(prev => {
+
+                    let newX = x - dragOffset.current.x;
+                    let newY = y - dragOffset.current.y;
+
+                    newX = Math.max(
+                        0,
+                        Math.min(newX, canvas.width - prev.width)
+                    );
+
+                    newY = Math.max(
+                        0,
+                        Math.min(newY, canvas.height - prev.height)
+                    );
+
+
+                    return {
+                        ...prev,
+                        x: newX,
+                        y: newY
+                    };
+
+                });
+
+                return;
+            }
+
             if (!dragging.current) return;
 
             const { x, y } = getMousePos(event);
@@ -946,41 +998,54 @@ function App(){
             setCropArea((prev: any) => {
                 const c = { ...prev };
 
-                if (selectedCorner.current === "tl") {
-                    c.x = x;
-                    c.y = y;
-                    c.width = prev.width + (prev.x - x);
-                    c.height = prev.height + (prev.y - y);
+                const centerX = prev.x + prev.width / 2;
+                const centerY = prev.y + prev.height / 2;
+
+                let newWidth = Math.abs(x - centerX) * 2;
+                let newHeight = newWidth / ASPECT_RATIO;
+
+                if (newWidth < 50) {
+                    newWidth = 50;
+                    newHeight = newWidth / ASPECT_RATIO;
                 }
 
-                if (selectedCorner.current === "tr") {
-                    c.y = y;
-                    c.width = x - prev.x;
-                    c.height = prev.height + (prev.y - y);
-                }
+                let newX = centerX - newWidth / 2;
+                let newY = centerY - newHeight / 2;
 
-                if (selectedCorner.current === "bl") {
-                    c.x = x;
-                    c.width = prev.width + (prev.x - x);
-                    c.height = y - prev.y;
-                }
+                const insideCanvas =
+                    newX >= 5 &&
+                    newY >= 5 &&
+                    newX + newWidth <= canvas.width &&
+                    newY + newHeight <= canvas.height;
 
-                if (selectedCorner.current === "br") {
-                    c.width = x - prev.x;
-                    c.height = y - prev.y;
-                }
+                if (insideCanvas) {
+                    c.x = newX;
+                    c.y = newY;
+                    c.width = newWidth;
+                    c.height = newHeight;
 
-                if (c.width < 50) {
-                    c.width = 50;
-                    if (selectedCorner.current === "tl" || selectedCorner.current === "bl") {
-                        c.x = prev.x + prev.width - 50;
+                } else {
+                    if (selectedCorner.current === "br") {
+                        c.width = Math.min(newWidth, canvas.width - prev.x);
+                        c.height = c.width / ASPECT_RATIO;
                     }
-                }
 
-                if (c.height < 50) {
-                    c.height = 50;
-                    if (selectedCorner.current === "tl" || selectedCorner.current === "tr") {
-                        c.y = prev.y + prev.height - 50;
+                    if (selectedCorner.current === "tl") {
+                        c.width = Math.min(newWidth, prev.x + prev.width);
+                        c.height = c.width / ASPECT_RATIO;
+                        c.x = prev.x + prev.width - c.width;
+                    }
+
+                    if (selectedCorner.current === "tr") {
+                        c.width = Math.min(newWidth, canvas.width - prev.x);
+                        c.height = c.width / ASPECT_RATIO;
+                        c.y = prev.y + prev.height - c.height;
+                    }
+
+                    if (selectedCorner.current === "bl") {
+                        c.width = Math.min(newWidth, prev.x + prev.width);
+                        c.height = c.width / ASPECT_RATIO;
+                        c.x = prev.x + prev.width - c.width;
                     }
                 }
 
@@ -990,6 +1055,7 @@ function App(){
 
         function mouseUp() {
             dragging.current = false;
+            draggingCrop.current = false;
             selectedCorner.current = null;
             drawCrop();
         }
@@ -2220,7 +2286,7 @@ function App(){
                     }
 
                     setMeasureObjectList(Object.keys(measureData).filter((key) => key !== "Total"));
-                    setMeasureSelectedObject("");
+                    setMeasureSelectedObject("1");
                     setMeasureVolumeInfo(null);
                 }
 
@@ -2416,7 +2482,7 @@ function App(){
                         });
                     } else if (objIdentified.length > 1) {
                         setObjectList(objIdentified);
-                        setSelectedObject("");
+                        setSelectedObject(objIdentified[0]);
                         setVolInfo(null);
                     }
 
@@ -2509,7 +2575,7 @@ function App(){
                         });
                     } else if (objIdentified.length > 1) {
                         setObjectList(objIdentified);
-                        setSelectedObject("");
+                        setSelectedObject(objIdentified[0]);
                         setVolInfo(null);
                     }
 
@@ -3080,7 +3146,9 @@ function App(){
                     setCurrentMenu={setCurrentMenu}
 
                     setShowSettingsPopup={setShowSettingsPopup}
+                    showSettingsPopup={showSettingsPopup}
                     setShowUserPopup={setShowUserPopup}
+                    showUserPopup={showUserPopup}
                 />
 
                 <QToaster />

@@ -334,12 +334,7 @@ function QMeasureHistory({
                         key={obj}
                         className={`measurement-object-item ${measureSelectedObject === obj ? "selected" : ""}`}
                         onClick={() => {
-                          setMeasureSelectedObject(prev => {
-                            const isSame = prev === obj;
-                            if (isSame) {
-                              setMeasureVolumeInfo(null);
-                              return "";
-                            }
+                          setMeasureSelectedObject(() => {
                             return obj;
                           });
                         }}
@@ -404,9 +399,9 @@ function QMeasureHistory({
                     </>
                   )}
 
-                  {!measureVolumeInfo && measureMultipleVolumeData && (
+                  {/*{!measureVolumeInfo && measureMultipleVolumeData && (
                     <div className="measurement-boxInfo-message">Selecione um objeto</div>
-                  )}
+                  )}*/}
                 </div>
               </>
             )}

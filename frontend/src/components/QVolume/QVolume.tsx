@@ -287,14 +287,7 @@ function QVolume({
                                     key={obj}
                                     className={`object-item ${ selectedObject === obj ? "selected" : ""}`}
                                     onClick={() => {
-                                        setSelectedObject(prev => {
-                                            const isSame = prev === obj;
-
-                                            if (isSame) {
-                                                setVolInfo(null);
-                                                return "";
-                                            }
-
+                                        setSelectedObject(() => {
                                             return obj;
                                         });
                                     }}
@@ -394,11 +387,11 @@ function QVolume({
                             </>
                         )}
 
-                        {!volInfo && !loadingVolume && multipleVolumeData && (multipleVolumeData?.Total?.volume_m ?? 0) !== 0 && (
+                        {/*{!volInfo && !loadingVolume && multipleVolumeData && (multipleVolumeData?.Total?.volume_m ?? 0) !== 0 && (
                             <>
                                 <div className="boxInfo-message">Selecione um objeto</div>
                             </>
-                        )}
+                        )}*/}
                     </div>
                 </>
             )}

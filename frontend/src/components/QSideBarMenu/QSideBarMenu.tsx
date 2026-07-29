@@ -1,4 +1,6 @@
 import "./QSideBarMenu.css";
+import SettingsIcon from '@assets/icons/settings.svg?react';
+import UserIcon from '@assets/icons/user.svg?react';
 
 interface QSideBarMenuProps {
     isAuthScreen: boolean;
@@ -10,7 +12,9 @@ interface QSideBarMenuProps {
     setCurrentMenu: (menu: string) => void;
 
     setShowSettingsPopup: (value: boolean) => void;
+    showSettingsPopup : boolean;
     setShowUserPopup: (value: boolean) => void;
+    showUserPopup: boolean;
 }
 
 
@@ -21,7 +25,9 @@ function QSideBarMenu({
     currentMenu,
     setCurrentMenu,
     setShowSettingsPopup,
-    setShowUserPopup
+    showSettingsPopup,
+    setShowUserPopup,
+    showUserPopup,
 }: QSideBarMenuProps) {
 
     return (
@@ -66,27 +72,25 @@ function QSideBarMenu({
                 MEASUREMENT HISTORY
             </div>
 
+            <div className={`nav-icon-container ${
+                        (isAuthScreen || !menuSideNavOpen) ? "hidden" : ""
+                    } ${showSettingsPopup ? "active" : ""}`}>
+                <SettingsIcon className={`nav-icon ${
+                        (isAuthScreen || !menuSideNavOpen) ? "hidden" : ""
+                    } ${showSettingsPopup ? "active" : ""}`}
+                    onClick={() => setShowSettingsPopup(true)}
+                />
+            </div>
 
-            <img
-                src="/settings.svg"
-                className={`nav-icon ${
-                    (isAuthScreen || !menuSideNavOpen)
-                        ? "hidden"
-                        : ""
-                }`}
-                alt="Settings"
-                onClick={() => setShowSettingsPopup(true)}
-            />
-
-
-            <img
-                src="/user.svg"
-                className={`nav-icon ${
-                    isAuthScreen ? "hidden" : ""
-                }`}
-                alt="User"
-                onClick={() => setShowUserPopup(true)}
-            />
+            <div className={`nav-icon-container ${
+                isAuthScreen ? "hidden" : ""
+            } ${showUserPopup ? "active" : ""}`}>
+                <UserIcon className={`nav-icon ${
+                        isAuthScreen ? "hidden" : ""
+                    } ${showUserPopup ? "active" : ""}`}
+                    onClick={() => setShowUserPopup(true)}
+                />
+            </div>
 
         </div>
     );
