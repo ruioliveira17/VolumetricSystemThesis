@@ -2,6 +2,8 @@ import React from "react";
 import { RefObject } from "react";
 import "./QVolume.css";
 import WarningIcon from '@assets/icons/warning.svg?react';
+import ZeroIcon from '@assets/icons/zeroIcon.svg?react';
+import StableIcon from '@assets/icons/stableIcon.svg?react';
 
 interface Message {
   type: string;
@@ -28,6 +30,7 @@ interface QVolumeProps {
   volume_click: () => void;
 
   weightStable: boolean;
+  weightZero: boolean;
 
   volInfo: any;
   multipleVolumeData: any;
@@ -41,6 +44,7 @@ interface QVolumeProps {
   countdown: number | null;
 
   weightInfo: any;
+  measurementWeightInfo: any;
 
   volumeMode: string;
   toggleMenu: () => void;
@@ -69,6 +73,7 @@ function QVolume({
   volume_click,
 
   weightStable,
+  weightZero,
 
   volInfo,
   multipleVolumeData,
@@ -82,6 +87,7 @@ function QVolume({
   countdown,
 
   weightInfo,
+  measurementWeightInfo,
 
   volumeMode,
   toggleMenu,
@@ -114,22 +120,37 @@ function QVolume({
 
             {/* Video & Image */}
             <div className="camera-container">
+                {/* Weight Overlay Bar */}
+                <div className="weightBar-container">
+                    <div className="background"></div>
+
+                    <div className="weightBar-icons">
+                        <ZeroIcon className={`weightBar-icon ${weightZero ? "active" : ""}`}/>
+                        <StableIcon className={`weightBar-icon ${weightStable ? "active" : ""}`}/>
+                    </div>
+
+                    <div className="weightBar-value">
+                        <span className="label">WEIGHT:</span>
+                        <span className="value">
+                            {weightInfo?.weight != null ? Number(weightInfo.weight).toFixed(2) : "0.00"} kg
+                        </span>
+                    </div>
+                </div>
+
                 <div className="camera-video-wrapper">
-                    {showCamera ? (
-                        <video
-                            ref={cameraVideo}
-                            autoPlay
-                            playsInline
-                            className="camera-video"
-                            onLoadedMetadata={() => {
-                                setCropVideoReady(true);
-                            }}
-                            style={cropTransform}
-                        />
-                    ) : (
-                        objectImage && (
-                            <img className="object-img" src={objectImage} onLoad={() => {setCropVideoReady(true);}} style={cropTransform} alt="objects"/>
-                        )
+                    <video
+                        ref={cameraVideo}
+                        autoPlay
+                        playsInline
+                        className="camera-video"
+                        onLoadedMetadata={() => {
+                            setCropVideoReady(true);
+                        }}
+                        style={cropTransform}
+                    />
+                    
+                    {objectImage && (
+                        <img className={`object-img ${showCamera ? "hidden" : "visible"}`} src={objectImage} onLoad={() => {setCropVideoReady(true);}} style={cropTransform} alt="objects"/>
                     )}
                 </div>
 
@@ -159,7 +180,7 @@ function QVolume({
             {volBundleMode ? (
                 <>
                     {/* Button */}
-                    <button onClick={volume_click} className="volumeBundle-button" disabled={loadingVolume || !weightStable}>
+                    <button onClick={volume_click} className="volume-button" disabled={loadingVolume || !weightStable}>
                         {loadingVolume && (
                             <>
                                 <div className="loadingVolume-icon">
@@ -171,49 +192,49 @@ function QVolume({
                             </>
                         )}
 
-                        <div className="volumeBundle-button-info-container">
+                        <div className="volume-button-info-container">
                             <img src="/VIEW_IN_AR.svg" alt="VIEW_IN_AR" className="icon"/>
                             <span className="text">Get Volume</span>
                         </div>
                     </button>
 
                     {/* Info Objects */}
-                    <div className="boxBundleInfo-container">
+                    <div className="boxInfo-container">
                         <div className="background"></div>
                         
                         {volInfo && !multipleVolumeData && (volInfo.width !== 0 || volInfo.length !== 0 || volInfo.height !== 0 || volInfo.volume_m !== 0 || volInfo.volume_cm !== 0) && (
                             <>
-                                <canvas ref={canvasRef} className="volumeBundle-canvas" />
+                                <canvas ref={canvasRef} className="volume-canvas" />
 
-                                <div className="boxBundleInfoText-container">
-                                    <div style={{ color: "#6CD08A" }} className="boxBundleInfo-text">
+                                <div className="boxInfoText-container">
+                                    <div style={{ color: "#6CD08A" }} className="boxInfo-text">
                                         <span className="label">Width (cm):</span>
                                         <span className="value">{volInfo.width.toFixed(1)}</span> 
                                     </div>
 
-                                    <div style={{ color: "#C66D6D" }} className="boxBundleInfo-text">
+                                    <div style={{ color: "#C66D6D" }} className="boxInfo-text">
                                         <span className="label">Length (cm):</span> 
                                         <span className="value">{volInfo.length.toFixed(1)}</span> 
                                     </div>
 
-                                    <div style={{ color: "#9EB0FD" }} className="boxBundleInfo-text">
+                                    <div style={{ color: "#9EB0FD" }} className="boxInfo-text">
                                         <span className="label">Height (cm):</span> 
                                         <span className="value">{volInfo.height.toFixed(1)}</span>     
                                     </div>
 
-                                    <div style={{ color: "#FFFFFF" }} className="boxBundleInfo-text">
+                                    <div style={{ color: "#FFFFFF" }} className="boxInfo-text">
                                         <span className="label">Volume (m³):</span> 
                                         <span className="value">{volInfo.volume_m.toFixed(6)}</span> 
                                     </div>
 
-                                    <div style={{ color: "#FFFFFF" }} className="boxBundleInfo-text">
+                                    <div style={{ color: "#FFFFFF" }} className="boxInfo-text">
                                         <span className="label">Volume (cm³):</span> 
                                         <span className="value">{volInfo.volume_cm.toFixed(2)}</span> 
                                     </div>
 
-                                    <div style={{ color: "#FFFFFF" }} className="boxBundleInfo-text">
+                                    <div style={{ color: "#FFFFFF" }} className="boxInfo-text">
                                         <span className="label">Weight (kg):</span> 
-                                        <span className="value">{weightInfo?.weight != null ? Number(weightInfo.weight).toFixed(2) : "0.00"} </span> 
+                                        <span className="value">{measurementWeightInfo?.weight != null ? Number(measurementWeightInfo.weight).toFixed(2) : "0.00"} </span> 
                                     </div>
 
                                 </div>
@@ -278,53 +299,22 @@ function QVolume({
                         </div>
                     </button>
 
-                    {/* Menu Select Object */}
-                    <div className="object-selection-menu">
-                        <div className="background"></div>
-                        <div className="object-list">
-                            {objectList.map((obj) => (
-                                <span
-                                    key={obj}
-                                    className={`object-item ${ selectedObject === obj ? "selected" : ""}`}
-                                    onClick={() => {
-                                        setSelectedObject(() => {
-                                            return obj;
-                                        });
-                                    }}
-                                >
-                                    <span className="arrow">{selectedObject === obj ? "▶" : ""}</span>
-                                    <span>Object {obj}</span>
-                                </span>
-                            ))}
-                        </div>
-
-                        <div className="object-total">
-                            {multipleVolumeData && (multipleVolumeData?.Total?.volume_m ?? 0) > 0 ? (
-                                <> 
-                                    <div>TOTAL WEIGHT:</div>
-                                    <div className="total-value">
-                                        {weightInfo?.weight != null ? Number(weightInfo.weight).toFixed(2) : "0.00"} Kg
-                                    </div>
-
-                                    <div>TOTAL VOLUME:</div>
-                                    <div className="total-value">
-                                        {multipleVolumeData?.Total?.volume_m ?? 0} m³
-                                    </div>
-                                </>
-                            ) : null}
-                        </div>  
-
-                        {countdown && (
-                            <div className="countdown">
-                                {countdown}
-                            </div>
-                        )}
-                    </div>
-
                     {/* Info Objects */}
                     <div className="boxInfo-container">
                         <div className="background"></div>
                         
+                        <div className="object-tabs">
+                            {objectList.map((obj) => (
+                                <button
+                                    key={obj}
+                                    className={`object-tab ${selectedObject === obj ? "active" : ""}`}
+                                    onClick={() => setSelectedObject(obj)}
+                                >
+                                    Obj. {obj}
+                                </button>
+                            ))}
+                        </div>
+
                         {volInfo && selectedObject && (
                             <>
                                 <canvas ref={canvasRef} className="volume-canvas"/>
@@ -356,6 +346,24 @@ function QVolume({
 
                                 </div>
                             </>
+                        )}
+
+                        {multipleVolumeData && (multipleVolumeData?.Total?.volume_m ?? 0) > 0 && (
+                            <div className="object-total">
+                                <div className="total-divider"></div>
+                                <div className="total-row">
+                                    <span className="total-label">TOTAL WEIGHT:</span>
+                                    <span className="total-value">
+                                        {measurementWeightInfo?.weight != null ? Number(measurementWeightInfo.weight).toFixed(2) : "0.00"} kg
+                                    </span>
+                                </div>
+                                <div className="total-row">
+                                    <span className="total-label">TOTAL VOLUME:</span>
+                                    <span className="total-value">
+                                        {multipleVolumeData?.Total?.volume_m ?? 0} m³
+                                    </span>
+                                </div>
+                            </div>
                         )}
 
                         {objectsOutOfLine && (

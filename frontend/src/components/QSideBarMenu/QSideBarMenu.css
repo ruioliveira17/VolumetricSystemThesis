@@ -27,6 +27,14 @@
   transform: scale(1.05);
 }
 
+.menu-img.open img {
+  transform: rotate(90deg);
+}
+
+.menu-img.open img:hover {
+  transform: rotate(90deg) scale(1.05);
+}
+
 .menuSideNav {
   position: absolute;
   top: 4%;

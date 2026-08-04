@@ -17,7 +17,6 @@ interface QSideBarMenuProps {
     showUserPopup: boolean;
 }
 
-
 function QSideBarMenu({
     isAuthScreen,
     menuSideNavOpen,

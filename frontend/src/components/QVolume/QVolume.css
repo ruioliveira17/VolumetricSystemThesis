@@ -23,9 +23,13 @@
   height: 100%;
 
   display: block;
+  z-index: 2;
 }
 
 .object-img{
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
   border-radius: 0.8vw;
@@ -36,6 +40,93 @@
   z-index: 1;
   -webkit-user-drag: none;
   user-select: none;
+}
+
+.object-img.visible {
+    z-index: 5;
+}
+
+.object-img.hidden {
+    z-index: 1;
+}
+
+.weightBar-container {
+  position: absolute;
+  top: 2%;
+  left: 50%;
+  height: 6%;
+  width: 35%;
+  transform: translateX(-50%);
+
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 1vw;
+  
+  padding: 0 1vw;
+  box-sizing: border-box;
+
+  border-radius: 8px;
+  border: 1px solid #707070;
+  z-index: 2;
+}
+
+.weightBar-container .background {
+  position: absolute;
+  inset: 0;
+  background: rgba(31, 31, 31, 1);
+  border-radius: 8px;
+  z-index: -1;
+}
+
+.weightBar-icons {
+  width: 25%;
+  height: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.weightBar-icon{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  opacity: 0.2;
+  transition: background-color 0.3s ease;
+}
+
+.weightBar-icon.active{
+  opacity: 1;
+}
+
+.weightBar-value {
+  width: 60%;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5vw;
+}
+
+.weightBar-value .label {
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 400;
+  font-size: 1.3vh;
+}
+
+.weightBar-value .value {
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 1.6vh;
+}
+
+.weightBar-icons + .weightBar-value {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  border-left: 1px solid #707070;
+  padding-left: 1vw;
 }
 
 .switch-button-wrapper{
@@ -101,7 +192,7 @@
   position: absolute;
   left: 47.2%;
   top: 15.2%;
-  width: 14.3%;
+  width: 51.2%;
   height: 8%;
 
   cursor: pointer;
@@ -118,29 +209,32 @@
 
 .volume-button-info-container{
   position: absolute;
-  top: 25%;
-  left: 19.5%;
-  height: 50%;
-  width:61%;
+  top: 50%;
+  left: 50%;
+  height: 70%;
+  width: 20%;
+  transform: translate(-50%, -50%);
 
   display: flex;
   align-items: center;
-  gap: 8.6%
+  gap: 5%
 }
 
 .volume-button .icon {
-  width: 20.7%;
+  width: 25%;
   height: 100%;
   transition: filter 0.3s ease;
+  margin-left: 5%;
 }
 
 .volume-button .text {
   color: white;
   text-transform: uppercase;
-  width: 70.7%;
+  width: 60%;
   font-family: "Inter Regular", sans-serif;
-  font-size: 1.7vh;
+  font-size: 1.9vh;
   transition: color 0.3s ease;
+  margin-right: 5%;
 }
 
 .volume-button:hover {
@@ -155,153 +249,52 @@
   filter: invert(1);
 }
 
-.volumeBundle-button {
-  position: absolute;
-  left: 47.2%;
-  top: 15.2%;
-  width: 51.2%;
-  height: 8%;
-
-  cursor: pointer;
-  border-radius: 0.2vw;
-  border: none;
-
+.object-tabs {
   display: flex;
-  justify-content: center;
-  align-items: center;
-
-  background: rgba(255, 255, 255, 0.2);
-  transition: all 0.3s ease;
+  gap: 0.6vw;
+  overflow-x: auto;
+  scrollbar-width: none; /* firefox */
+  padding-bottom: 0.5vh;
 }
 
-.volumeBundle-button-info-container{
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  height: 70%;
-  width: 20%;
-  transform: translate(-50%, -50%);
-
-  display: flex;
-  align-items: center;
-  gap: 5%
+.object-tabs::-webkit-scrollbar {
+  display: none; /* chrome/safari */
 }
 
-.volumeBundle-button .icon {
-  width: 25%;
-  height: 100%;
-  transition: filter 0.3s ease;
-  margin-left: 5%;
-}
-
-.volumeBundle-button .text {
-  color: white;
-  text-transform: uppercase;
-  width: 60%;
+.object-tab {
+  flex: 0 0 auto;
+  background: rgba(255, 255, 255, 0.005);
+  border: 1px solid #FFFFFF33;
+  border-radius: 8px;
+  color: #ffffff;
+  padding: 0.8vh 0.8vw;
+  font-size: 1.7vh;
   font-family: "Inter Regular", sans-serif;
-  font-size: 1.9vh;
-  transition: color 0.3s ease;
-  margin-right: 5%;
-}
-
-.volumeBundle-button:hover {
-  background: white;
-}
-
-.volumeBundle-button:hover .text {
-  color: black;
-}
-
-.volumeBundle-button:hover .icon {
-  filter: invert(1);
-}
-
-.object-selection-menu{
-  position: relative;
-  left: 47.2%;
-  top: 27.2%;
-  width: 14.3%;
-  height: 68.6%;
-
-  display: flex;
-  flex-direction: column;
-
-  font-size: 2vh;
-
-  padding: 2vh 0.75vw;
-  box-sizing: border-box;
-
-  overflow-y: auto;
-}
-
-.object-selection-menu .background{
-  position: absolute;
-  inset: 0;
-  background: #000000 0% 0% no-repeat padding-box;
-  border-radius: 0.8vw;
-  opacity: 0.3;
-  z-index: 0;
-}
-
-.object-list {
-  flex: 1;
-  overflow-y: auto;
-
-  display: flex;
-  flex-direction: column;
-  z-index: 1;
-}
-
-.object-item{
-  color: white;
+  white-space: nowrap;
   cursor: pointer;
-  opacity: 0.8;
-
-  display: flex;
-  align-items: center;
-  margin-bottom: 1.6vh;
-}
-
-.arrow {
-  width: 0.8vw;
-  font-size: 1vh;
-  text-align: left;
-}
-
-.object-item:hover{
-  opacity: 1;
-}
-
-.object-item.selected {
-  color: #38E1FF;
-  opacity: 1;
-}
-
-.object-total {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-
-  padding-top: 0.8vh;
-  margin-top: 0.8vh;
-  margin-bottom: 1.6vh;
-  margin-left: 0.8vw;
-
-  cursor: default;
-  color: white;
+  transition: background-color 0.15s ease;
   z-index: 1;
+  opacity: 0.8;
 }
 
-.total-value {
-  font-family: "Inter Bold", sans-serif;
+.object-tab:hover {
+  background: rgba(255, 255, 255, 0.15);
+  opacity: 1;
+}
+
+.object-tab.active {
+  background: #38E1FF;
+  color: #3E3E3E;
+  font-weight: 600;
+  opacity: 1;
 }
 
 .boxInfo-container{
-  position: absolute;
-  left: 63.1%;
-  top: 15.2%;
-  width: 35.3%;
-  height: 80.54%;
+  position: relative;
+  left: 47.2%;
+  top: 27.2%;
+  width: 51.2%;
+  height: 68.54%;
 
   display: flex;
   flex-direction: column;
@@ -318,24 +311,24 @@
 .boxInfo-container .background{
   position: absolute;
   inset: 0;
-  background: #000000 0% 0% no-repeat padding-box;
+  background: rgba(0,0,0,0.3);
   border-radius: 0.8vw;
-  opacity: 0.3;
   z-index: 0;
 }
 
 .boxInfoText-container{
   position: absolute;
-  top: 67.8%;
+  top: 40%;
   left: 4.7%;
-  height: 28.4%;
-  width:90.5%;
+  height: 36.4%;
+  width:30.5%;
+  transform: translate(0, -40%);
 }
 
 .boxInfo-text{
   display: flex;
   align-items: center;
-  margin-bottom: 2%;
+  margin-bottom: 6%;
 }
 
 .boxInfo-text .label {
@@ -357,89 +350,47 @@
   font-size: 1.7vh;
   font-family: "Inter Regular", sans-serif;
   opacity: 0.8;
-  color: white;
   text-align: center;
 }
 
 .volume-canvas {
-  width: 100%;
-  height: 60%;
-  z-index: 1;
-}
-
-.boxBundleInfo-container{
-  position: relative;
-  left: 47.2%;
-  top: 27.2%;
-  width: 51.2%;
-  height: 68.54%;
-
-  display: flex;
-  flex-direction: column;
-
-  padding: 2vh 1.5vw;
-  box-sizing: border-box;
-
-  font-size: 2vh;
-
-  justify-content: flex-start;
-  align-items: flex-start;
-}
-
-.boxBundleInfo-container .background{
   position: absolute;
-  inset: 0;
-  background: #000000 0% 0% no-repeat padding-box;
-  border-radius: 0.8vw;
-  opacity: 0.3;
-  z-index: 0;
-}
-
-.boxBundleInfoText-container{
-  position: absolute;
-  top: 50%;
-  left: 4.7%;
-  height: 36.4%;
-  width:30.5%;
-  transform: translate(0, -50%);
-}
-
-.boxBundleInfo-text{
-  display: flex;
-  align-items: center;
-  margin-bottom: 6%;
-}
-
-.boxBundleInfo-text .label {
-  width: 90.5%;
-  text-align: left;
-}
-
-.boxBundleInfo-text .value {
-  width: 8vw;
-  text-align: right;
-}
-
-.boxBundleInfo-message {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  
-  font-size: 1.7vh;
-  font-family: "Inter Regular", sans-serif;
-  opacity: 0.8;
-  text-align: center;
-}
-
-.volumeBundle-canvas {
-  position: absolute;
-  top: 50%;
+  top: 35%;
   left: 20.7%;
   width: 100%;
   height: 60%;
-  transform: translate(0, -50%);
+  transform: translate(0, -35%);
   z-index: 1;
+}
+
+.object-total {
+  margin-top: auto;
+  width: 100%;
+  z-index: 1;
+}
+
+.total-divider {
+  width: 100%;
+  height: 0px;
+  border: 1px solid var(--unnamed-color-707070);
+  border: 1px solid #707070;
+  opacity: 1;
+  margin-bottom: 2vh;
+}
+
+.total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2vh;
+}
+
+.total-label,
+.total-value {
+  color: white;
+  font-size: 1.7vh;
+  font-weight: 600;
+  letter-spacing: 0.02em;
 }
 
 .error-modal{

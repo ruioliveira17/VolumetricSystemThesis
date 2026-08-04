@@ -211,8 +211,10 @@ function App(){
     const [cropTransform, setCropTransform] = useState<React.CSSProperties | undefined>(undefined);    
 
     const [weightInfo, setWeightInfo] = useState<any>(null);
+    const [measurementWeightInfo, setMeasurementWeightInfo] = useState<any>(null);
 
     const [weightStable, setWeightStable] = useState<boolean>(false);
+    const [weightZero, setWeightZero] = useState<boolean>(false);
 
     const [multipleVolumeData, setVolumeData] = useState<any>(null);
 
@@ -265,20 +267,15 @@ function App(){
 
     const sortOptions = [
         { label: "Date", value: "created_at" },
-        { label: "Measurement ID", value: "id" },
         { label: "Measurement Mode", value: "volume_mode" },
         { label: "No. of Objects", value: "object_count" },
-        { label: "Total Volume", value: "volume" },
-        { label: "Weight", value: "weight" },
+        { label: "User", value: "user_id" },
     ];
 
     const sortedMeasurements = [...measurementsList].sort((a, b) => {
         let comparison = 0;
 
         switch (sortField) {
-            case "id":
-                comparison = a.id - b.id;
-                break;
             case "created_at":
                 comparison = new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
                 break;
@@ -288,11 +285,8 @@ function App(){
             case "object_count":
                 comparison = a.object_count - b.object_count;
                 break;
-            case "volume":
-                comparison = a.total_volume_m - b.total_volume_m;
-                break;
-            case "weight":
-                comparison = a.weight - b.weight;
+            case "user_id":
+                comparison = a.id - b.id;
                 break;
             default:
                 break;
@@ -392,15 +386,15 @@ function App(){
         const storedUser = localStorage.getItem("current_user");
 
         if (!storedUser) {
-        setAppReady(true);
-        return;
+            setAppReady(true);
+            return;
         }
 
         const user = JSON.parse(storedUser);
 
         setSavedUser(user);
 
-        restoreSession();
+        loggedIn();
 
         setAppReady(true);
         }
@@ -479,6 +473,7 @@ function App(){
 
                 setWeightInfo(weightData);
                 setWeightStable(weightData.flags["stable"]);
+                setWeightZero(weightData.flags["zero"]);
 
             } catch (error) {
                 console.error("Weight info error:", error);
@@ -492,23 +487,6 @@ function App(){
         }
 
         }, [currentMenu]);
-
-    useEffect(() => {
-        if (!showCamera) return;
-
-        if (cameraVideo.current && pc.current?.getReceivers) {
-            const receivers = pc.current.getReceivers();
-            const stream = new MediaStream();
-
-            receivers.forEach((r) => {
-                if (r.track) {
-                    stream.addTrack(r.track);
-                }
-            });
-
-            cameraVideo.current.srcObject = stream;
-        }
-    }, [showCamera]);
 
     useEffect(() => {
         const handleMenu = async (): Promise<void> => {
@@ -839,6 +817,22 @@ function App(){
         loadWorkspace();
 
     }, [currentMenu, calibrationMode]);
+
+    useEffect(() => {
+        console.log("Estou a atualizar o crop para o antigo")
+
+        if (currentMenu === "volume-menu" && lastVideoCrop !== null) {
+            setVideoCrop({
+                ...lastVideoCrop,
+                videoWidth: cameraVideo.current.videoWidth,
+                videoHeight: cameraVideo.current.videoHeight,
+                displayWidth: cameraVideo.current.clientWidth,
+                displayHeight: cameraVideo.current.clientHeight
+            });
+
+            setLastVideoCrop(null);
+        }
+    }, [currentMenu, cropVideoReady]);
 
     // Crop - feed the camera stream into the crop preview video
     useEffect(() => {
@@ -1526,8 +1520,7 @@ function App(){
             return false;
     }
 
-    // Restore Session Algorithm
-    async function restoreSession() {
+    async function loggedIn(){
         let access_token = localStorage.getItem("access_token");
         const refresh_token = localStorage.getItem("refresh_token");
 
@@ -1536,6 +1529,13 @@ function App(){
             return;
         }
 
+        restoreSession();
+    }
+
+
+    // Restore Session Algorithm
+    async function restoreSession() {
+        let access_token = localStorage.getItem("access_token");
         try {
             let res = await fetch(`${API_URL}/calibration/status`, {
                 headers: {
@@ -1736,6 +1736,7 @@ function App(){
             localStorage.setItem("refresh_token", data.refresh_token);
 
             await checkCalibration();
+            await restoreSession();
 
             setMenuSideNavOpen(true);
 
@@ -2310,6 +2311,7 @@ function App(){
 
     // Single Bundle Volume Algorithm
     async function volumeSingleBundle(access_token: string): Promise<void> {
+        setMeasurementWeightInfo(weightInfo);
         try {
             await fetch(
                 `${API_URL}/volume/singleBundle`,
@@ -2372,7 +2374,7 @@ function App(){
 
                         const measurementData = {
                             volume_mode: "Single Bundle",
-                            weight: Number(weightInfo.weight),
+                            weight: Number(measurementWeightInfo.weight),
                             objects: [
                                 {
                                     idx: 1,
@@ -2433,6 +2435,7 @@ function App(){
 
     // Multi Bundle Volume Algorithm
     async function volumeMultiBundle(access_token: string): Promise<void> {
+        setMeasurementWeightInfo(weightInfo);
         try {
             await fetch(`${API_URL}/volume/multiBundle`, { method: "POST", headers: { "Authorization": `Bearer ${access_token}` } });
 
@@ -2501,7 +2504,7 @@ function App(){
 
                         const measurementData: MeasurementData = {
                             volume_mode: "Multi Bundle",
-                            weight: Number(weightInfo.weight),
+                            weight: Number(measurementWeightInfo.weight),
                             objects
                         };
 
@@ -2523,6 +2526,7 @@ function App(){
 
     // Real Volume Algorithm
     async function volumeReal(access_token: string): Promise<void> {
+        setMeasurementWeightInfo(weightInfo);
         try {
             await fetch(`${API_URL}/volume/real`, { method: "POST", headers: { "Authorization": `Bearer ${access_token}` } });
 
@@ -2597,7 +2601,7 @@ function App(){
 
                         const measurementData: MeasurementData = {
                             volume_mode: "Real",
-                            weight: Number(weightInfo.weight),
+                            weight: Number(measurementWeightInfo.weight),
                             objects
                         };
 
@@ -3125,8 +3129,15 @@ function App(){
         if (right < video.clientWidth) translateX += video.clientWidth - right;
         if (bottom < video.clientHeight) translateY += video.clientHeight - bottom;
 
+        const translateXPercent =
+            (translateX / video.clientWidth) * 100;
+
+        const translateYPercent =
+            (translateY / video.clientHeight) * 100;
+
+
         return {
-            transform: `translate(${translateX}px, ${translateY}px) scale(${scale})`,
+            transform: `translate(${translateXPercent}%, ${translateYPercent}%) scale(${scale})`,
             transformOrigin: "top left"
         };
     }
@@ -3231,6 +3242,7 @@ function App(){
                         volume_click={volume_click}
 
                         weightStable={weightStable}
+                        weightZero={weightZero}
 
                         volInfo={volInfo}
                         multipleVolumeData={multipleVolumeData}
@@ -3244,6 +3256,7 @@ function App(){
                         countdown={countdown}
 
                         weightInfo={weightInfo}
+                        measurementWeightInfo={measurementWeightInfo}
 
                         volumeMode={volumeMode}
                         toggleMenu={toggleMenu}

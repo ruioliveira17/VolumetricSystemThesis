@@ -160,6 +160,8 @@ async def lifespan(app: FastAPI):
             camState.spatialFilter = config["spatialFilter"]
             camState.confidenceFilter = config["confidenceFilter"]
             volumeState.countdown = config["countdown"]
+            volumeState.cropArea = CropWindow(**config["cropArea"])
+            volumeState.cropWindow = CropWindow(**config["cropWindow"])
 
             print("Last configurations loaded!")
 
