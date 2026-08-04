@@ -107,10 +107,6 @@ function QVolume({
 
 
         {/* Menu */}
-        <button className="menu-img" onClick={toggleMenu}>
-            <img src="/menu-closed.svg" alt="Menu" />
-        </button>
-
         <div className="menu-wrapper">
             <div className="title-container">
                 <div className="menu-title">Volume</div>

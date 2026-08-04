@@ -292,6 +292,32 @@ def refresh(data: RefreshData):
 
     return {"access_token": new_access_token, "refresh_token": new_refresh_token}
 
+
+@app.post("/refreshAccessToken", summary="Access Token Refresh",
+         description="""
+         Creates a new access token if the user is active during the expiration time of the refresh token. Returns the new access token if the refresh token is valid. Otherwise, it returns an error message indicating that the token is invalid, expired or revoked.
+         """,
+         tags=["User"])
+def refresh(data: RefreshData):
+    try:
+        payload = verify_token(data.refresh_token)
+    except ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Invalid token. Login again.")
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid token.")
+
+    if payload.get("type") != "refresh":
+        raise HTTPException(status_code=401, detail="Invalid token.")
+
+    username = payload["sub"]
+    user = get_by_username(username)
+
+    if user is None or user.get("deleted_at") is not None:
+        raise HTTPException(status_code=401, detail="User not found.")
+
+    new_access_token = create_access_token({"sub": username, "role": user["role"]})
+
+    return {"access_token": new_access_token}
 #-------------------------------------------------------   Falta Aplicar   -------------------------------------------------------
 
 @app.get("/users")

@@ -2,6 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import "./styles/global.css";
 import "./styles/common.css";
 
+import SettingsIcon from '@assets/icons/settings.svg?react';
+import UserIcon from '@assets/icons/user.svg?react';
+
 // --------------------------------------------------------------------- //
 // |                            Imports                                | //
 // --------------------------------------------------------------------- //
@@ -14,8 +17,10 @@ import { QSystemLoader } from "./components/QSystemLoader";
 import { QWindowResizer } from "./components/QWindowResizer";
 import { QUserModal, QUserPanel } from "./components/QUser";
 import { QSideBarMenu } from "./components/QSideBarMenu";
-
+import QTopBar from "./components/QTopBar";
 import { QToaster, notify } from "./components/QToast";
+
+import { NavLink } from 'react-router-dom';
 // --------------------------------------------------------------------- //
 // |                           Interfaces                              | //
 // --------------------------------------------------------------------- //
@@ -411,7 +416,7 @@ function App(){
             return;
         }
 
-        refreshAccessToken();
+        refreshTokens();
         setMessage([TextClear]);
 
         if (currentMenu === "calibration-menu") {
@@ -1477,7 +1482,7 @@ function App(){
     }
  
     // Token Functions
-    async function refreshAccessToken(): Promise<boolean> {
+    async function refreshTokens(): Promise<boolean> {
         const refreshToken = localStorage.getItem("refresh_token");
 
         if (!refreshToken) {
@@ -1520,6 +1525,98 @@ function App(){
             return false;
     }
 
+    async function refreshAccessToken(): Promise<boolean> {
+        const refreshToken = localStorage.getItem("refresh_token");
+
+        if (!refreshToken) {
+            return false;
+        }
+
+        try {
+            const response = await fetch(`${API_URL}/refreshAccessToken`,{
+                method: "POST",
+                headers: {
+                "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                refresh_token: refreshToken
+                })
+            });
+
+
+            if (response.ok) {
+                const data = await response.json();
+
+                localStorage.setItem(
+                    "access_token",
+                    data.access_token
+                );
+
+                return true;
+            }
+
+        } catch (e) {
+            console.warn("Refresh error:", e);
+            logout();
+            return false;
+        }
+            return false;
+    }
+
+    useEffect(() => {
+        let refreshTimeout: ReturnType<typeof setTimeout>;
+
+        const scheduleTokenRefresh = async () => {
+            const refreshToken = localStorage.getItem("refresh_token");
+
+            if (!refreshToken) {
+                logout();
+                return;
+            }
+
+            const accessToken = localStorage.getItem("access_token");
+
+            if (!accessToken) {
+                const success = await refreshAccessToken();
+
+                if (success) {
+                    scheduleTokenRefresh();
+                }
+
+                return;
+            }
+
+            try {
+                const payload = JSON.parse(
+                    atob(accessToken.split(".")[1])
+                );
+
+                const expirationTime = payload.exp * 1000;
+                const currentTime = Date.now();
+
+                const refreshTime = expirationTime - currentTime - 60_000;
+
+                refreshTimeout = setTimeout(async () => {
+                    const success = await refreshAccessToken();
+
+                    if (success) {
+                        scheduleTokenRefresh();
+                    }
+                }, Math.max(refreshTime, 0));
+
+            } catch (error) {
+                console.warn("Invalid access token:", error);
+                logout();
+            }
+        };
+
+        scheduleTokenRefresh();
+
+        return () => {
+            clearTimeout(refreshTimeout);
+        };
+    }, []);
+
     async function loggedIn(){
         let access_token = localStorage.getItem("access_token");
         const refresh_token = localStorage.getItem("refresh_token");
@@ -1544,7 +1641,7 @@ function App(){
             });
 
             if (res.status === 401) {
-                const refreshed = await refreshAccessToken();
+                const refreshed = await refreshTokens();
                 if (!refreshed) {
                     setCurrentMenu("login-menu");
                     return;
@@ -1632,7 +1729,7 @@ function App(){
 
     // Check Calibration Helper
     async function checkCalibration(): Promise<void> {
-        refreshAccessToken();
+        refreshTokens();
 
         const access_token = localStorage.getItem("access_token");
 
@@ -1953,7 +2050,7 @@ function App(){
             setNoObjectsDetected(false);
             setObjectsOutOfLine(false);
 
-            refreshAccessToken();
+            refreshTokens();
 
             const access_token = localStorage.getItem("access_token");
 
@@ -2045,7 +2142,7 @@ function App(){
         try {
             setMessage([TextClear]);
 
-            await refreshAccessToken();
+            await refreshTokens();
 
             const access_token = localStorage.getItem("access_token");
 
@@ -2108,7 +2205,7 @@ function App(){
     // Load the measurement history (and the users list for the "User" column)
     async function loadMeasurements(): Promise<void> {
         try {
-            await refreshAccessToken();
+            await refreshTokens();
             const access_token = localStorage.getItem("access_token");
 
             const res = await fetch(`${API_URL}/measurements`, { headers: { "Authorization": `Bearer ${access_token}` } });
@@ -2136,7 +2233,7 @@ function App(){
     // Delete a single measurement by id
     async function deleteMeasurement(measurementID: number | null): Promise<void> {
         try {
-            await refreshAccessToken();
+            await refreshTokens();
             const access_token = localStorage.getItem("access_token");
 
             const res = await fetch(`${API_URL}/measurements/delete/${measurementID}`, {
@@ -2156,7 +2253,7 @@ function App(){
 
     async function deleteAllMeasurements(): Promise<void> {
         try {
-            await refreshAccessToken();
+            await refreshTokens();
             const access_token = localStorage.getItem("access_token");
 
             const res = await fetch(`${API_URL}/measurements/deleteall`, {
@@ -2178,7 +2275,7 @@ function App(){
     // Load the detail of one measurement into the info popup
     async function viewMeasurement(selectedID: number): Promise<void> {
         try {
-            await refreshAccessToken();
+            await refreshTokens();
             const access_token = localStorage.getItem("access_token");
 
             const res_archived = await fetch(`${API_URL}/measurements/archived`, {
@@ -2788,7 +2885,7 @@ function App(){
         try {
             setLoadingCalibration(true);
             setMessage([TextClear]);
-            refreshAccessToken();
+            refreshTokens();
             const access_token = localStorage.getItem("access_token");
 
             await fetch(`${API_URL}/applyManualWorkspace`, {
@@ -2841,7 +2938,7 @@ function App(){
     async function confirm_calibration(confirm: boolean): Promise<void> {
         try {
             setCalibrationModalOpen(false);
-            refreshAccessToken();
+            refreshTokens();
             const access_token = localStorage.getItem("access_token");
 
             if (confirm) {
@@ -2864,7 +2961,7 @@ function App(){
 
     // Change Calibration Mode (Automatic / Manual)
     async function handleCalibrationModeChange(Manual: boolean): Promise<void> {
-        refreshAccessToken();
+        refreshTokens();
         const access_token = localStorage.getItem("access_token");
 
         if (Manual) {
@@ -2881,7 +2978,7 @@ function App(){
         try {
             setUsersLoading(true);
             setMessage([TextClear]);
-            await refreshAccessToken();
+            await refreshTokens();
             const access_token = localStorage.getItem("access_token");
             const res = await fetch(`${API_URL}/users`, { headers: { "Authorization": `Bearer ${access_token}` } });
             if (res.ok) {
@@ -2907,7 +3004,7 @@ function App(){
 
     async function changeUserRole(userId: number, role: string): Promise<void> {
         try {
-            await refreshAccessToken();
+            await refreshTokens();
             const access_token = localStorage.getItem("access_token");
             const res = await fetch(`${API_URL}/users/${userId}/role`, {
                 method: "PATCH",
@@ -2926,7 +3023,7 @@ function App(){
 
     async function deleteUserById(userId: number): Promise<void> {
         try {
-            await refreshAccessToken();
+            await refreshTokens();
             const access_token = localStorage.getItem("access_token");
             const res = await fetch(`${API_URL}/users/${userId}`, {
                 method: "DELETE",
@@ -2947,7 +3044,7 @@ function App(){
         const checked = e.target.value === "true";
         setExpHDR(checked);
 
-        refreshAccessToken();
+        refreshTokens();
         const access_token = localStorage.getItem("access_token");
 
         if (checked) {
@@ -2972,7 +3069,7 @@ function App(){
         setNoObjectsDetected(false);
         setObjectsOutOfLine(false);
 
-        refreshAccessToken();
+        refreshTokens();
         const access_token = localStorage.getItem("access_token");
 
         switch (mode) {
@@ -3002,7 +3099,7 @@ function App(){
         const mode = e.target.value;
         setSpeedMode(mode);
 
-        refreshAccessToken();
+        refreshTokens();
         const access_token = localStorage.getItem("access_token");
 
         switch (mode) {
@@ -3035,7 +3132,7 @@ function App(){
         }
 
         try {
-            refreshAccessToken();
+            refreshTokens();
             const access_token = localStorage.getItem("access_token");
 
             await fetch(`${API_URL}/update_systemInfo`, { method: "POST", headers: { "Content-Type": "application/json", "Authorization": `Bearer ${access_token}` }, body: JSON.stringify({ exposureTime: value }) });
@@ -3063,7 +3160,7 @@ function App(){
         }
 
         try {
-            refreshAccessToken();
+            refreshTokens();
             const access_token = localStorage.getItem("access_token");
 
             await fetch(`${API_URL}/update_systemInfo`, {
@@ -3144,11 +3241,49 @@ function App(){
 
     const isAuthScreen = currentMenu === "login-menu" || currentMenu === "register";
 
+    const navItems = [
+        {
+            key: 'volume',
+            label: 'Volume',
+            menu: 'volume-menu',
+        },
+        {
+            key: 'calibration',
+            label: 'Calibration',
+            menu: 'calibration-menu',
+        },
+        {
+            key: 'measurement',
+            label: 'Measurement History',
+            menu: 'measurementHistory-menu',
+        },
+    ];
+
+    const primaryNav = navItems
+        .filter(item => item.menu === currentMenu)
+        .map(item => ({
+            key: item.key,
+            label: item.label,
+            active: true,
+            order: navItems.indexOf(item),
+            onClick: () => setCurrentMenu(item.menu),
+        }));
+
+    const collapsibleNav = navItems
+        .filter(item => item.menu !== currentMenu)
+        .map(item => ({
+            key: item.key,
+            label: item.label,
+            active: false,
+            order: navItems.indexOf(item),
+            onClick: () => setCurrentMenu(item.menu),
+        }));
+
     if (appReady){
         return (
             <>
                 {/* Menu Side Nav */}
-                <QSideBarMenu
+                {/* <QSideBarMenu
                     isAuthScreen={isAuthScreen}
                     menuSideNavOpen={menuSideNavOpen}
                     lockMenu={lockMenu}
@@ -3160,6 +3295,33 @@ function App(){
                     showSettingsPopup={showSettingsPopup}
                     setShowUserPopup={setShowUserPopup}
                     showUserPopup={showUserPopup}
+                /> */}
+
+                <QTopBar
+                    primaryNav={primaryNav}
+                    collapsibleNav={collapsibleNav}
+
+                    collapsibleActions={[
+                        {
+                            key: 'settings',
+                            label: 'Settings',
+                            icon: <SettingsIcon />,
+                            onClick: () => setShowSettingsPopup(true),
+                            active: showSettingsPopup,
+                        },
+                    ]}
+
+                    actions={[
+                        {
+                            key: 'profile',
+                            label: 'User',
+                            icon: <UserIcon />,
+                            onClick: () => setShowUserPopup(true),
+                            active: showUserPopup,
+                        },
+                    ]}
+
+                    showToggle={true}
                 />
 
                 <QToaster />

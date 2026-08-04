@@ -136,11 +136,6 @@ function QMeasureHistory({
         <img src="/Qubic.svg" alt="BM Logo" />
       </div>
 
-      {/* Menu */}
-      <button className="menu-img" onClick={toggleMenu}>
-        <img src="/menu-closed.svg" alt="Menu" />
-      </button>
-
       {/* Warning */}
       <div className="warning">
         {message.map((msg, i) => (

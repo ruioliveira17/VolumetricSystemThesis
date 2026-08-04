@@ -15,7 +15,7 @@
 
 .settings-popup {
   position: fixed;
-  top: 12%;
+  top: 11.5%;
   left: 82%;
   transform: translate(-50%, 0%);
 
@@ -30,8 +30,8 @@
 
 .settings-popup-connection {
   position: fixed;
-  top: 9%;
-  left: 91.8%;
+  top: 8.5%;
+  left: 92.3%;
   transform: translate(-50%, 0%);
 
   width: 5%;

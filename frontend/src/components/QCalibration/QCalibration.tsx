@@ -54,11 +54,6 @@ function QCalibration({
         <img src="/Qubic.svg" alt="BM Logo" />
       </div>
 
-      {/* Menu */}
-      <button className="menu-img" onClick={toggleMenu}>
-        <img src="/menu-closed.svg" alt="Menu" />
-      </button>
-
       <div id="caliErrorLabel" className="warning" style={{ marginTop: "1.4vh" }}></div>
 
       <div className="menu-wrapper">
