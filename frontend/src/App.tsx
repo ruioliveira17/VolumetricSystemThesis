@@ -16,11 +16,10 @@ import { QSettings } from "./components/QSettings";
 import { QSystemLoader } from "./components/QSystemLoader";
 import { QWindowResizer } from "./components/QWindowResizer";
 import { QUserModal, QUserPanel } from "./components/QUser";
-import { QSideBarMenu } from "./components/QSideBarMenu";
 import QTopBar from "./components/QTopBar";
 import { QToaster, notify } from "./components/QToast";
 
-import { NavLink } from 'react-router-dom';
+import {apiFetch, refreshTokens, setOnAuthFailure} from "./api/client"
 // --------------------------------------------------------------------- //
 // |                           Interfaces                              | //
 // --------------------------------------------------------------------- //
@@ -416,7 +415,6 @@ function App(){
             return;
         }
 
-        refreshTokens();
         setMessage([TextClear]);
 
         if (currentMenu === "calibration-menu") {
@@ -463,17 +461,7 @@ function App(){
 
             const interval = setInterval(async () => {
             try {
-                const access_token = localStorage.getItem("access_token");
-
-                const dataResponse = await fetch(
-                `${API_URL}/weight`,
-                {
-                    headers: {
-                    "Authorization": `Bearer ${access_token}`
-                    }
-                }
-                );
-
+                const dataResponse = await apiFetch("/weight");
                 const weightData = await dataResponse.json();
 
                 setWeightInfo(weightData);
@@ -516,18 +504,8 @@ function App(){
 
         const interval = setInterval(async () => {
             try {
-                const access_token = localStorage.getItem("access_token");
-
-                const response = await fetch(
-                    `${API_URL}/volume/status`,
-                    {
-                        headers: {
-                            Authorization: `Bearer ${access_token}`,
-                        },
-                    }
-                );
-
-                const data = await response.json();
+                const dataResponse = await apiFetch("/volume/status");
+                const data = await dataResponse.json();
 
                 setProcessingMessage(data.status);
 
@@ -568,13 +546,7 @@ function App(){
 
         const handleClick = async (event: MouseEvent) => {
             try {
-                const access_token = localStorage.getItem("access_token");
-
-                const calibRes = await fetch(
-                    `${API_URL}/calibrate/mode`,
-                    { headers: { "Authorization": `Bearer ${access_token}` } }
-                );
-
+                const calibRes = await apiFetch("/calibrate/mode");
                 const calibData = await calibRes.json();
 
                 const rect = img.getBoundingClientRect();
@@ -582,13 +554,12 @@ function App(){
                 const y = Math.round((event.clientY - rect.top) * (img.naturalHeight / rect.height));
 
                 if (calibData["Calibrate Mode"] === "Automatic") {
-                    await fetch(
-                        `${API_URL}/mask/colorClick`,
+                    await apiFetch(
+                        "/mask/colorClick",
                         {
                             method: "POST",
                             headers: {
-                                "Content-Type": "application/json",
-                                "Authorization": `Bearer ${access_token}`
+                                "Content-Type": "application/json"
                             },
                             body: JSON.stringify({ x, y })
                         }
@@ -800,20 +771,11 @@ function App(){
         if (currentMenu !== "calibration-menu") return;
 
         const loadWorkspace = async () => {
-            const access_token = localStorage.getItem("access_token");
-            const r = await fetch(
-                `${API_URL}/calibrate/mode`,
-                { headers: { Authorization: `Bearer ${access_token}` } }
-            );
-
+            const r = await apiFetch("//calibrate/mode");
             const calibData = await r.json();
 
             if (calibData["Calibrate Mode"] === "Manual") {
-                const rParams = await fetch(
-                    `${API_URL}/calibrate/params`,
-                    { headers: { Authorization: `Bearer ${access_token}` } }
-                );
-
+                const rParams = await apiFetch("calibrate/params");
                 detectionArea.current = (await rParams.json())["Detected Area"];
                 workspaceDrawing();
             }
@@ -824,8 +786,6 @@ function App(){
     }, [currentMenu, calibrationMode]);
 
     useEffect(() => {
-        console.log("Estou a atualizar o crop para o antigo")
-
         if (currentMenu === "volume-menu" && lastVideoCrop !== null) {
             setVideoCrop({
                 ...lastVideoCrop,
@@ -1399,15 +1359,15 @@ function App(){
             const access_token = localStorage.getItem("access_token");
 
             if (currentMenu === "config-menu"){
-                await fetch(`${API_URL}/currentMenu`, {
+                await apiFetch("/currentMenu", {
                     method: "POST",
-                    headers: {"Content-Type": "application/json", "Authorization": `Bearer ${access_token}`},
+                    headers: {"Content-Type": "application/json"},
                     body: JSON.stringify({currentMenu: lastMenu})
                 });
             } else {
-                await fetch(`${API_URL}/currentMenu`, {
+                await apiFetch("/currentMenu", {
                     method: "POST",
-                    headers: {"Content-Type": "application/json", "Authorization": `Bearer ${access_token}`},
+                    headers: {"Content-Type": "application/json"},
                     body: JSON.stringify({currentMenu: currentMenu})
                 });
             } 
@@ -1435,7 +1395,6 @@ function App(){
             setMeasureObjAngles(objData.angles ?? []);
     }, [measureSelectedObject, measureMultipleVolumeData]);
 
-
     // --------------------------------------------------------------------- //
     // |                           Functions                               | //
     // --------------------------------------------------------------------- //
@@ -1444,7 +1403,7 @@ function App(){
     const waitForServer = async (maxAttempts: number = 20, delay: number = 1000): Promise<boolean> => {
         for (let i = 0; i < maxAttempts; i++) {
             try {
-                const res = await fetch(`${API_URL}/status`);
+                const res = await apiFetch("/status");
 
                 if (res.ok) {
                     return true;
@@ -1480,145 +1439,9 @@ function App(){
 
         return fallback;
     }
- 
-    // Token Functions
-    async function refreshTokens(): Promise<boolean> {
-        const refreshToken = localStorage.getItem("refresh_token");
-
-        if (!refreshToken) {
-            return false;
-        }
-
-        try {
-            const response = await fetch(`${API_URL}/refresh`,{
-                method: "POST",
-                headers: {
-                "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                refresh_token: refreshToken
-                })
-            });
-
-
-            if (response.ok) {
-                const data = await response.json();
-
-                localStorage.setItem(
-                    "access_token",
-                    data.access_token
-                );
-
-                localStorage.setItem(
-                    "refresh_token",
-                    data.refresh_token
-                );
-
-                return true;
-            }
-
-        } catch (e) {
-            console.warn("Refresh error:", e);
-            logout();
-            return false;
-        }
-            return false;
-    }
-
-    async function refreshAccessToken(): Promise<boolean> {
-        const refreshToken = localStorage.getItem("refresh_token");
-
-        if (!refreshToken) {
-            return false;
-        }
-
-        try {
-            const response = await fetch(`${API_URL}/refreshAccessToken`,{
-                method: "POST",
-                headers: {
-                "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                refresh_token: refreshToken
-                })
-            });
-
-
-            if (response.ok) {
-                const data = await response.json();
-
-                localStorage.setItem(
-                    "access_token",
-                    data.access_token
-                );
-
-                return true;
-            }
-
-        } catch (e) {
-            console.warn("Refresh error:", e);
-            logout();
-            return false;
-        }
-            return false;
-    }
-
-    useEffect(() => {
-        let refreshTimeout: ReturnType<typeof setTimeout>;
-
-        const scheduleTokenRefresh = async () => {
-            const refreshToken = localStorage.getItem("refresh_token");
-
-            if (!refreshToken) {
-                logout();
-                return;
-            }
-
-            const accessToken = localStorage.getItem("access_token");
-
-            if (!accessToken) {
-                const success = await refreshAccessToken();
-
-                if (success) {
-                    scheduleTokenRefresh();
-                }
-
-                return;
-            }
-
-            try {
-                const payload = JSON.parse(
-                    atob(accessToken.split(".")[1])
-                );
-
-                const expirationTime = payload.exp * 1000;
-                const currentTime = Date.now();
-
-                const refreshTime = expirationTime - currentTime - 60_000;
-
-                refreshTimeout = setTimeout(async () => {
-                    const success = await refreshAccessToken();
-
-                    if (success) {
-                        scheduleTokenRefresh();
-                    }
-                }, Math.max(refreshTime, 0));
-
-            } catch (error) {
-                console.warn("Invalid access token:", error);
-                logout();
-            }
-        };
-
-        scheduleTokenRefresh();
-
-        return () => {
-            clearTimeout(refreshTimeout);
-        };
-    }, []);
 
     async function loggedIn(){
-        let access_token = localStorage.getItem("access_token");
+        const access_token = localStorage.getItem("access_token");
         const refresh_token = localStorage.getItem("refresh_token");
 
         if (!access_token && !refresh_token) {
@@ -1629,55 +1452,12 @@ function App(){
         restoreSession();
     }
 
-
     // Restore Session Algorithm
     async function restoreSession() {
-        let access_token = localStorage.getItem("access_token");
         try {
-            let res = await fetch(`${API_URL}/calibration/status`, {
-                headers: {
-                "Authorization": `Bearer ${access_token}`
-                }
-            });
+            await checkCalibration();
 
-            if (res.status === 401) {
-                const refreshed = await refreshTokens();
-                if (!refreshed) {
-                    setCurrentMenu("login-menu");
-                    return;
-                }
-                access_token = localStorage.getItem("access_token");
-                res = await fetch(`${API_URL}/calibration/status`, {
-                    headers: {
-                        "Authorization": `Bearer ${access_token}`
-                    }
-                });
-                if (res.status === 401) {
-                    setCurrentMenu("login-menu");
-                    return;
-                }
-            }
-
-            const data = await res.json();
-
-            if (!data.calibrated) {
-                setCurrentMenu("calibration-menu");
-                setLockMenu(true);
-            } else {
-                setCurrentMenu("volume-menu");
-                setLockMenu(false);
-                setRgb({
-                    r: data.colorRGB[0],
-                    g: data.colorRGB[1],
-                    b: data.colorRGB[2]
-                });
-            }
-
-            const config_res = await fetch(`${API_URL}/configuration/status`, {
-                headers: {
-                "Authorization": `Bearer ${access_token}`
-                }
-            });
+            const config_res = await apiFetch("/configuration/status");
 
             if (config_res.status === 401) {
                 return;
@@ -1729,22 +1509,13 @@ function App(){
 
     // Check Calibration Helper
     async function checkCalibration(): Promise<void> {
-        refreshTokens();
-
         const access_token = localStorage.getItem("access_token");
 
         if (!access_token) {
             throw new Error("No access token");
         }
 
-        const res = await fetch(
-            `${API_URL}/calibration/status`,
-            {
-                headers: {
-                "Authorization": `Bearer ${access_token}`
-                }
-            }
-        );
+        const res = await apiFetch("/calibration/status");
 
         const data = await res.json();
 
@@ -1832,7 +1603,6 @@ function App(){
             localStorage.setItem("access_token", data.access_token);
             localStorage.setItem("refresh_token", data.refresh_token);
 
-            await checkCalibration();
             await restoreSession();
 
             setMenuSideNavOpen(true);
@@ -1918,7 +1688,7 @@ function App(){
             return;
         }
 
-        notify.success("Utilizador registado com sucesso");
+        notify.success("New user registered with success");
 
         showLoginScreen();
     }
@@ -1961,6 +1731,16 @@ function App(){
         setRegConfirmPasswordFormError(false);
         }
 
+    useEffect(() => {
+        setOnAuthFailure(() => {
+            notify.error("Session expired. Login once again.")
+            logout();
+        });
+
+        return () => setOnAuthFailure(null);
+    }, []);
+
+
     // Start Video Connection Algorithm
     async function startWebRTC(streamType: string): Promise<void> {
         const access_token = localStorage.getItem("access_token");
@@ -1997,11 +1777,10 @@ function App(){
             throw new Error("Local description not available");
         }
 
-        const response = await fetch(`${API_URL}/offer`, {
+        const response = await apiFetch("/offer", {
             method: "POST",
             headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${access_token}`
+                "Content-Type": "application/json"
             },
             body: JSON.stringify({
                 sdp: localDescription.sdp,
@@ -2050,35 +1829,19 @@ function App(){
             setNoObjectsDetected(false);
             setObjectsOutOfLine(false);
 
-            refreshTokens();
-
             const access_token = localStorage.getItem("access_token");
 
             if (!access_token) {
                 throw new Error("No access token");
             }
 
-            const response = await fetch(
-                `${API_URL}/volume/mode`,
-                {
-                    headers: {
-                        "Authorization": `Bearer ${access_token}`
-                    }
-                }
-            );
+            const response = await apiFetch("/volume/mode");
 
             if (response.status === 401) {
                 throw new Error("Session expired");
             }
 
-            const countResp = await fetch(
-                `${API_URL}/countdown/value`,
-                {
-                    headers: {
-                        "Authorization": `Bearer ${access_token}`
-                    }
-                }
-            );
+            const countResp = await apiFetch("/countdown/value");
 
             const countData = await countResp.json();
 
@@ -2090,13 +1853,9 @@ function App(){
                 );
             }
 
-            await fetch(
-                `${API_URL}/volume/clickTimestamp`,
+            await apiFetch("/volume/clickTimestamp",
                 {
-                    method: "POST",
-                    headers: {
-                        "Authorization": `Bearer ${access_token}`
-                    }
+                    method: "POST"
                 }
             );
 
@@ -2142,18 +1901,15 @@ function App(){
         try {
             setMessage([TextClear]);
 
-            await refreshTokens();
-
             const access_token = localStorage.getItem("access_token");
 
             if (!access_token) {
                 throw new Error("No access token");
             }
 
-            const res = await fetch(`${API_URL}/saveMeasurements`, {
+            const res = await apiFetch("/saveMeasurements", {
                 method: "POST",
                 headers: {
-                    "Authorization": `Bearer ${access_token}`,
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify(measurementData)
@@ -2205,10 +1961,7 @@ function App(){
     // Load the measurement history (and the users list for the "User" column)
     async function loadMeasurements(): Promise<void> {
         try {
-            await refreshTokens();
-            const access_token = localStorage.getItem("access_token");
-
-            const res = await fetch(`${API_URL}/measurements`, { headers: { "Authorization": `Bearer ${access_token}` } });
+            const res = await apiFetch("/measurements");
             if (res.ok) {
                 const data = await res.json();
                 setMeasurementsList(data.measurements || []);
@@ -2216,7 +1969,7 @@ function App(){
                 setMessage([{ text: "Could not load measurements.", type: "error" }]);
             }
 
-            const user_res = await fetch(`${API_URL}/users`, { headers: { "Authorization": `Bearer ${access_token}` } });
+            const user_res = await apiFetch("/users");
             if (user_res.ok) {
                 const data = await user_res.json();
                 setUsersIDList(data.users || []);
@@ -2233,12 +1986,8 @@ function App(){
     // Delete a single measurement by id
     async function deleteMeasurement(measurementID: number | null): Promise<void> {
         try {
-            await refreshTokens();
-            const access_token = localStorage.getItem("access_token");
-
-            const res = await fetch(`${API_URL}/measurements/delete/${measurementID}`, {
-                method: "DELETE",
-                headers: { "Authorization": `Bearer ${access_token}` }
+            const res = await apiFetch("/measurements/delete/${measurementID}", {
+                method: "DELETE"
             });
 
             if (res.ok) {
@@ -2253,12 +2002,8 @@ function App(){
 
     async function deleteAllMeasurements(): Promise<void> {
         try {
-            await refreshTokens();
-            const access_token = localStorage.getItem("access_token");
-
-            const res = await fetch(`${API_URL}/measurements/deleteall`, {
-                method: "DELETE",
-                headers: { "Authorization": `Bearer ${access_token}` }
+            const res = await apiFetch("/measurements/deleteall", {
+                method: "DELETE"
             });
 
             if (res.ok) {
@@ -2275,16 +2020,9 @@ function App(){
     // Load the detail of one measurement into the info popup
     async function viewMeasurement(selectedID: number): Promise<void> {
         try {
-            await refreshTokens();
-            const access_token = localStorage.getItem("access_token");
+            const res_archived = await apiFetch("/measurements/archived");
 
-            const res_archived = await fetch(`${API_URL}/measurements/archived`, {
-                headers: { Authorization: `Bearer ${access_token}` }
-            });
-
-            const res = await fetch(`${API_URL}/measurements/${selectedID}`, {
-                headers: { Authorization: `Bearer ${access_token}` }
-            });
+            const res = await apiFetch("/measurements/${selectedID}");
 
             if (!res.ok) {
                 throw new Error("Failed to load measurement");
@@ -2410,24 +2148,13 @@ function App(){
     async function volumeSingleBundle(access_token: string): Promise<void> {
         setMeasurementWeightInfo(weightInfo);
         try {
-            await fetch(
-                `${API_URL}/volume/singleBundle`,
+            await apiFetch("/volume/singleBundle",
                 {
                     method: "POST",
-                    headers: {
-                        "Authorization": `Bearer ${access_token}`
-                    }
                 }
             );
 
-            const response = await fetch(
-                `${API_URL}/getObjectsOutOfLine`,
-                {
-                    headers: {
-                        "Authorization": `Bearer ${access_token}`
-                    }
-                }
-            );
+            const response = await apiFetch("/getObjectsOutOfLine");
 
             const data = await response.json();
 
@@ -2444,14 +2171,7 @@ function App(){
                 } else {
                     setMessage([TextClear]);
 
-                    const dataResponse = await fetch(
-                        `${API_URL}/volume/singleBundle/results`,
-                        {
-                            headers: {
-                                "Authorization": `Bearer ${access_token}`
-                            }
-                        }
-                    );
+                    const dataResponse = await apiFetch("/volume/singleBundle/results");
 
                     const volumeData = await dataResponse.json();
 
@@ -2496,14 +2216,7 @@ function App(){
                         });
                     }
                 
-                    const imgResp = await fetch(
-                        `${API_URL}/getFrame/detectedObjectsFrame`,
-                        {
-                            headers: {
-                                "Authorization": `Bearer ${access_token}`
-                            }
-                        }
-                    );
+                    const imgResp = await apiFetch("/getFrame/detectedObjectsFrame");
 
                     if (imgResp.status === 404) {
                         throw new Error("Frame not Available");
@@ -2525,7 +2238,6 @@ function App(){
             console.error(error);
 
         } finally {
-            console.log("Finished");
             setLoadingVolume(false);
         }
     }
@@ -2534,9 +2246,9 @@ function App(){
     async function volumeMultiBundle(access_token: string): Promise<void> {
         setMeasurementWeightInfo(weightInfo);
         try {
-            await fetch(`${API_URL}/volume/multiBundle`, { method: "POST", headers: { "Authorization": `Bearer ${access_token}` } });
+            await apiFetch("/volume/multiBundle", { method: "POST"});
 
-            const response = await fetch(`${API_URL}/getObjectsOutOfLine`, { headers: { "Authorization": `Bearer ${access_token}` } });
+            const response = await apiFetch("/getObjectsOutOfLine");
             const data = await response.json();
 
             const objectsDetected = data.objects_outOfLine.length > 0;
@@ -2550,12 +2262,12 @@ function App(){
                 if (objectsOutOfLine.length > 0) {
                     setObjectsOutOfLine(true);
                 } else {
-                    const dataResponse = await fetch(`${API_URL}/volume/multiBundle/results`, { headers: { "Authorization": `Bearer ${access_token}` } });
+                    const dataResponse = await apiFetch("/volume/multiBundle/results");
                     const volumeData = await dataResponse.json();
 
                     setVolumeData(volumeData);
 
-                    const imgResp = await fetch(`${API_URL}/getFrame/detectedObjectsFrame`, { headers: { "Authorization": `Bearer ${access_token}` } });
+                    const imgResp = await apiFetch("/getFrame/detectedObjectsFrame");
                     if (imgResp.status === 404) throw new Error("Frame not Available");
 
                     const blob = await imgResp.blob();
@@ -2625,9 +2337,9 @@ function App(){
     async function volumeReal(access_token: string): Promise<void> {
         setMeasurementWeightInfo(weightInfo);
         try {
-            await fetch(`${API_URL}/volume/real`, { method: "POST", headers: { "Authorization": `Bearer ${access_token}` } });
+            await apiFetch("/volume/real", { method: "POST"});
 
-            const response = await fetch(`${API_URL}/getObjectsOutOfLine`, { headers: { "Authorization": `Bearer ${access_token}` } });
+            const response = await apiFetch("/getObjectsOutOfLine");
             const data = await response.json();
 
             const objectsDetected = data.objects_outOfLine.length > 0;
@@ -2641,12 +2353,12 @@ function App(){
                 if (objectsOutOfLine.length > 0) {
                     setObjectsOutOfLine(true);
                 } else {
-                    const dataResponse = await fetch(`${API_URL}/volume/real/results`, { headers: { "Authorization": `Bearer ${access_token}` } });
+                    const dataResponse = await apiFetch("/volume/real/results");
                     const volumeData = await dataResponse.json();
 
                     setVolumeData(volumeData);
 
-                    const imgResp = await fetch(`${API_URL}/getFrame/detectedObjectsFrame`, { headers: { "Authorization": `Bearer ${access_token}` } });
+                    const imgResp = await apiFetch("/getFrame/detectedObjectsFrame");
                     if (imgResp.status === 404) throw new Error("Frame not Available");
 
                     const blob = await imgResp.blob();
@@ -2721,9 +2433,9 @@ function App(){
     // Individual Volume Algorithm
     async function volumeIndividual(access_token: string): Promise<void> {
         try {
-            await fetch(`${API_URL}/volume/individual`, { method: "POST", headers: { "Authorization": `Bearer ${access_token}` } });
+            await apiFetch("/volume/individual", { method: "POST"});
 
-            const response = await fetch(`${API_URL}/getObjectsOutOfLine`, { headers: { "Authorization": `Bearer ${access_token}` } });
+            const response = await apiFetch("/getObjectsOutOfLine");
             const data = await response.json();
 
             const objectsDetected = data.objects_outOfLine.length > 0;
@@ -2737,12 +2449,12 @@ function App(){
                 if (objectsOutOfLine.length > 0) {
                     setObjectsOutOfLine(true);
                 } else {
-                    const dataResponse = await fetch(`${API_URL}/volume/individual/results`, { headers: { "Authorization": `Bearer ${access_token}` } });
+                    const dataResponse = await apiFetch("/volume/individual/results");
                     const volumeData = await dataResponse.json();
 
                     setVolumeData(volumeData);
 
-                    const imgResp = await fetch(`${API_URL}/getFrame/detectedObjectsFrame`, { headers: { "Authorization": `Bearer ${access_token}` } });
+                    const imgResp = await apiFetch("/getFrame/detectedObjectsFrame");
                     if (imgResp.status === 404) throw new Error("Frame not Available");
 
                     const blob = await imgResp.blob();
@@ -2792,7 +2504,7 @@ function App(){
     async function workspaceDrawing(): Promise<void> {
         try {
             const access_token = localStorage.getItem("access_token");
-            const r = await fetch(`${API_URL}/calibrate/mode`, { headers: { "Authorization": `Bearer ${access_token}` } });
+            const r = await apiFetch("/calibrate/mode");
             const calibData = await r.json();
             if (calibData["Calibrate Mode"] === "Automatic") {
                 if (currentMenu !== "calibration-menu") return;
@@ -2807,17 +2519,15 @@ function App(){
 
     async function applyMask(access_token: string): Promise<void> {
         try {
-            const r = await fetch(`${API_URL}/mask`, { headers: { "Authorization": `Bearer ${access_token}` } });
+            const r = await apiFetch("/mask");
             const maskValues = await r.json();
-            await fetch(`${API_URL}/applyMask`, {
+            await apiFetch("/applyMask", {
                 method: "POST",
-                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${access_token}` },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(maskValues)
             });
 
-            const params = await fetch(`${API_URL}/calibrate/params`, {
-                headers: { Authorization: `Bearer ${access_token}` }
-            });
+            const params = await apiFetch("/calibrate/params");
 
             const data = await params.json();
             detectionArea.current = data["Detected Area"];
@@ -2885,28 +2595,26 @@ function App(){
         try {
             setLoadingCalibration(true);
             setMessage([TextClear]);
-            refreshTokens();
-            const access_token = localStorage.getItem("access_token");
 
-            await fetch(`${API_URL}/applyManualWorkspace`, {
+            await apiFetch("/applyManualWorkspace", {
                 method: "POST",
-                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${access_token}` },
+                headers: { "Content-Type": "application/json"},
                 body: JSON.stringify({ detection_area: detectionArea.current })
             });
 
-            const maskResponse = await fetch(`${API_URL}/mask`, { headers: { "Authorization": `Bearer ${access_token}` } });
+            const maskResponse = await apiFetch("/mask");
             if (!maskResponse.ok) throw new Error("Mask request failed");
             const maskValues = await maskResponse.json();
 
-            const calibrateResponse = await fetch(`${API_URL}/calibrate`, {
+            const calibrateResponse = await apiFetch("/calibrate", {
                 method: "POST",
-                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${access_token}` },
+                headers: { "Content-Type": "application/json"},
                 body: JSON.stringify(maskValues)
             });
 
             if (!calibrateResponse.ok) throw new Error("Calibrate request failed");
 
-            const flagsResponse = await fetch(`${API_URL}/calibrate/flags`, { headers: { "Authorization": `Bearer ${access_token}` } });
+            const flagsResponse = await apiFetch("/calibrate/flags");
             if (!flagsResponse.ok) throw new Error("Flags request failed");
 
             const data = await flagsResponse.json();
@@ -2938,13 +2646,11 @@ function App(){
     async function confirm_calibration(confirm: boolean): Promise<void> {
         try {
             setCalibrationModalOpen(false);
-            refreshTokens();
-            const access_token = localStorage.getItem("access_token");
 
             if (confirm) {
-                const calibrateResponse = await fetch(`${API_URL}/saveCalibration`, {
+                const calibrateResponse = await apiFetch("/saveCalibration", {
                     method: "POST",
-                    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${access_token}` }
+                    headers: { "Content-Type": "application/json" }
                 });
 
                 if (!calibrateResponse.ok) throw new Error("Save calibration request failed");
@@ -2961,15 +2667,13 @@ function App(){
 
     // Change Calibration Mode (Automatic / Manual)
     async function handleCalibrationModeChange(Manual: boolean): Promise<void> {
-        refreshTokens();
-        const access_token = localStorage.getItem("access_token");
 
         if (Manual) {
             setCalibrationMode("manual");
-            await fetch(`${API_URL}/calibrate/mode/manual`, { method: "POST", headers: { "Authorization": `Bearer ${access_token}` } });
+            await apiFetch("/calibrate/mode/manual", { method: "POST"});
         } else {
             setCalibrationMode("auto");
-            await fetch(`${API_URL}/calibrate/mode/automatic`, { method: "POST", headers: { "Authorization": `Bearer ${access_token}` } });
+            await apiFetch("/calibrate/mode/automatic", { method: "POST"});
         }
     }
 
@@ -2978,9 +2682,7 @@ function App(){
         try {
             setUsersLoading(true);
             setMessage([TextClear]);
-            await refreshTokens();
-            const access_token = localStorage.getItem("access_token");
-            const res = await fetch(`${API_URL}/users`, { headers: { "Authorization": `Bearer ${access_token}` } });
+            const res = await apiFetch("/users");
             if (res.ok) {
                 const data = await res.json();
                 setUsersList(data.users || []);
@@ -3004,11 +2706,9 @@ function App(){
 
     async function changeUserRole(userId: number, role: string): Promise<void> {
         try {
-            await refreshTokens();
-            const access_token = localStorage.getItem("access_token");
-            const res = await fetch(`${API_URL}/users/${userId}/role`, {
+            const res = await apiFetch("/users/${userId}/role", {
                 method: "PATCH",
-                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${access_token}` },
+                headers: { "Content-Type": "application/json"},
                 body: JSON.stringify({ role })
             });
             if (res.ok) {
@@ -3023,11 +2723,8 @@ function App(){
 
     async function deleteUserById(userId: number): Promise<void> {
         try {
-            await refreshTokens();
-            const access_token = localStorage.getItem("access_token");
-            const res = await fetch(`${API_URL}/users/${userId}`, {
-                method: "DELETE",
-                headers: { "Authorization": `Bearer ${access_token}` }
+            const res = await apiFetch("/users/${userId}", {
+                method: "DELETE"
             });
             if (res.ok) {
                 setUsersList(prev => prev.filter((u) => u.id !== userId));
@@ -3044,16 +2741,13 @@ function App(){
         const checked = e.target.value === "true";
         setExpHDR(checked);
 
-        refreshTokens();
-        const access_token = localStorage.getItem("access_token");
-
         if (checked) {
-            await fetch(`${API_URL}/exposition/mode/hdr`, { method: "POST", headers: { "Authorization": `Bearer ${access_token}` } });
+            await apiFetch("/exposition/mode/hdr", { method: "POST"});
         } else {
-            await fetch(`${API_URL}/exposition/mode/fixed`, { method: "POST", headers: { "Authorization": `Bearer ${access_token}` } });
+            await apiFetch("/exposition/mode/fixed", { method: "POST"});
         }
 
-        await fetch(`${API_URL}/saveInfo`, { method: "POST", headers: { "Authorization": `Bearer ${access_token}` } });
+        await apiFetch("/saveInfo", { method: "POST" });
     }
 
     // Change Volume Mode (Single Bundle / Multi Bundle / Real / Individual)
@@ -3069,29 +2763,26 @@ function App(){
         setNoObjectsDetected(false);
         setObjectsOutOfLine(false);
 
-        refreshTokens();
-        const access_token = localStorage.getItem("access_token");
-
         switch (mode) {
             case "single_bundle":
-                await fetch(`${API_URL}/volume/mode/singleBundle`, { method: "POST", headers: { "Authorization": `Bearer ${access_token}` } });
+                await apiFetch("/volume/mode/singleBundle", { method: "POST"});
                 setVolBundleMode(true);
                 break;
             case "multi_bundle":
-                await fetch(`${API_URL}/volume/mode/multiBundle`, { method: "POST", headers: { "Authorization": `Bearer ${access_token}` } });
+                await apiFetch("/volume/mode/multiBundle", { method: "POST"});
                 setVolBundleMode(false);
                 break;
             case "real":
-                await fetch(`${API_URL}/volume/mode/real`, { method: "POST", headers: { "Authorization": `Bearer ${access_token}` } });
+                await apiFetch("/volume/mode/real", { method: "POST"});
                 setVolBundleMode(false);
                 break;
             case "individual":
-                await fetch(`${API_URL}/volume/mode/individual`, { method: "POST", headers: { "Authorization": `Bearer ${access_token}` } });
+                await apiFetch("/volume/mode/individual", { method: "POST"});
                 setVolBundleMode(false);
                 break;
         }
 
-        await fetch(`${API_URL}/saveInfo`, { method: "POST", headers: { "Authorization": `Bearer ${access_token}` } });
+        await apiFetch("/saveInfo", { method: "POST" });
     }
 
     // Change System Speed (Slow / Intermedium / Fast)
@@ -3099,22 +2790,19 @@ function App(){
         const mode = e.target.value;
         setSpeedMode(mode);
 
-        refreshTokens();
-        const access_token = localStorage.getItem("access_token");
-
         switch (mode) {
             case "slow":
-                await fetch(`${API_URL}/speed/mode/slow`, { method: "POST", headers: { "Authorization": `Bearer ${access_token}` } });
+                await apiFetch("/speed/mode/slow", { method: "POST"});
                 break;
             case "intermedium":
-                await fetch(`${API_URL}/speed/mode/intermedium`, { method: "POST", headers: { "Authorization": `Bearer ${access_token}` } });
+                await apiFetch("/speed/mode/intermedium", { method: "POST"});
                 break;
             case "fast":
-                await fetch(`${API_URL}/speed/mode/fast`, { method: "POST", headers: { "Authorization": `Bearer ${access_token}` } });
+                await apiFetch("/speed/mode/fast", { method: "POST"});
                 break;
         }
 
-        await fetch(`${API_URL}/saveInfo`, { method: "POST", headers: { "Authorization": `Bearer ${access_token}` } });
+        await apiFetch("/saveInfo", { method: "POST"});
     }
 
     // Change Exposure Time (only for Fixed Exposition)
@@ -3132,12 +2820,10 @@ function App(){
         }
 
         try {
-            refreshTokens();
-            const access_token = localStorage.getItem("access_token");
 
-            await fetch(`${API_URL}/update_systemInfo`, { method: "POST", headers: { "Content-Type": "application/json", "Authorization": `Bearer ${access_token}` }, body: JSON.stringify({ exposureTime: value }) });
+            await apiFetch("/update_systemInfo", { method: "POST", headers: { "Content-Type": "application/json"}, body: JSON.stringify({ exposureTime: value }) });
 
-            await fetch(`${API_URL}/saveInfo`, { method: "POST", headers: { "Authorization": `Bearer ${access_token}` } });
+            await apiFetch("/saveInfo", { method: "POST"});
 
             notify.success("Exposure Time updated successfully");
         } catch (error) {
@@ -3160,16 +2846,14 @@ function App(){
         }
 
         try {
-            refreshTokens();
-            const access_token = localStorage.getItem("access_token");
 
-            await fetch(`${API_URL}/update_systemInfo`, {
+            await apiFetch("/update_systemInfo", {
                 method: "POST",
-                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${access_token}` },
+                headers: { "Content-Type": "application/json"},
                 body: JSON.stringify({ countdown: value })
             });
 
-            await fetch(`${API_URL}/saveInfo`, { method: "POST", headers: { "Authorization": `Bearer ${access_token}` } });
+            await apiFetch("/saveInfo", { method: "POST"});
 
             notify.success("Countdown Timer updated successfully");
         } catch (error) {
@@ -3182,9 +2866,9 @@ function App(){
         try {
             const access_token = localStorage.getItem("access_token");
 
-            await fetch(`${API_URL}/update_systemInfo`, { method: "POST", headers: { "Content-Type": "application/json", "Authorization": `Bearer ${access_token}` }, body: JSON.stringify({ cropWindow: valueWindow, cropArea: valueArea }) });
+            await apiFetch("/update_systemInfo", { method: "POST", headers: { "Content-Type": "application/json"}, body: JSON.stringify({ cropWindow: valueWindow, cropArea: valueArea }) });
 
-            await fetch(`${API_URL}/saveInfo`, { method: "POST", headers: { "Authorization": `Bearer ${access_token}` } });
+            await apiFetch("/saveInfo", { method: "POST"});
         } catch (error) {
             console.error("CropWindow set error:", error);
         }

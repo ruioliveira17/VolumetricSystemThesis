@@ -267,7 +267,7 @@ def register(register_data: RegisterData):
 
 @app.post("/refresh", summary="Access Token Refresh",
          description="""
-         Creates a new access token if the user is active during the expiration time of the refresh token. Returns the new access token if the refresh token is valid. Otherwise, it returns an error message indicating that the token is invalid, expired or revoked.
+         Creates new tokens if the user is active during the expiration time of the refresh token. Returns the new access token if the refresh token is valid. Otherwise, it returns an error message indicating that the token is invalid, expired or revoked.
          """,
          tags=["User"])
 def refresh(data: RefreshData):
@@ -298,7 +298,7 @@ def refresh(data: RefreshData):
          Creates a new access token if the user is active during the expiration time of the refresh token. Returns the new access token if the refresh token is valid. Otherwise, it returns an error message indicating that the token is invalid, expired or revoked.
          """,
          tags=["User"])
-def refresh(data: RefreshData):
+def refreshAccessToken(data: RefreshData):
     try:
         payload = verify_token(data.refresh_token)
     except ExpiredSignatureError:
