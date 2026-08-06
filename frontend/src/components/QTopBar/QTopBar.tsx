@@ -73,7 +73,7 @@ function QTopBar({
   collapsibleActions = [],
   collapsibleActionsWidth,
   showToggle = true,
-  defaultExpanded = false,
+  defaultExpanded = true,
   expanded,
   onExpandedChange,
   expandLabel = 'Expand menu',

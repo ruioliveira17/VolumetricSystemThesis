@@ -3,6 +3,7 @@ import { RefObject } from "react";
 import "./QMeasureHistory.css";
 import Qselect from "../Qselect"
 import Qsearch from "../Qsearch"
+import DeleteForeverIcon from "@assets/icons/delete_forever.svg?react";
 
 interface Message {
   type: string;
@@ -32,9 +33,16 @@ interface QMeasureHistoryProps {
   sortOptions: SortOption[];
   sortedMeasurements: any[];
 
+  searchBy: string;
+  setSearchBy: React.Dispatch<React.SetStateAction<string>>;
   searchValue: string;
   setSearchValue: React.Dispatch<React.SetStateAction<string>>;
+  searchByOptions: SortOption[];
   filteredMeasurements: any[];
+
+  dateFilter: string;
+  setDateFilter: React.Dispatch<React.SetStateAction<string>>;
+  dateOptions: SortOption[];
 
   // Users (for the "User" column)
   usersIDList: any[];
@@ -83,9 +91,16 @@ function QMeasureHistory({
   sortOptions,
   sortedMeasurements,
 
+  searchBy,
+  setSearchBy,
   searchValue,
   setSearchValue,
+  searchByOptions,
   filteredMeasurements,
+
+  dateFilter,
+  setDateFilter,
+  dateOptions,
 
   usersIDList,
 
@@ -158,16 +173,28 @@ function QMeasureHistory({
         <div className="measurementHistory-container">
           <div className="background"></div>
           <div className="searchBar">
-            <Qsearch
-              placeholder="Search..."
-              value={searchValue}
-              onChange={(e) => setSearchValue(e.target.value)}
+            <Qselect
+              label="Period"
+              value={dateFilter}
+              options={dateOptions}
+              onChange={(value) => setDateFilter(value)}
             />
             <Qselect
               label="Sort By"
               value={sortField}
               options={sortOptions}
               onChange={handleSortChange}
+            />
+            <Qselect
+              label="Search By"
+              value={searchBy}
+              options={searchByOptions}
+              onChange={(value) => setSearchBy(value)}
+            />
+            <Qsearch
+              placeholder="Search..."
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
             />
           </div>
 
@@ -240,7 +267,7 @@ function QMeasureHistory({
             className="menu-item"
             onClick={() => { deleteAllMeasurements(); toggleMeasurementsModal(); }}
           >
-            <img src="/delete_forever.svg" className="deleteMeasurements-icon" />
+            <DeleteForeverIcon className="deleteMeasurements-icon" />
             <div className="deleteMeasurements-text">Delete All</div>
           </div>
         </div>
@@ -256,7 +283,7 @@ function QMeasureHistory({
             className="menu-item"
             onClick={() => { deleteMeasurement(selectedID); toggleMeasurementModal(); }}
           >
-            <img src="/delete_forever.svg" className="deleteMeasurement-icon" />
+            <DeleteForeverIcon className="deleteMeasurement-icon" />
             <div className="deleteMeasurement-text">Delete</div>
           </div>
         </div>
@@ -322,8 +349,9 @@ function QMeasureHistory({
               <>
                 <div className="measurement-boxInfo-container">
                   <div className="background"></div>
-
-                  
+                  <div className="measurement-objects-text">
+                    Objects:
+                  </div>                  
 
                   <div className="measurement-object-tabs">
                       {measureObjectList.map((obj) => (
@@ -336,7 +364,7 @@ function QMeasureHistory({
                               });
                             }}
                           >
-                              Obj. {obj}
+                            {obj}
                           </button>
                       ))}
                   </div>

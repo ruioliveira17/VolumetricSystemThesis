@@ -249,6 +249,14 @@
   filter: invert(1);
 }
 
+.objects-text {
+  display: flex;
+  padding-bottom: 0.5vh;
+  color: white;
+  opacity: 60%;
+  font-size: 1.8vh;
+}
+
 .object-tabs {
   display: flex;
   gap: 0.6vw;
@@ -262,14 +270,20 @@
 }
 
 .object-tab {
+  min-width: 40px;
+  max-width: 40px;
+  min-height: 42px;
+  max-height: 42px;
+  box-sizing: border-box;
   flex: 0 0 auto;
   background: rgba(255, 255, 255, 0.005);
   border: 1px solid #FFFFFF33;
   border-radius: 8px;
   color: #ffffff;
-  padding: 0.8vh 0.8vw;
+  /*padding: 0.85vh 0.75vw;*/
   font-size: 1.7vh;
   font-family: "Inter Regular", sans-serif;
+  text-align: center;
   white-space: nowrap;
   cursor: pointer;
   transition: background-color 0.15s ease;
@@ -317,12 +331,12 @@
 }
 
 .boxInfoText-container{
-  position: absolute;
-  top: 40%;
-  left: 4.7%;
+  display: flex;
+  flex-direction: column;
   height: 36.4%;
   width:30.5%;
-  transform: translate(0, -40%);
+  margin-top: 6%;
+  z-index: 1;
 }
 
 .boxInfo-text{
@@ -356,8 +370,8 @@
 .volume-canvas {
   position: absolute;
   top: 35%;
-  left: 20.7%;
-  width: 100%;
+  left: 40%;
+  width: 60%;
   height: 60%;
   transform: translate(0, -35%);
   z-index: 1;

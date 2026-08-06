@@ -263,6 +263,11 @@
   transition: all 0.3s ease;
 }
 
+.define-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
 .define-button .define_text {
   color: white;
   text-align: center;
@@ -271,11 +276,11 @@
   transition: color 0.3s ease;
 }
 
-.define-button:hover {
+.define-button:hover:not(:disabled) {
   background: white;
 }
 
-.define-button:hover .define_text {
+.define-button:hover:not(:disabled) .define_text {
   color: black;
 }
 

@@ -298,7 +298,12 @@ function QVolume({
                     {/* Info Objects */}
                     <div className="boxInfo-container">
                         <div className="background"></div>
-                        
+                        {volInfo &&(
+                            <div className="objects-text">
+                                Objects:
+                            </div>
+                        )}
+
                         <div className="object-tabs">
                             {objectList.map((obj) => (
                                 <button
@@ -306,7 +311,7 @@ function QVolume({
                                     className={`object-tab ${selectedObject === obj ? "active" : ""}`}
                                     onClick={() => setSelectedObject(obj)}
                                 >
-                                    Obj. {obj}
+                                    {obj}
                                 </button>
                             ))}
                         </div>

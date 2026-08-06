@@ -1,4 +1,8 @@
+import { useEffect, useRef, useState } from "react";
 import "./QUser.css";
+import Qselect from "../Qselect"
+import DeleteForeverIcon from "@assets/icons/delete_forever.svg?react";
+import CopyIcon from "@assets/icons/copy.svg?react";
 
 interface User {
     id: number;
@@ -23,6 +27,11 @@ interface QUserPanelProps {
         role: string
     ) => void;
 
+    resetTokensByUser: Record<number, string[]>;
+    generateResetToken: (
+        id: number
+    ) => void;
+
     deleteUserById: (
         id: number
     ) => void;
@@ -36,8 +45,19 @@ function QUserPanel({
     savedUser,
     setShowUsersPanel,
     changeUserRole,
+    resetTokensByUser = {},
+    generateResetToken,
     deleteUserById
 }: QUserPanelProps) {
+
+    const [copiedToken, setCopiedToken] = useState<string | null>(null);
+
+    function handleCopy(token: string) {
+        navigator.clipboard.writeText(token).then(() => {
+            setCopiedToken(token);
+            setTimeout(() => setCopiedToken(null), 1500);
+        });
+    }
 
     const otherUsers = usersList.filter(
         (u) => u.username !== savedUser?.username
@@ -48,94 +68,112 @@ function QUserPanel({
             <div
                 className="popup-overlay"
                 onClick={() => setShowUsersPanel(false)}
-            />
+            >
+                <div className="user-panel" onClick={(e) => e.stopPropagation()}>
 
-
-            <div className="user-panel">
-
-                <div className="user-panel-title">
-                    Manage Users
-                </div>
-
-
-                {usersLoading && (
-                    <div className="user-panel-loading">
-                        Loading...
+                    <div className="user-panel-title">
+                        Manage Users
                     </div>
-                )}
 
+                    {usersLoading && (
+                        <div className="user-panel-loading">
+                            Loading...
+                        </div>
+                    )}
 
-                {usersMsg && (
-                    <div className="user-panel-error">
-                        {usersMsg}
-                    </div>
-                )}
+                    {usersMsg && (
+                        <div className="user-panel-error">
+                            {usersMsg}
+                        </div>
+                    )}
 
+                    {!usersLoading && (
+                        <div className="user-table-container">
 
-                {!usersLoading &&
-                    otherUsers.map((u) => (
-                        <div
-                            key={u.id}
-                            className="user-item"
-                        >
+                            <div className="user-header">
+                                <div>User</div>
+                                <div>Role</div>
+                                <div></div>
+                                <div></div>
+                            </div>
 
-                            <span
-                                className="user-name"
-                                title={u.username}
-                            >
-                                {u.username}
-                            </span>
+                            <div className="user-table">
+                                {otherUsers.map((u, index) => {
+                                    const tokens = resetTokensByUser[u.id] ?? [];
+                                    return (
+                                        <div
+                                            key={u.id}
+                                            className={`user-item ${index % 2 === 0 ? "even" : "odd"}`}
+                                        >
+                                            <span
+                                                className="user-name"
+                                                title={u.username}
+                                            >
+                                                {u.username}
+                                            </span>
 
+                                            <div className="select">
+                                                <Qselect
+                                                    value={u.role}
+                                                    options={[
+                                                        { value: 'user', label: 'user' },
+                                                        { value: 'admin', label: 'admin' },
+                                                    ]}
+                                                    onChange={(value) => changeUserRole(u.id, value)}
+                                                />
+                                            </div>
 
-                            <select
-                                value={u.role}
-                                onChange={(e) =>
-                                    changeUserRole(
-                                        u.id,
-                                        e.target.value
-                                    )
-                                }
-                            >
-                                <option value="user">
-                                    user
-                                </option>
+                                            <div className="tokens-cell">
+                                                <div className="tokens-list">
+                                                    {tokens.map((token) => (
+                                                        <div key={token} className="token-chip">
+                                                            <span className="token-chip-text">{token}</span>
+                                                            <button
+                                                                className="token-copy-button"
+                                                                onClick={() => handleCopy(token)}
+                                                            >
+                                                                <CopyIcon className="token-copy-icon" />
+                                                                {copiedToken === token && (
+                                                                    <span className="token-copied-badge">Copied!</span>
+                                                                )}
+                                                            </button>
+                                                        </div>
+                                                    ))}
+                                                </div>
 
-                                <option value="admin">
-                                    admin
-                                </option>
-                            </select>
+                                                <button
+                                                    className="generate-token-button"
+                                                    onClick={() => generateResetToken(u.id)}
+                                                >
+                                                    Generate Token
+                                                </button>
+                                            </div>
 
-
-                            <button
-                                onClick={() =>
-                                    deleteUserById(u.id)
-                                }
-                            >
-                                Delete
-                            </button>
+                                            <button
+                                                className="delete-button"
+                                                onClick={() => deleteUserById(u.id)}
+                                            >
+                                                <DeleteForeverIcon className="deleteUser-icon" />
+                                                <div className="deleteUser-text">Delete</div>
+                                            </button>
+                                        </div>
+                                    );
+                                })}
+                                {otherUsers.length === 0 && !usersMsg && (
+                                    <div className="no-users">
+                                        No other users.
+                                    </div>
+                                )}
+                            </div>
 
                         </div>
-                    ))
-                }
+                    )}
 
+                    <div className="close-button">
+                        <img src="/close.svg" onClick={() => setShowUsersPanel(false)} />
+                    </div>
 
-                {!usersLoading &&
-                    otherUsers.length === 0 &&
-                    !usersMsg && (
-                        <div className="no-users">
-                            No other users.
-                        </div>
-                    )
-                }
-
-
-                <div
-                    className="close-users-panel"
-                    onClick={() => setShowUsersPanel(false)}
-                >
-                    Close
                 </div>
-
             </div>
         </>
     );

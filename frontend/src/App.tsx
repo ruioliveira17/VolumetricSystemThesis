@@ -260,6 +260,8 @@ function App(){
     const [usersLoading, setUsersLoading] = useState<boolean>(false);
     const [usersMsg, setUsersMsg] = useState<string>("");
 
+    const [resetTokensByUser, setResetTokensByUser] = useState<Record<number, string[]>>({});
+
     // -----------------------------
     // Measurement History variables
     // -----------------------------
@@ -299,7 +301,82 @@ function App(){
         return sortOrder === "asc" ? comparison : -comparison;
     });
 
+    const [searchBy, setSearchBy] = useState("all");
     const [searchValue, setSearchValue] = useState("");
+
+    const searchByOptions = [
+        { value: "all", label: "All" },
+        { value: "mode", label: "Measurement Mode" },
+        { value: "object", label: "No. of Objects" },
+        { value: "user", label: "User" },
+    ];
+
+    const dateOptions = [
+        { value: "today", label: "Today" },
+        { value: "yesterday", label: "Yesterday" },
+        { value: "this_week", label: "This Week" },
+        { value: "this_month", label: "This Month" },
+        { value: "last_3_months", label: "Last 3 Months" },
+    ];
+
+    const [dateFilter, setDateFilter] = useState("last_3_months");
+
+    const isDateInRange = (dateString: string, filter: string) => {
+        const date = new Date(dateString);
+        const now = new Date();
+
+        date.setHours(0, 0, 0, 0);
+        now.setHours(0, 0, 0, 0);
+
+        switch (filter) {
+            case "today":
+                return date.getTime() === now.getTime();
+
+            case "yesterday": {
+                const yesterday = new Date(now);
+                yesterday.setDate(now.getDate() - 1);
+
+                return date.getTime() === yesterday.getTime();
+            }
+
+            case "this_week": {
+                const startOfWeek = new Date(now);
+                const day = startOfWeek.getDay();
+
+                const daysFromMonday = day === 0 ? 6 : day - 1;
+
+                startOfWeek.setDate(
+                    startOfWeek.getDate() - daysFromMonday
+                );
+
+                startOfWeek.setHours(0, 0, 0, 0);
+
+                return date >= startOfWeek && date <= now;
+            }
+
+            case "this_month": {
+                const startOfMonth = new Date(
+                    now.getFullYear(),
+                    now.getMonth(),
+                    1
+                );
+
+                return date >= startOfMonth && date <= now;
+            }
+
+            case "last_3_months": {
+                const startOf3Months = new Date(now);
+                startOf3Months.setMonth(
+                    now.getMonth() - 3
+                );
+
+                return date >= startOf3Months && date <= now;
+            }
+
+            default:
+                return true;
+        }
+    };
 
     const filteredMeasurements = sortedMeasurements.filter((measurement) => {
         const search = searchValue.trim().toLowerCase();
@@ -311,45 +388,84 @@ function App(){
         const formattedDate = new Date(measurement.created_at)
             .toLocaleString("pt-PT", {
                 hour12: false,
-            });
+            })
+            .toLowerCase();
 
-        const [prefix, ...rest] = search.split(":");
-        const value = rest.join(":").trim();
+        let matchesSearch = true;
 
-        switch (prefix.toLowerCase()) {
-            case "id":
-                return measurement.id.toString().includes(value);
+        if (search) {
+            switch (searchBy) {
+                case "id":
+                    matchesSearch = measurement.id
+                        .toString()
+                        .includes(search);
+                    break;
 
-            case "user":
-                return (
-                    measurement.user_id.toString().includes(value) ||
-                    user?.username.toLowerCase().includes(value.toLowerCase())
-                );
+                case "user":
+                    matchesSearch =
+                        measurement.user_id
+                            .toString()
+                            .includes(search) ||
+                        user?.username
+                            .toLowerCase()
+                            .includes(search);
+                    break;
 
-            case "mode":
-                return measurement.volume_mode.toLowerCase().includes(value.toLowerCase());
+                case "mode":
+                    matchesSearch = measurement.volume_mode
+                        .toLowerCase()
+                        .includes(search);
+                    break;
 
-            case "object":
-                return measurement.object_count.toString().includes(value);
+                case "object":
+                    matchesSearch = measurement.object_count
+                        .toString()
+                        .includes(search);
+                    break;
 
-            case "weight":
-                return measurement.weight.toString().includes(value);
+                case "weight":
+                    matchesSearch = measurement.weight
+                        .toString()
+                        .includes(search);
+                    break;
 
-            case "date":
-                return formattedDate.toLowerCase().includes(value.toLowerCase());
-
-            default:
-                return (
-                    measurement.id.toString().includes(search.toLowerCase()) ||
-                    measurement.user_id.toString().includes(search.toLowerCase()) ||
-                    user?.username.toLowerCase().includes(search.toLowerCase()) ||
-                    measurement.volume_mode.toLowerCase().includes(search.toLowerCase()) ||
-                    measurement.object_count.toString().includes(search.toLowerCase()) ||
-                    measurement.weight.toString().includes(search.toLowerCase()) ||
-                    formattedDate.toLowerCase().includes(search.toLowerCase())
-                );
+                case "all":
+                default:
+                    matchesSearch =
+                        measurement.id
+                            .toString()
+                            .includes(search) ||
+                        measurement.user_id
+                            .toString()
+                            .includes(search) ||
+                        user?.username
+                            .toLowerCase()
+                            .includes(search) ||
+                        measurement.volume_mode
+                            .toLowerCase()
+                            .includes(search) ||
+                        measurement.object_count
+                            .toString()
+                            .includes(search) ||
+                        measurement.weight
+                            .toString()
+                            .includes(search) ||
+                        formattedDate.includes(search);
+                    break;
+            }
         }
-    });
+
+    // -------------------------
+    // Date filter
+    // -------------------------
+
+    const matchesDate = isDateInRange(
+        measurement.created_at,
+        dateFilter
+    );
+
+    return matchesSearch && matchesDate;
+});
 
     const [selectedID, setSelectedID] = useState<number | null>(null);
 
@@ -458,7 +574,7 @@ function App(){
             // };
 
         } else if (currentMenu === "volume-menu") {
-
+            handleCalibrationModeChange(false);
             const interval = setInterval(async () => {
             try {
                 const dataResponse = await apiFetch("/weight");
@@ -477,9 +593,11 @@ function App(){
             return () => {
             clearInterval(interval);
             };
+        } else if (currentMenu === "measurementHistory-menu"){
+            handleCalibrationModeChange(false);
         }
 
-        }, [currentMenu]);
+    }, [currentMenu]);
 
     useEffect(() => {
         const handleMenu = async (): Promise<void> => {
@@ -688,9 +806,13 @@ function App(){
                 }
             });
 
-            if (minDist <= 15) {
-                selectedPoint.current = closest;
-                dragging.current = true;
+            if (minDist <= 15 && closest !== null) {
+                if (selectedPoint.current !== closest){
+                    selectedPoint.current = closest;
+                    dragging.current = false;
+                } else {
+                    dragging.current = true;
+                }
             } else {
                 selectedPoint.current = null;
                 dragging.current = false;
@@ -771,11 +893,11 @@ function App(){
         if (currentMenu !== "calibration-menu") return;
 
         const loadWorkspace = async () => {
-            const r = await apiFetch("//calibrate/mode");
+            const r = await apiFetch("/calibrate/mode");
             const calibData = await r.json();
 
             if (calibData["Calibrate Mode"] === "Manual") {
-                const rParams = await apiFetch("calibrate/params");
+                const rParams = await apiFetch("/calibrate/params");
                 detectionArea.current = (await rParams.json())["Detected Area"];
                 workspaceDrawing();
             }
@@ -1517,6 +1639,10 @@ function App(){
 
         const res = await apiFetch("/calibration/status");
 
+        if (!res.ok) {
+            logout();
+        }
+
         const data = await res.json();
 
         if (!data.calibrated) {
@@ -1986,7 +2112,7 @@ function App(){
     // Delete a single measurement by id
     async function deleteMeasurement(measurementID: number | null): Promise<void> {
         try {
-            const res = await apiFetch("/measurements/delete/${measurementID}", {
+            const res = await apiFetch(`/measurements/delete/${measurementID}`, {
                 method: "DELETE"
             });
 
@@ -2022,7 +2148,7 @@ function App(){
         try {
             const res_archived = await apiFetch("/measurements/archived");
 
-            const res = await apiFetch("/measurements/${selectedID}");
+            const res = await apiFetch(`/measurements/${selectedID}`);
 
             if (!res.ok) {
                 throw new Error("Failed to load measurement");
@@ -2667,7 +2793,7 @@ function App(){
 
     // Change Calibration Mode (Automatic / Manual)
     async function handleCalibrationModeChange(Manual: boolean): Promise<void> {
-
+        console.log("Fui chamado!");
         if (Manual) {
             setCalibrationMode("manual");
             await apiFetch("/calibrate/mode/manual", { method: "POST"});
@@ -2706,7 +2832,7 @@ function App(){
 
     async function changeUserRole(userId: number, role: string): Promise<void> {
         try {
-            const res = await apiFetch("/users/${userId}/role", {
+            const res = await apiFetch(`/users/${userId}/role`, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json"},
                 body: JSON.stringify({ role })
@@ -2714,16 +2840,29 @@ function App(){
             if (res.ok) {
                 setUsersList(prev => prev.map((u) => (u.id === userId ? { ...u, role } : u)));
             } else {
-                setUsersMsg("Could not update role.");
+                notify.error("Could not update the user role");
             }
         } catch (e) {
             setUsersMsg("Server connection error.");
         }
     }
 
+    async function generateResetToken(userId: number): Promise<void> {
+        console.log("Generate Reset Token for user", userId);
+        
+        const fakeToken = Math.floor(10000000 + Math.random() * 90000000).toString();
+
+        setResetTokensByUser((prev) => ({
+            ...prev,
+            [userId]: [...(prev[userId] ?? []), fakeToken],
+        }));
+
+        console.log("Token Value", resetTokensByUser);
+    }
+
     async function deleteUserById(userId: number): Promise<void> {
         try {
-            const res = await apiFetch("/users/${userId}", {
+            const res = await apiFetch(`/users/${userId}`, {
                 method: "DELETE"
             });
             if (res.ok) {
@@ -2981,33 +3120,35 @@ function App(){
                     showUserPopup={showUserPopup}
                 /> */}
 
-                <QTopBar
-                    primaryNav={primaryNav}
-                    collapsibleNav={collapsibleNav}
+                {currentMenu !== "login-menu" && currentMenu !== "register" && (
+                    <QTopBar
+                        primaryNav={primaryNav}
+                        collapsibleNav={collapsibleNav}
 
-                    collapsibleActions={[
-                        {
-                            key: 'settings',
-                            label: 'Settings',
-                            icon: <SettingsIcon />,
-                            onClick: () => setShowSettingsPopup(true),
-                            active: showSettingsPopup,
-                        },
-                    ]}
+                        collapsibleActions={[
+                            {
+                                key: 'settings',
+                                label: 'Settings',
+                                icon: <SettingsIcon />,
+                                onClick: () => setShowSettingsPopup(true),
+                                active: showSettingsPopup,
+                            },
+                        ]}
 
-                    actions={[
-                        {
-                            key: 'profile',
-                            label: 'User',
-                            icon: <UserIcon />,
-                            onClick: () => setShowUserPopup(true),
-                            active: showUserPopup,
-                        },
-                    ]}
+                        actions={[
+                            {
+                                key: 'profile',
+                                label: 'User',
+                                icon: <UserIcon />,
+                                onClick: () => setShowUserPopup(true),
+                                active: showUserPopup,
+                            },
+                        ]}
 
-                    showToggle={true}
-                />
-
+                        showToggle={true}
+                    />
+                )}
+                
                 <QToaster />
 
                 {/* Login Menu */}
@@ -3127,9 +3268,16 @@ function App(){
                         sortOptions={sortOptions}
                         sortedMeasurements={sortedMeasurements}
 
+                        searchBy = {searchBy}
+                        setSearchBy = {setSearchBy}
                         searchValue = {searchValue}
                         setSearchValue = {setSearchValue}
                         filteredMeasurements = {filteredMeasurements}
+                        searchByOptions = {searchByOptions}
+
+                        dateFilter = {dateFilter}
+                        setDateFilter = {setDateFilter}
+                        dateOptions = {dateOptions}
 
                         usersIDList={usersIDList}
 
@@ -3208,6 +3356,8 @@ function App(){
                         setShowUsersPanel={setShowUsersPanel}
 
                         changeUserRole={changeUserRole}
+                        generateResetToken={generateResetToken}
+                        resetTokensByUser={resetTokensByUser}
                         deleteUserById={deleteUserById}
                     />
                 )}
