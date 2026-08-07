@@ -187,7 +187,6 @@
 }
 
 .user-header{
-  background-color: rgba(255, 255, 255, 0.08);
   border-radius: 0.3vw;
 }
 
@@ -215,8 +214,8 @@
   border-radius: 0.3vw;
 }
 
-.user-item.odd {
-  background-color: rgba(255, 255, 255, 0.08);
+.user-item.even {
+  background-color: rgba(255, 255, 255, 0.03);
 }
 
 .user-name {
@@ -263,54 +262,36 @@
 .user-item .tokens-cell {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.5vw;
 
   width: 100%;
   height: 60%;
-  padding: 0 0.5vw;
   box-sizing: border-box;
-
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 0.3vw;
-
-  overflow: hidden;
 }
 
-.tokens-list {
+.token-field {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 0.4vw;
 
-  flex: 1;
-  min-width: 0;
-  overflow-x: auto;
-
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-.tokens-list::-webkit-scrollbar {
-  display: none;
-}
-
-.token-chip {
-  display: flex;
-  align-items: center;
-  gap: 0.3vw;
-
-  flex: 0 0 auto;
+  width: 100%;
+  height: 100%;
+  padding: 0 0vw 0 0.6vw;
+  box-sizing: border-box;
 
   background: rgba(255, 255, 255, 0.08);
-  border-radius: 0.25vw;
-  padding: 0.3vh 0.5vw;
+  /* border: 1px solid rgba(255, 255, 255, 0.15); */
+  border-radius: 0.3vw;
+
+  cursor: pointer;
 }
 
-.token-chip-text {
+.token-field-text {
   color: white;
-  font-size: 1.2vh;
+  font-size: 1.3vh;
   font-family: "Courier New", monospace;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
@@ -327,7 +308,7 @@
 }
 
 .token-copy-icon {
-  height: 1.6vh;
+  height: 2.9vh;
   width: auto;
   color: white;
   opacity: 0.7;
@@ -338,11 +319,21 @@
   opacity: 1;
 }
 
+.token-copied-icon {
+  height: 2.5vh;
+  width: auto;
+  color: white;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+
+  color: #6cd08a;
+}
+
 .token-copied-badge {
   position: absolute;
-  bottom: 100%;
+  bottom: 70%;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(-30%);
   margin-bottom: 0.4vh;
 
   background: #1f1f1f;
@@ -355,27 +346,28 @@
 }
 
 .generate-token-button {
-  flex: 0 0 auto;
+  width: 100%;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
 
-  height: 3vh;
-  padding: 0 0.6vw;
   cursor: pointer;
 
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.2);
   border: none;
-  border-radius: 0.25vw;
+  border-radius: 0.3vw;
   color: white;
   font-size: 1.2vh;
-  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 
-  transition: background 0.2s ease;
+  transition: background 0.3s ease;
 }
 
 .generate-token-button:hover {
-  background: rgba(255, 255, 255, 0.18);
+  background: white;
+  color: black;
 }
 
 .user-item .delete-button {
@@ -388,7 +380,8 @@
   padding: 0 0.6vw;
   cursor: pointer;
 
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 102, 102, 0.15);
+  /*border-color: rgba(255, 102, 102, 0.7); */
   border: none;
   border-radius: 0.3vw;
 
@@ -396,13 +389,13 @@
 }
 
 .user-item .delete-button:hover {
-  background: white;
+  background: rgba(255, 102, 102, 0.3);
 }
 
 .user-item .deleteUser-icon {
   height: 2vh;
   width: auto;
-  color: #ff6666;
+  color: white;
   margin-right: 0.4vw;
 
   transition: opacity 0.3s;
@@ -410,7 +403,7 @@
 
 .user-item .deleteUser-text {
   font-size: 1.3vh;
-  color: #ff6666;
+  color: white;
   white-space: nowrap;
 }
 

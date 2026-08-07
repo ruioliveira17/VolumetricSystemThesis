@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import "./QUser.css";
 import Qselect from "../Qselect"
-import DeleteForeverIcon from "@assets/icons/delete_forever.svg?react";
+import CheckIcon from "@assets/icons/check_icon.svg?react";
 import CopyIcon from "@assets/icons/copy.svg?react";
+import DeleteForeverIcon from "@assets/icons/delete_forever.svg?react";
 
 interface User {
     id: number;
@@ -53,10 +54,28 @@ function QUserPanel({
     const [copiedToken, setCopiedToken] = useState<string | null>(null);
 
     function handleCopy(token: string) {
-        navigator.clipboard.writeText(token).then(() => {
-            setCopiedToken(token);
-            setTimeout(() => setCopiedToken(null), 1500);
-        });
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(token).then(() => {
+                setCopiedToken(token);
+                setTimeout(() => setCopiedToken(null), 1500);
+            });
+        } else {
+            const textarea = document.createElement("textarea");
+            textarea.value = token;
+            textarea.style.position = "fixed";
+            textarea.style.opacity = "0";
+            document.body.appendChild(textarea);
+            textarea.focus();
+            textarea.select();
+            try {
+                document.execCommand("copy");
+                setCopiedToken(token);
+                setTimeout(() => setCopiedToken(null), 3000);
+            } catch (err) {
+                console.error("Copy failed", err);
+            }
+            document.body.removeChild(textarea);
+        }
     }
 
     const otherUsers = usersList.filter(
@@ -65,10 +84,7 @@ function QUserPanel({
 
     return (
         <>
-            <div
-                className="popup-overlay"
-                onClick={() => setShowUsersPanel(false)}
-            >
+            <div className="popup-overlay">
                 <div className="user-panel" onClick={(e) => e.stopPropagation()}>
 
                     <div className="user-panel-title">
@@ -124,29 +140,39 @@ function QUserPanel({
                                             </div>
 
                                             <div className="tokens-cell">
-                                                <div className="tokens-list">
-                                                    {tokens.map((token) => (
-                                                        <div key={token} className="token-chip">
-                                                            <span className="token-chip-text">{token}</span>
-                                                            <button
-                                                                className="token-copy-button"
-                                                                onClick={() => handleCopy(token)}
-                                                            >
+                                                {tokens.length > 0 ? (
+                                                    <div
+                                                        className="token-field"
+                                                        onClick={() => handleCopy(tokens[tokens.length - 1])}
+                                                    >
+                                                        <span className="token-field-text">
+                                                            {tokens[tokens.length - 1]}
+                                                        </span>
+                                                        <button
+                                                            className="token-copy-button"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleCopy(tokens[tokens.length - 1]);
+                                                            }}
+                                                        >
+                                                            {copiedToken === tokens[tokens.length - 1] ? (
+                                                                <CheckIcon className="token-copied-icon" />
+                                                            ) : (
                                                                 <CopyIcon className="token-copy-icon" />
-                                                                {copiedToken === token && (
-                                                                    <span className="token-copied-badge">Copied!</span>
-                                                                )}
-                                                            </button>
-                                                        </div>
-                                                    ))}
-                                                </div>
-
-                                                <button
-                                                    className="generate-token-button"
-                                                    onClick={() => generateResetToken(u.id)}
-                                                >
-                                                    Generate Token
-                                                </button>
+                                                            )}
+                                                            {copiedToken === tokens[tokens.length - 1] && (
+                                                                <span className="token-copied-badge">Copied!</span>
+                                                            )}
+                                                        </button>
+                                                    </div>
+                                                ) : (
+                                                    <button
+                                                        className="generate-token-button"
+                                                        onClick={() => generateResetToken(u.id)}
+                                                    >
+                                                        <span>Generate Token</span>
+                                                    </button>
+                                                )}
                                             </div>
 
                                             <button

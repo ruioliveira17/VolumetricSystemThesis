@@ -8,7 +8,7 @@ import UserIcon from '@assets/icons/user.svg?react';
 // --------------------------------------------------------------------- //
 // |                            Imports                                | //
 // --------------------------------------------------------------------- //
-import { QLogin, QRegister } from "./components/QLogin";
+import { QChangePassword, QLogin, QRegister } from "./components/QLogin";
 import { QVolume } from "./components/QVolume";
 import { QMeasureHistory } from "./components/QMeasureHistory";
 import { QCalibration } from "./components/QCalibration";
@@ -58,40 +58,18 @@ function App(){
     // Messages variables
     // -----------------------------
 
-    const TextServerConnection: Message = {
-        text: "Server connection error",
-        type: "error"
-    };
+    const TextServerConnection: Message = {text: "Server connection error", type: "error"};
+    const TextError: Message = {text: "Error", type: "error"};
+    const TextClear: Message = {text: "", type: "info"};
 
-    const TextError: Message = {
-        text: "Error", 
-        type: "error"
-    };
+    const TextLoginWelcome: Message = {text: "Welcome!", type: "info"};
+    const TextLoginCredentials: Message = {text: "Please insert your login credentials.", type: "info"};
+    const TextFillAllFields: Message = {text: "Please fill all fields", type: "error"};
 
-    const TextClear: Message = {
-        text: "",
-        type: "info"
-    };
+    const TextRegistrationError: Message = {text: "Registration failed", type: "error"};
 
-    const TextLoginWelcome: Message = {
-        text: "Welcome!", 
-        type: "info"
-    };
-    
-    const TextLoginCredentials: Message = {
-        text: "Please insert your login credentials.", 
-        type: "info"
-    };
-
-    const TextFillAllFields: Message = {
-        text: "Please fill all fields",
-        type: "error"
-    };
-
-    const TextRegistrationError: Message = {
-        text: "Registration failed", 
-        type: "error"
-    };
+    const TextResetTokenExpired: Message = {text: "Reset Token expired. Please generate another.", type: "error"};
+    const TextChangePasswordError: Message = {text: "Changing Password failed", type: "error"}
     
     const TextNotCalibrated: Message = { text: "System was not Calibrated.", type: "error" };
     const TextCenterNotAligned: Message = { text: "Center Point isn't Aligned.", type: "error" };
@@ -145,6 +123,21 @@ function App(){
     const [regPasswordFormError, setRegPasswordFormError] = useState<boolean>(false);
     const [regConfirmPasswordFormError, setRegConfirmPasswordFormError] = useState<boolean>(false);
 
+    // -----------------------------
+    // Change Password variables
+    // -----------------------------
+
+    const [changeUsername, setChangeUsername] = useState<string>("");
+    const [changeEmail, setChangeEmail] = useState<string>("");
+    const [changePassword, setChangePassword] = useState<string>("");
+    const [changeConfirmPassword, setChangeConfirmPassword] = useState<string>("");
+
+    const [changePasswordFocus, setChangePasswordFocus] = useState<boolean>(false);
+    const [changeConfirmPasswordFocus, setChangeConfirmPasswordFocus] = useState<boolean>(false);
+
+    const [changePasswordFormError, setChangePasswordFormError] = useState<boolean>(false);
+    const [changeConfirmPasswordFormError, setChangeConfirmPasswordFormError] = useState<boolean>(false);
+    
     // -----------------------------
     // Side Nav variables
     // -----------------------------
@@ -1682,12 +1675,26 @@ function App(){
         setRegEmail("");
         setRegPassword("");
         setRegConfirmPassword("");
+        setChangePassword("");
+        setChangeConfirmPassword("");
         setMenuSideNavOpen(false);
         setUsernameFocus(false);
         setPasswordFocus(false);
 
         setUsernameFormError(false);
         setPasswordFormError(false);
+    }
+
+    function showChangePasswordScreen(): void {
+        setCurrentMenu("changePassword-menu");
+        setMessage([TextClear]);
+        setUsername("");
+        setPassword("");
+        setChangePasswordFocus(false);
+        setChangeConfirmPasswordFocus(false);
+
+        setChangePasswordFormError(false);
+        setChangeConfirmPasswordFormError(false);
     }
 
     // Login Algorithm
@@ -1711,29 +1718,38 @@ function App(){
             if (response.ok) {
                 const data = await response.json();
 
-                const role: string = data.role;
-                const savedUsername: string = data.username;
+                if(data.resetTokenExpired){
+                    setMessage([TextResetTokenExpired]);
+                }else if (data.changePassword){
+                    localStorage.setItem("access_token", data.access_token);
+                    setChangeUsername(data.username);
+                    showChangePasswordScreen();
+                }else{
+                    const role: string = data.role;
+                    const savedUsername: string = data.username;
 
-                const currentUser = {
-                    username: savedUsername,
-                    role
-            };
+                    const currentUser = {
+                        username: savedUsername,
+                        role
+                    }
 
-            localStorage.setItem(
-                "current_user",
-                JSON.stringify(currentUser)
-            );
+                    localStorage.setItem(
+                        "current_user",
+                        JSON.stringify(currentUser)
+                    );
 
-            setSavedUser(currentUser);
+                    setSavedUser(currentUser);
 
-            localStorage.setItem("access_token", data.access_token);
-            localStorage.setItem("refresh_token", data.refresh_token);
+                    localStorage.setItem("access_token", data.access_token);
+                    localStorage.setItem("refresh_token", data.refresh_token);
 
-            await restoreSession();
+                    await restoreSession();
 
-            setMenuSideNavOpen(true);
+                    setMenuSideNavOpen(true);
 
-            setMessage([TextClear]);
+                    setMessage([TextClear]);
+
+                };
 
             } else {
                 const data = await response.json();
@@ -1817,6 +1833,73 @@ function App(){
         notify.success("New user registered with success");
 
         showLoginScreen();
+    }
+
+    // Change Password Algorithm
+    async function confirmChangePassword(): Promise<void> {
+        if (!changeUsername || !changePassword || !changeConfirmPassword) {
+            setMessage([TextFillAllFields]);
+
+            setChangePasswordFormError(true);
+            setChangeConfirmPasswordFormError(true);
+            return;
+        }
+
+        if (changePassword !== changeConfirmPassword) {
+            setMessage([
+                {
+                text: "Passwords do not match!",
+                type: "error",
+                },
+            ]);
+
+            setChangePasswordFormError(true);
+            setChangeConfirmPasswordFormError(true);
+            return;
+        }
+
+        try {
+            const response = await apiFetch("/users/changePassword", {method: "POST", headers: {"Content-Type": "application/json",},
+                body: JSON.stringify({
+                    username: changeUsername,
+                    email: changeEmail,
+                    password: changePassword,
+                    confirm_password: changeConfirmPassword,
+                }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                setMessage([
+                    {
+                    text: errorText(data.detail, TextChangePasswordError.text),
+                    type: "error",
+                    },
+                ]);
+
+                setChangePasswordFormError(true);
+                setChangeConfirmPasswordFormError(true);
+                return;
+            }
+
+            notify.success("Changed password with success");
+
+            setResetTokensByUser((prev) => {
+                const updated = { ...prev };
+                delete updated[data.user_id];
+                return updated;
+            });
+
+            showLoginScreen();
+
+        } catch (error) {
+            setMessage([TextServerConnection]);
+
+            setChangePasswordFormError(true);
+            setChangeConfirmPasswordFormError(true);
+            return;
+        }
     }
 
     // Logout Algorithm
@@ -2793,7 +2876,6 @@ function App(){
 
     // Change Calibration Mode (Automatic / Manual)
     async function handleCalibrationModeChange(Manual: boolean): Promise<void> {
-        console.log("Fui chamado!");
         if (Manual) {
             setCalibrationMode("manual");
             await apiFetch("/calibrate/mode/manual", { method: "POST"});
@@ -2848,16 +2930,22 @@ function App(){
     }
 
     async function generateResetToken(userId: number): Promise<void> {
-        console.log("Generate Reset Token for user", userId);
-        
-        const fakeToken = Math.floor(10000000 + Math.random() * 90000000).toString();
+        const response = await apiFetch(`/users/${userId}/resetToken`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json"},
+        });
+
+        const data: { token: string } = await response.json();
+
+        console.log("Token Value:", data.token);
 
         setResetTokensByUser((prev) => ({
             ...prev,
-            [userId]: [...(prev[userId] ?? []), fakeToken],
+            [userId]: [
+                ...(prev[userId] ?? []),
+                data.token
+            ],
         }));
-
-        console.log("Token Value", resetTokensByUser);
     }
 
     async function deleteUserById(userId: number): Promise<void> {
@@ -3120,7 +3208,7 @@ function App(){
                     showUserPopup={showUserPopup}
                 /> */}
 
-                {currentMenu !== "login-menu" && currentMenu !== "register" && (
+                {currentMenu !== "login-menu" && currentMenu !== "register" && currentMenu !== "changePassword-menu" && (
                     <QTopBar
                         primaryNav={primaryNav}
                         collapsibleNav={collapsibleNav}
@@ -3203,6 +3291,28 @@ function App(){
                         setRegPasswordFocus={setRegPasswordFocus}
                         setRegConfirmPasswordFocus={setRegConfirmPasswordFocus}
                         register={register}
+                        showLoginScreen={showLoginScreen}
+                    />
+                )}
+
+                {/* Register Menu */}
+                {currentMenu === "changePassword-menu" && (
+                    <QChangePassword
+                        message={message}
+                        changeUsername={changeUsername}
+                        changePassword={changePassword}
+                        changeConfirmPassword={changeConfirmPassword}
+                        setChangePassword={setChangePassword}
+                        setChangeConfirmPassword={setChangeConfirmPassword}
+                        changePasswordFormError={changePasswordFormError}
+                        changeConfirmPasswordFormError={changeConfirmPasswordFormError}
+                        setChangePasswordFormError={setChangePasswordFormError}
+                        setChangeConfirmPasswordFormError={setChangeConfirmPasswordFormError}
+                        changePasswordFocus={changePasswordFocus}
+                        changeConfirmPasswordFocus={changeConfirmPasswordFocus}
+                        setChangePasswordFocus={setChangePasswordFocus}
+                        setChangeConfirmPasswordFocus={setChangeConfirmPasswordFocus}
+                        confirmChangePassword={confirmChangePassword}
                         showLoginScreen={showLoginScreen}
                     />
                 )}

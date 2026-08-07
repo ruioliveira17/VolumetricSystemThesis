@@ -1,6 +1,7 @@
 #------------------------------------------------------   Imports    -------------------------------------------------------
 from aiortc import RTCPeerConnection, RTCSessionDescription
 from contextlib import asynccontextmanager
+from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from fastapi import Body, Depends, FastAPI, HTTPException, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -18,10 +19,13 @@ import io
 import json
 import numpy
 import os
+import secrets
 import sys
 import time
 import threading
 
+
+reset_tokens: dict[int, dict] = {}
 #------------------------------------------------------    Paths     -------------------------------------------------------
 
 PROJECT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -33,7 +37,7 @@ os.environ.setdefault("DATABASE_PATH", os.path.join(PROJECT, "data", "dev_app.db
 
 from db.migrate import run_migrations
 from db import measurements_repo, config_repo, calibration_repo
-from db.users_repo import get_by_login, get_by_username, get_by_email, get_by_id, create_user, list_users, set_role, delete_user
+from db.users_repo import get_by_login, get_by_username, get_by_email, get_by_id, change_password, create_user, list_users, set_role, delete_user
 
 from BaseModels import CamValues, ColorCoords, CropWindow, CurrentMenu, HSVValue, LanguageIn, LoginData, ManualWorkspace, MeasurementIn, ObjectIn, RefreshData, RegisterData, RoleUpdate, SystemUpdate
 from CameraState import camState
@@ -229,8 +233,23 @@ def serve_manager():
          tags=["User"])
 def login(login_data: LoginData):
     user = get_by_login(login_data.username)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid username or password."
+        )
 
-    if not user or not verify_password(login_data.password, user["password_hash"]):
+    reset_token = reset_tokens.get(user["id"])
+
+    if reset_token is not None:
+        if datetime.now() >= reset_token["expires_at"]:
+            del reset_tokens[user["id"]]
+            return {"resetTokenExpired": True}
+        elif verify_password(login_data.password, reset_token["token_hash"]):
+            access_token = create_access_token({"sub": user["username"], "role": user["role"]})
+            return {"changePassword": True, "username": user["username"], "access_token": access_token}
+
+    if not verify_password(login_data.password, user["password_hash"]):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid username or password.")
     
     access_token = create_access_token({"sub": user["username"], "role": user["role"]})
@@ -318,12 +337,10 @@ def refreshAccessToken(data: RefreshData):
     new_access_token = create_access_token({"sub": username, "role": user["role"]})
 
     return {"access_token": new_access_token}
-#-------------------------------------------------------   Falta Aplicar   -------------------------------------------------------
 
 @app.get("/users")
 def get_users(current_user: dict = Depends(get_current_user)):
     return {"users": list_users()}
-
 
 @app.patch("/users/{user_id}/role")
 def update_role(user_id: int, data: RoleUpdate, current_user: dict = Depends(require_admin)):
@@ -332,7 +349,6 @@ def update_role(user_id: int, data: RoleUpdate, current_user: dict = Depends(req
     set_role(user_id, data.role)
     return {"id": user_id, "role": data.role}
 
-
 @app.delete("/users/{user_id}")
 def remove_user(user_id: int, current_user: dict = Depends(require_admin)):
     if get_by_id(user_id) is None:
@@ -340,6 +356,53 @@ def remove_user(user_id: int, current_user: dict = Depends(require_admin)):
     delete_user(user_id)
     return {"deleted": user_id}
 
+@app.post("/users/{user_id}/resetToken", summary="Reset Token for User",
+         description="""
+         Generates a reset token for a certain user that is used to login and change the password. Only an admin can request this.
+         """,
+         tags=["User"])
+def generateResetToken(user_id: int, current_user: dict = Depends(require_admin)):
+    token = secrets.token_urlsafe(16)
+    token_hash = get_password_hash(token)
+    expires_at = datetime.now() + timedelta(minutes=30)
+
+    reset_tokens[user_id] = {
+        "token_hash": token_hash,
+        "expires_at": expires_at
+    }
+
+    return {
+        "token": token
+    }
+
+@app.post("/users/changePassword", summary="Change User Password",
+         description="""
+         Changes the password for a certain user.
+         """,
+         tags=["User"])
+def changePassword(register_data: RegisterData, current_user: dict = Depends(get_current_user)):
+    if not register_data.username or not register_data.password or not register_data.confirm_password:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Please fill all fields!")
+
+    if register_data.password != register_data.confirm_password:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Passwords do not match!")
+
+    user = get_by_login(register_data.username)
+
+    if not user:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User not found.")
+
+    if (verify_password(register_data.password, user["password_hash"])):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="New password can't be the same as the current one.")
+
+    change_password(username=register_data.username, password_hash=get_password_hash(register_data.password))
+
+    reset_tokens.pop(user["id"], None)
+    
+    return {"message": "Palavra passe alterada com sucesso!", "user_id": user["id"]}
+
+
+#----------------------------------------------------   Measurements   ----------------------------------------------------
 
 @app.post("/saveMeasurements")
 def save_measurement(data: Optional[MeasurementIn] = Body(default=None), current_user: dict = Depends(get_current_user)):
@@ -368,7 +431,6 @@ def save_measurement(data: Optional[MeasurementIn] = Body(default=None), current
         measurements_repo.add_images(mid, images)
 
     return {"id": mid, "object_count": len(objects), "total_volume_cm": total_cm}
-
 
 @app.get("/measurements")
 def list_measurements_endpoint(current_user: dict = Depends(get_current_user)):
@@ -458,6 +520,7 @@ def restore_measurements(current_user: dict = Depends(get_current_user)):
             raise HTTPException(status_code=404, detail="User not found.")
         restored = measurements_repo.restore_all_measurements(user_id=owner["id"])
     return {"message": "All measurements restored", "restored": restored}
+
 #-------------------------------------------------------   Stream   -------------------------------------------------------
 
 @app.post("/offer")
