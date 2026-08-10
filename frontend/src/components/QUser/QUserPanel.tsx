@@ -84,7 +84,7 @@ function QUserPanel({
 
     return (
         <>
-            <div className="popup-overlay">
+            <div className="darker-popup">
                 <div className="user-panel" onClick={(e) => e.stopPropagation()}>
 
                     <div className="user-panel-title">
@@ -195,7 +195,7 @@ function QUserPanel({
                         </div>
                     )}
 
-                    <div className="close-button">
+                    <div className="manage-users-close-button ">
                         <img src="/close.svg" onClick={() => setShowUsersPanel(false)} />
                     </div>
 

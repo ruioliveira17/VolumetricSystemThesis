@@ -58,7 +58,7 @@ function QChangePassword({
       <img src="/Qubic.svg" className="qubic-logo" alt="Qubic Logo" />
 
       <div className="login-panel-register">
-        <div className="login-panel-title">Change Password</div>
+        <div className="login-panel-title">Redefine Password</div>
 
         <div className="login-panel-register-error-or-info">
           {message.map((msg, i) => (
@@ -150,7 +150,7 @@ function QChangePassword({
           <div className="login-actions">
             <div className="login-options">
               <p onClick={showLoginScreen}>
-                <span>Go Back?</span>
+                <span>Cancel</span>
               </p>
             </div>
 

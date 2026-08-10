@@ -10,6 +10,7 @@ interface QUserModalProps {
     } | null;
 
     setShowUserPopup: (value: boolean) => void;
+    openChangePasswordModal: () => void;
     openUsersPanel: () => void;
     logout: () => void;
 }
@@ -17,6 +18,7 @@ interface QUserModalProps {
 function QUserModal({
     savedUser,
     setShowUserPopup,
+    openChangePasswordModal,
     openUsersPanel,
     logout
 }: QUserModalProps) {
@@ -50,13 +52,20 @@ function QUserModal({
                     </div>
                 </div>
 
-                <div className="close-button">
+                <div className="user-panel-close-button">
                     <CloseIcon onClick={() => setShowUserPopup(false)}/>
                 </div>
 
                 <div
                     className="user-options"
                 >
+
+                    <div
+                        className="logout-option"
+                        onClick={openChangePasswordModal}
+                    >
+                        Redefine Password
+                    </div>
 
                     {savedUser?.role === "admin" && (
                         <div

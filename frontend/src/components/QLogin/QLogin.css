@@ -205,27 +205,6 @@
   color: #FFFFFF;
 }
 
-.changePassword-username-input {
-  position: static;
-  top: auto;
-  width: 100%;
-  height: clamp(40px, 6vh, 54px);
-
-  font-size: clamp(12px, 1.5vh, 16px);
-  background: rgba(255, 255, 255, 0.1);
-  opacity: 1;
-  border: none;
-  border-radius: 4px;
-
-  padding-left: 0.8vw;
-  padding-top: 1.5vh;
-  box-sizing: border-box;
-  color: #FFFFFF;
-
-  cursor: default;
-  user-select: none;
-}
-
 .login-input:hover {
   background: rgba(0, 0, 0, 0.3);
   cursor: pointer;
@@ -331,4 +310,25 @@
 
 .login-options:hover span {
   text-decoration: underline;
+}
+
+.changePassword-username-input {
+  position: static;
+  top: auto;
+  width: 100%;
+  height: clamp(40px, 6vh, 54px);
+
+  font-size: clamp(12px, 1.5vh, 16px);
+  background: rgba(255, 255, 255, 0.1);
+  opacity: 1;
+  border: none;
+  border-radius: 4px;
+
+  padding-left: 0.8vw;
+  padding-top: 1.5vh;
+  box-sizing: border-box;
+  color: #FFFFFF;
+
+  cursor: default;
+  user-select: none;
 }

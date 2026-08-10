@@ -54,13 +54,13 @@ def create_user(username, email, password_hash, role="user"):
             conn.close()
 
 
-def change_password(username, password_hash):
+def change_password(user_id, password_hash):
     with write_lock:
         conn = get_connection()
         try:
             cursor = conn.execute(
-                 "UPDATE users set password_hash = ? WHERE username = ?",
-                 (password_hash, username),
+                 "UPDATE users set password_hash = ? WHERE id = ?",
+                 (password_hash, user_id),
             )
             conn.commit()
             return cursor.rowcount

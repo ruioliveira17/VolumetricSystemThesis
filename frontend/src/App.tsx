@@ -8,7 +8,7 @@ import UserIcon from '@assets/icons/user.svg?react';
 // --------------------------------------------------------------------- //
 // |                            Imports                                | //
 // --------------------------------------------------------------------- //
-import { QChangePassword, QLogin, QRegister } from "./components/QLogin";
+import { QChangePassword, QChangePasswordModal, QLogin, QRegister } from "./components/QLogin";
 import { QVolume } from "./components/QVolume";
 import { QMeasureHistory } from "./components/QMeasureHistory";
 import { QCalibration } from "./components/QCalibration";
@@ -19,7 +19,7 @@ import { QUserModal, QUserPanel } from "./components/QUser";
 import QTopBar from "./components/QTopBar";
 import { QToaster, notify } from "./components/QToast";
 
-import {apiFetch, refreshTokens, setOnAuthFailure} from "./api/client"
+import {apiFetch, setOnAuthFailure, storeTokens} from "./api/client"
 // --------------------------------------------------------------------- //
 // |                           Interfaces                              | //
 // --------------------------------------------------------------------- //
@@ -31,6 +31,7 @@ interface Message {
 
 interface SavedUser {
   username: string;
+  id: Int16Array;
   role: string;
 }
 
@@ -128,13 +129,18 @@ function App(){
     // -----------------------------
 
     const [changeUsername, setChangeUsername] = useState<string>("");
+    const [changeUserId, setChangeUserId] = useState<string>("");
     const [changeEmail, setChangeEmail] = useState<string>("");
+
+    const [changeCurrentPassword, setChangeCurrentPassword] = useState<string>("");
     const [changePassword, setChangePassword] = useState<string>("");
     const [changeConfirmPassword, setChangeConfirmPassword] = useState<string>("");
 
+    const [changeCurrentPasswordFocus, setChangeCurrentPasswordFocus] = useState<boolean>(false);
     const [changePasswordFocus, setChangePasswordFocus] = useState<boolean>(false);
     const [changeConfirmPasswordFocus, setChangeConfirmPasswordFocus] = useState<boolean>(false);
 
+    const [changeCurrentPasswordFormError, setChangeCurrentPasswordFormError] = useState<boolean>(false);
     const [changePasswordFormError, setChangePasswordFormError] = useState<boolean>(false);
     const [changeConfirmPasswordFormError, setChangeConfirmPasswordFormError] = useState<boolean>(false);
     
@@ -249,6 +255,7 @@ function App(){
     // -----------------------------
     const [showUserPopup, setShowUserPopup] = useState<boolean>(false);
     const [showUsersPanel, setShowUsersPanel] = useState<boolean>(false);
+    const [showChangePasswordModal, setShowChangePasswordModal] = useState<boolean>(false);
     const [usersList, setUsersList] = useState<any[]>([]);
     const [usersLoading, setUsersLoading] = useState<boolean>(false);
     const [usersMsg, setUsersMsg] = useState<string>("");
@@ -1471,15 +1478,13 @@ function App(){
       // Updates Current Menu on Backend
     useEffect(() => {
         async function updateMenu() {
-            const access_token = localStorage.getItem("access_token");
-
             if (currentMenu === "config-menu"){
                 await apiFetch("/currentMenu", {
                     method: "POST",
                     headers: {"Content-Type": "application/json"},
                     body: JSON.stringify({currentMenu: lastMenu})
                 });
-            } else {
+            } else if (currentMenu !== "login-menu" && currentMenu !== "register" && currentMenu != "changePassword-menu") {
                 await apiFetch("/currentMenu", {
                     method: "POST",
                     headers: {"Content-Type": "application/json"},
@@ -1675,12 +1680,13 @@ function App(){
         setRegEmail("");
         setRegPassword("");
         setRegConfirmPassword("");
+        setChangeCurrentPassword("");
         setChangePassword("");
         setChangeConfirmPassword("");
         setMenuSideNavOpen(false);
         setUsernameFocus(false);
         setPasswordFocus(false);
-
+        setShowChangePasswordModal(false);
         setUsernameFormError(false);
         setPasswordFormError(false);
     }
@@ -1722,14 +1728,17 @@ function App(){
                     setMessage([TextResetTokenExpired]);
                 }else if (data.changePassword){
                     localStorage.setItem("access_token", data.access_token);
+                    setChangeUserId(data.user_id);
                     setChangeUsername(data.username);
                     showChangePasswordScreen();
                 }else{
                     const role: string = data.role;
                     const savedUsername: string = data.username;
+                    const userId: Int16Array = data.user_id;
 
                     const currentUser = {
                         username: savedUsername,
+                        id: userId,
                         role
                     }
 
@@ -1740,8 +1749,7 @@ function App(){
 
                     setSavedUser(currentUser);
 
-                    localStorage.setItem("access_token", data.access_token);
-                    localStorage.setItem("refresh_token", data.refresh_token);
+                    storeTokens(data.access_token, data.refresh_token);
 
                     await restoreSession();
 
@@ -1837,43 +1845,19 @@ function App(){
 
     // Change Password Algorithm
     async function confirmChangePassword(): Promise<void> {
-        if (!changeUsername || !changePassword || !changeConfirmPassword) {
-            setMessage([TextFillAllFields]);
+        if(currentMenu === "changePassword-menu"){
+            if (!changeUserId || !changePassword || !changeConfirmPassword) {
+                setMessage([TextFillAllFields]);
 
-            setChangePasswordFormError(true);
-            setChangeConfirmPasswordFormError(true);
-            return;
-        }
+                setChangePasswordFormError(true);
+                setChangeConfirmPasswordFormError(true);
+                return;
+            }
 
-        if (changePassword !== changeConfirmPassword) {
-            setMessage([
-                {
-                text: "Passwords do not match!",
-                type: "error",
-                },
-            ]);
-
-            setChangePasswordFormError(true);
-            setChangeConfirmPasswordFormError(true);
-            return;
-        }
-
-        try {
-            const response = await apiFetch("/users/changePassword", {method: "POST", headers: {"Content-Type": "application/json",},
-                body: JSON.stringify({
-                    username: changeUsername,
-                    email: changeEmail,
-                    password: changePassword,
-                    confirm_password: changeConfirmPassword,
-                }),
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
+            if (changePassword !== changeConfirmPassword) {
                 setMessage([
                     {
-                    text: errorText(data.detail, TextChangePasswordError.text),
+                    text: "Passwords do not match!",
                     type: "error",
                     },
                 ]);
@@ -1883,23 +1867,120 @@ function App(){
                 return;
             }
 
-            notify.success("Changed password with success");
+            try {
+                const response = await apiFetch("/users/changePassword", {method: "POST", headers: {"Content-Type": "application/json",},
+                    body: JSON.stringify({
+                        userId: changeUserId,
+                        email: changeEmail,
+                        password: changePassword,
+                        confirm_password: changeConfirmPassword,
+                        method: "forgot",
+                    }),
+                });
 
-            setResetTokensByUser((prev) => {
-                const updated = { ...prev };
-                delete updated[data.user_id];
-                return updated;
-            });
+                const data = await response.json();
 
-            showLoginScreen();
+                if (!response.ok) {
+                    setMessage([
+                        {
+                        text: errorText(data.detail, TextChangePasswordError.text),
+                        type: "error",
+                        },
+                    ]);
 
-        } catch (error) {
-            setMessage([TextServerConnection]);
+                    setChangePasswordFormError(true);
+                    setChangeConfirmPasswordFormError(true);
+                    return;
+                }
 
-            setChangePasswordFormError(true);
-            setChangeConfirmPasswordFormError(true);
-            return;
+                notify.success("Changed password with success");
+
+                setResetTokensByUser((prev) => {
+                    const updated = { ...prev };
+                    delete updated[data.user_id];
+                    return updated;
+                });
+
+                showLoginScreen();
+
+            } catch (error) {
+                setMessage([TextServerConnection]);
+
+                setChangePasswordFormError(true);
+                setChangeConfirmPasswordFormError(true);
+                return;
+            }
+        } else if (currentMenu !== "login-menu" && currentMenu !== "register" && currentMenu !== "changePassword-menu"){
+            if (!changeUserId || !changeCurrentPassword || !changePassword || !changeConfirmPassword) {
+                setMessage([TextFillAllFields]);
+
+                setChangeCurrentPasswordFormError(true);
+                setChangePasswordFormError(true);
+                setChangeConfirmPasswordFormError(true);
+                return;
+            }
+
+            if (changePassword !== changeConfirmPassword) {
+                setMessage([
+                    {
+                    text: "Passwords do not match!",
+                    type: "error",
+                    },
+                ]);
+
+                setChangePasswordFormError(true);
+                setChangeConfirmPasswordFormError(true);
+                return;
+            }
+
+            try {
+                const response = await apiFetch("/users/changePassword", {method: "POST", headers: {"Content-Type": "application/json",},
+                    body: JSON.stringify({
+                        userId: changeUserId,
+                        email: changeEmail,
+                        current_password: changeCurrentPassword,
+                        password: changePassword,
+                        confirm_password: changeConfirmPassword,
+                        method: "change",
+                    }),
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    setMessage([
+                        {
+                        text: errorText(data.detail, TextChangePasswordError.text),
+                        type: "error",
+                        },
+                    ]);
+
+                    setChangeCurrentPasswordFormError(true);
+                    setChangePasswordFormError(true);
+                    setChangeConfirmPasswordFormError(true);
+                    return;
+                }
+
+                notify.success("Changed password with success");
+
+                setResetTokensByUser((prev) => {
+                    const updated = { ...prev };
+                    delete updated[data.user_id];
+                    return updated;
+                });
+
+                logout();
+                showLoginScreen();
+
+            } catch (error) {
+                setMessage([TextServerConnection]);
+
+                setChangePasswordFormError(true);
+                setChangeConfirmPasswordFormError(true);
+                return;
+            }
         }
+
     }
 
     // Logout Algorithm
@@ -1938,6 +2019,15 @@ function App(){
         setRegUsernameFormError(false);
         setRegPasswordFormError(false);
         setRegConfirmPasswordFormError(false);
+        setChangePassword("");
+        setChangePassword("");
+        setChangeConfirmPassword("");
+        setChangeCurrentPasswordFocus(false);
+        setChangePasswordFocus(false);
+        setChangeConfirmPasswordFocus(false);
+        setChangeCurrentPasswordFormError(false);
+        setChangePasswordFormError(false);
+        setChangeConfirmPasswordFormError(false);
         }
 
     useEffect(() => {
@@ -2907,9 +2997,31 @@ function App(){
     }
 
     async function openUsersPanel(): Promise<void> {
-        setShowUserPopup(false);
+        // setShowUserPopup(false);
         setShowUsersPanel(true);
         await loadUsers();
+    }
+
+    async function openChangePasswordModal(): Promise<void> {
+        setChangeUserId(savedUser?.id);
+        setChangeUsername(savedUser?.username);
+        setShowChangePasswordModal(true);
+    }
+
+    async function closeChangePasswordModal(): Promise<void> {
+        setMessage([TextClear]);
+        setShowChangePasswordModal(false); 
+        setChangeCurrentPassword(""); 
+        setChangePassword(""), 
+        setChangeConfirmPassword("")
+
+        setChangeCurrentPasswordFocus(false);
+        setChangePasswordFocus(false);
+        setChangeConfirmPasswordFocus(false);
+
+        setChangeCurrentPasswordFormError(false);
+        setChangePasswordFormError(false);
+        setChangeConfirmPasswordFormError(false);
     }
 
     async function changeUserRole(userId: number, role: string): Promise<void> {
@@ -2936,8 +3048,6 @@ function App(){
         });
 
         const data: { token: string } = await response.json();
-
-        console.log("Token Value:", data.token);
 
         setResetTokensByUser((prev) => ({
             ...prev,
@@ -3450,6 +3560,7 @@ function App(){
                     <QUserModal
                         savedUser={savedUser}
                         setShowUserPopup={setShowUserPopup}
+                        openChangePasswordModal={openChangePasswordModal}
                         openUsersPanel={openUsersPanel}
                         logout={logout}
                     />
@@ -3469,6 +3580,34 @@ function App(){
                         generateResetToken={generateResetToken}
                         resetTokensByUser={resetTokensByUser}
                         deleteUserById={deleteUserById}
+                    />
+                )}
+
+                {showChangePasswordModal && (
+                    <QChangePasswordModal
+                        message={message}
+                        closeChangePasswordModal={closeChangePasswordModal}
+                        changeUsername={changeUsername}
+                        changeCurrentPassword={changeCurrentPassword}
+                        changePassword={changePassword}
+                        changeConfirmPassword={changeConfirmPassword}
+                        setChangeCurrentPassword={setChangeCurrentPassword}
+                        setChangePassword={setChangePassword}
+                        setChangeConfirmPassword={setChangeConfirmPassword}
+                        changeCurrentPasswordFormError={changeCurrentPasswordFormError}
+                        changePasswordFormError={changePasswordFormError}
+                        changeConfirmPasswordFormError={changeConfirmPasswordFormError}
+                        setChangeCurrentPasswordFormError={setChangeCurrentPasswordFormError}
+                        setChangePasswordFormError={setChangePasswordFormError}
+                        setChangeConfirmPasswordFormError={setChangeConfirmPasswordFormError}
+                        changeCurrentPasswordFocus={changeCurrentPasswordFocus}
+                        changePasswordFocus={changePasswordFocus}
+                        changeConfirmPasswordFocus={changeConfirmPasswordFocus}
+                        setChangeCurrentPasswordFocus={setChangeCurrentPasswordFocus}
+                        setChangePasswordFocus={setChangePasswordFocus}
+                        setChangeConfirmPasswordFocus={setChangeConfirmPasswordFocus}
+                        confirmChangePassword={confirmChangePassword}
+                        showLoginScreen={showLoginScreen}
                     />
                 )}
 

@@ -1,7 +1,7 @@
 #------------------------------------------------------   Imports    -------------------------------------------------------
 from aiortc import RTCPeerConnection, RTCSessionDescription
 from contextlib import asynccontextmanager
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from dotenv import load_dotenv
 from fastapi import Body, Depends, FastAPI, HTTPException, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -19,6 +19,7 @@ import io
 import json
 import numpy
 import os
+import re
 import secrets
 import sys
 import time
@@ -39,7 +40,7 @@ from db.migrate import run_migrations
 from db import measurements_repo, config_repo, calibration_repo
 from db.users_repo import get_by_login, get_by_username, get_by_email, get_by_id, change_password, create_user, list_users, set_role, delete_user
 
-from BaseModels import CamValues, ColorCoords, CropWindow, CurrentMenu, HSVValue, LanguageIn, LoginData, ManualWorkspace, MeasurementIn, ObjectIn, RefreshData, RegisterData, RoleUpdate, SystemUpdate
+from BaseModels import CamValues, ChangePasswordData, ColorCoords, CropWindow, CurrentMenu, HSVValue, LanguageIn, LoginData, ManualWorkspace, MeasurementIn, ObjectIn, RefreshData, RegisterData, RoleUpdate, SystemUpdate
 from CameraState import camState
 from DepthState import depthState
 from FilterState import filterState
@@ -95,8 +96,32 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
     
     if payload["type"] != "access":
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token type.")
+
+    if payload.get("scope") == "password_reset":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="This token can only be used to change the password."
+        )
     
     return {"username": payload["sub"], "role": payload["role"]}
+
+def get_password_change_user(token: str = Depends(oauth2_scheme)):
+    try:
+        payload = verify_token(token)
+    except ExpiredSignatureError:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token has expired.")
+    except JWTError:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token.")
+
+    if payload["type"] != "access":
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token type.")
+
+    return {
+        "username": payload["sub"],
+        "role": payload["role"],
+        "from_reset": payload.get("scope") == "password_reset"
+    }
+
 
 def require_admin(user: dict = Depends(get_current_user)):
     """
@@ -242,12 +267,12 @@ def login(login_data: LoginData):
     reset_token = reset_tokens.get(user["id"])
 
     if reset_token is not None:
-        if datetime.now() >= reset_token["expires_at"]:
+        if datetime.now(timezone.utc) >= reset_token["expires_at"]:
             del reset_tokens[user["id"]]
             return {"resetTokenExpired": True}
         elif verify_password(login_data.password, reset_token["token_hash"]):
-            access_token = create_access_token({"sub": user["username"], "role": user["role"]})
-            return {"changePassword": True, "username": user["username"], "access_token": access_token}
+            access_token = create_access_token({"sub": user["username"], "role": user["role"], "scope": "password_reset"})
+            return {"changePassword": True, "user_id": user["id"], "username": user["username"], "access_token": access_token}
 
     if not verify_password(login_data.password, user["password_hash"]):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid username or password.")
@@ -255,7 +280,7 @@ def login(login_data: LoginData):
     access_token = create_access_token({"sub": user["username"], "role": user["role"]})
     refresh_token = create_refresh_token({"sub": user["username"], "role": user["role"]})
 
-    return {"role": user["role"], "username": user["username"], "access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"}
+    return {"role": user["role"], "username": user["username"], "user_id": user["id"], "access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"}
 
 @app.post("/register", summary="Register Request",
          description="""
@@ -271,11 +296,16 @@ def register(register_data: RegisterData):
     if not register_data.username or not register_data.password or not register_data.confirm_password:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Please fill all fields!")
 
+    if get_by_username(register_data.username) is not None:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username already used! Choose another username.")
+
     if register_data.password != register_data.confirm_password:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Passwords do not match!")
 
-    if get_by_username(register_data.username) is not None:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username already used! Choose another username.")
+    password = register_data.password
+    # 8 characters, 1 uppercase letter, 1 number and one special character 
+    if len(password) < 8 or not re.search(r"[A-Z]", password) or not re.search(r"\d", password) or not re.search(r"[^A-Za-z0-9]", password):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="The password should have atleast 8 digits, one uppercase letter, one number, and one special character.")
 
     #if get_by_email(register_data.email) is not None:
     #    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already used! Choose another email.")
@@ -362,9 +392,12 @@ def remove_user(user_id: int, current_user: dict = Depends(require_admin)):
          """,
          tags=["User"])
 def generateResetToken(user_id: int, current_user: dict = Depends(require_admin)):
+    if get_by_id(user_id) is None:
+        raise HTTPException(status_code=404, detail="User not found.")
+
     token = secrets.token_urlsafe(16)
     token_hash = get_password_hash(token)
-    expires_at = datetime.now() + timedelta(minutes=30)
+    expires_at = datetime.now(timezone.utc) + timedelta(minutes=30)
 
     reset_tokens[user_id] = {
         "token_hash": token_hash,
@@ -377,25 +410,39 @@ def generateResetToken(user_id: int, current_user: dict = Depends(require_admin)
 
 @app.post("/users/changePassword", summary="Change User Password",
          description="""
-         Changes the password for a certain user.
+         Changes the password of the account the token belongs to. A normal session must
+         supply the current password; a session opened with a reset token does not, because
+         that user does not know it.
+
          """,
          tags=["User"])
-def changePassword(register_data: RegisterData, current_user: dict = Depends(get_current_user)):
-    if not register_data.username or not register_data.password or not register_data.confirm_password:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Please fill all fields!")
-
-    if register_data.password != register_data.confirm_password:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Passwords do not match!")
-
-    user = get_by_login(register_data.username)
-
+def changePassword(changePassword_data: ChangePasswordData, current_user: dict = Depends(get_password_change_user)):
+    user = get_by_id(changePassword_data.userId)
+    
     if not user:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User not found.")
 
-    if (verify_password(register_data.password, user["password_hash"])):
+    if not changePassword_data.password or not changePassword_data.confirm_password:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Please fill all fields!")
+
+    if changePassword_data.method == "change":
+        if not changePassword_data.current_password:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Please fill all fields!")
+
+        if not (verify_password(changePassword_data.current_password, user["password_hash"])):
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Current password is invalid.")
+
+    password = changePassword_data.password
+    if len(password) < 8 or not re.search(r"[A-Z]", password) or not re.search(r"\d", password) or not re.search(r"[^A-Za-z0-9]", password):
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="The password should have atleast 8 digits, one uppercase letter, one number, and one special character.")
+
+    if changePassword_data.password != changePassword_data.confirm_password:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Passwords do not match!")
+
+    if (verify_password(changePassword_data.password, user["password_hash"])):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="New password can't be the same as the current one.")
 
-    change_password(username=register_data.username, password_hash=get_password_hash(register_data.password))
+    change_password(user_id=user["id"], password_hash=get_password_hash(changePassword_data.password))
 
     reset_tokens.pop(user["id"], None)
     

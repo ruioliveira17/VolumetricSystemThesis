@@ -1,15 +1,14 @@
-.popup-overlay {
+.darker-popup {
   position: fixed;
   inset: 0;
-
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(2px);
 
   display: flex;
   justify-content: center;
   align-items: center;
 
-  z-index: 10;
+  z-index: 100;
 }
 
 .user-popup {
@@ -413,9 +412,104 @@
   padding: 10px 0;
 }
 
-.close-button {
+.manage-users-close-button {
   position: absolute;
-  top: 3%;
-  right: 2%;
+  top: 2%;
+  right: 2.5%;
   cursor: pointer;
+}
+
+.user-panel-close-button {
+  position: absolute;
+  top: 3.5%;
+  right: 5%;
+  cursor: pointer;
+}
+
+.changePassword-close-button {
+  position: absolute;
+  top: 7%;
+  right: 6.5%;
+  cursor: pointer;
+}
+
+.changePassword-panel{
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  width: clamp(320px, 32vw, 520px);
+  height: 58%;
+  max-height: 92vh;
+  padding: 3.2vh 2vw;
+  box-sizing: border-box;
+
+  background: #3E3E3E;
+  border-radius: 1.4vw;
+  opacity: 1;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2.2vh;
+  overflow-y: auto;
+  overflow-x: auto;
+  z-index: 110;
+}
+
+.changePassword-actions {
+  position: relative;
+  top: 0;
+  left: 0;
+
+  align-items: center;
+  width: 100%;
+  margin-top: 1.5vh;
+}
+
+.confirmChangePassword-button {
+  position: relative;
+  overflow: hidden;
+  width: 40%;
+  height: clamp(38px, 5.1vh, 50px);
+
+  left: 50%;
+  transform: translateX(-50%);
+
+  cursor: pointer;
+  border-radius: 4px;
+  border: none;
+  background: rgba(255,255,255,0.2);
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.confirmChangePassword-button .background {
+  position: absolute;
+  inset: 0;
+  transition: all 0.3s ease;
+}
+
+.confirmChangePassword-button:hover .background {
+  background-color: white;
+  opacity: 1;
+}
+
+.confirmChangePassword-button .text{
+  position: relative;
+  z-index: 1;
+  color: #FFFFFF;
+  text-transform: uppercase;
+  opacity: 1;
+  font-size: clamp(12px, 1.5vh, 16px);
+  transition: all 0.3s ease;
+}
+
+.confirmChangePassword-button:hover .text{
+  z-index: 1;
+  color: #3E3E3E;
 }

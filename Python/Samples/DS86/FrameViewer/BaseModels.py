@@ -5,6 +5,13 @@ class CamValues(BaseModel):
     colorSlope: Optional[int] = Field(1500, ge=100, le=4000)
     exposureTime: Optional[int] = Field(700, ge=100, le=4000)
 
+class ChangePasswordData(BaseModel):
+    userId: int
+    current_password: Optional[str] = None
+    password: str
+    confirm_password: str
+    method: str
+
 class ColorCoords(BaseModel):
     x : int
     y : int

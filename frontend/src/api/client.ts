@@ -52,6 +52,8 @@ export function storeTokens(accessToken: string, refreshToken?: string): void {
     if (refreshToken) {
         localStorage.setItem("refresh_token", refreshToken);
     }
+
+    authFailureHandled = false;
 }
 
 export function clearTokens(): void {
@@ -99,7 +101,6 @@ export function refreshTokens(): Promise<boolean> {
             }
 
             storeTokens(data.access_token);
-            authFailureHandled = false;
             return true;
 
         } catch (error) {
