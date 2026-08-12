@@ -417,7 +417,7 @@ def generateResetToken(user_id: int, current_user: dict = Depends(require_admin)
          """,
          tags=["User"])
 def changePassword(changePassword_data: ChangePasswordData, current_user: dict = Depends(get_password_change_user)):
-    user = get_by_id(changePassword_data.userId)
+    user = get_by_username(current_user["username"])
     
     if not user:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User not found.")
@@ -425,7 +425,7 @@ def changePassword(changePassword_data: ChangePasswordData, current_user: dict =
     if not changePassword_data.password or not changePassword_data.confirm_password:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Please fill all fields!")
 
-    if changePassword_data.method == "change":
+    if not current_user["from_reset"]:
         if not changePassword_data.current_password:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Please fill all fields!")
 
@@ -500,6 +500,10 @@ def get_measurement_endpoint(measurement_id: int, current_user: dict = Depends(g
     data = measurements_repo.get_measurement(measurement_id)
     if data is None:
         raise HTTPException(status_code=404, detail="Measurement not found.")
+
+    if not _owns_measurement(current_user, data["measurement"]):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden.")
+
     return data
 
 @app.delete("/measurements/delete/{measurement_id}", summary="Archives one measurement instead of deleting it",

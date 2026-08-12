@@ -6,11 +6,9 @@ class CamValues(BaseModel):
     exposureTime: Optional[int] = Field(700, ge=100, le=4000)
 
 class ChangePasswordData(BaseModel):
-    userId: int
     current_password: Optional[str] = None
     password: str
     confirm_password: str
-    method: str
 
 class ColorCoords(BaseModel):
     x : int

@@ -1,21 +1,55 @@
+/* =====================================================
+   RESPONSIVE BREAKPOINTS
+   =====================================================
+
+   Mobile:  < 769px
+   Tablet:  769px - 1024px
+   Desktop: 1025px - 1440px
+   Large:   >= 1441px
+
+   Se alterar estes valores, atualizar as media queries.
+   ===================================================== */
+
 .qubic-logo{
   position: absolute;
-  top: 12vh;
   left: 50vw;
   transform: translateX(-50%);
+}
 
-  width: 11vw;
-  height: 7vh;
+/* @media (max-width: 768px){
+  .qubic-logo{
+    width: 11vw;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px){
+  .qubic-logo{
+    width: 11vw;
+  }
+} */
+
+@media (min-width: 1025px){
+  .qubic-logo{
+    width: clamp(100px, 11vw, 200px);
+  }
+}
+
+@media (max-height: 800px) {
+  .qubic-logo{
+    top: 11.98%;
+  }
+}
+
+@media (min-height: 801px){
+  .qubic-logo{
+    top: 14.17%;
+  }
 }
 
 .powered-by-panel-login{
   position: absolute;
-  bottom: 5vh;
   left: 50vw;
   transform: translateX(-50%);
-
-  width: 15vw;
-  height: 7vh;
 
   display: flex;
   flex-direction: column;
@@ -23,9 +57,28 @@
   justify-content: center;
 }
 
+@media (min-width: 1025px){
+  .powered-by-panel-login{
+    width: 15vw;
+    height: 7vh;
+  }
+}
+
+@media (max-height: 800px) {
+  .powered-by-panel-login{
+    bottom: 5%;
+  }
+}
+
+@media (min-height: 801px){
+  .powered-by-panel-login{
+    bottom: 5%;
+  }
+}
+
 .powered-by-text-login{
   position: relative;
-  top: 0vh;
+  top: 0%;
   width: auto;
   height: 1.4vh;
   font-size: 1.4vh;
@@ -46,22 +99,51 @@
   left: 50%;
   transform: translate(-50%, -50%);
 
-  width: clamp(320px, 32vw, 520px);
-  height: 42%;
-  max-height: 92vh;
-  padding: 3.2vh 2vw;
   box-sizing: border-box;
 
   background: linear-gradient(180deg, #FFFFFF1A 0%, #0000003E 100%);
-  border-radius: 1.4vw;
   opacity: 1;
 
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 2.2vh;
-  overflow-y: auto;
+  overflow: hidden;
+}
+
+@media (max-width: 1280px){
+  .login-panel-login{
+    width: clamp(320px, 38vw, 520px);
+    padding-left: min(30px, 2vw);
+    padding-right: min(30px, 2vw);
+    border-radius: clamp(15px , 1.4vw, 25px);
+  }
+}
+
+@media (min-width: 1281px){
+  .login-panel-login{
+    width: clamp(320px, 33.6vw, 520px);
+    padding-left: min(30px, 2vw);
+    padding-right: min(30px, 2vw);
+    border-radius: clamp(15px , 1.4vw, 25px);
+  }
+}
+
+@media (max-height: 800px) {
+  .login-panel-login{
+    height: 45vh;
+    padding-top: 2.5%;
+    padding-bottom: 2.5%;
+    /* gap: 8%; */
+  }
+}
+
+@media (min-height: 801px){
+  .login-panel-login{
+    height: 35vh;
+    padding-top: 2%;
+    padding-bottom: 2%;
+    /* gap: 10%; */
+  }
 }
 
 .login-panel-register{
@@ -70,49 +152,97 @@
   left: 50%;
   transform: translate(-50%, -50%);
 
-  width: clamp(320px, 32vw, 520px);
-  height: 50%;
-  max-height: 92vh;
-  padding: 3.2vh 2vw;
   box-sizing: border-box;
-
   background: linear-gradient(180deg, #FFFFFF1A 0%, #0000003E 100%);
-  border-radius: 1.4vw;
   opacity: 1;
 
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 2.2vh;
-  overflow-y: auto;
-  overflow-x: auto;
+}
+
+@media (max-width: 1280px){
+  .login-panel-register{
+    width: clamp(320px, 38vw, 520px);
+    padding-left: min(30px, 2vw);
+    padding-right: min(30px, 2vw);
+    border-radius: clamp(15px , 1.4vw, 25px);
+  }
+}
+
+@media (min-width: 1281px){
+  .login-panel-register{
+    width: clamp(320px, 33.6vw, 520px);
+    padding-left: min(30px, 2vw);
+    padding-right: min(30px, 2vw);
+    border-radius: clamp(15px , 1.4vw, 25px);
+  }
+}
+
+@media (max-height: 800px) {
+  .login-panel-register{
+    height: 52vh;
+    padding-top: 2.5%;
+    padding-bottom: 2.5%;
+    /* gap: 8%; */
+  }
+}
+
+@media (min-height: 801px){
+  .login-panel-register{
+    height: 40vh;
+    padding-top: 2%;
+    padding-bottom: 2%;
+    /* gap: 8%; */
+  }
 }
 
 .login-panel-title {
-  position: static;
+  position: relative;
   width: auto;
   height: auto;
-  margin: 0;
+  top: 0%;
 
-  font-size: clamp(12px, 1.7vh, 17px);
   text-align: center;
   color: #999999;
   text-transform: uppercase;
   opacity: 1;
 }
 
+@media (max-height: 800px) {
+  .login-panel-title {
+    font-size: clamp(12px, 3vh, 17px);
+  }
+}
+
+@media (min-height: 801px){
+  .login-panel-title {
+    font-size: clamp(12px, 1.7vh, 17px);
+  }
+}
+
 .login-panel-error-or-info{
   position: static;
   width: 100%;
-  height: 30%;
+  height: 20%;
   margin: 0;
-  margin-bottom: 3%;
+  margin-top: 3%;
 
-  font-size: clamp(11px, 1.6vh, 16px);
   text-align: center;
   color: #FFFFFF;
   opacity: 1;
+}
+
+@media (max-height: 800px) {
+  .login-panel-error-or-info {
+    font-size: clamp(11px, 2vh, 16px);
+  }
+}
+
+@media (min-height: 801px){
+  .login-panel-error-or-info {
+    font-size: clamp(11px, 1.6vh, 16px);
+  }
 }
 
 .login-panel-error-or-info p {
@@ -125,12 +255,23 @@
   width: 100%;
   height: 10%;
   margin: 0;
-  margin-bottom: 3%;
+  margin-top: 3%;
 
-  font-size: clamp(11px, 1.6vh, 16px);
   text-align: center;
   color: #FFFFFF;
   opacity: 1;
+}
+
+@media (max-height: 800px) {
+  .login-panel-register-error-or-info {
+    font-size: clamp(11px, 2vh, 16px);
+  }
+}
+
+@media (min-height: 801px){
+  .login-panel-register-error-or-info {
+    font-size: clamp(11px, 1.6vh, 16px);
+  }
 }
 
 .login-panel-register-error-or-info p {
@@ -146,13 +287,37 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1.6vh;
+}
+
+@media (max-height: 800px) {
+  .login-form {
+    margin-top: 4%;
+    gap: 2vh;
+  }
+}
+
+@media (min-height: 801px){
+  .login-form {
+    margin-top: 4%;
+    gap: 1.6vh;
+  }
 }
 
 .input-container {
   position: relative;
   width: 100%;
-  height: clamp(40px, 6vh, 54px);
+}
+
+@media (max-height: 800px) {
+  .input-container {
+    height: clamp(40px, 7vh, 64px);
+  }
+}
+
+@media (min-height: 801px){
+  .input-container {
+    height: clamp(40px, 6vh, 54px);
+  }
 }
 
 .input-container:hover {
@@ -168,15 +333,38 @@
   width: 100%;
   color: #FFFFFF;
   opacity: 0.6;
-  font-size: clamp(12px, 1.5vh, 16px); 
+  
   padding-left: 0.8vw;
   pointer-events: none;
   transition: 0.2s ease;
 }
 
+@media (max-height: 800px) {
+  .input-container label {
+    font-size: clamp(12px, 2.1vh, 16px);
+  }
+}
+
+@media (min-height: 801px){
+  .input-container label {
+    font-size: clamp(12px, 1.5vh, 16px); 
+  }
+}
+
 .input-container label.active {
   top: 25%;
-  font-size: clamp(11px, 1vh, 16px);
+}
+
+@media (max-height: 800px) {
+  .input-container label.active {
+    font-size: clamp(11px, 1.4vh, 16px);
+  }
+}
+
+@media (min-height: 801px){
+  .input-container label.active {
+    font-size: clamp(11px, 1vh, 16px);
+  }
 }
 
 .input-container:hover label {
@@ -191,9 +379,7 @@
   position: static;
   top: auto;
   width: 100%;
-  height: clamp(40px, 6vh, 54px);
 
-  font-size: clamp(12px, 1.5vh, 16px);
   background: rgba(0, 0, 0, 0.2);
   opacity: 1;
   border: none;
@@ -203,6 +389,20 @@
   padding-top: 1.5vh;
   box-sizing: border-box;
   color: #FFFFFF;
+}
+
+@media (max-height: 800px) {
+  .login-input {
+    height: clamp(40px, 7vh, 64px);
+    font-size: clamp(12px, 2vh, 20px);
+  }
+}
+
+@media (min-height: 801px){
+  .login-input {
+    height: clamp(40px, 6vh, 54px);
+    font-size: clamp(12px, 1.5vh, 16px);
+  }
 }
 
 .login-input:hover {
@@ -232,21 +432,18 @@
 
 .login-actions {
   position: relative;
-  top: 0;
-  left: 0;
+  margin-top: 3%;
 
   display: flex;
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  margin-top: 1.5vh;
 }
 
 .login-button {
   position: relative;
   overflow: hidden;
   width: 40%;
-  height: clamp(38px, 5.1vh, 50px);
 
   cursor: pointer;
   border-radius: 4px;
@@ -257,6 +454,18 @@
   justify-content: center;
   align-items: center;
   align-self: flex-end;
+}
+
+@media (max-height: 800px) {
+  .login-button {
+    height: clamp(38px, 6vh, 50px);
+  }
+}
+
+@media (min-height: 801px){
+  .login-button {
+    height: clamp(38px, 5.1vh, 50px);
+  }
 }
 
 .login-button .background {
@@ -276,8 +485,19 @@
   color: #FFFFFF;
   text-transform: uppercase;
   opacity: 1;
-  font-size: clamp(12px, 1.5vh, 16px);
   transition: all 0.3s ease;
+}
+
+@media (max-height: 800px) {
+  .login-button .text{
+    font-size: clamp(12px, 2vh, 16px);
+  }
+}
+
+@media (min-height: 801px){
+  .login-button .text{
+    font-size: clamp(12px, 1.5vh, 16px);
+  }
 }
 
 .login-button:hover .text{
@@ -287,17 +507,45 @@
 
 .login-options{
   width: 50%;
-  height: clamp(38px, 5.1vh, 50px);
   align-self: flex-start;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+@media (max-height: 800px) {
+  .login-options {
+    height: clamp(38px, 6vh, 50px);
+  }
+}
+
+@media (min-height: 801px){
+  .login-options {
+    height: clamp(38px, 5.1vh, 50px);
+  }
 }
 
 .login-options p {
-  font-size: 13px;
+  margin-top: 0;
+  margin-bottom: 0;
+  
   text-align: left;
   cursor: pointer;
   color: #DEDEDE;
   opacity: 0.8;
   transition: all 0.3s ease;
+}
+
+@media (max-height: 800px) {
+  .login-options p {
+    font-size: 14px;
+  }
+}
+
+@media (min-height: 801px){
+  .login-options p {
+    font-size: 13px;
+  }
 }
 
 .login-options:hover p{

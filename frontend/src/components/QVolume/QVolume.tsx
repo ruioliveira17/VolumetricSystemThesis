@@ -202,33 +202,33 @@ function QVolume({
                             <>
                                 <canvas ref={canvasRef} className="volume-canvas" />
 
-                                <div className="boxInfoText-container">
-                                    <div style={{ color: "#6CD08A" }} className="boxInfo-text">
+                                <div className="boxBundleInfoText-container">
+                                    <div style={{ color: "#6CD08A" }} className="boxBundleInfo-text">
                                         <span className="label">Width (cm):</span>
                                         <span className="value">{volInfo.width.toFixed(1)}</span> 
                                     </div>
 
-                                    <div style={{ color: "#C66D6D" }} className="boxInfo-text">
+                                    <div style={{ color: "#C66D6D" }} className="boxBundleInfo-text">
                                         <span className="label">Length (cm):</span> 
                                         <span className="value">{volInfo.length.toFixed(1)}</span> 
                                     </div>
 
-                                    <div style={{ color: "#9EB0FD" }} className="boxInfo-text">
+                                    <div style={{ color: "#9EB0FD" }} className="boxBundleInfo-text">
                                         <span className="label">Height (cm):</span> 
                                         <span className="value">{volInfo.height.toFixed(1)}</span>     
                                     </div>
 
-                                    <div style={{ color: "#FFFFFF" }} className="boxInfo-text">
+                                    <div style={{ color: "#FFFFFF" }} className="boxBundleInfo-text">
                                         <span className="label">Volume (m³):</span> 
                                         <span className="value">{volInfo.volume_m.toFixed(6)}</span> 
                                     </div>
 
-                                    <div style={{ color: "#FFFFFF" }} className="boxInfo-text">
+                                    <div style={{ color: "#FFFFFF" }} className="boxBundleInfo-text">
                                         <span className="label">Volume (cm³):</span> 
                                         <span className="value">{volInfo.volume_cm.toFixed(2)}</span> 
                                     </div>
 
-                                    <div style={{ color: "#FFFFFF" }} className="boxInfo-text">
+                                    <div style={{ color: "#FFFFFF" }} className="boxBundleInfo-text">
                                         <span className="label">Weight (kg):</span> 
                                         <span className="value">{measurementWeightInfo?.weight != null ? Number(measurementWeightInfo.weight).toFixed(2) : "0.00"} </span> 
                                     </div>

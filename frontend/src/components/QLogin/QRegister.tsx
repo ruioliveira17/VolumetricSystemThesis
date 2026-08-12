@@ -2,6 +2,8 @@ import React from "react";
 import { useEffect, useRef, useState } from "react";
 import "./QLogin.css";
 
+import QBranding from "./QBranding";
+
 interface QRegisterProps {
   message: {
     type: string;
@@ -65,8 +67,7 @@ function QRegister({
   const registerButtonRef = useRef<HTMLButtonElement | null>(null);
   return (
     <div>
-      <img src="/Qubic.svg" className="qubic-logo" alt="Qubic Logo" />
-
+      <QBranding />
       <div className="login-panel-register">
         <div className="login-panel-title">Register</div>
 
@@ -180,17 +181,6 @@ function QRegister({
             </button>
           </div>
         </form>
-      </div>
-
-      <div className="powered-by-panel-login">
-        <div className="powered-by-text-login" translate="no">
-          Powered by
-        </div>
-        <img
-          src="/MarquesLogo.svg"
-          className="powered-by-logo-login"
-          alt="Marques Logo"
-        />
       </div>
     </div>
   );

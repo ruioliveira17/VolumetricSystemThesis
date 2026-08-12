@@ -367,6 +367,33 @@
   text-align: center;
 }
 
+
+.boxBundleInfoText-container{
+  display: flex;
+  flex-direction: column;
+  height: 36.4%;
+  width:30.5%;
+  margin-top: 11%;
+  z-index: 1;
+}
+
+.boxBundleInfo-text{
+  display: flex;
+  align-items: center;
+  margin-bottom: 6%;
+}
+
+.boxBundleInfo-text .label {
+  width: 90.5%;
+  text-align: left;
+}
+
+.boxBundleInfo-text .value {
+  width: 8vw;
+  text-align: right;
+}
+
+
 .volume-canvas {
   position: absolute;
   top: 35%;

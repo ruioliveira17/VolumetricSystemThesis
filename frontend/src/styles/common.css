@@ -1,3 +1,44 @@
+.rotate-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.rotate-screen-content {
+    text-align: center;
+}
+
+.rotate-screen-icon {
+    font-size: 4rem;
+    margin-bottom: 2vh;
+    color: white;
+}
+
+.rotate-screen-content p {
+    font-size: 1rem;
+    margin: 0;
+    color: white;
+}
+
+.app-container {
+  width: 100vw;
+  height: 100vh;
+  /* min-width: 500px;
+  min-height: 800px; */
+}
+
+/* .app-container {
+  aspect-ratio: 16 / 9;
+  width: min(100vw, calc(100vh * 16 / 9));
+  height: min(100vh, calc(100vw * 9 / 16));
+  margin: auto;
+  position: relative;
+} */
+
 .powered-by-panel{
   position: absolute;
   left: 1.6vw;
