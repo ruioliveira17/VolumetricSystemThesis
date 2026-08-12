@@ -3324,356 +3324,348 @@ function App(){
     if (appReady){
         return (
             <>
-                {isPortrait ? (
-                    <div className="rotate-screen">
-                        <div className="rotate-screen-content">
-                            <div className="rotate-screen-icon">↻</div>
-                            <p>Por favor, rode o dispositivo</p>
-                        </div>
-                    </div>
-                ) : (
-                    <div className="app-container">
-                        {currentMenu !== "login-menu" && currentMenu !== "register" && currentMenu !== "changePassword-menu" && (
-                            <QTopBar
-                                primaryNav={primaryNav}
-                                collapsibleNav={collapsibleNav}
+                
+                <div className="app-container">
+                    {currentMenu !== "login-menu" && currentMenu !== "register" && currentMenu !== "changePassword-menu" && (
+                        <QTopBar
+                            primaryNav={primaryNav}
+                            collapsibleNav={collapsibleNav}
 
-                                collapsibleActions={[
-                                    {
-                                        key: 'settings',
-                                        label: 'Settings',
-                                        icon: <SettingsIcon />,
-                                        onClick: () => setShowSettingsPopup(true),
-                                        active: showSettingsPopup,
-                                    },
-                                ]}
+                            collapsibleActions={[
+                                {
+                                    key: 'settings',
+                                    label: 'Settings',
+                                    icon: <SettingsIcon />,
+                                    onClick: () => setShowSettingsPopup(true),
+                                    active: showSettingsPopup,
+                                },
+                            ]}
 
-                                actions={[
-                                    {
-                                        key: 'profile',
-                                        label: 'User',
-                                        icon: <UserIcon />,
-                                        onClick: () => setShowUserPopup(true),
-                                        active: showUserPopup,
-                                    },
-                                ]}
+                            actions={[
+                                {
+                                    key: 'profile',
+                                    label: 'User',
+                                    icon: <UserIcon />,
+                                    onClick: () => setShowUserPopup(true),
+                                    active: showUserPopup,
+                                },
+                            ]}
 
-                                showToggle={true}
-                            />
-                        )}
-                        
-                        <QToaster />
+                            showToggle={true}
+                        />
+                    )}
+                    
+                    <QToaster />
 
-                        {/* Login Menu */}
-                        {currentMenu === "login-menu" && (
-                            <QLogin
-                                message={message}
+                    {/* Login Menu */}
+                    {currentMenu === "login-menu" && (
+                        <QLogin
+                            message={message}
 
-                                username={username}
-                                setUsername={setUsername}
+                            username={username}
+                            setUsername={setUsername}
 
-                                password={password}
-                                setPassword={setPassword}
+                            password={password}
+                            setPassword={setPassword}
 
-                                usernameFormError={usernameFormError}
-                                setUsernameFormError={setUsernameFormError}
+                            usernameFormError={usernameFormError}
+                            setUsernameFormError={setUsernameFormError}
 
-                                passwordFormError={passwordFormError}
-                                setPasswordFormError={setPasswordFormError}
+                            passwordFormError={passwordFormError}
+                            setPasswordFormError={setPasswordFormError}
 
-                                usernameFocus={usernameFocus}
-                                setUsernameFocus={setUsernameFocus}
+                            usernameFocus={usernameFocus}
+                            setUsernameFocus={setUsernameFocus}
 
-                                passwordFocus={passwordFocus}
-                                setPasswordFocus={setPasswordFocus}
+                            passwordFocus={passwordFocus}
+                            setPasswordFocus={setPasswordFocus}
 
-                                login={login}
+                            login={login}
 
-                                showRegisterScreen={showRegisterScreen}
-                            />
-                        )}
+                            showRegisterScreen={showRegisterScreen}
+                        />
+                    )}
 
-                        {/* Register Menu */}
-                        {currentMenu === "register" && (
-                            <QRegister
-                                message={message}
-                                regUsername={regUsername}
-                                regPassword={regPassword}
-                                regConfirmPassword={regConfirmPassword}
-                                setRegUsername={setRegUsername}
-                                setRegPassword={setRegPassword}
-                                setRegConfirmPassword={setRegConfirmPassword}
-                                regUsernameFormError={regUsernameFormError}
-                                regPasswordFormError={regPasswordFormError}
-                                regConfirmPasswordFormError={regConfirmPasswordFormError}
-                                setRegUsernameFormError={setRegUsernameFormError}
-                                setRegPasswordFormError={setRegPasswordFormError}
-                                setRegConfirmPasswordFormError={setRegConfirmPasswordFormError}
-                                regUsernameFocus={regUsernameFocus}
-                                regPasswordFocus={regPasswordFocus}
-                                regConfirmPasswordFocus={regConfirmPasswordFocus}
-                                setRegUsernameFocus={setRegUsernameFocus}
-                                setRegPasswordFocus={setRegPasswordFocus}
-                                setRegConfirmPasswordFocus={setRegConfirmPasswordFocus}
-                                register={register}
-                                showLoginScreen={showLoginScreen}
-                            />
-                        )}
+                    {/* Register Menu */}
+                    {currentMenu === "register" && (
+                        <QRegister
+                            message={message}
+                            regUsername={regUsername}
+                            regPassword={regPassword}
+                            regConfirmPassword={regConfirmPassword}
+                            setRegUsername={setRegUsername}
+                            setRegPassword={setRegPassword}
+                            setRegConfirmPassword={setRegConfirmPassword}
+                            regUsernameFormError={regUsernameFormError}
+                            regPasswordFormError={regPasswordFormError}
+                            regConfirmPasswordFormError={regConfirmPasswordFormError}
+                            setRegUsernameFormError={setRegUsernameFormError}
+                            setRegPasswordFormError={setRegPasswordFormError}
+                            setRegConfirmPasswordFormError={setRegConfirmPasswordFormError}
+                            regUsernameFocus={regUsernameFocus}
+                            regPasswordFocus={regPasswordFocus}
+                            regConfirmPasswordFocus={regConfirmPasswordFocus}
+                            setRegUsernameFocus={setRegUsernameFocus}
+                            setRegPasswordFocus={setRegPasswordFocus}
+                            setRegConfirmPasswordFocus={setRegConfirmPasswordFocus}
+                            register={register}
+                            showLoginScreen={showLoginScreen}
+                        />
+                    )}
 
-                        {/* Register Menu */}
-                        {currentMenu === "changePassword-menu" && (
-                            <QChangePassword
-                                message={message}
-                                changeUsername={changeUsername}
-                                changePassword={changePassword}
-                                changeConfirmPassword={changeConfirmPassword}
-                                setChangePassword={setChangePassword}
-                                setChangeConfirmPassword={setChangeConfirmPassword}
-                                changePasswordFormError={changePasswordFormError}
-                                changeConfirmPasswordFormError={changeConfirmPasswordFormError}
-                                setChangePasswordFormError={setChangePasswordFormError}
-                                setChangeConfirmPasswordFormError={setChangeConfirmPasswordFormError}
-                                changePasswordFocus={changePasswordFocus}
-                                changeConfirmPasswordFocus={changeConfirmPasswordFocus}
-                                setChangePasswordFocus={setChangePasswordFocus}
-                                setChangeConfirmPasswordFocus={setChangeConfirmPasswordFocus}
-                                confirmChangePassword={confirmChangePassword}
-                                showLoginScreen={showLoginScreen}
-                            />
-                        )}
+                    {/* Register Menu */}
+                    {currentMenu === "changePassword-menu" && (
+                        <QChangePassword
+                            message={message}
+                            changeUsername={changeUsername}
+                            changePassword={changePassword}
+                            changeConfirmPassword={changeConfirmPassword}
+                            setChangePassword={setChangePassword}
+                            setChangeConfirmPassword={setChangeConfirmPassword}
+                            changePasswordFormError={changePasswordFormError}
+                            changeConfirmPasswordFormError={changeConfirmPasswordFormError}
+                            setChangePasswordFormError={setChangePasswordFormError}
+                            setChangeConfirmPasswordFormError={setChangeConfirmPasswordFormError}
+                            changePasswordFocus={changePasswordFocus}
+                            changeConfirmPasswordFocus={changeConfirmPasswordFocus}
+                            setChangePasswordFocus={setChangePasswordFocus}
+                            setChangeConfirmPasswordFocus={setChangeConfirmPasswordFocus}
+                            confirmChangePassword={confirmChangePassword}
+                            showLoginScreen={showLoginScreen}
+                        />
+                    )}
 
-                        {/* Volume Menu */}
-                        {currentMenu === "volume-menu" && (
-                            <QVolume
-                                message={message}
+                    {/* Volume Menu */}
+                    {currentMenu === "volume-menu" && (
+                        <QVolume
+                            message={message}
 
-                                loadingVolume={loadingVolume}
-                                processingMessage={processingMessage}
+                            loadingVolume={loadingVolume}
+                            processingMessage={processingMessage}
 
-                                showCamera={showCamera}
-                                setShowCamera={setShowCamera}
+                            showCamera={showCamera}
+                            setShowCamera={setShowCamera}
 
-                                cameraVideo={cameraVideo}
-                                objectImage={objectImage}
-                                cropVideoReady={cropVideoReady}
-                                setCropVideoReady={setCropVideoReady}
-                                cropTransform={cropTransform}
+                            cameraVideo={cameraVideo}
+                            objectImage={objectImage}
+                            cropVideoReady={cropVideoReady}
+                            setCropVideoReady={setCropVideoReady}
+                            cropTransform={cropTransform}
 
-                                volBundleMode={volBundleMode}
+                            volBundleMode={volBundleMode}
 
-                                volume_click={volume_click}
+                            volume_click={volume_click}
 
-                                weightStable={weightStable}
-                                weightZero={weightZero}
+                            weightStable={weightStable}
+                            weightZero={weightZero}
 
-                                volInfo={volInfo}
-                                multipleVolumeData={multipleVolumeData}
+                            volInfo={volInfo}
+                            multipleVolumeData={multipleVolumeData}
 
-                                canvasRef={canvasRef}
+                            canvasRef={canvasRef}
 
-                                objectList={objectList}
-                                selectedObject={selectedObject}
-                                setSelectedObject={setSelectedObject}
+                            objectList={objectList}
+                            selectedObject={selectedObject}
+                            setSelectedObject={setSelectedObject}
 
-                                countdown={countdown}
+                            countdown={countdown}
 
-                                weightInfo={weightInfo}
-                                measurementWeightInfo={measurementWeightInfo}
+                            weightInfo={weightInfo}
+                            measurementWeightInfo={measurementWeightInfo}
 
-                                volumeMode={volumeMode}
-                                toggleMenu={toggleMenu}
-                                setVolInfo={setVolInfo}
+                            volumeMode={volumeMode}
+                            toggleMenu={toggleMenu}
+                            setVolInfo={setVolInfo}
 
-                                noObjectsDetected={noObjectsDetected}
-                                objectsOutOfLine={objectsOutOfLine}
-                            />
-                        )}
+                            noObjectsDetected={noObjectsDetected}
+                            objectsOutOfLine={objectsOutOfLine}
+                        />
+                    )}
 
-                        {/* Measurement History Menu */}
-                        {currentMenu === "measurementHistory-menu" && (
-                            <QMeasureHistory
-                                message={message}
+                    {/* Measurement History Menu */}
+                    {currentMenu === "measurementHistory-menu" && (
+                        <QMeasureHistory
+                            message={message}
 
-                                toggleMenu={toggleMenu}
+                            toggleMenu={toggleMenu}
 
-                                sortField={sortField}
-                                setSortField={setSortField}
-                                sortOrder={sortOrder}
-                                setSortOrder={setSortOrder}
-                                sortOptions={sortOptions}
-                                sortedMeasurements={sortedMeasurements}
+                            sortField={sortField}
+                            setSortField={setSortField}
+                            sortOrder={sortOrder}
+                            setSortOrder={setSortOrder}
+                            sortOptions={sortOptions}
+                            sortedMeasurements={sortedMeasurements}
 
-                                searchBy = {searchBy}
-                                setSearchBy = {setSearchBy}
-                                searchValue = {searchValue}
-                                setSearchValue = {setSearchValue}
-                                filteredMeasurements = {filteredMeasurements}
-                                searchByOptions = {searchByOptions}
+                            searchBy = {searchBy}
+                            setSearchBy = {setSearchBy}
+                            searchValue = {searchValue}
+                            setSearchValue = {setSearchValue}
+                            filteredMeasurements = {filteredMeasurements}
+                            searchByOptions = {searchByOptions}
 
-                                dateFilter = {dateFilter}
-                                setDateFilter = {setDateFilter}
-                                dateOptions = {dateOptions}
+                            dateFilter = {dateFilter}
+                            setDateFilter = {setDateFilter}
+                            dateOptions = {dateOptions}
 
-                                usersIDList={usersIDList}
+                            usersIDList={usersIDList}
 
-                                measurementConfigModal={measurementConfigModal}
-                                toggleMeasurementModal={toggleMeasurementModal}
-                                measurementConfigModalPosition={measurementConfigModalPosition}
-                                setMeasurementModalPosition={setMeasurementModalPosition}
+                            measurementConfigModal={measurementConfigModal}
+                            toggleMeasurementModal={toggleMeasurementModal}
+                            measurementConfigModalPosition={measurementConfigModalPosition}
+                            setMeasurementModalPosition={setMeasurementModalPosition}
 
-                                measurementsConfigModal={measurementsConfigModal}
-                                toggleMeasurementsModal={toggleMeasurementsModal}
-                                measurementsConfigModalPosition={measurementsConfigModalPosition}
-                                setMeasurementsModalPosition={setMeasurementsModalPosition}
+                            measurementsConfigModal={measurementsConfigModal}
+                            toggleMeasurementsModal={toggleMeasurementsModal}
+                            measurementsConfigModalPosition={measurementsConfigModalPosition}
+                            setMeasurementsModalPosition={setMeasurementsModalPosition}
 
-                                selectedID={selectedID}
-                                setSelectedID={setSelectedID}
+                            selectedID={selectedID}
+                            setSelectedID={setSelectedID}
 
-                                viewMeasurement={viewMeasurement}
-                                deleteMeasurement={deleteMeasurement}
-                                deleteAllMeasurements={deleteAllMeasurements}
+                            viewMeasurement={viewMeasurement}
+                            deleteMeasurement={deleteMeasurement}
+                            deleteAllMeasurements={deleteAllMeasurements}
 
-                                showMeasurementInfo={showMeasurementInfo}
-                                setShowMeasurementInfo={setShowMeasurementInfo}
-                                measureObjectImage={measureObjectImage}
-                                measurementMode={measurementMode}
-                                measureVolumeInfo={measureVolumeInfo}
-                                setMeasureVolumeInfo={setMeasureVolumeInfo}
-                                measureMultipleVolumeData={measureMultipleVolumeData}
-                                measureObjectList={measureObjectList}
-                                measureSelectedObject={measureSelectedObject}
-                                setMeasureSelectedObject={setMeasureSelectedObject}
+                            showMeasurementInfo={showMeasurementInfo}
+                            setShowMeasurementInfo={setShowMeasurementInfo}
+                            measureObjectImage={measureObjectImage}
+                            measurementMode={measurementMode}
+                            measureVolumeInfo={measureVolumeInfo}
+                            setMeasureVolumeInfo={setMeasureVolumeInfo}
+                            measureMultipleVolumeData={measureMultipleVolumeData}
+                            measureObjectList={measureObjectList}
+                            measureSelectedObject={measureSelectedObject}
+                            setMeasureSelectedObject={setMeasureSelectedObject}
 
-                                canvasRef={canvasRef}
-                            />
-                        )}
+                            canvasRef={canvasRef}
+                        />
+                    )}
 
-                        {/* Calibration Menu */}
-                        {currentMenu === "calibration-menu" && (
-                            <QCalibration
-                                message={message}
+                    {/* Calibration Menu */}
+                    {currentMenu === "calibration-menu" && (
+                        <QCalibration
+                            message={message}
 
-                                toggleMenu={toggleMenu}
+                            toggleMenu={toggleMenu}
 
-                                calibrationImage={calibrationImage}
-                                workspaceCanvas={workspaceCanvas}
+                            calibrationImage={calibrationImage}
+                            workspaceCanvas={workspaceCanvas}
 
-                                calibrationMode={calibrationMode}
-                                rgb={rgb}
+                            calibrationMode={calibrationMode}
+                            rgb={rgb}
 
-                                loadingCalibration={loadingCalibration}
-                                calibrationModalOpen={calibrationModalOpen}
+                            loadingCalibration={loadingCalibration}
+                            calibrationModalOpen={calibrationModalOpen}
 
-                                handleCalibrationModeChange={handleCalibrationModeChange}
-                                calibrate_click={calibrate_click}
-                                confirm_calibration={confirm_calibration}
-                            />
-                        )}
+                            handleCalibrationModeChange={handleCalibrationModeChange}
+                            calibrate_click={calibrate_click}
+                            confirm_calibration={confirm_calibration}
+                        />
+                    )}
 
-                        {/* User Panel */}
-                        {showUserPopup && (
-                            <QUserModal
-                                savedUser={savedUser}
-                                setShowUserPopup={setShowUserPopup}
-                                openChangePasswordModal={openChangePasswordModal}
-                                openUsersPanel={openUsersPanel}
-                                logout={logout}
-                            />
-                        )}
+                    {/* User Panel */}
+                    {showUserPopup && (
+                        <QUserModal
+                            savedUser={savedUser}
+                            setShowUserPopup={setShowUserPopup}
+                            openChangePasswordModal={openChangePasswordModal}
+                            openUsersPanel={openUsersPanel}
+                            logout={logout}
+                        />
+                    )}
 
-                        {/* Manage Users */}
-                        {showUsersPanel && (
-                            <QUserPanel
-                                usersList={usersList}
-                                usersLoading={usersLoading}
-                                usersMsg={usersMsg}
-                                savedUser={savedUser}
+                    {/* Manage Users */}
+                    {showUsersPanel && (
+                        <QUserPanel
+                            usersList={usersList}
+                            usersLoading={usersLoading}
+                            usersMsg={usersMsg}
+                            savedUser={savedUser}
 
-                                setShowUsersPanel={setShowUsersPanel}
+                            setShowUsersPanel={setShowUsersPanel}
 
-                                changeUserRole={changeUserRole}
-                                generateResetToken={generateResetToken}
-                                resetTokensByUser={resetTokensByUser}
-                                deleteUserById={deleteUserById}
-                            />
-                        )}
+                            changeUserRole={changeUserRole}
+                            generateResetToken={generateResetToken}
+                            resetTokensByUser={resetTokensByUser}
+                            deleteUserById={deleteUserById}
+                        />
+                    )}
 
-                        {showChangePasswordModal && (
-                            <QChangePasswordModal
-                                message={message}
-                                closeChangePasswordModal={closeChangePasswordModal}
-                                changeUsername={changeUsername}
-                                changeCurrentPassword={changeCurrentPassword}
-                                changePassword={changePassword}
-                                changeConfirmPassword={changeConfirmPassword}
-                                setChangeCurrentPassword={setChangeCurrentPassword}
-                                setChangePassword={setChangePassword}
-                                setChangeConfirmPassword={setChangeConfirmPassword}
-                                changeCurrentPasswordFormError={changeCurrentPasswordFormError}
-                                changePasswordFormError={changePasswordFormError}
-                                changeConfirmPasswordFormError={changeConfirmPasswordFormError}
-                                setChangeCurrentPasswordFormError={setChangeCurrentPasswordFormError}
-                                setChangePasswordFormError={setChangePasswordFormError}
-                                setChangeConfirmPasswordFormError={setChangeConfirmPasswordFormError}
-                                changeCurrentPasswordFocus={changeCurrentPasswordFocus}
-                                changePasswordFocus={changePasswordFocus}
-                                changeConfirmPasswordFocus={changeConfirmPasswordFocus}
-                                setChangeCurrentPasswordFocus={setChangeCurrentPasswordFocus}
-                                setChangePasswordFocus={setChangePasswordFocus}
-                                setChangeConfirmPasswordFocus={setChangeConfirmPasswordFocus}
-                                confirmChangePassword={confirmChangePassword}
-                                showLoginScreen={showLoginScreen}
-                            />
-                        )}
+                    {showChangePasswordModal && (
+                        <QChangePasswordModal
+                            message={message}
+                            closeChangePasswordModal={closeChangePasswordModal}
+                            changeUsername={changeUsername}
+                            changeCurrentPassword={changeCurrentPassword}
+                            changePassword={changePassword}
+                            changeConfirmPassword={changeConfirmPassword}
+                            setChangeCurrentPassword={setChangeCurrentPassword}
+                            setChangePassword={setChangePassword}
+                            setChangeConfirmPassword={setChangeConfirmPassword}
+                            changeCurrentPasswordFormError={changeCurrentPasswordFormError}
+                            changePasswordFormError={changePasswordFormError}
+                            changeConfirmPasswordFormError={changeConfirmPasswordFormError}
+                            setChangeCurrentPasswordFormError={setChangeCurrentPasswordFormError}
+                            setChangePasswordFormError={setChangePasswordFormError}
+                            setChangeConfirmPasswordFormError={setChangeConfirmPasswordFormError}
+                            changeCurrentPasswordFocus={changeCurrentPasswordFocus}
+                            changePasswordFocus={changePasswordFocus}
+                            changeConfirmPasswordFocus={changeConfirmPasswordFocus}
+                            setChangeCurrentPasswordFocus={setChangeCurrentPasswordFocus}
+                            setChangePasswordFocus={setChangePasswordFocus}
+                            setChangeConfirmPasswordFocus={setChangeConfirmPasswordFocus}
+                            confirmChangePassword={confirmChangePassword}
+                            showLoginScreen={showLoginScreen}
+                        />
+                    )}
 
-                        {/* Settings Panel */}
-                        {showSettingsPopup && (
-                            <QSettings
-                                setShowSettingsPopup={setShowSettingsPopup}
+                    {/* Settings Panel */}
+                    {showSettingsPopup && (
+                        <QSettings
+                            setShowSettingsPopup={setShowSettingsPopup}
 
-                                expHDR={expHDR}
-                                handleExpHDR_toggle={handleExpHDR_toggle}
-                                exposureTime={exposureTime}
-                                setExposureTime={setExposureTime}
-                                exposureSet_click={exposureSet_click}
+                            expHDR={expHDR}
+                            handleExpHDR_toggle={handleExpHDR_toggle}
+                            exposureTime={exposureTime}
+                            setExposureTime={setExposureTime}
+                            exposureSet_click={exposureSet_click}
 
-                                volumeMode={volumeMode}
-                                handleVolumeMode={handleVolumeMode}
+                            volumeMode={volumeMode}
+                            handleVolumeMode={handleVolumeMode}
 
-                                countdownTimer={countdownTimer}
-                                setCountdownTimer={setCountdownTimer}
-                                countdownTimerSet_click={countdownTimerSet_click}
+                            countdownTimer={countdownTimer}
+                            setCountdownTimer={setCountdownTimer}
+                            countdownTimerSet_click={countdownTimerSet_click}
 
-                                currentMenu={currentMenu}
-                                setShowCropWindow={setShowCropWindow}
+                            currentMenu={currentMenu}
+                            setShowCropWindow={setShowCropWindow}
 
-                                speedMode={speedMode}
-                                handleSpeedMode={handleSpeedMode}
-                            />
-                        )}
+                            speedMode={speedMode}
+                            handleSpeedMode={handleSpeedMode}
+                        />
+                    )}
 
-                        {/* Window Resizer Panel */}
-                        {showCropWindow && (
-                            <QWindowResizer
-                                cropVideo={cropVideo}
-                                cropCanvas={cropCanvas}
+                    {/* Window Resizer Panel */}
+                    {showCropWindow && (
+                        <QWindowResizer
+                            cropVideo={cropVideo}
+                            cropCanvas={cropCanvas}
 
-                                cropArea={cropArea}
-                                setCropArea={setCropArea}
+                            cropArea={cropArea}
+                            setCropArea={setCropArea}
 
-                                setVideoCrop={setVideoCrop}
+                            setVideoCrop={setVideoCrop}
 
-                                setShowCropWindow={setShowCropWindow}
-                                setShowSettingsPopup={setShowSettingsPopup}
+                            setShowCropWindow={setShowCropWindow}
+                            setShowSettingsPopup={setShowSettingsPopup}
 
-                                cropWindow_Set={cropWindow_Set}
+                            cropWindow_Set={cropWindow_Set}
 
-                                ORIGINAL_CROP={ORIGINAL_CROP}
-                                DEFAULT_CROP={DEFAULT_CROP}
-                            />
-                        )}
-                    </div>
-                )}
+                            ORIGINAL_CROP={ORIGINAL_CROP}
+                            DEFAULT_CROP={DEFAULT_CROP}
+                        />
+                    )}
+                </div>
             </>
         );
     } else if (!appReady) {

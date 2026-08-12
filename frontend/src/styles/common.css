@@ -25,19 +25,12 @@
 }
 
 .app-container {
-  width: 100vw;
-  height: 100vh;
-  /* min-width: 500px;
-  min-height: 800px; */
-}
-
-/* .app-container {
-  aspect-ratio: 16 / 9;
-  width: min(100vw, calc(100vh * 16 / 9));
-  height: min(100vh, calc(100vw * 9 / 16));
-  margin: auto;
   position: relative;
-} */
+  width: max(100vw, 424px);
+  height: max(100vh, 799px);
+
+  container-type: size;
+}
 
 .powered-by-panel{
   position: absolute;
