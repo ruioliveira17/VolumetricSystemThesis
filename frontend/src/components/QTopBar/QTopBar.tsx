@@ -29,7 +29,7 @@ export interface QTopBarAction {
   /** aria-label for the button (icons carry no accessible name). */
   label?: string;
   active?: boolean;
-  onClick?: () => void;
+  onClick?: (event: MouseEvent<HTMLButtonElement>) => void;
   /**
    * Escape hatch: render this node instead of the default button. Use it for
    * actions that own their own trigger (a popover, a menu, a dropdown).
@@ -119,7 +119,7 @@ function QTopBar({
         className={`qtopbar__action${action.active ? ' qtopbar__action--active' : ''}`}
         aria-label={action.label}
         aria-current={action.active ? 'page' : undefined}
-        onClick={action.onClick}
+        onClick={(e) => action.onClick?.(e)}
       >
         {action.icon}
       </button>

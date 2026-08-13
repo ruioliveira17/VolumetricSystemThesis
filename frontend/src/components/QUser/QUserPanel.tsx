@@ -180,7 +180,6 @@ function QUserPanel({
                                                 onClick={() => deleteUserById(u.id)}
                                             >
                                                 <DeleteForeverIcon className="deleteUser-icon" />
-                                                <div className="deleteUser-text">Delete</div>
                                             </button>
                                         </div>
                                     );

@@ -1,3 +1,4 @@
+import { type CSSProperties } from 'react';
 import "./QUser.css";
 import UserIcon from '@assets/icons/user.svg?react';
 import CloseIcon from '@assets/icons/close.svg?react';
@@ -9,6 +10,7 @@ interface QUserModalProps {
         role: string;
     } | null;
 
+    userAnchorRect: DOMRect | null;
     setShowUserPopup: (value: boolean) => void;
     openChangePasswordModal: () => void;
     openUsersPanel: () => void;
@@ -18,19 +20,37 @@ interface QUserModalProps {
 function QUserModal({
     savedUser,
     setShowUserPopup,
+    userAnchorRect,
     openChangePasswordModal,
     openUsersPanel,
     logout
 }: QUserModalProps) {
+    const popupStyle: CSSProperties = userAnchorRect
+        ? {
+            position: 'absolute',
+            top: userAnchorRect.bottom + 35,
+            left: userAnchorRect.left + userAnchorRect.width / 2,
+            transform: 'translate(-85%, 0)',
+          }
+        : {};
+
+    const connectionStyle: CSSProperties = userAnchorRect
+        ? {
+            position: 'absolute',
+            top: userAnchorRect.bottom + 10,
+            left: userAnchorRect.left + userAnchorRect.width / 2,
+            transform: 'translate(-50%, 0)',
+          }
+        : {};
 
     return (
         <>
             <div className="popup-overlay"/>
 
-            <div className="user-popup-connection">
+            <div className="user-popup-connection" style={connectionStyle}>
                 <PopupConnection />
             </div>
-            <div className="user-popup">
+            <div className="user-popup" style={popupStyle}>
 
                 <div className="user-info-container">
                     <div className="user-row">

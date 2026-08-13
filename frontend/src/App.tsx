@@ -157,6 +157,10 @@ function App(){
     const [lastMenu, setLastMenu] = useState<string>("None");
     const [lockMenu, setLockMenu] = useState<boolean>(false);
 
+    const appContainerRef = useRef<HTMLDivElement>(null);
+    const [userAnchorEl, setUserAnchorEl] = useState<HTMLElement | null>(null);
+    const [userAnchorRect, setUserAnchorRect] = useState<DOMRect | null>(null);
+
     // -----------------------------
     // Config variables
     // -----------------------------
@@ -3321,11 +3325,43 @@ function App(){
         };
     }, []);
 
+    useEffect(() => {
+        console.log("USER POPUP EFFECT", {
+            showUserPopup,
+            userAnchorEl,
+        });
+        if (!showUserPopup || !userAnchorEl) return;
+
+        const update = () => {
+            const iconRect = userAnchorEl.getBoundingClientRect();
+            const containerRect = appContainerRef.current!.getBoundingClientRect();
+
+            setUserAnchorRect(
+                new DOMRect(
+                    iconRect.left - containerRect.left,
+                    iconRect.top - containerRect.top,
+                    iconRect.width,
+                    iconRect.height,
+                )
+            );
+        };
+
+        window.addEventListener('resize', update);
+        window.addEventListener('scroll', update, true);
+
+        update();
+
+        return () => {
+            window.removeEventListener('resize', update);
+            window.removeEventListener('scroll', update, true);
+        };
+    }, [showUserPopup, userAnchorEl]);
+
     if (appReady){
         return (
             <>
                 
-                <div className="app-container">
+                <div className="app-container" ref={appContainerRef}>
                     {currentMenu !== "login-menu" && currentMenu !== "register" && currentMenu !== "changePassword-menu" && (
                         <QTopBar
                             primaryNav={primaryNav}
@@ -3346,7 +3382,19 @@ function App(){
                                     key: 'profile',
                                     label: 'User',
                                     icon: <UserIcon />,
-                                    onClick: () => setShowUserPopup(true),
+                                    onClick: (e) => {
+                                        const iconRect = e.currentTarget.getBoundingClientRect();
+                                        const containerRect = appContainerRef.current!.getBoundingClientRect();
+
+                                        setUserAnchorEl(e.currentTarget);
+                                        setUserAnchorRect(new DOMRect(
+                                            iconRect.left - containerRect.left,
+                                            iconRect.top - containerRect.top,
+                                            iconRect.width,
+                                            iconRect.height,
+                                        ));
+                                        setShowUserPopup(true);
+                                    },
                                     active: showUserPopup,
                                 },
                             ]}
@@ -3568,6 +3616,7 @@ function App(){
                         <QUserModal
                             savedUser={savedUser}
                             setShowUserPopup={setShowUserPopup}
+                            userAnchorRect={userAnchorRect}
                             openChangePasswordModal={openChangePasswordModal}
                             openUsersPanel={openUsersPanel}
                             logout={logout}

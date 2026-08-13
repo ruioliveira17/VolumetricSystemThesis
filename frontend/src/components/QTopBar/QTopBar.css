@@ -265,7 +265,7 @@
 /* Tablet / small laptop: the left slot and the nav + actions can no longer
    share one line comfortably. Break the bar into two rows, with the nav on its
    own full-width row so links stay readable instead of being squeezed. */
-@media (max-width: 900px) {
+/* @media (max-width: 900px) {
   .qtopbar {
     align-items: flex-start;
   }
@@ -275,37 +275,37 @@
     flex-wrap: nowrap;
     justify-content: space-between;
     align-items: center;
-  }
+  } */
 
   /* Links overflow into a swipeable strip rather than wrapping into a tall,
      ragged block that would eat vertical space from the content below.
      min-width:0 is what actually lets it shrink — a scroll container is still
      sized by its content until its automatic minimum size is overridden. */
-  .qtopbar__nav {
+  /* .qtopbar__nav {
     min-width: 0;
     overflow-x: auto;
     overflow-y: hidden;
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
-    scroll-snap-type: x proximity;
+    scroll-snap-type: x proximity; */
     /* Room for the focus ring / active dot at the link's left edge. */
-    padding-inline: 2px;
-  }
+    /* padding-inline: 2px;
+  } */
 
-  .qtopbar__nav::-webkit-scrollbar {
+  /* .qtopbar__nav::-webkit-scrollbar {
     display: none;
-  }
+  } */
 
   /* The collapsible drawer is a horizontal reveal; with the nav now scrollable
      it can simply stay laid out inline. */
-  .qtopbar__nav-collapsible-inner {
+  /* .qtopbar__nav-collapsible-inner {
     flex-shrink: 0;
   }
-}
+} */
 
 /* Phones: the left slot's secondary content is the first thing to lose its
    share of the line, so let it wrap under the logo instead of overflowing. */
-@media (max-width: 560px) {
+/* @media (max-width: 560px) {
   .qtopbar__left {
     flex: 1 1 100%;
     flex-wrap: wrap;
@@ -313,8 +313,8 @@
     row-gap: var(--space-2xs, 0.375rem);
   }
 
-  .qtopbar__actions {
+  .qtopbar__actions { */
     /* Actions stay on one line; the nav strip above them scrolls. */
-    flex-shrink: 0;
+    /* flex-shrink: 0;
   }
-}
+} */
