@@ -1,9 +1,12 @@
 import React from "react";
+import QubicIcon from '@assets/icons/Qubic.svg?react';
 
 function QBackgroundBranding() {
   return (
     <>
-        <img src="/Qubic.svg" className="logo" alt="Qubic Logo" />
+        <div className="logo">
+          <QubicIcon />
+        </div>
 
         <div className="powered-by-panel">
             <div className="powered-by-text" translate="no">

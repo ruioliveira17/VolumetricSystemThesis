@@ -1,10 +1,14 @@
 import React from "react";
 import "./QLogin.css";
 
+import QubicIcon from '@assets/icons/Qubic.svg?react';
+
 function QBranding() {
   return (
     <>
-      <img src="/Qubic.svg" className="qubic-logo" alt="Qubic Logo" />
+      <div className="qubic-logo">
+        <QubicIcon />
+      </div>
 
       <div className="powered-by-panel-login">
         <div className="powered-by-text-login" translate="no">
