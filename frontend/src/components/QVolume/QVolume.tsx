@@ -5,6 +5,8 @@ import WarningIcon from '@assets/icons/warning.svg?react';
 import ZeroIcon from '@assets/icons/zeroIcon.svg?react';
 import StableIcon from '@assets/icons/stableIcon.svg?react';
 
+import QBackgroundBranding from "../QBackgroundBranding";
+
 interface Message {
   type: string;
   text: string;
@@ -101,10 +103,10 @@ function QVolume({
   return (
     <div>
         {/* Logo */}
-        <div className="logo">
+        {/* <div className="logo">
             <img src="/Qubic.svg" alt="BM Logo" />
-        </div>
-
+        </div> */}
+        <QBackgroundBranding />
 
         {/* Menu */}
         <div className="menu-wrapper">
@@ -407,13 +409,13 @@ function QVolume({
         </div>
 
       {/* Powered By */}
-        <div className="powered-by-panel">
+        {/* <div className="powered-by-panel">
             <div className="powered-by-text" translate="no">
                 Powered by
             </div>
 
             <img src="/MarquesLogo.svg" className="powered-by-logo" alt="Marques Logo"/>
-        </div>
+        </div> */}
     </div>
   );
 }

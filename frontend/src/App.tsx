@@ -160,6 +160,8 @@ function App(){
     const appContainerRef = useRef<HTMLDivElement>(null);
     const [userAnchorEl, setUserAnchorEl] = useState<HTMLElement | null>(null);
     const [userAnchorRect, setUserAnchorRect] = useState<DOMRect | null>(null);
+    const [settingsAnchorEl, setSettingsAnchorEl] = useState<HTMLElement | null>(null);
+    const [settingsAnchorRect, setSettingsAnchorRect] = useState<DOMRect | null>(null);
 
     // -----------------------------
     // Config variables
@@ -518,7 +520,7 @@ function App(){
 
         setSavedUser(user);
 
-        loggedIn();
+        await loggedIn();
 
         setAppReady(true);
         }
@@ -1573,7 +1575,7 @@ function App(){
             return;
         }
 
-        restoreSession();
+        await restoreSession();
     }
 
     // Restore Session Algorithm
@@ -2017,7 +2019,6 @@ function App(){
         setRegUsernameFormError(false);
         setRegPasswordFormError(false);
         setRegConfirmPasswordFormError(false);
-        setChangePassword("");
         setChangePassword("");
         setChangeConfirmPassword("");
         setChangeCurrentPasswordFocus(false);
@@ -3357,6 +3358,38 @@ function App(){
         };
     }, [showUserPopup, userAnchorEl]);
 
+    useEffect(() => {
+        console.log("USER POPUP EFFECT", {
+            showSettingsPopup,
+            settingsAnchorEl,
+        });
+        if (!showSettingsPopup || !settingsAnchorEl) return;
+
+        const update = () => {
+            const settingsIconRect = settingsAnchorEl.getBoundingClientRect();
+            const settingsContainerRect = appContainerRef.current!.getBoundingClientRect();
+
+            setSettingsAnchorRect(
+                new DOMRect(
+                    settingsIconRect.left - settingsContainerRect.left,
+                    settingsIconRect.top - settingsContainerRect.top,
+                    settingsIconRect.width,
+                    settingsIconRect.height,
+                )
+            );
+        };
+
+        window.addEventListener('resize', update);
+        window.addEventListener('scroll', update, true);
+
+        update();
+
+        return () => {
+            window.removeEventListener('resize', update);
+            window.removeEventListener('scroll', update, true);
+        };
+    }, [showSettingsPopup, settingsAnchorEl]);
+
     if (appReady){
         return (
             <>
@@ -3372,7 +3405,21 @@ function App(){
                                     key: 'settings',
                                     label: 'Settings',
                                     icon: <SettingsIcon />,
-                                    onClick: () => setShowSettingsPopup(true),
+                                    onClick: (e) => {
+                                        const settingsIconRect = e.currentTarget.getBoundingClientRect();
+                                        const settingsContainerRect = appContainerRef.current!.getBoundingClientRect();
+
+                                        setSettingsAnchorEl(e.currentTarget);
+                                        setSettingsAnchorRect(new DOMRect(
+                                            settingsIconRect.left - settingsContainerRect.left,
+                                            settingsIconRect.top - settingsContainerRect.top,
+                                            settingsIconRect.width,
+                                            settingsIconRect.height,
+                                        ));
+
+                                        setShowSettingsPopup(true);
+                                        setShowUserPopup(false);
+                                    },
                                     active: showSettingsPopup,
                                 },
                             ]}
@@ -3393,13 +3440,21 @@ function App(){
                                             iconRect.width,
                                             iconRect.height,
                                         ));
+                                        
                                         setShowUserPopup(true);
+                                        setShowSettingsPopup(false);
                                     },
                                     active: showUserPopup,
                                 },
                             ]}
 
                             showToggle={true}
+
+                            onExpandedChange={(expanded) => {
+                                if (!expanded) {
+                                    setShowSettingsPopup(false);
+                                }
+                            }}
                         />
                     )}
                     
@@ -3671,6 +3726,7 @@ function App(){
                     {/* Settings Panel */}
                     {showSettingsPopup && (
                         <QSettings
+                            settingsAnchorRect={settingsAnchorRect}
                             setShowSettingsPopup={setShowSettingsPopup}
 
                             expHDR={expHDR}

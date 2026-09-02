@@ -1,9 +1,12 @@
 import React from "react";
+import { type CSSProperties } from 'react';
 import "./QSettings.css";
 import CloseIcon from '@assets/icons/close.svg?react';
 import PopupConnection from '@assets/icons/popup_connection.svg?react';
 
 interface QSettingsProps {
+  settingsAnchorRect: DOMRect | null;
+
   setShowSettingsPopup: React.Dispatch<React.SetStateAction<boolean>>;
 
   // Exposition
@@ -32,6 +35,7 @@ interface QSettingsProps {
 }
 
 function QSettings({
+  settingsAnchorRect,
   setShowSettingsPopup,
   expHDR,
   handleExpHDR_toggle,
@@ -48,6 +52,23 @@ function QSettings({
   speedMode,
   handleSpeedMode
 }: QSettingsProps) {
+  const popupStyle: CSSProperties = settingsAnchorRect
+    ? {
+        position: 'absolute',
+        top: settingsAnchorRect.bottom + 35,
+        left: settingsAnchorRect.left + settingsAnchorRect.width / 2,
+        transform: 'translate(-85%, 0)',
+      }
+    : {};
+
+  const connectionStyle: CSSProperties = settingsAnchorRect
+    ? {
+        position: 'absolute',
+        top: settingsAnchorRect.bottom + 10,
+        left: settingsAnchorRect.left + settingsAnchorRect.width / 2,
+        transform: 'translate(-50%, 0)',
+      }
+    : {};
 
   return (
     <>
@@ -55,10 +76,10 @@ function QSettings({
       <div className="popup-overlay" />
 
       {/* PopUp */}
-      <div className="settings-popup-connection">
+      <div className="settings-popup-connection" style={connectionStyle}>
         <PopupConnection />
       </div>
-      <div className="settings-popup">
+      <div className="settings-popup" style={popupStyle}>
         <span className="text">Settings</span>
         <div className="close-button">
           <CloseIcon onClick={() => setShowSettingsPopup(false)}/>

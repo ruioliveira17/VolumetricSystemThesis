@@ -1,58 +1,135 @@
-/* -- CONFIGURATIONS -- */
-
-.popup-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-
-  background: rgba(0, 0, 0, 0.6);
+.darker-popup {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(2px);
 
-  z-index: 10;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  z-index: 100;
 }
 
 .settings-popup {
-  position: fixed;
-  top: 11.5%;
-  left: 82%;
+  position: absolute;
   transform: translate(-50%, 0%);
 
-  width: 25%;
-  height: 50%;
-
   background: #3E3E3E;
-  border-radius: 0.8vw;
+  border-radius: clamp(10px, 0.8cqw, 20px);
 
   z-index: 20;
+}
+
+@media (min-width: 426px) and (max-width: 768px){
+  .settings-popup {
+    width: clamp(200px, 40cqw, 310px);
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px){
+  .settings-popup {
+    width: clamp(310px, 32.3cqw, 330px);
+  }
+}
+
+@media (min-width: 1025px) and (max-width: 1440px){
+  .settings-popup {
+    width: clamp(340px, 30cqw, 360px);
+  }
+}
+
+@media (min-width: 1441px){
+  .settings-popup {
+    width: clamp(370px, 18cqw, 400px);
+  }
+}
+
+@media (max-height: 1079px){
+  .settings-popup{
+    height: clamp(360px, 50cqh, 390px);
+  }
+}
+
+@media (min-height: 1080px) and (max-height: 1172px){
+  .settings-popup{
+    height: clamp(390px, 50cqh, 430px);
+  }
+}
+
+@media (min-height: 1173px){
+  .settings-popup{
+    height: clamp(430px, 50cqh, 520px);
+  }
 }
 
 .settings-popup-connection {
-  position: fixed;
-  top: 8.5%;
-  left: 92.3%;
-  transform: translate(-50%, 0%);
-
-  width: 5%;
-  height: 3%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  height: auto;
 
   z-index: 20;
 }
 
+.settings-popup-connection svg {
+  display: block;
+}
+
+@media (min-width: 426px) and (max-width: 768px){
+  .settings-popup-connection svg{
+    width: clamp(25px, 5cqw, 35px);
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px){
+  .settings-popup-connection svg{
+    width: clamp(35px, 5cqw, 35px);
+  }
+}
+
+@media (min-width: 1025px) and (max-width: 1440px){
+  .settings-popup-connection svg{
+    width: clamp(35px, 5cqw, 40px);
+  }
+}
+
+@media (min-width: 1441px){
+  .settings-popup-connection svg{
+    width: clamp(40px, 5cqw, 50px);
+  }
+}
 
 .settings-popup .text{
   position: relative;
-  top: 5%;
+  top: 3.5%;
   padding-left: 5%;
 
   width: 80%;
   height: 5%;
 
-  font-size: 2vh;
   text-align: center;
   color: white;
   opacity: 1;
+}
+
+@media (max-height: 1079px){
+  .settings-popup .text{
+    font-size: clamp(13px, 2cqh, 15px);
+  }
+}
+
+@media (min-height: 1080px) and (max-height: 1172px){
+  .settings-popup .text{
+    font-size: clamp(13px, 1.7cqh, 15px);
+  }
+}
+
+@media (min-height: 1173px){
+  .settings-popup .text{
+    font-size: clamp(18px, 1.9cqh, 21px);
+  }
 }
 
 .settings-buttons-container{
@@ -61,27 +138,62 @@
   left: 50%;
   transform: translate(-50%, 0%);
 
-  width: 90%;
+  width: 95%;
   height: 85%;
 
+  overflow: hidden;
 }
 
 .settings-buttons-container .text{
-  display: block;
-  width: 95%;
-  padding-left: 5%;
-
-  font-size: 1.6vh;
-  text-align: left;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
   color: #999999;
 }
 
-.settings-buttons-container .label{
-  display: block;
+@media (max-height: 1079px){
+  .settings-buttons-container .text{
+    font-size: clamp(11px, 1.59cqh, 13px);
+  }
+}
 
-  font-size: 1.8vh;
-  text-align: left;
+@media (min-height: 1080px) and (max-height: 1172px){
+  .settings-buttons-container .text{
+    font-size: clamp(12px, 1.48cqh, 14px);
+  }
+}
+
+@media (min-height: 1173px){
+  .settings-buttons-container .text{
+    font-size: clamp(18px, 1.65cqh, 21px);
+  }
+}
+
+.settings-buttons-container .label{
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
   color: white;
+}
+
+@media (max-height: 1079px){
+  .settings-buttons-container .label{
+    font-size: clamp(11px, 1.59cqh, 13px);
+  }
+}
+
+@media (min-height: 1080px) and (max-height: 1172px){
+  .settings-buttons-container .label{
+    font-size: clamp(13px, 1.39cqh, 15px);
+  }
+}
+
+@media (min-height: 1173px){
+  .settings-buttons-container .label{
+    font-size: clamp(15px, 1.54cqh, 16.2px);
+  }
 }
 
 .settings-buttons-container .radio-group{
@@ -91,50 +203,179 @@
 
   display: flex;
   flex-direction: row;
-  gap: 5%;
   
-  padding-left: 5%;
-  margin-bottom: 8%;
+  padding-left: 7%;
+
+  margin-bottom: 25px;
+}
+
+@media (min-width: 426px) and (max-width: 768px){
+  .settings-buttons-container .radio-group{
+    gap: 10px;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px){
+  .settings-buttons-container .radio-group{
+    gap: 10px;
+  }
+}
+
+@media (min-width: 1025px) and (max-width: 1440px){
+  .settings-buttons-container .radio-group{
+    gap: 12px;
+  }
+}
+
+@media (min-width: 1441px){
+  .settings-buttons-container .radio-group{
+    gap: 14px;
+  }
 }
 
 .settings-buttons-container .radio-option{
   display: flex;
   align-items: center;
-  gap: 0.5vw;
-
+  
   color: white;
-  font-size: 1.5vh;
+}
+
+@media (min-width: 426px) and (max-width: 768px){
+  .settings-buttons-container .radio-option{
+    gap: 5px;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px){
+  .settings-buttons-container .radio-option{
+    gap: 5px;
+  }
+}
+
+@media (min-width: 1025px) and (max-width: 1440px){
+  .settings-buttons-container .radio-option{
+    gap: 8px;
+  }
+}
+
+@media (min-width: 1441px){
+  .settings-buttons-container .radio-option{
+    gap: 8px;
+  }
 }
 
 .radio-option input[type="radio"]{
-  width: 1.2vw;
-  height: 1.2vw;
+    margin: 0;
+  }
+
+@media (min-width: 426px) and (max-width: 768px){
+  .radio-option input[type="radio"]{
+    width: 12px;
+    height: 12px;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px){
+  .radio-option input[type="radio"]{
+    width: 13px;
+    height: 13px;
+  }
+}
+
+@media (min-width: 1025px) and (max-width: 1440px){
+  .radio-option input[type="radio"]{
+    width: 15px;
+    height: 15px;
+  }
+}
+
+@media (min-width: 1441px){
+  .radio-option input[type="radio"]{
+    width: 16px;
+    height: 16px;
+  }
 }
 
 .exposure-controls{
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10%;
-  width: 30%;
+}
+
+@media (min-width: 426px) and (max-width: 768px){
+  .exposure-controls{
+    gap: 7px;
+    width: clamp(70px, 11.8cqw, 80px);
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px){
+  .exposure-controls{
+    gap: 7px;
+    width: clamp(80px, 10.8cqw, 95px);
+  }
+}
+
+@media (min-width: 1025px) and (max-width: 1440px){
+  .exposure-controls{
+    gap: 10px;
+    width: clamp(95px, 8.4cqw, 110px);
+  }
+}
+
+@media (min-width: 1441px){
+  .exposure-controls{
+    gap: 10px;
+    width: 110px;
+  }
 }
 
 .exposure-input{
   width: 45%;
-  height: 2.5vh;
 
   background: #2a2a2a;
   color: white;
 
   border: 1px solid #555;
-  border-radius: 0.3vw;
+  border-radius: 4px;
 
   text-align: center;
 }
 
+.exposure-input:focus {
+  outline: none;
+}
+
+.exposure-input::-webkit-inner-spin-button,
+.exposure-input::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.exposure-input {
+    -moz-appearance: textfield;
+}
+
+@media (max-height: 1079px){
+  .exposure-input{
+    height: clamp(11px, 2.2cqh, 18px);
+  }
+}
+
+@media (min-height: 1080px) and (max-height: 1172px){
+  .exposure-input{
+    height: clamp(18px, 1.86cqh, 20px);
+  }
+}
+
+@media (min-height: 1173px){
+  .exposure-input{
+    height: clamp(20px, 2.1cqh, 24px);
+  }
+}
+
 .exposure-btn{
   width: 40%;
-  height: 2.5vh;
 
   display: flex;
   align-items: center;
@@ -144,20 +385,58 @@
   background: rgba(255, 255, 255, 0.2);
 
   border: none;
-  border-radius: 0.3vw;
+  border-radius: 4px;
 
   cursor: pointer;
+}
+
+@media (max-height: 1079px){
+  .exposure-btn{
+    height: clamp(13px, 2.68cqh, 22px);
+  }
+}
+
+@media (min-height: 1080px) and (max-height: 1172px){
+  .exposure-btn{
+    height: clamp(20px, 2.23cqh, 24px);
+  }
+}
+
+@media (min-height: 1173px){
+  .exposure-btn{
+    height: clamp(24px, 2.4cqh, 28px);
+  }
 }
 
 .exposure-btn .text{
   display: flex;
   align-items: center;
   justify-content: center;
+  text-transform: uppercase;
+  font-family: "Inter Regular", sans-serif;
 
   width: 100%;
   height: 100%;
 
   color: white;
+}
+
+@media (max-height: 1079px){
+  .exposure-btn .text{
+    font-size: clamp(11px, 1.59cqh, 13px);
+  }
+}
+
+@media (min-height: 1080px) and (max-height: 1172px){
+  .exposure-btn .text{
+    font-size: clamp(13px, 1.39cqh, 15px);
+  }
+}
+
+@media (min-height: 1173px){
+  .exposure-btn .text{
+    font-size: clamp(15px, 1.54cqh, 16.2px);
+  }
 }
 
 .exposure-btn:hover{
@@ -172,31 +451,87 @@
   position: relative;
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 10%;
-  width: 30%;
+  justify-content: space-between;
   height: 15%;
   top: 4%;
   padding-left: 5%;
 }
 
+@media (min-width: 426px) and (max-width: 768px){
+  .countdown-controls{
+    gap: 7px;
+    width: 110px;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px){
+  .countdown-controls{
+    gap: 7px;
+    width: 112px;
+  }
+}
+
+@media (min-width: 1025px) and (max-width: 1440px){
+  .countdown-controls{
+    gap: 10px;
+    width: 112px;
+  }
+}
+
+@media (min-width: 1441px){
+  .countdown-controls{
+    gap: 10px;
+    width: clamp(112px, 7cqw, 160px);
+  }
+}
+
 .countdown-input{
-  width: 45%;
-  height: 2.5vh;
+  width: 50%;
 
   background: #2C2C2C;
   color: white;
 
   border: 1px solid #555;
-  border-radius: 0.3vw;
+  border-radius: 4px;
 
   text-align: center;
 }
 
+.countdown-input::-webkit-inner-spin-button,
+.countdown-input::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.countdown-input {
+    -moz-appearance: textfield;
+}
+
+.countdown-input:focus {
+  outline: none;
+}
+
+@media (max-height: 1079px){
+  .countdown-input{
+    height: clamp(11px, 2.2cqh, 18px);
+  }
+}
+
+@media (min-height: 1080px) and (max-height: 1172px){
+  .countdown-input{
+    height: clamp(18px, 1.86cqh, 20px);
+  }
+}
+
+@media (min-height: 1173px){
+  .countdown-input{
+    height: clamp(20px, 2.1cqh, 24px);
+  }
+}
+
 .countdown-btn{
   width: 40%;
-  height: 2.5vh;
-
+  
   display: flex;
   align-items: center;
   justify-content: center;
@@ -210,15 +545,53 @@
   cursor: pointer;
 }
 
+@media (max-height: 1079px){
+  .countdown-btn{
+    height: clamp(13px, 2.68cqh, 22px);
+  }
+}
+
+@media (min-height: 1080px) and (max-height: 1172px){
+  .countdown-btn{
+    height: clamp(20px, 2.23cqh, 24px);
+  }
+}
+
+@media (min-height: 1173px){
+  .countdown-btn{
+    height: clamp(24px, 2.4cqh, 28px);
+  }
+}
+
 .countdown-btn .text{
   display: flex;
   align-items: center;
   justify-content: center;
+  text-transform: uppercase;
+  font-family: "Inter Regular", sans-serif;
 
   width: 100%;
   height: 100%;
 
   color: white;
+}
+
+@media (max-height: 1079px){
+  .countdown-btn .text{
+    font-size: clamp(11px, 1.59cqh, 13px);
+  }
+}
+
+@media (min-height: 1080px) and (max-height: 1172px){
+  .countdown-btn .text{
+    font-size: clamp(13px, 1.39cqh, 15px);
+  }
+}
+
+@media (min-height: 1173px){
+  .countdown-btn .text{
+    font-size: clamp(15px, 1.54cqh, 16.2px);
+  }
 }
 
 .countdown-btn:hover{
@@ -231,8 +604,8 @@
 
 .settings-popup .image-crop-preference{
   position: relative;
-  top: 9%;
-  gap: 5%;
+  top: 7%;
+  gap: 7px;
   width: 100%;
   height: 5%;
 
@@ -244,15 +617,31 @@
 
 .video-size{
   padding-left: 5%;
-  font-size: 1.8vh;
   color: white;
+}
+
+@media (max-height: 1079px){
+  .video-size{
+    font-size: clamp(11px, 1.59cqh, 13px);
+  }
+}
+
+@media (min-height: 1080px) and (max-height: 1172px){
+  .video-size{
+    font-size: clamp(13px, 1.39cqh, 15px);
+  }
+}
+
+@media (min-height: 1173px){
+  .video-size{
+    font-size: clamp(15px, 1.54cqh, 16.2px);
+  }
 }
 
 .define-button{
   width: 30%;
-  height: 100%;
   cursor: pointer;
-  border-radius: 0.2vw;
+  border-radius: 4px;
   border: none;
 
   display: flex;
@@ -261,6 +650,24 @@
 
   background: rgba(255, 255, 255, 0.2);
   transition: all 0.3s ease;
+}
+
+@media (max-height: 1079px){
+  .countdown-btn{
+    height: clamp(13px, 2.68cqh, 22px);
+  }
+}
+
+@media (min-height: 1080px) and (max-height: 1172px){
+  .countdown-btn{
+    height: clamp(20px, 2.23cqh, 24px);
+  }
+}
+
+@media (min-height: 1173px){
+  .countdown-btn{
+    height: clamp(24px, 2.4cqh, 28px);
+  }
 }
 
 .define-button:disabled {
@@ -276,6 +683,24 @@
   transition: color 0.3s ease;
 }
 
+@media (max-height: 1079px){
+  .define-button .define_text {
+    font-size: clamp(11px, 1.59cqh, 13px);
+  }
+}
+
+@media (min-height: 1080px) and (max-height: 1172px){
+  .define-button .define_text {
+    font-size: clamp(13px, 1.39cqh, 15px);
+  }
+}
+
+@media (min-height: 1173px){
+  .define-button .define_text {
+    font-size: clamp(15px, 1.54cqh, 16.2px);
+  }
+}
+
 .define-button:hover:not(:disabled) {
   background: white;
 }
@@ -286,7 +711,7 @@
 
 .close-button{
   position: absolute;
-  top: 5%;
+  top: 3.5%;
   right: 5%;
   cursor: pointer;
 }
