@@ -731,6 +731,8 @@ function App(){
 
         if (!canvas || !img) return;
 
+        canvas.style.touchAction = "none";
+
         const ctx = canvas.getContext("2d")!;
 
         const STEP = 1;
@@ -788,17 +790,19 @@ function App(){
             });
         }
 
-        function getMousePos(event: MouseEvent) {
-            const rect = canvas!.getBoundingClientRect();
+        function getPointerPos(e: PointerEvent) {
+            const rect = canvas.getBoundingClientRect();
 
             return {
-                x: (event.clientX - rect.left) * canvas!.width / rect.width,
-                y: (event.clientY - rect.top) * canvas!.height / rect.height
+                x: (e.clientX - rect.left) * canvas.width / rect.width,
+                y: (e.clientY - rect.top) * canvas.height / rect.height
             };
         }
 
-        function mouseDown(event: MouseEvent) {
-            const { x, y } = getMousePos(event);
+        function pointerDown(e: PointerEvent) {
+            e.preventDefault();
+
+            const { x, y } = getPointerPos(e);
 
             let minDist = Infinity;
             let closest: number | null = null;
@@ -813,12 +817,11 @@ function App(){
             });
 
             if (minDist <= 15 && closest !== null) {
-                if (selectedPoint.current !== closest){
-                    selectedPoint.current = closest;
-                    dragging.current = false;
-                } else {
-                    dragging.current = true;
-                }
+                selectedPoint.current = closest;
+                dragging.current = true;
+
+                // Impede que o dedo "escape" do canvas
+                canvas.setPointerCapture(e.pointerId);
             } else {
                 selectedPoint.current = null;
                 dragging.current = false;
@@ -827,42 +830,49 @@ function App(){
             drawWorkspace();
         }
 
-        function mouseMove(event: MouseEvent) {
+        function pointerMove(e: PointerEvent) {
             if (!dragging.current) return;
             if (selectedPoint.current === null) return;
 
-            const { x, y } = getMousePos(event);
+            e.preventDefault();
+
+            const { x, y } = getPointerPos(e);
 
             detectionArea.current[selectedPoint.current] = [x, y];
 
             drawWorkspace();
         }
 
-        function mouseUp() {
+        function pointerUp(e: PointerEvent) {
             dragging.current = false;
+
+            if (canvas.hasPointerCapture(e.pointerId)) {
+                canvas.releasePointerCapture(e.pointerId);
+            }
+
             drawWorkspace();
         }
 
-        function keyDown(event: KeyboardEvent) {
+        function keyDown(e: KeyboardEvent) {
             if (selectedPoint.current === null) return;
 
             const point = detectionArea.current[selectedPoint.current];
 
-            switch (event.key) {
+            switch (e.key) {
                 case "ArrowLeft":
-                    event.preventDefault();
+                    e.preventDefault();
                     point[0] = Math.max(0, point[0] - STEP);
                     break;
                 case "ArrowRight":
-                    event.preventDefault();
+                    e.preventDefault();
                     point[0] = Math.max(0, point[0] + STEP);
                     break;
                 case "ArrowUp":
-                    event.preventDefault();
+                    e.preventDefault();
                     point[1] = Math.max(0, point[1] - STEP);
                     break;
                 case "ArrowDown":
-                    event.preventDefault();
+                    e.preventDefault();
                     point[1] = Math.max(0, point[1] + STEP);
                     break;
                 default:
@@ -872,24 +882,33 @@ function App(){
             drawWorkspace();
         }
 
-        img.addEventListener("load", resizeCanvas);
+        canvas.addEventListener("pointerdown", pointerDown);
+        canvas.addEventListener("pointermove", pointerMove);
+        canvas.addEventListener("pointerup", pointerUp);
+        canvas.addEventListener("pointercancel", pointerUp);
 
-        canvas.addEventListener("mousedown", mouseDown);
-        canvas.addEventListener("mousemove", mouseMove);
-
-        window.addEventListener("mouseup", mouseUp);
         window.addEventListener("keydown", keyDown);
+
+        const resizeObserver = new ResizeObserver(() => {
+            resizeCanvas();
+        });
+
+        resizeObserver.observe(img);
 
         resizeCanvas();
 
         return () => {
-            img.removeEventListener("load", resizeCanvas);
-
-            canvas.removeEventListener("mousedown", mouseDown);
-            canvas.removeEventListener("mousemove", mouseMove);
-
-            window.removeEventListener("mouseup", mouseUp);
+            canvas.removeEventListener("pointerdown", pointerDown);
+            canvas.removeEventListener("pointermove", pointerMove);
+            canvas.removeEventListener("pointerup", pointerUp);
+            canvas.removeEventListener("pointercancel", pointerUp);
+            
             window.removeEventListener("keydown", keyDown);
+
+            resizeObserver.disconnect();
+
+            selectedPoint.current = null;
+            dragging.current = false;
         };
 
     }, [currentMenu, calibrationMode]);
@@ -946,6 +965,8 @@ function App(){
 
         if (!canvas || !video) return;
 
+        canvas.style.touchAction = "none";
+
         const ctx = canvas.getContext("2d")!;
 
         function resizeCanvas() {
@@ -992,7 +1013,7 @@ function App(){
             });
         }
 
-        function getMousePos(event: MouseEvent) {
+        function getPointerPos(event: PointerEvent) {
             const rect = canvas!.getBoundingClientRect();
 
             return {
@@ -1001,8 +1022,8 @@ function App(){
             };
         }
 
-        function mouseDown(event: MouseEvent) {
-            const { x, y } = getMousePos(event);
+        function pointerDown(event: PointerEvent) {
+            const { x, y } = getPointerPos(event);
 
             const corners = [
                 { name: "tl", x: cropArea.x, y: cropArea.y },
@@ -1046,10 +1067,10 @@ function App(){
             drawCrop();
         }
 
-        function mouseMove(event: MouseEvent) {
+        function pointerMove(event: PointerEvent) {
             if (draggingCrop.current) {
 
-                const { x, y } = getMousePos(event);
+                const { x, y } = getPointerPos(event);
 
                 setCropArea(prev => {
 
@@ -1080,7 +1101,7 @@ function App(){
 
             if (!dragging.current) return;
 
-            const { x, y } = getMousePos(event);
+            const { x, y } = getPointerPos(event);
 
             setCropArea((prev: any) => {
                 const c = { ...prev };
@@ -1140,7 +1161,7 @@ function App(){
             });
         }
 
-        function mouseUp() {
+        function pointerUp() {
             dragging.current = false;
             draggingCrop.current = false;
             selectedCorner.current = null;
@@ -1148,16 +1169,18 @@ function App(){
         }
 
         video.addEventListener("loadedmetadata", resizeCanvas);
-        canvas.addEventListener("mousedown", mouseDown);
-        canvas.addEventListener("mousemove", mouseMove);
-        canvas.addEventListener("mouseup", mouseUp);
+        canvas.addEventListener("pointerdown", pointerDown);
+        canvas.addEventListener("pointermove", pointerMove);
+        canvas.addEventListener("pointerup", pointerUp);
+        canvas.addEventListener("pointercancel", pointerUp);
 
         resizeCanvas();
 
         return () => {
-            canvas.removeEventListener("mousedown", mouseDown);
-            canvas.removeEventListener("mousemove", mouseMove);
-            canvas.removeEventListener("mouseup", mouseUp);
+            canvas.removeEventListener("pointerdown", pointerDown);
+            canvas.removeEventListener("pointermove", pointerMove);
+            canvas.removeEventListener("pointerup", pointerUp);
+            canvas.removeEventListener("pointercancel", pointerUp);
         };
 
     }, [currentMenu, showCropWindow, cropArea]);
@@ -2844,6 +2867,8 @@ function App(){
 
         if (!canvas || !img) return;
 
+        canvas.style.touchAction = "none";
+
         const ctx = canvas.getContext("2d")!;
 
         canvas.width = img.naturalWidth;
@@ -3663,6 +3688,7 @@ function App(){
                             handleCalibrationModeChange={handleCalibrationModeChange}
                             calibrate_click={calibrate_click}
                             confirm_calibration={confirm_calibration}
+                            portalContainer={appContainerRef.current}
                         />
                     )}
 

@@ -2,9 +2,28 @@
    QCONFIRMATION MODAL
 ========================== */
 
-.qconfirmation-modal {
-  width: 100%;
-  max-width: 480px;
+@media (min-width: 426px) and (max-width: 768px){
+  .qconfirmation-modal {
+    width: clamp(120px, 45.6cqw, 350px);
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px){
+  .qconfirmation-modal {
+    width: clamp(350px, 39.1cqw, 400px);
+  }
+}
+
+@media (min-width: 1025px) and (max-width: 1440px){
+  .qconfirmation-modal {
+    width: clamp(400px, 35cqw, 440px);
+  }
+}
+
+@media (min-width: 1441px){
+  .qconfirmation-modal {
+    width: clamp(440px, 18.8cqw, 480px);
+  }
 }
 
 .qconfirmation-modal .qmodal__header {

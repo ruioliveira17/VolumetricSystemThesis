@@ -26,8 +26,8 @@
 
 .app-container {
   position: relative;
-  width: max(100cqw, 424px);
-  height: max(100cqh, 799px);
+  width: max(100svw, 424px);
+  height: max(100svh, 799px);
 
   container-type: size;
 }

@@ -31,6 +31,7 @@ interface QCalibrationProps {
   handleCalibrationModeChange: (manual: boolean) => void;
   calibrate_click: () => void;
   confirm_calibration: (confirm: boolean) => void;
+  portalContainer?: Element | null;
 }
 
 function QCalibration({
@@ -44,7 +45,8 @@ function QCalibration({
   calibrationModalOpen,
   handleCalibrationModeChange,
   calibrate_click,
-  confirm_calibration
+  confirm_calibration,
+  portalContainer,
 }: QCalibrationProps) {
 
   return (
@@ -155,6 +157,7 @@ function QCalibration({
           subtitle="Do you want to confirm the changes?"
           confirmText="Yes"
           cancelText="No"
+          container={portalContainer}
         />
       )}
 

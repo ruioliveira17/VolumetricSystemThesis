@@ -27,6 +27,7 @@ interface QConfirmationModalProps {
   titleColor?: string;
   /** Optional extra class on the root modal element. */
   className?: string;
+  container?: Element | null;
 }
 
 function QConfirmationModal({
@@ -42,6 +43,7 @@ function QConfirmationModal({
   centerTitle = false,
   titleColor,
   className = '',
+  container,
 }: QConfirmationModalProps) {
   const { t } = useTranslation();
 
@@ -66,6 +68,7 @@ function QConfirmationModal({
       centerTitle={centerTitle}
       titleColor={titleColor}
       className={modalClass}
+      container={container}
     >
       <div className="qconfirmation-modal__content">
         <span className="qconfirmation-modal__icon" aria-hidden="true">

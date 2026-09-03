@@ -19,6 +19,7 @@ interface QModalProps {
    */
   titleColor?: string;
   className?: string;
+  container?: Element | null;
 }
 
 function QModal({
@@ -32,6 +33,7 @@ function QModal({
   centerTitle = false,
   titleColor,
   className = '',
+  container,
 }: QModalProps) {
   useEffect(() => {
     if (!open || !closeOnEscape) return;
@@ -101,7 +103,7 @@ function QModal({
         <div className="qmodal__body">{children}</div>
       </div>
     </div>,
-    document.body,
+    container ?? document.body,
   );
 }
 

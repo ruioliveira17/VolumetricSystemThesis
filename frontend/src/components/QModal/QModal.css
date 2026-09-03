@@ -3,12 +3,12 @@
 ========================== */
 
 .qmodal-overlay {
-  position: fixed;
+  position: absolute;
   inset: 0;
   z-index: 1000;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  /* align-items: center; */
+  /* justify-content: center; */
   background: rgba(0, 0, 0, 0.8);
   backdrop-filter: blur(0px);
   padding: 24px;
@@ -16,14 +16,20 @@
 }
 
 .qmodal {
-  position: relative;
+  position: absolute;
+  left: 50cqw;
+  top: 50cqh;
+
+  transform: translate(-50%, -50%);
+
   background: var(--color-modal-bg);;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+
   /* background: #1F1F1F;
   border: 1px solid #99999939;*/
   border-radius: 20px;
   max-width: 100%;
-  max-height: calc(100vh - 48px);
+  max-height: calc(100cqh - 48px);
   display: flex;
   flex-direction: column;
   animation: qmodal-in 0.2s ease-out;
@@ -106,10 +112,12 @@
 @keyframes qmodal-in {
   from {
     opacity: 0;
-    transform: scale(0.96) translateY(8px);
+    /*transform: scale(0.96) translateY(8px);*/
+    transform: translate(-50%, -50%) scale(0.96) translateY(8px);
   }
   to {
     opacity: 1;
-    transform: scale(1) translateY(0);
+    /*transform: scale(1) translateY(0);*/
+    transform: translate(-50%, -50%) scale(1) translateY(0);
   }
 }
