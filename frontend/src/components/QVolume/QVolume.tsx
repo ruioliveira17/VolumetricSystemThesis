@@ -123,32 +123,33 @@ function QVolume({
 
                     <div className="weightBar-value">
                         <span className="label">WEIGHT:</span>
-                        <span className="value">
-                            {weightInfo?.weight != null ? Number(weightInfo.weight).toFixed(2) : "0.00"} kg
-                        </span>
+                        <div className="value_units">
+                            <span className="value">
+                                {weightInfo?.weight != null ? Number(weightInfo.weight).toFixed(2) : "0.00"}
+                            </span>
+                            <span className="units">kg</span>
+                        </div>
                     </div>
                 </div>
 
                 <div className="switch-button-wrapper">
-                    {objectImage && (
-                        <>
-                            <div className="switch-group">
-                                <button
-                                    className={`switch-mode ${!showCamera ? "active" : ""}`}
-                                    onClick={() => setShowCamera(false)}
-                                >
-                                    <img src="/image.svg" alt="Image" className="icon" />
-                                </button>
+                    <div className="switch-group">
+                        <button
+                            className={`switch-mode ${!showCamera ? "active" : ""}`}
+                            onClick={() => setShowCamera(false)}
+                            disabled={!objectImage}
+                        >
+                            <img src="/image.svg" alt="Image" className="icon" />
+                        </button>
 
-                                <button
-                                    className={`switch-mode ${showCamera ? "active" : ""}`}
-                                    onClick={() => setShowCamera(true)}
-                                >
-                                    <img src="/live_tv.svg" alt="Camera" className="icon" />
-                                </button>                                
-                            </div>
-                        </>
-                    )}
+                        <button
+                            className={`switch-mode ${showCamera ? "active" : ""}`}
+                            onClick={() => setShowCamera(true)}
+                            disabled={!objectImage}
+                        >
+                            <img src="/live_tv.svg" alt="Camera" className="icon" />
+                        </button>                                
+                    </div>
                 </div>
             </div>
 
@@ -202,7 +203,7 @@ function QVolume({
                         <>
                             {volInfo && !multipleVolumeData && (volInfo.width !== 0 || volInfo.length !== 0 || volInfo.height !== 0 || volInfo.volume_m !== 0 || volInfo.volume_cm !== 0) && (
                                 <>
-                                    <canvas ref={canvasRef} className="volume-canvas" />
+                                    <canvas ref={canvasRef} className="volume-bundle-canvas" />
 
                                     <div className="boxBundleInfoText-container">
                                         <div style={{ color: "#6CD08A" }} className="boxBundleInfo-text">
@@ -315,7 +316,7 @@ function QVolume({
 
                     {objectsOutOfLine && (
                         <>
-                            <div className="error-modal">
+                            <div className="error-modal-volume">
                                 <div className="background"></div>
                                 <div className="icon">
                                     <WarningIcon />
@@ -330,7 +331,7 @@ function QVolume({
 
                     {noObjectsDetected && (
                         <>
-                            <div className="error-modal">
+                            <div className="error-modal-volume">
                                 <div className="background"></div>
                                 <div className="icon">
                                     <WarningIcon />

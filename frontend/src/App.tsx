@@ -1246,21 +1246,27 @@ function App(){
 
         const ctx = canvas.getContext("2d")!;
 
-        const rect = canvas.getBoundingClientRect();
-        const dpr = window.devicePixelRatio || 1;
+        if (!ctx) return;
 
-        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        const resizeCanvas = () => {
+            const rect = canvas.getBoundingClientRect();
+            const dpr = window.devicePixelRatio || 1;
 
-        canvas.width = rect.width * dpr;
-        canvas.height = rect.height * dpr;
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
 
-        ctx.scale(dpr, dpr);
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
 
-        ctx.lineJoin = "round";
-        ctx.lineCap = "round";
+            ctx.scale(dpr, dpr);
+
+            ctx.lineJoin = "round";
+            ctx.lineCap = "round";
+        };
+
+        resizeCanvas();
 
         if (!volInfo && !measureVolumeInfo) {
-            ctx.clearRect(0, 0, rect.width, rect.height);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
             return;
         }
 
@@ -1297,6 +1303,8 @@ function App(){
         };
 
         const draw = () => {
+            const rect = canvas.getBoundingClientRect();
+
             const W = rect.width;
             const H = rect.height;
 
@@ -1496,8 +1504,11 @@ function App(){
         window.addEventListener("mousemove", move);
         window.addEventListener("mouseup", up);
 
+        window.addEventListener("resize", resizeCanvas);
+
         return () => {
             cancelAnimationFrame(frameId);
+            window.removeEventListener("resize", resizeCanvas);
             canvas.removeEventListener("mousedown", down);
             window.removeEventListener("mousemove", move);
             window.removeEventListener("mouseup", up);
