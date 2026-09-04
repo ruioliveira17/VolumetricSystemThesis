@@ -12,12 +12,14 @@
 }
 
 .crop-window {
-  position:relative;
-  width: 50%;
-  height: 81%;
+  position: absolute;
+  top: 50cqh;
+  left: 50cqw;
+  transform: translate(-50%, -50%);
+  width: 50cqw;
 
   background: #3E3E3E;
-  border-radius: 0.8vw;
+  border-radius: 10px;
   border: 1px solid #99999939;
 
   display:flex;
@@ -25,23 +27,68 @@
   align-items: center;
 }
 
+@media (min-width: 426px) and (max-width: 768px){
+  .crop-window {
+    width: clamp(350px, 82.1cqw, 630px);
+    height: 500px;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px){
+  .crop-window {
+    width: 630px;
+    height: 500px;
+  }
+}
+
+@media (min-width: 1025px) and (max-width: 1440px){
+  .crop-window {
+    width: 630px;
+    height: 500px;
+  }
+}
+
+@media (min-width: 1441px){
+  .crop-window {
+    width: clamp(730px, 30cqw, 740px);
+    height: clamp(570px, 50cqh, 600px);
+  }
+}
+
 .crop-title {
   margin-top: 2%;
   padding-left: 5%;
   width: 100%;
   color: white;
-  font-size: 2vh;
   text-transform: uppercase;
   font-family: "Inter Regular", sans-serif;
   transition: color 0.3s ease;
 }
 
+@media (max-height: 1079px){
+  .crop-title {
+    font-size: 15px;
+  }
+}
+
+@media (min-height: 1080px) and (max-height: 1172px){
+  .crop-title {
+    font-size: 18px;
+  }
+}
+
+@media (min-height: 1173px){
+  .crop-title {
+    font-size: 20px;
+  }
+}
+
 .crop-video-wrapper {
   position: relative;
-  object-fit: contain;
+  aspect-ratio: 4 / 3;
   margin-top: 2%;
   width: 85%;
-  border-radius: 0.8vw;
+  border-radius: 10px;
   overflow: hidden;
   margin-bottom: 2%;
 }
@@ -68,7 +115,7 @@
   height: 4%;
   display: flex;
   justify-content: center;
-  gap: 5%;
+  gap: 50px;
   margin-bottom: 1%;
   z-index: 30;
 }
@@ -76,7 +123,7 @@
 .crop-button{
   width: 20%;
   cursor: pointer;
-  border-radius: 0.2vw;
+  border-radius: 4px;
   border: none;
 
   display: flex;
@@ -92,6 +139,24 @@
   text-transform: uppercase;
   font-family: "Inter Regular", sans-serif;
   transition: color 0.3s ease;
+}
+
+@media (max-height: 1079px){
+  .crop-button .text {
+    font-size: 13px;
+  }
+}
+
+@media (min-height: 1080px) and (max-height: 1172px){
+  .crop-button .text {
+    font-size: 14px;
+  }
+}
+
+@media (min-height: 1173px){
+  .crop-button .text {
+    font-size: 15px;
+  }
 }
 
 .crop-button:hover {

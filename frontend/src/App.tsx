@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import "./styles/global.css";
 import "./styles/common.css";
 
@@ -171,7 +171,7 @@ function App(){
     const [volumeMode, setVolumeMode] = useState<string>("multi_bundle");
     const [speedMode, setSpeedMode] = useState("fast");
     const [cropArea, setCropArea] = useState<any>(DEFAULT_CROP);
-    const [lastVideoCrop, setLastVideoCrop] = useState(null);
+    const [savedCropArea, setSavedCropArea] = useState(null);
 
     const [exposureTime, setExposureTime] = useState<string>("");
     const [countdownTimer, setCountdownTimer] = useState<string>("");
@@ -933,22 +933,25 @@ function App(){
     }, [currentMenu, calibrationMode]);
 
     useEffect(() => {
-        if (currentMenu === "volume-menu" && lastVideoCrop !== null) {
+        if (currentMenu === "volume-menu" && savedCropArea !== null) {
             setVideoCrop({
-                ...lastVideoCrop,
+                ...savedCropArea,
                 videoWidth: cameraVideo.current.videoWidth,
                 videoHeight: cameraVideo.current.videoHeight,
                 displayWidth: cameraVideo.current.clientWidth,
                 displayHeight: cameraVideo.current.clientHeight
             });
 
-            setLastVideoCrop(null);
+            setSavedCropArea(null);
         }
     }, [currentMenu, cropVideoReady]);
 
     // Crop - feed the camera stream into the crop preview video
     useEffect(() => {
         if (!showCropWindow) return;
+
+        setCropArea(videoCrop);
+        cropAreaRef.current = videoCrop;
 
         if (cropVideo.current && cameraStream.current) {
             cropVideo.current.srcObject = cameraStream.current;
@@ -957,73 +960,115 @@ function App(){
     }, [showCropWindow]);
 
     // Crop - interactive rectangle editor (drag corners)
+    const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
+    const cropAreaRef = useRef(cropArea);
+
+    const drawCrop = useCallback(() => {
+        const canvas = cropCanvas.current;
+        const ctx = ctxRef.current;
+        if (!canvas || !ctx) return;
+
+        const cropArea = cropAreaRef.current;
+
+        console.log("drawCrop", {
+            cropArea,
+            canvasW: canvas.width,
+            canvasH: canvas.height,
+            ctxMatchesCanvas: ctx.canvas === canvas
+        });
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.strokeStyle = "red";
+        ctx.lineWidth = 8;
+        ctx.strokeRect(cropArea.x, cropArea.y, cropArea.width, cropArea.height);
+
+        const corners = [
+            { name: "tl", x: cropArea.x, y: cropArea.y },
+            { name: "tr", x: cropArea.x + cropArea.width, y: cropArea.y },
+            { name: "bl", x: cropArea.x, y: cropArea.y + cropArea.height },
+            { name: "br", x: cropArea.x + cropArea.width, y: cropArea.y + cropArea.height }
+        ];
+
+        corners.forEach((corner) => {
+            const radius = selectedCorner.current === corner.name ? 18 : 15;
+
+            ctx.beginPath();
+            ctx.arc(corner.x, corner.y, radius, 0, Math.PI * 2);
+            ctx.fillStyle = "black";
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.arc(corner.x, corner.y, radius - 2, 0, Math.PI * 2);
+            ctx.fillStyle = selectedCorner.current === corner.name ? "yellow" : "white";
+            ctx.fill();
+
+            ctx.globalCompositeOperation = "destination-out";
+            ctx.beginPath();
+            ctx.arc(corner.x, corner.y, radius - 8, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.globalCompositeOperation = "source-over";
+        });
+    }, []);
+
+    function getPointerPos(canvas: HTMLCanvasElement, event: PointerEvent) {
+        const rect = canvas.getBoundingClientRect();
+        return {
+            x: (event.clientX - rect.left) * canvas.width / rect.width,
+            y: (event.clientY - rect.top) * canvas.height / rect.height
+        };
+    }
+
     useEffect(() => {
-        if (currentMenu !== "volume-menu") return;
+        if (!showCropWindow) return;
 
         const canvas = cropCanvas.current;
         const video = cropVideo.current;
-
         if (!canvas || !video) return;
 
-        canvas.style.touchAction = "none";
+        ctxRef.current = canvas.getContext("2d");
 
-        const ctx = canvas.getContext("2d")!;
+        let rafId: number | null = null;
 
         function resizeCanvas() {
+            console.log("resizeCanvas", { videoWidth: video!.videoWidth, videoHeight: video!.videoHeight, readyState: video!.readyState });
+            if (!video!.videoWidth || !video!.videoHeight) {
+                rafId = requestAnimationFrame(resizeCanvas);
+                return;
+            }
             canvas!.width = video!.videoWidth;
             canvas!.height = video!.videoHeight;
             drawCrop();
         }
 
-        function drawCrop() {
-            ctx.clearRect(0, 0, canvas!.width, canvas!.height);
+        const resizeObserver = new ResizeObserver(() => resizeCanvas());
+        resizeObserver.observe(video);
 
-            ctx.strokeStyle = "red";
-            ctx.lineWidth = 8;
+        resizeCanvas();
 
-            ctx.strokeRect(cropArea.x, cropArea.y, cropArea.width, cropArea.height);
+        return () => {
+            if (rafId !== null) cancelAnimationFrame(rafId);
+            resizeObserver.disconnect();
+        };
+    }, [currentMenu, showCropWindow, drawCrop]);
 
-            const corners = [
-                { name: "tl", x: cropArea.x, y: cropArea.y },
-                { name: "tr", x: cropArea.x + cropArea.width, y: cropArea.y },
-                { name: "bl", x: cropArea.x, y: cropArea.y + cropArea.height },
-                { name: "br", x: cropArea.x + cropArea.width, y: cropArea.y + cropArea.height }
-            ];
+    useEffect(() => {
+        if (!showCropWindow) return;
 
-            corners.forEach((corner) => {
-                const radius = selectedCorner.current === corner.name ? 18 : 15;
+        const canvas = cropCanvas.current;
+        if (!canvas) return;
 
-                ctx.beginPath();
-                ctx.arc(corner.x, corner.y, radius, 0, Math.PI * 2);
-                ctx.fillStyle = "black";
-                ctx.fill();
-
-                ctx.beginPath();
-                ctx.arc(corner.x, corner.y, radius - 2, 0, Math.PI * 2);
-                ctx.fillStyle = selectedCorner.current === corner.name ? "yellow" : "white";
-                ctx.fill();
-
-                ctx.globalCompositeOperation = "destination-out";
-
-                ctx.beginPath();
-                ctx.arc(corner.x, corner.y, radius - 8, 0, Math.PI * 2);
-                ctx.fill();
-
-                ctx.globalCompositeOperation = "source-over";
-            });
-        }
-
-        function getPointerPos(event: PointerEvent) {
-            const rect = canvas!.getBoundingClientRect();
-
-            return {
-                x: (event.clientX - rect.left) * canvas!.width / rect.width,
-                y: (event.clientY - rect.top) * canvas!.height / rect.height
-            };
-        }
+        canvas.style.touchAction = "none";
 
         function pointerDown(event: PointerEvent) {
-            const { x, y } = getPointerPos(event);
+            const cropArea = cropAreaRef.current;
+            const { x, y } = getPointerPos(canvas!, event);
+
+            console.log("pointerDown -> drawCrop context", {
+                cropArea,
+                canvasW: canvas!.width,
+                canvasH: canvas!.height,
+                ctxMatchesCanvas: ctxRef.current?.canvas === canvas
+            });
 
             const corners = [
                 { name: "tl", x: cropArea.x, y: cropArea.y },
@@ -1045,19 +1090,11 @@ function App(){
                 }
 
                 if (
-                    x >= cropArea.x &&
-                    x <= cropArea.x + cropArea.width &&
-                    y >= cropArea.y &&
-                    y <= cropArea.y + cropArea.height
+                    x >= cropArea.x && x <= cropArea.x + cropArea.width &&
+                    y >= cropArea.y && y <= cropArea.y + cropArea.height
                 ) {
-
                     draggingCrop.current = true;
-
-                    dragOffset.current = {
-                        x: x - cropArea.x,
-                        y: y - cropArea.y
-                    };
-
+                    dragOffset.current = { x: x - cropArea.x, y: y - cropArea.y };
                     return;
                 }
             }
@@ -1068,97 +1105,76 @@ function App(){
         }
 
         function pointerMove(event: PointerEvent) {
+            const prev = cropAreaRef.current;
+
             if (draggingCrop.current) {
+                const { x, y } = getPointerPos(canvas!, event);
 
-                const { x, y } = getPointerPos(event);
+                let newX = x - dragOffset.current.x;
+                let newY = y - dragOffset.current.y;
 
-                setCropArea(prev => {
+                newX = Math.max(0, Math.min(newX, canvas!.width - prev.width));
+                newY = Math.max(0, Math.min(newY, canvas!.height - prev.height));
 
-                    let newX = x - dragOffset.current.x;
-                    let newY = y - dragOffset.current.y;
+                const next = { ...prev, x: newX, y: newY };
 
-                    newX = Math.max(
-                        0,
-                        Math.min(newX, canvas.width - prev.width)
-                    );
-
-                    newY = Math.max(
-                        0,
-                        Math.min(newY, canvas.height - prev.height)
-                    );
-
-
-                    return {
-                        ...prev,
-                        x: newX,
-                        y: newY
-                    };
-
-                });
-
+                cropAreaRef.current = next;
+                drawCrop();
+                setCropArea(next);
                 return;
             }
 
             if (!dragging.current) return;
 
-            const { x, y } = getPointerPos(event);
+            const { x, y } = getPointerPos(canvas!, event);
+            const c = { ...prev };
 
-            setCropArea((prev: any) => {
-                const c = { ...prev };
+            const centerX = prev.x + prev.width / 2;
+            const centerY = prev.y + prev.height / 2;
 
-                const centerX = prev.x + prev.width / 2;
-                const centerY = prev.y + prev.height / 2;
+            let newWidth = Math.abs(x - centerX) * 2;
+            let newHeight = newWidth / ASPECT_RATIO;
 
-                let newWidth = Math.abs(x - centerX) * 2;
-                let newHeight = newWidth / ASPECT_RATIO;
+            if (newWidth < 50) {
+                newWidth = 50;
+                newHeight = newWidth / ASPECT_RATIO;
+            }
 
-                if (newWidth < 50) {
-                    newWidth = 50;
-                    newHeight = newWidth / ASPECT_RATIO;
+            let newX = centerX - newWidth / 2;
+            let newY = centerY - newHeight / 2;
+
+            const insideCanvas =
+                newX >= 5 && newY >= 5 &&
+                newX + newWidth <= canvas!.width &&
+                newY + newHeight <= canvas!.height;
+
+            if (insideCanvas) {
+                c.x = newX; c.y = newY; c.width = newWidth; c.height = newHeight;
+            } else {
+                if (selectedCorner.current === "br") {
+                    c.width = Math.min(newWidth, canvas!.width - prev.x);
+                    c.height = c.width / ASPECT_RATIO;
                 }
-
-                let newX = centerX - newWidth / 2;
-                let newY = centerY - newHeight / 2;
-
-                const insideCanvas =
-                    newX >= 5 &&
-                    newY >= 5 &&
-                    newX + newWidth <= canvas.width &&
-                    newY + newHeight <= canvas.height;
-
-                if (insideCanvas) {
-                    c.x = newX;
-                    c.y = newY;
-                    c.width = newWidth;
-                    c.height = newHeight;
-
-                } else {
-                    if (selectedCorner.current === "br") {
-                        c.width = Math.min(newWidth, canvas.width - prev.x);
-                        c.height = c.width / ASPECT_RATIO;
-                    }
-
-                    if (selectedCorner.current === "tl") {
-                        c.width = Math.min(newWidth, prev.x + prev.width);
-                        c.height = c.width / ASPECT_RATIO;
-                        c.x = prev.x + prev.width - c.width;
-                    }
-
-                    if (selectedCorner.current === "tr") {
-                        c.width = Math.min(newWidth, canvas.width - prev.x);
-                        c.height = c.width / ASPECT_RATIO;
-                        c.y = prev.y + prev.height - c.height;
-                    }
-
-                    if (selectedCorner.current === "bl") {
-                        c.width = Math.min(newWidth, prev.x + prev.width);
-                        c.height = c.width / ASPECT_RATIO;
-                        c.x = prev.x + prev.width - c.width;
-                    }
+                if (selectedCorner.current === "tl") {
+                    c.width = Math.min(newWidth, prev.x + prev.width);
+                    c.height = c.width / ASPECT_RATIO;
+                    c.x = prev.x + prev.width - c.width;
                 }
+                if (selectedCorner.current === "tr") {
+                    c.width = Math.min(newWidth, canvas!.width - prev.x);
+                    c.height = c.width / ASPECT_RATIO;
+                    c.y = prev.y + prev.height - c.height;
+                }
+                if (selectedCorner.current === "bl") {
+                    c.width = Math.min(newWidth, prev.x + prev.width);
+                    c.height = c.width / ASPECT_RATIO;
+                    c.x = prev.x + prev.width - c.width;
+                }
+            }
 
-                return c;
-            });
+            cropAreaRef.current = c;
+            drawCrop();
+            setCropArea(c);
         }
 
         function pointerUp() {
@@ -1168,13 +1184,10 @@ function App(){
             drawCrop();
         }
 
-        video.addEventListener("loadedmetadata", resizeCanvas);
         canvas.addEventListener("pointerdown", pointerDown);
         canvas.addEventListener("pointermove", pointerMove);
         canvas.addEventListener("pointerup", pointerUp);
         canvas.addEventListener("pointercancel", pointerUp);
-
-        resizeCanvas();
 
         return () => {
             canvas.removeEventListener("pointerdown", pointerDown);
@@ -1182,8 +1195,7 @@ function App(){
             canvas.removeEventListener("pointerup", pointerUp);
             canvas.removeEventListener("pointercancel", pointerUp);
         };
-
-    }, [currentMenu, showCropWindow, cropArea]);
+    }, [currentMenu, showCropWindow, drawCrop]);
 
     // Crop - apply the crop transform to the live camera video
     useEffect(() => {
@@ -1656,7 +1668,7 @@ function App(){
 
                 if (config_data.cropArea && config_data.cropWindow){
                     setCropArea(config_data.cropArea);
-                    setLastVideoCrop(config_data.cropWindow);
+                    setSavedCropArea(config_data.cropWindow);
                 }
             }
 
