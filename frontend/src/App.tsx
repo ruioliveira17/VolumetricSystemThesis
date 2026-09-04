@@ -1025,12 +1025,11 @@ function App(){
         const video = cropVideo.current;
         if (!canvas || !video) return;
 
-        ctxRef.current = canvas.getContext("2d");
+        ctxRef.current = canvas.getContext("2d", { willReadFrequently: true });
 
         let rafId: number | null = null;
 
         function resizeCanvas() {
-            console.log("resizeCanvas", { videoWidth: video!.videoWidth, videoHeight: video!.videoHeight, readyState: video!.readyState });
             if (!video!.videoWidth || !video!.videoHeight) {
                 rafId = requestAnimationFrame(resizeCanvas);
                 return;
@@ -1062,13 +1061,6 @@ function App(){
         function pointerDown(event: PointerEvent) {
             const cropArea = cropAreaRef.current;
             const { x, y } = getPointerPos(canvas!, event);
-
-            console.log("pointerDown -> drawCrop context", {
-                cropArea,
-                canvasW: canvas!.width,
-                canvasH: canvas!.height,
-                ctxMatchesCanvas: ctxRef.current?.canvas === canvas
-            });
 
             const corners = [
                 { name: "tl", x: cropArea.x, y: cropArea.y },
