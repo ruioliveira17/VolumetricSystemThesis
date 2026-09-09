@@ -5,6 +5,8 @@ import Qselect from "../Qselect"
 import Qsearch from "../Qsearch"
 import DeleteForeverIcon from "@assets/icons/delete_forever.svg?react";
 
+import QBackgroundBranding from "../QBackgroundBranding";
+
 interface Message {
   type: string;
   text: string;
@@ -146,10 +148,7 @@ function QMeasureHistory({
 
   return (
     <div>
-      {/* Logo */}
-      <div className="logo">
-        <img src="/Qubic.svg" alt="BM Logo" />
-      </div>
+      <QBackgroundBranding />
 
       {/* Warning */}
       <div className="warning">
@@ -431,12 +430,6 @@ function QMeasureHistory({
           </div>
         </div>
       )}
-
-      {/* Powered By */}
-      <div className="powered-by-panel">
-        <div className="powered-by-text" translate="no">Powered by</div>
-        <img src="/MarquesLogo.svg" className="powered-by-logo" alt="Marques Logo" />
-      </div>
     </div>
   );
 }

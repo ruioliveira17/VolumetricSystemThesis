@@ -548,6 +548,11 @@ function App(){
             }
         }
 
+        if (currentMenu === "volume-menu"){
+            setObjectsOutOfLine(false);
+            setNoObjectsDetected(false);
+        }
+
         if (currentMenu === "measurementHistory-menu") {
             loadMeasurements();
         }

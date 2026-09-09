@@ -1271,7 +1271,7 @@ def volume_SingleBundle(current_user: dict = Depends(get_current_user)):
     if depthState.objects_info is not None:
         volumeState.processing = "Identifying Objects..."
         depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine, volumeState.united_contours = objIdentifier(colorFrame, colorToDepthFrame, depthFrame, frameState.calibrationColorFrame, frameState.calibrationDepthFrame, modeState.volumeMode, depthState.objects_info, workspaceState.workspace_depth, depthState.threshold, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb, camState.fx_d, camState.fy_d, camState.fx_rgb, camState.fy_rgb)
-        if volumeState.depths or not any(volumeState.objects_outOfLine):
+        if volumeState.depths and not any(volumeState.objects_outOfLine):
             depthState.minimum_depth = min(volumeState.depths)
             if volumeState.box_limits is not None and len(volumeState.box_limits) > 0:
                 volumeState.processing = "Calculating Volumes..."
@@ -1367,7 +1367,7 @@ def volume_MultiBundle(current_user: dict = Depends(get_current_user)):
     if depthState.objects_info is not None:
         volumeState.processing = "Identifying Objects..."
         depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine, volumeState.united_contours = objIdentifier(colorFrame, colorToDepthFrame, depthFrame, frameState.calibrationColorFrame, frameState.calibrationDepthFrame, modeState.volumeMode, depthState.objects_info, workspaceState.workspace_depth, depthState.threshold, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb, camState.fx_d, camState.fy_d, camState.fx_rgb, camState.fy_rgb)
-        if volumeState.depths or not any(volumeState.objects_outOfLine):       
+        if volumeState.depths and not any(volumeState.objects_outOfLine):       
             if volumeState.box_limits is not None and len(volumeState.box_limits) > 0:
                 volumeState.processing = "Calculating Volumes..."
                 volumeState.volume, volumeState.width_meters, volumeState.length_meters, volumeState.height_meters = volumeMultiBundleAPI(depthFrame, frameState.calibrationDepthFrame, workspaceState.workspace_depth, volumeState.box_limits, volumeState.depths, camState.fx_d, camState.fy_d, camState.cx_d, camState.cy_d)
@@ -1482,7 +1482,7 @@ def volume_Real(current_user: dict = Depends(get_current_user)):
     if depthState.objects_info is not None:
         volumeState.processing = "Identifying Objects..."
         depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine, volumeState.united_contours = objIdentifier(colorFrame, colorToDepthFrame, depthFrame, frameState.calibrationColorFrame, frameState.calibrationDepthFrame, modeState.volumeMode, depthState.objects_info, workspaceState.workspace_depth, depthState.threshold, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb, camState.fx_d, camState.fy_d, camState.fx_rgb, camState.fy_rgb)
-        if volumeState.depths or not any(volumeState.objects_outOfLine):
+        if volumeState.depths and not any(volumeState.objects_outOfLine):
             if volumeState.box_limits is not None and len(volumeState.box_limits) > 0:
                 volumeState.processing = "Calculating Volumes..."
                 volumeState.volume, volumeState.width_meters, volumeState.length_meters, volumeState.height_meters, volumeState.obj_center, volumeState.obj_angles = volumeRealAPI(depthFrame, frameState.calibrationDepthFrame, workspaceState.workspace_depth, volumeState.box_limits, volumeState.united_contours, volumeState.depths, camState.fx_d, camState.fy_d, camState.cx_d, camState.cy_d)

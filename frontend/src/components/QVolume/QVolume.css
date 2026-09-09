@@ -242,9 +242,32 @@
 }
 
 .switch-mode .icon {
-  height: 24px;
   transition: filter 0.3s ease;
   filter: invert(0);
+}
+
+@media (min-width: 426px) and (max-width: 768px){
+  .switch-mode .icon {
+    width: clamp(15px, 55.4%, 21px);
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px){
+  .switch-mode .icon {
+    width: clamp(21px, 44.2%, 25px);
+  }
+}
+
+@media (min-width: 1025px) and (max-width: 1440px){
+  .switch-mode .icon {
+    width: 25px;
+  }
+}
+
+@media (min-width: 1441px){
+  .switch-mode .icon {
+    width: clamp(25px, 40.5%, 35px);
+  }
 }
 
 .switch-mode:disabled {
@@ -756,14 +779,16 @@
 }
 
 .error-modal-volume{
-  position: absolute;
-  top: 50%;
+  position: relative;
   left: 50%;
-  transform: translate(-50%, -50%);
+  transform: translateX(-50%);
 
   width: clamp(250px, 50%, 400px);
   min-height: 180px;
   max-height: 200px;
+
+  margin-top: auto;
+  margin-bottom: auto;
 
   display: flex;
   flex-direction: column;

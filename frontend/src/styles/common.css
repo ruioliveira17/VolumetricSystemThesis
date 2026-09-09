@@ -172,7 +172,7 @@
 .title-container{
   position: absolute;
   top: 4.7%;
-  left: 1.5%;
+  left: 25px;
   height: 7%;
   width: 45%;
   
@@ -250,8 +250,11 @@
   left: 1.5cqw;
   width: 97.1cqw;
   height: 83.3cqh;
+  /* width: calc(97.1cqw - 40px);
+  height: calc(83.3cqh - 40px);
+  padding: 20px 20px; */
   background: transparent linear-gradient(180deg, #FFFFFF1A 0%, #0000003E 100%) 0% 0% no-repeat padding-box;
-  border-radius: 2.2cqh;
+  border-radius: 20px;
   opacity: 1;
 }
 
