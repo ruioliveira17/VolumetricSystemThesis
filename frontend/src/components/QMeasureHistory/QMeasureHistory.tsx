@@ -1,4 +1,5 @@
 import React from "react";
+import { useEffect, useRef } from "react";
 import { RefObject } from "react";
 import "./QMeasureHistory.css";
 import Qselect from "../Qselect"
@@ -137,6 +138,61 @@ function QMeasureHistory({
   canvasRef
 
 }: QMeasureHistoryProps) {
+  const measurementsMoreOptionsRef = useRef<HTMLImageElement>(null);
+  const measurementMoreOptionsRef = useRef<HTMLImageElement | null>(null);
+
+  useEffect(() => {
+    if (!measurementsConfigModal) return;
+
+    const updatePosition = () => {
+      if (!measurementsMoreOptionsRef.current) return;
+
+      const rect = measurementsMoreOptionsRef.current.getBoundingClientRect();
+
+      setMeasurementsModalPosition({
+        x: rect.right,
+        y: rect.bottom + 5,
+      });
+    };
+
+    updatePosition();
+
+    window.addEventListener("resize", updatePosition);
+
+    return () => {
+      window.removeEventListener("resize", updatePosition);
+    };
+  }, [
+    measurementsConfigModal,
+    setMeasurementsModalPosition,
+  ]);
+
+  useEffect(() => {
+    if (!measurementConfigModal) return;
+
+    const updatePosition = () => {
+      if (!measurementMoreOptionsRef.current) return;
+
+      const rect = measurementMoreOptionsRef.current.getBoundingClientRect();
+
+      setMeasurementModalPosition({
+        x: rect.right,
+        y: rect.bottom + 5,
+      });
+    };
+
+    updatePosition();
+
+    window.addEventListener("resize", updatePosition);
+
+    return () => {
+      window.removeEventListener("resize", updatePosition);
+    };
+  }, [
+    measurementConfigModal,
+    setMeasurementModalPosition,
+  ]);
+
   function handleSortChange(value: string) {
     if (sortField === value) {
       setSortOrder(sortOrder === "desc" ? "asc" : "desc");
@@ -207,11 +263,15 @@ function QMeasureHistory({
               <div className="history-header-text">Weight</div>
               <div className="history-header-text">Measurement Date</div>
               <img
+                ref={measurementsMoreOptionsRef}
                 src="/more_options.svg"
                 className={`more-options-button ${measurementsConfigModal ? "active" : ""}`}
                 onClick={(e) => {
                   const rect = e.currentTarget.getBoundingClientRect();
-                  setMeasurementsModalPosition({ x: rect.right, y: rect.top });
+                  setMeasurementsModalPosition({
+                    x: rect.right,
+                    y: rect.bottom + 5,
+                  });
                   toggleMeasurementsModal();
                 }}
               />
@@ -240,11 +300,17 @@ function QMeasureHistory({
                   <div className="history-row-text">{measurement.weight} kg</div>
                   <div className="history-row-text">{new Date(measurement.created_at).toLocaleString()}</div>
                   <img
+                    ref={measurementConfigModal && selectedID === measurement.id
+                      ? measurementMoreOptionsRef
+                      : null}
                     src="/more_options.svg"
                     className={`more-options-button ${measurementConfigModal && selectedID === measurement.id ? "active" : ""}`}
                     onClick={(e) => {
                       const rect = e.currentTarget.getBoundingClientRect();
-                      setMeasurementModalPosition({ x: rect.right, y: rect.top });
+                      setMeasurementModalPosition({
+                        x: rect.right,
+                        y: rect.bottom + 5
+                      });
                       toggleMeasurementModal();
                       setSelectedID(measurement.id);
                     }}
@@ -259,7 +325,12 @@ function QMeasureHistory({
       {measurementsConfigModal && (
         <div
           className="measurements-config-modal"
-          style={{ left: `${measurementsConfigModalPosition.x}px`, top: `${measurementsConfigModalPosition.y}px` }}
+          style={{
+            position: "fixed",
+            left: `${measurementsConfigModalPosition.x}px`,
+            top: `${measurementsConfigModalPosition.y}px`,
+            transform: "translateX(-100%)",
+          }}        
         >
           <div className="background"></div>
           <div
@@ -275,7 +346,12 @@ function QMeasureHistory({
       {measurementConfigModal && (
         <div
           className="measurement-config-modal"
-          style={{ left: `${measurementConfigModalPosition.x}px`, top: `${measurementConfigModalPosition.y}px` }}
+          style={{
+            position: "fixed",
+            left: `${measurementConfigModalPosition.x}px`,
+            top: `${measurementConfigModalPosition.y}px`,
+            transform: "translateX(-100%)",
+          }}
         >
           <div className="background"></div>
           <div
@@ -295,134 +371,138 @@ function QMeasureHistory({
               <span> Measurement Info </span>
             </div>
 
-            <div className="measurement-info-img-wrapper">
-              {measureObjectImage && (
-                <img className="measurement-object-img" src={measureObjectImage} alt="objects" />
-              )}
-            </div>
-
-            {measurementMode === "Single Bundle" && (
-              <div className="measurement-boxInfo-container">
+            <div className="measurement-info-container">
+              <div className="measurementImg-container">
                 <div className="background"></div>
 
-                {measureVolumeInfo && !measureMultipleVolumeData && (
-                  <>
-                    <canvas ref={canvasRef} className="measurement-canvas" />
-                    <div className="measurement-boxInfoText-container">
-                      <div style={{ color: "#6CD08A" }} className="measurement-boxInfo-text">
-                        <span className="label">Width (cm):</span>
-                        <span className="value">{measureVolumeInfo.width.toFixed(1)}</span>
-                      </div>
-
-                      <div style={{ color: "#C66D6D" }} className="measurement-boxInfo-text">
-                        <span className="label">Length (cm):</span>
-                        <span className="value">{measureVolumeInfo.length.toFixed(1)}</span>
-                      </div>
-
-                      <div style={{ color: "#9EB0FD" }} className="measurement-boxInfo-text">
-                        <span className="label">Height (cm):</span>
-                        <span className="value">{measureVolumeInfo.height.toFixed(1)}</span>
-                      </div>
-
-                      <div style={{ color: "#FFFFFF" }} className="measurement-boxInfo-text">
-                        <span className="label">Volume (m³):</span>
-                        <span className="value">{measureVolumeInfo.volume_m.toFixed(6)}</span>
-                      </div>
-
-                      <div style={{ color: "#FFFFFF" }} className="measurement-boxInfo-text">
-                        <span className="label">Volume (cm³):</span>
-                        <span className="value">{measureVolumeInfo.volume_cm.toFixed(2)}</span>
-                      </div>
-
-                      <div style={{ color: "#FFFFFF" }} className="measurement-boxInfo-text">
-                        <span className="label">Weight (kg):</span>
-                        <span className="value">{measureVolumeInfo?.weight != null ? Number(measureVolumeInfo.weight).toFixed(2) : "0.00"}</span>
-                      </div>
-                    </div>
-                  </>
-                )}
+                <div className="measurement-info-img-wrapper">
+                  {measureObjectImage && (
+                    <img className="measurement-object-img" src={measureObjectImage} alt="objects" />
+                  )}
+                </div>
               </div>
-            )}
 
-            {(measurementMode === "Multi Bundle" || measurementMode === "Real") && (
-              <>
+              {measurementMode === "Single Bundle" && (
                 <div className="measurement-boxInfo-container">
                   <div className="background"></div>
-                  <div className="measurement-objects-text">
-                    Objects:
-                  </div>                  
 
-                  <div className="measurement-object-tabs">
-                      {measureObjectList.map((obj) => (
-                          <button
-                              key={obj}
-                              className={`measurement-object-tab ${measureSelectedObject === obj ? "active" : ""}`}
-                              onClick={() => {
-                                setMeasureSelectedObject(() => {
-                                  return obj;
-                              });
-                            }}
-                          >
-                            {obj}
-                          </button>
-                      ))}
-                  </div>
-
-                  {measureVolumeInfo && measureSelectedObject && (
+                  {measureVolumeInfo && !measureMultipleVolumeData && (
                     <>
-                      <canvas ref={canvasRef} className="measurement-volume-canvas" />
-                      <div className="measurement-boxInfoText-container">
-                        <div style={{ color: "#6CD08A" }} className="measurement-boxInfo-text">
+                      <canvas ref={canvasRef} className="measurement-volume-bundle-canvas" />
+                      <div className="measurement-boxBundleInfoText-container">
+                        <div style={{ color: "#6CD08A" }} className="measurement-boxBundleInfo-text">
                           <span className="label">Width (cm):</span>
-                          <span className="value">{measurementMode === "Real" ? measureVolumeInfo.width?.[0] : measureVolumeInfo?.width}</span>
+                          <span className="value">{measureVolumeInfo.width.toFixed(1)}</span>
                         </div>
 
-                        <div style={{ color: "#C66D6D" }} className="measurement-boxInfo-text">
+                        <div style={{ color: "#C66D6D" }} className="measurement-boxBundleInfo-text">
                           <span className="label">Length (cm):</span>
-                          <span className="value">{measurementMode === "Real" ? measureVolumeInfo.length?.[0] : measureVolumeInfo?.length}</span>
+                          <span className="value">{measureVolumeInfo.length.toFixed(1)}</span>
                         </div>
 
-                        <div style={{ color: "#9EB0FD" }} className="measurement-boxInfo-text">
+                        <div style={{ color: "#9EB0FD" }} className="measurement-boxBundleInfo-text">
                           <span className="label">Height (cm):</span>
-                          <span className="value">{measurementMode === "Real" ? measureVolumeInfo.height?.[0] : measureVolumeInfo?.height}</span>
+                          <span className="value">{measureVolumeInfo.height.toFixed(1)}</span>
                         </div>
 
-                        <div style={{ color: "#FFFFFF" }} className="measurement-boxInfo-text">
+                        <div style={{ color: "#FFFFFF" }} className="measurement-boxBundleInfo-text">
                           <span className="label">Volume (m³):</span>
-                          <span className="value">{measureVolumeInfo?.volume_m}</span>
+                          <span className="value">{measureVolumeInfo.volume_m.toFixed(6)}</span>
                         </div>
 
-                        <div style={{ color: "#FFFFFF" }} className="measurement-boxInfo-text">
+                        <div style={{ color: "#FFFFFF" }} className="measurement-boxBundleInfo-text">
                           <span className="label">Volume (cm³):</span>
-                          <span className="value">{measureVolumeInfo?.volume_cm}</span>
+                          <span className="value">{measureVolumeInfo.volume_cm.toFixed(2)}</span>
+                        </div>
+
+                        <div style={{ color: "#FFFFFF" }} className="measurement-boxBundleInfo-text">
+                          <span className="label">Weight (kg):</span>
+                          <span className="value">{measureVolumeInfo?.weight != null ? Number(measureVolumeInfo.weight).toFixed(2) : "0.00"}</span>
                         </div>
                       </div>
                     </>
                   )}
-
-                  {measureMultipleVolumeData && (
-                    <div className="measurement-object-total">
-                        <div className="measurement-total-divider"></div>
-                        <div className="measurement-total-row">
-                            <span className="measurement-total-label">TOTAL WEIGHT:</span>
-                            <span className="measurement-total-value">
-                                {measureMultipleVolumeData?.Total?.weight != null ? Number(measureMultipleVolumeData?.Total?.weight).toFixed(2) : "0.00"} Kg
-                            </span>
-                        </div>
-                        <div className="measurement-total-row">
-                            <span className="measurement-total-label">TOTAL VOLUME:</span>
-                            <span className="measurement-total-value">
-                                {measureMultipleVolumeData?.Total?.volume_m ?? 0} m³
-                            </span>
-                        </div>
-                    </div>
-                  )}
-                  {/*{!measureVolumeInfo && measureMultipleVolumeData && (
-                    <div className="measurement-boxInfo-message">Selecione um objeto</div>
-                  )}*/}
                 </div>
-              </>
-            )}
+              )}
+
+              {(measurementMode === "Multi Bundle" || measurementMode === "Real") && (
+                <>
+                  <div className="measurement-boxInfo-container">
+                    <div className="background"></div>
+                    <div className="measurement-objects-text">
+                      Objects:
+                    </div>                  
+
+                    <div className="measurement-object-tabs">
+                        {measureObjectList.map((obj) => (
+                            <button
+                                key={obj}
+                                className={`measurement-object-tab ${measureSelectedObject === obj ? "active" : ""}`}
+                                onClick={() => {
+                                  setMeasureSelectedObject(() => {
+                                    return obj;
+                                });
+                              }}
+                            >
+                              {obj}
+                            </button>
+                        ))}
+                    </div>
+
+                    {measureVolumeInfo && measureSelectedObject && (
+                      <>
+                        <canvas ref={canvasRef} className="measurement-volume-canvas" />
+                        <div className="measurement-boxInfoText-container">
+                          <div style={{ color: "#6CD08A" }} className="measurement-boxInfo-text">
+                            <span className="label">Width (cm):</span>
+                            <span className="value">{measurementMode === "Real" ? measureVolumeInfo.width?.[0] : measureVolumeInfo?.width}</span>
+                          </div>
+
+                          <div style={{ color: "#C66D6D" }} className="measurement-boxInfo-text">
+                            <span className="label">Length (cm):</span>
+                            <span className="value">{measurementMode === "Real" ? measureVolumeInfo.length?.[0] : measureVolumeInfo?.length}</span>
+                          </div>
+
+                          <div style={{ color: "#9EB0FD" }} className="measurement-boxInfo-text">
+                            <span className="label">Height (cm):</span>
+                            <span className="value">{measurementMode === "Real" ? measureVolumeInfo.height?.[0] : measureVolumeInfo?.height}</span>
+                          </div>
+
+                          <div style={{ color: "#FFFFFF" }} className="measurement-boxInfo-text">
+                            <span className="label">Volume (m³):</span>
+                            <span className="value">{measureVolumeInfo?.volume_m}</span>
+                          </div>
+
+                          <div style={{ color: "#FFFFFF" }} className="measurement-boxInfo-text">
+                            <span className="label">Volume (cm³):</span>
+                            <span className="value">{measureVolumeInfo?.volume_cm}</span>
+                          </div>
+                        </div>
+                      </>
+                    )}
+
+                    {measureMultipleVolumeData && (
+                      <div className="measurement-object-total">
+                          <div className="measurement-total-divider"></div>
+                          <div className="measurement-total-row">
+                              <span className="measurement-total-label">TOTAL WEIGHT:</span>
+                              <span className="measurement-total-value">
+                                  {measureMultipleVolumeData?.Total?.weight != null ? Number(measureMultipleVolumeData?.Total?.weight).toFixed(2) : "0.00"} Kg
+                              </span>
+                          </div>
+                          <div className="measurement-total-row">
+                              <span className="measurement-total-label">TOTAL VOLUME:</span>
+                              <span className="measurement-total-value">
+                                  {measureMultipleVolumeData?.Total?.volume_m ?? 0} m³
+                              </span>
+                          </div>
+                      </div>
+                    )}
+                    
+                  </div>
+                </>
+              )}
+            </div>
 
             <div className="measurement-info-button">
               <img src="/close.svg" onClick={() => { setShowMeasurementInfo(false); setMeasureVolumeInfo(null); }} />

@@ -480,7 +480,7 @@ function App(){
     const toggleMeasurementModal = () => setShowMeasurementConfigModal(prev => !prev);
 
     const [measurementsConfigModal, setShowMeasurementsConfigModal] = useState<boolean>(false);
-    const [measurementsConfigModalPosition, setMeasurementsModalPosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+    const [measurementsConfigModalPosition, setMeasurementsModalPosition] = useState<DOMRect | null>(null);
     const toggleMeasurementsModal = () => setShowMeasurementsConfigModal(prev => !prev);
 
     const [showMeasurementInfo, setShowMeasurementInfo] = useState<boolean>(false);

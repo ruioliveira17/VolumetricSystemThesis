@@ -188,7 +188,7 @@ def calibrateAPI(colorToDepthFrame, depthFrame, colorFrame, detection_area, lowe
 
             debug = colorToDepthFrame.copy()
             debug[border == 255] = (0, 0, 255)  # vermelho sobre a fita
-            cv2.imwrite("ZED.png", debug)
+            # cv2.imwrite("ZED.png", debug)
 
             # print("Proporção Cor:", proportionColor_valid)
 
@@ -216,17 +216,18 @@ def calibrateAPI(colorToDepthFrame, depthFrame, colorFrame, detection_area, lowe
         if centerDepth_valid_values.size > 0:
             workspace_depth = numpy.mean(centerDepth_valid_values)
         
-        valid_values = workspace_region[(workspace_region >= 15) & (workspace_region <= colorSlope)]
+        valid_values = workspace_region[(workspace_region >= 15)]
         
         if valid_values.size > 0:
             avg_depth = numpy.mean(valid_values) # média da profundidade
+            # print(detection_area)
             # print("Avg Depth:", avg_depth)
             # print("Workspace Depth", workspace_depth)
             count = numpy.sum(numpy.abs(valid_values - workspace_depth) <= 15)
             # print("Count:", count)
             # print("Size:", valid_values.size)
-            proportion_valid = round(count / valid_values.size, 2)
-            # print("Proporção Profundidade:", proportion_valid)
+            proportion_valid = count / valid_values.size
+            # print("Proporção Profundidade:", round(proportion_valid, 3))
 
             if proportion_valid >= 0.95:
                 workspace_free = True
