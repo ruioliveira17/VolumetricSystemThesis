@@ -143,3 +143,8 @@ echo "       Qubic installation done!"
 echo "======================================"
 echo ""
 echo "Project: $PROJECT_DIR"
+echo ""
+echo "System will reboot in 5 seconds..."
+
+sleep 5
+sudo reboot
