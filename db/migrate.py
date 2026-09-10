@@ -4,7 +4,7 @@ from db.connection import get_connection, write_lock
 from db import users_repo
 
 ADMIN_USERNAME = "admin"
-ADMIN_EMAIL = "ruijoliveira2003@gmail.com"
+ADMIN_EMAIL = ""
 ADMIN_DEFAULT_PASSWORD = "admin"
 
 MIGRATIONS_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "migrations")
