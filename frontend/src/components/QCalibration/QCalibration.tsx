@@ -1,4 +1,4 @@
-import { RefObject } from "react";
+import { React, RefObject } from "react";
 import "./QCalibration.css";
 import { QConfirmationModal } from "../QConfirmationModal"
 import WarningIcon from '@assets/icons/warning.svg?react';
@@ -21,7 +21,7 @@ interface QCalibrationProps {
 
   toggleMenu: () => void;
 
-  calibrationImage: RefObject<HTMLImageElement | null>;
+  cameraVideo: RefObject<HTMLVideoElement | null>;
   workspaceCanvas: RefObject<HTMLCanvasElement | null>;
 
   calibrationMode: string;
@@ -31,6 +31,7 @@ interface QCalibrationProps {
   calibrationModalOpen: boolean;
 
   handleCalibrationModeChange: (manual: boolean) => void;
+  handleColorClick: (event: React.MouseEvent<HTMLVideoElement>) => void;
   calibrate_click: () => void;
   confirm_calibration: (confirm: boolean) => void;
   portalContainer?: Element | null;
@@ -39,7 +40,8 @@ interface QCalibrationProps {
 function QCalibration({
   message,
   toggleMenu,
-  calibrationImage,
+  cameraVideo,
+  handleColorClick,
   workspaceCanvas,
   calibrationMode,
   rgb,
@@ -135,11 +137,14 @@ function QCalibration({
             <div className="background"></div>
 
             <div className="calibration-colorToDepthimg-wrapper">
-              <img
-                ref={calibrationImage}
+              <video
+                ref={cameraVideo}
                 className="calibration-colorToDepthimg"
                 data-manual={calibrationMode === "manual"}
-                alt="Workspace Detected"
+                autoPlay
+                playsInline
+                muted
+                onClick={handleColorClick}
                 draggable={false}
               />
 

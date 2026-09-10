@@ -251,7 +251,6 @@ function App(){
     const detectionArea = useRef<any>([0, 0, 0, 0]);
     const selectedPoint = useRef<number | null>(null);
     const workspaceCanvas = useRef<HTMLCanvasElement | null>(null);
-    const calibrationImage = useRef<HTMLImageElement | null>(null);
     const dragging = useRef<boolean>(false);
     const angleRef = useRef<number>(0.4);
     const lastX = useRef<number>(0);
@@ -541,11 +540,6 @@ function App(){
 
         if (currentMenu === "calibration-menu") {
             workspaceDrawing();
-
-            if (calibrationImage.current) {
-                calibrationImage.current.crossOrigin = "anonymous";
-                calibrationImage.current.src = `${API_URL}/calibrationCTD`;
-            }
         }
 
         if (currentMenu === "volume-menu"){
@@ -667,64 +661,78 @@ function App(){
     }, [selectedObject, multipleVolumeData]);
 
     // Calibration - Automatic color pick (click on the image)
-    useEffect(() => {
-        if (currentMenu !== "calibration-menu") return;
 
-        const img = calibrationImage.current;
-        if (!img) return;
+    async function handleColorClick(event: React.MouseEvent<HTMLVideoElement>): Promise<void> {
+        try {
+            const calibRes = await apiFetch("/calibrate/mode");
+            const calibData = await calibRes.json();
 
-        const handleClick = async (event: MouseEvent) => {
-            try {
-                const calibRes = await apiFetch("/calibrate/mode");
-                const calibData = await calibRes.json();
+            const video = cameraVideo.current;
 
-                const rect = img.getBoundingClientRect();
-                const x = Math.round((event.clientX - rect.left) * (img.naturalWidth / rect.width));
-                const y = Math.round((event.clientY - rect.top) * (img.naturalHeight / rect.height));
+            if (!video) return;
 
-                if (calibData["Calibrate Mode"] === "Automatic") {
-                    await apiFetch(
-                        "/mask/colorClick",
-                        {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json"
-                            },
-                            body: JSON.stringify({ x, y })
-                        }
-                    );
-
-                    const canvas = document.createElement("canvas");
-                    const ctx = canvas.getContext("2d")!;
-
-                    canvas.width = img.naturalWidth;
-                    canvas.height = img.naturalHeight;
-                    ctx.drawImage(img, 0, 0);
-
-                    const pixel = ctx.getImageData(x, y, 1, 1).data;
-
-                    setRgb({
-                        r: pixel[0],
-                        g: pixel[1],
-                        b: pixel[2]
-                    });
-
-                    await new Promise<void>(r => setTimeout(r, 500));
-
-                    handleCalibrationModeChange(true);
-                }
-            } catch (err) {
-                console.warn("Erro colorClick:", err);
+            if (video.videoWidth === 0 || video.videoHeight === 0) {
+                console.warn("Video dimensions not available");
+                return;
             }
-        };
 
-        img.addEventListener("click", handleClick);
+            const rect = video.getBoundingClientRect();
 
-        return () => {
-            img.removeEventListener("click", handleClick);
-        };
+            const x = Math.round(
+                (event.clientX - rect.left) *
+                (video.videoWidth / rect.width)
+            );
 
-    }, [currentMenu]);
+            const y = Math.round(
+                (event.clientY - rect.top) *
+                (video.videoHeight / rect.height)
+            );
+
+            console.log("CLICK:", {
+                x,
+                y,
+                videoWidth: video.videoWidth,
+                videoHeight: video.videoHeight
+            });
+
+            if (calibData["Calibrate Mode"] !== "Automatic") {
+                return;
+            }
+
+            await apiFetch("/mask/colorClick", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ x, y })
+            });
+
+            const canvas = document.createElement("canvas");
+            const ctx = canvas.getContext("2d");
+
+            if (!ctx) return;
+
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+
+            ctx.drawImage(video, 0, 0);
+
+            const pixel = ctx.getImageData(x, y, 1, 1).data;
+
+            setRgb({
+                r: pixel[0],
+                g: pixel[1],
+                b: pixel[2]
+            });
+
+            await new Promise<void>(resolve => setTimeout(resolve, 500));
+
+            handleCalibrationModeChange(true);
+
+        } catch (err) {
+            console.warn("Erro colorClick:", err);
+        }
+    }
 
     // Calibration - Manual workspace editing (drag/keyboard on the overlay canvas)
     useEffect(() => {
@@ -732,22 +740,40 @@ function App(){
         if (calibrationMode !== "manual") return;
 
         const canvas = workspaceCanvas.current;
-        const img = calibrationImage.current;
+        const video = cameraVideo.current;
 
-        if (!canvas || !img) return;
+        if (!canvas || !video) return;
 
         canvas.style.touchAction = "none";
 
         const ctx = canvas.getContext("2d")!;
 
         const STEP = 1;
+        const margin = 20;
+
+        function clampPoint(x: number, y: number): [number, number] {
+            const minX = margin;
+            const maxX = canvas.width - margin;
+
+            const minY = margin;
+            const maxY = canvas.height - margin;
+
+            return [
+                Math.max(minX, Math.min(maxX, x)),
+                Math.max(minY, Math.min(maxY, y))
+            ];
+        }
 
         function resizeCanvas() {
-            canvas!.width = img!.naturalWidth;
-            canvas!.height = img!.naturalHeight;
+            canvas!.width = video!.videoWidth;
+            canvas!.height = video!.videoHeight;
 
-            canvas!.style.width = img!.clientWidth + "px";
-            canvas!.style.height = img!.clientHeight + "px";
+            canvas!.style.width = video!.clientWidth + "px";
+            canvas!.style.height = video!.clientHeight + "px";
+
+            detectionArea.current = detectionArea.current.map((point: any) =>
+                clampPoint(point[0], point[1])
+            );
 
             drawWorkspace();
         }
@@ -843,7 +869,7 @@ function App(){
 
             const { x, y } = getPointerPos(e);
 
-            detectionArea.current[selectedPoint.current] = [x, y];
+            detectionArea.current[selectedPoint.current] = clampPoint(x, y);
 
             drawWorkspace();
         }
@@ -863,26 +889,35 @@ function App(){
 
             const point = detectionArea.current[selectedPoint.current];
 
+            let x = point[0];
+            let y = point[1];
+
             switch (e.key) {
                 case "ArrowLeft":
                     e.preventDefault();
-                    point[0] = Math.max(0, point[0] - STEP);
+                    x -= STEP;
                     break;
+
                 case "ArrowRight":
                     e.preventDefault();
-                    point[0] = Math.max(0, point[0] + STEP);
+                    x += STEP;
                     break;
+
                 case "ArrowUp":
                     e.preventDefault();
-                    point[1] = Math.max(0, point[1] - STEP);
+                    y -= STEP;
                     break;
+
                 case "ArrowDown":
                     e.preventDefault();
-                    point[1] = Math.max(0, point[1] + STEP);
+                    y += STEP;
                     break;
+
                 default:
                     return;
             }
+
+            detectionArea.current[selectedPoint.current] = clampPoint(x, y);
 
             drawWorkspace();
         }
@@ -898,7 +933,7 @@ function App(){
             resizeCanvas();
         });
 
-        resizeObserver.observe(img);
+        resizeObserver.observe(video);
 
         resizeCanvas();
 
@@ -975,23 +1010,39 @@ function App(){
 
         const cropArea = cropAreaRef.current;
 
-        console.log("drawCrop", {
-            cropArea,
-            canvasW: canvas.width,
-            canvasH: canvas.height,
-            ctxMatchesCanvas: ctx.canvas === canvas
-        });
+        const margin = 20;
+
+        const minX = margin;
+        const minY = margin;
+        const maxX = canvas.width - margin;
+        const maxY = canvas.height - margin;
+
+        const x = Math.max(minX, Math.min(cropArea.x, maxX));
+        const y = Math.max(minY, Math.min(cropArea.y, maxY));
+
+        const right = Math.max(
+            minX,
+            Math.min(cropArea.x + cropArea.width, maxX)
+        );
+
+        const bottom = Math.max(
+            minY,
+            Math.min(cropArea.y + cropArea.height, maxY)
+        );
+
+        const width = right - x;
+        const height = bottom - y;
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.strokeStyle = "red";
         ctx.lineWidth = 8;
-        ctx.strokeRect(cropArea.x, cropArea.y, cropArea.width, cropArea.height);
+        ctx.strokeRect(x, y, width, height);
 
         const corners = [
-            { name: "tl", x: cropArea.x, y: cropArea.y },
-            { name: "tr", x: cropArea.x + cropArea.width, y: cropArea.y },
-            { name: "bl", x: cropArea.x, y: cropArea.y + cropArea.height },
-            { name: "br", x: cropArea.x + cropArea.width, y: cropArea.y + cropArea.height }
+            { name: "tl", x, y },
+            { name: "tr", x: x + width, y },
+            { name: "bl", x, y: y + height },
+            { name: "br", x: x + width, y: y + height }
         ];
 
         corners.forEach((corner) => {
@@ -1067,33 +1118,68 @@ function App(){
             const cropArea = cropAreaRef.current;
             const { x, y } = getPointerPos(canvas!, event);
 
+            const margin = 20;
+
+            const minX = margin;
+            const minY = margin;
+            const maxX = canvas!.width - margin;
+            const maxY = canvas!.height - margin;
+
+            const drawX = Math.max(minX, Math.min(cropArea.x, maxX));
+            const drawY = Math.max(minY, Math.min(cropArea.y, maxY));
+
+            const drawRight = Math.max(
+                minX,
+                Math.min(cropArea.x + cropArea.width, maxX)
+            );
+
+            const drawBottom = Math.max(
+                minY,
+                Math.min(cropArea.y + cropArea.height, maxY)
+            );
+
+            const drawWidth = drawRight - drawX;
+            const drawHeight = drawBottom - drawY;
+
             const corners = [
-                { name: "tl", x: cropArea.x, y: cropArea.y },
-                { name: "tr", x: cropArea.x + cropArea.width, y: cropArea.y },
-                { name: "bl", x: cropArea.x, y: cropArea.y + cropArea.height },
-                { name: "br", x: cropArea.x + cropArea.width, y: cropArea.y + cropArea.height }
+                { name: "tl", x: drawX, y: drawY },
+                { name: "tr", x: drawX + drawWidth, y: drawY },
+                { name: "bl", x: drawX, y: drawY + drawHeight },
+                { name: "br", x: drawX + drawWidth, y: drawY + drawHeight }
             ];
 
             const threshold = 25;
 
             for (const corner of corners) {
-                const distance = Math.hypot(x - corner.x, y - corner.y);
+                const distance = Math.hypot(
+                    x - corner.x,
+                    y - corner.y
+                );
 
                 if (distance < threshold) {
                     selectedCorner.current = corner.name;
                     dragging.current = true;
+                    draggingCrop.current = false;
                     drawCrop();
                     return;
                 }
+            }
 
-                if (
-                    x >= cropArea.x && x <= cropArea.x + cropArea.width &&
-                    y >= cropArea.y && y <= cropArea.y + cropArea.height
-                ) {
-                    draggingCrop.current = true;
-                    dragOffset.current = { x: x - cropArea.x, y: y - cropArea.y };
-                    return;
-                }
+            if (
+                x >= drawX &&
+                x <= drawX + drawWidth &&
+                y >= drawY &&
+                y <= drawY + drawHeight
+            ) {
+                draggingCrop.current = true;
+                dragging.current = false;
+
+                dragOffset.current = {
+                    x: x - drawX,
+                    y: y - drawY
+                };
+
+                return;
             }
 
             selectedCorner.current = null;
@@ -2103,6 +2189,10 @@ function App(){
 
                 try {
                     await cameraVideo.current.play();
+
+                    if (streamType === "calibration") {
+                        await workspaceDrawing();
+                    }
                 } catch (e) {
                     console.log("PLAY ERROR:", e);
                 }
@@ -2883,18 +2973,35 @@ function App(){
 
     function applyManualWorkspace(): void {
         const canvas = workspaceCanvas.current;
-        const img = calibrationImage.current;
+        const video = cameraVideo.current;
 
-        if (!canvas || !img) return;
+        if (!canvas || !video) return;
 
         canvas.style.touchAction = "none";
 
         const ctx = canvas.getContext("2d")!;
+        if (!ctx) return;
 
-        canvas.width = img.naturalWidth;
-        canvas.height = img.naturalHeight;
+        if (video.videoWidth === 0 || video.videoHeight === 0) {
+            return;
+        }
+
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        const margin = 20;
+
+        const minX = margin;
+        const maxX = canvas.width - margin;
+        const minY = margin;
+        const maxY = canvas.height - margin;
+
+        detectionArea.current = detectionArea.current.map((point: any) => [
+            Math.max(minX, Math.min(maxX, point[0])),
+            Math.max(minY, Math.min(maxY, point[1]))
+        ]);
 
         const points = detectionArea.current;
 
@@ -3248,8 +3355,6 @@ function App(){
     // Persist the crop window / area on the backend
     async function cropWindow_Set(valueWindow: any, valueArea: any): Promise<void> {
         try {
-            const access_token = localStorage.getItem("access_token");
-
             await apiFetch("/update_systemInfo", { method: "POST", headers: { "Content-Type": "application/json"}, body: JSON.stringify({ cropWindow: valueWindow, cropArea: valueArea }) });
 
             await apiFetch("/saveInfo", { method: "POST"});
@@ -3337,15 +3442,17 @@ function App(){
             onClick: () => setCurrentMenu(item.menu),
         }));
 
-    const collapsibleNav = navItems
-        .filter(item => item.menu !== currentMenu)
-        .map(item => ({
-            key: item.key,
-            label: item.label,
-            active: false,
-            order: navItems.indexOf(item),
-            onClick: () => setCurrentMenu(item.menu),
-        }));
+    const collapsibleNav = !lockMenu
+        ? navItems
+            .filter(item => item.menu !== currentMenu)
+            .map(item => ({
+                key: item.key,
+                label: item.label,
+                active: false,
+                order: navItems.indexOf(item),
+                onClick: () => setCurrentMenu(item.menu),
+            }))
+        : [];
 
     const [isPortrait, setIsPortrait] = useState(
         screen.orientation.type.startsWith("portrait")
@@ -3696,7 +3803,8 @@ function App(){
 
                             toggleMenu={toggleMenu}
 
-                            calibrationImage={calibrationImage}
+                            cameraVideo={cameraVideo}
+                            handleColorClick={handleColorClick}
                             workspaceCanvas={workspaceCanvas}
 
                             calibrationMode={calibrationMode}

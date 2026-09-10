@@ -9,7 +9,6 @@ ADMIN_DEFAULT_PASSWORD = "admin"
 
 MIGRATIONS_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "migrations")
 
-
 def _applied_versions(conn):
     conn.execute(
         "CREATE TABLE IF NOT EXISTS schema_migrations ("
@@ -43,7 +42,7 @@ def run_migrations(hash_password=None):
 
 
 def _seed_admin(hash_password=None):
-    if users_repo.get_by_email(ADMIN_EMAIL) is not None:
+    if users_repo.get_by_username(ADMIN_USERNAME) is not None:
         return
 
     if hash_password is None:
