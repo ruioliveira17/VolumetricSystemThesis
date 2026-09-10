@@ -9,7 +9,7 @@ echo "======================================"
 echo "        Qubic - Installation"
 echo "======================================"
 
-echo "[1/7] Installing system dependencies..."
+echo "[1/8] Installing system dependencies..."
 
 sudo apt update
 
@@ -32,7 +32,7 @@ fi
 echo "Node.js: $(node --version)"
 echo "npm: $(npm --version)"
 
-echo "[2/7] Checking project directory..."
+echo "[2/8] Checking project directory..."
 
 if [ -d "$PROJECT_DIR" ]; then
     echo "Project already exists at:"
@@ -43,7 +43,7 @@ else
     git clone "$REPO_URL" "$PROJECT_DIR"
 fi
 
-echo "[3/7] Creating environment files..."
+echo "[3/8] Creating environment files..."
 
 # Generate a random JWT secret
 JWT_SECRET_KEY=$(python3 -c 'import secrets; print(secrets.token_hex(32))')
@@ -68,28 +68,74 @@ EOF
 echo "Backend .env created."
 echo "Frontend .env created with API URL: http://$RASPBERRY_IP:8000"
 
-echo "[4/7] Creating Python virtual environment..."
+echo "[4/8] Creating Python virtual environment..."
 
 if [ ! -d "$PROJECT_DIR/.venv" ]; then
     python3 -m venv "$PROJECT_DIR/.venv"
 fi
 
-echo "[5/7] Installing Python dependencies..."
+echo "[5/8] Installing Python dependencies..."
 
 "$PROJECT_DIR/.venv/bin/python" -m pip install --upgrade pip
 
 "$PROJECT_DIR/.venv/bin/pip" install \
     -r "$PROJECT_DIR/requirements.txt"
 
-echo "[6/7] Installing frontend dependencies..."
+echo "[6/8] Installing frontend dependencies..."
 
 cd "$PROJECT_DIR/frontend"
 
 npm ci
 
-echo "[7/7] Preparing application data..."
+echo "[7/8] Preparing application data..."
 
 mkdir -p "$PROJECT_DIR/Python/data"
+
+echo "[8/8] Configuring automatic startup..."
+
+# Install Chromium
+sudo apt install -y chromium
+
+# Create Qubic startup script
+cat > "$HOME/start_qubic.sh" <<EOF
+#!/bin/bash
+
+sleep 3
+/usr/bin/chromium --kiosk --password-store=basic http://localhost:5173
+EOF
+
+chmod +x "$HOME/start_qubic.sh"
+
+# Configure Qubic systemd service
+sudo tee /etc/systemd/system/qubic.service > /dev/null <<EOF
+[Unit]
+Description=Qubic Application
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=$(id -un)
+WorkingDirectory=$PROJECT_DIR
+ExecStart=$PROJECT_DIR/.venv/bin/python $PROJECT_DIR/run_api.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+sudo systemctl daemon-reload
+sudo systemctl enable qubic
+
+# Configure LXDE autostart
+mkdir -p "$HOME/.config/lxsession/rpd-x"
+
+cat > "$HOME/.config/lxsession/rpd-x/autostart" <<EOF
+@$HOME/start_qubic.sh
+EOF
+
+echo "Automatic startup configured."
 
 echo ""
 echo "======================================"
