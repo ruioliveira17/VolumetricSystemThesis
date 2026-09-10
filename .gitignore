@@ -1,12 +1,27 @@
 .env
 
+# Python virtual environment
+.venv/
+
+# Node dependencies
+node_modules/
+
+# Python cache
 __pycache__/
 *.pyc
 *.log
 
+# Database / generated data
 data/
 dev/
+Python/data/
 
+# Generated calibration files
+config/workspace_calibration.json
+config/calibrationColorFrame.png
+config/calibrationDepthFrame.npy
+
+# Generated images
 debug_*.png
 DEPTHS*.png
 colorToDepthFrame*.png
