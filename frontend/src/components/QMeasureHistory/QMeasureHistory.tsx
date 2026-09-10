@@ -206,18 +206,6 @@ function QMeasureHistory({
     <div>
       <QBackgroundBranding />
 
-      {/* Warning */}
-      <div className="warning">
-        {message.map((msg, i) => (
-          <p
-            key={i}
-            className={msg.type === "error" ? "error-message" : "info-message"}
-          >
-            {msg.text}
-          </p>
-        ))}
-      </div>
-
       <div className="menu-wrapper">
         <div className="title-container">
           <div className="menu-title">Measurement History</div>

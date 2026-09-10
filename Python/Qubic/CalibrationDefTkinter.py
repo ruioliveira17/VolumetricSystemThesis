@@ -2,7 +2,7 @@ from pickle import FALSE, TRUE
 import sys
 import os
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(os.path.join(BASE_DIR, "Python", "Samples", "DS86", "FrameViewer"))
+sys.path.append(os.path.join(BASE_DIR, "Python"))
 
 import cv2
 import numpy

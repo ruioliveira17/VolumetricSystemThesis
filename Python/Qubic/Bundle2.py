@@ -76,8 +76,8 @@ def intersection_edge(b1, b2, depthFrame, kernel_size=3):
     mask1 = cv2.dilate(mask1, kernel)
     mask2 = cv2.dilate(mask2, kernel)
 
-    cv2.imwrite("mask1.png", mask1)
-    cv2.imwrite("mask2.png", mask2)
+    # cv2.imwrite("mask1.png", mask1)
+    # cv2.imwrite("mask2.png", mask2)
 
     #if numpy.any(cv2.bitwise_and(mask1, mask2)):
         #print("Intersection")
@@ -209,7 +209,7 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
                 cv2.putText(colorToDepth_copy4, texto, (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 0), 6, cv2.LINE_AA)
                 cv2.putText(colorToDepth_copy4, texto, (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 255, 0), 2, cv2.LINE_AA)
                 
-                cv2.imwrite(f"DEPTHS{i}_contour{j}.png", colorToDepth_copy4)
+                # cv2.imwrite(f"DEPTHS{i}_contour{j}.png", colorToDepth_copy4)
 
             # print("Depth:", obj["depth"])
 

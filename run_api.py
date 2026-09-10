@@ -7,7 +7,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(BASE_DIR, "Python"))
 from API.VzenseDS_api import *
 
-sys.path.append(os.path.join(BASE_DIR, "Python", "Samples", "DS86", "FrameViewer"))
+sys.path.append(os.path.join(BASE_DIR, "Python", "Qubic"))
 
 if __name__ == "__main__":
     subprocess.run(["/usr/bin/pkill", "-f", "vite"], capture_output=True)
