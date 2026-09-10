@@ -18,8 +18,19 @@ sudo apt install -y \
     python3-pip \
     python3-venv \
     git \
-    nodejs \
-    npm
+    curl
+
+if ! command -v node >/dev/null 2>&1; then
+    echo "Node.js not found. Installing Node.js 20..."
+
+    curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+    sudo apt install -y nodejs
+else
+    echo "Node.js already installed: $(node --version)"
+fi
+
+echo "Node.js: $(node --version)"
+echo "npm: $(npm --version)"
 
 echo "[2/6] Checking project directory..."
 
