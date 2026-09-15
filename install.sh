@@ -100,6 +100,10 @@ sudo apt install -y chromium
 cat > "$HOME/start_qubic.sh" <<EOF
 #!/bin/bash
 
+while ! curl -s http://localhost:5173 > /dev/null; do
+    sleep 0.2
+done
+
 /usr/bin/chromium --kiosk --password-store=basic http://localhost:5173
 EOF
 
@@ -117,7 +121,6 @@ Type=simple
 User=$(id -un)
 WorkingDirectory=$PROJECT_DIR
 ExecStart=$PROJECT_DIR/.venv/bin/python $PROJECT_DIR/run_api.py
-ExecStartPost=/bin/bash -c 'until curl -s http://localhost:5173 > /dev/null; do sleep 1; done'
 Restart=always
 RestartSec=5
 
