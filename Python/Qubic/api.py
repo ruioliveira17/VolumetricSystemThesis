@@ -14,6 +14,7 @@ from PIL import Image
 from typing import Optional
 
 import asyncio
+import ctypes
 import cv2
 import io
 import json
@@ -47,6 +48,7 @@ from FilterState import filterState
 from FrameState import frameState
 from MaskState import maskState
 from ModeState import modeState
+from ScepterSDK import *
 from VolumeState import volumeState
 from WeightState import weightState
 from WorkspaceState import workspaceState
@@ -57,11 +59,10 @@ from color_presets import COLOR_PRESETS
 
 #-----------------------------------------------------   Functions    ------------------------------------------------------
 
-from API.VzenseDS_api import *
 from auth import create_access_token, create_refresh_token, get_password_hash, verify_password, verify_token
 from Bundle2 import objIdentifier
 from CalibrationDefTkinter import calibrateAPI, maskAPI
-from CameraOptions import startCamera, stopCamera, setFPS, processHDR, setFlyingPixelFilter, setFillHoleFilter, setSpatialFilter, setConfidenceFilter
+from CameraOptions import startCamera, stopCamera, setFPS, setFlyingPixelFilter, setFillHoleFilter, setSpatialFilter, setConfidenceFilter
 from MinDepth2 import MinDepthAPI
 from VolumeTkinter import volumeSingleBundleAPI, volumeMultiBundleAPI, volumeRealAPI, volumeIndividualAPI
 from Weight import weight_loop, weight_lock
@@ -1121,7 +1122,19 @@ def get_expMode(current_user: dict = Depends(get_current_user)):
 def fixedExp(current_user: dict = Depends(get_current_user)):
     modeState.expositionMode = "Fixed Exposition"
     camState.hdrEnabled = False
-    camState.camera.VZ_SetExposureTime(VzSensorType.VzToFSensor, c_int32(camState.exposureTime))
+    ret = lib.scSetHDRModeEnabled(
+        camState.camera,
+        False
+    )
+
+    if ret != 0:
+        print("scSetHDRModeEnabled failed:", ret)
+
+    ret = lib.scSetExposureTime(
+        camState.camera,
+        0x01,  # SC_TOF_SENSOR
+        ctypes.c_int32(camState.exposureTime)
+    )
     return {"Exposition Mode:": modeState.expositionMode}
 
 @app.post("/exposition/mode/hdr", summary="Sets the Exposition Mode to HDR",
@@ -1133,6 +1146,37 @@ def hdrExp(current_user: dict = Depends(get_current_user)):
     modeState.expositionMode = "HDR"
     
     camState.hdrEnabled = True
+
+    ret = lib.scSetHDRModeEnabled(
+        camState.camera,
+        True
+    )
+
+    if ret != 0:
+        print("scSetHDRModeEnabled failed:", ret)
+        return {"message": "Failed"}
+
+    ret = lib.scSetExposureTimeOfHDR(
+        camState.camera,
+        0,
+        100
+    )
+
+    if ret != 0:
+        print("scSetExposureTimeOfHDR frame 0 failed:", ret)
+        return {"message": "Failed"}
+
+    ret = lib.scSetExposureTimeOfHDR(
+        camState.camera,
+        1,
+        1800
+    )
+
+    if ret != 0:
+        print("scSetExposureTimeOfHDR frame 1 failed:", ret)
+        return {"message": "Failed"}
+
+    print("HDR enabled: 100 us + 1800 us")
 
     return {"Exposition Mode:": modeState.expositionMode}
 
@@ -1235,10 +1279,10 @@ def volumeStatus(current_user: dict = Depends(get_current_user)):
 def volume_SingleBundle(current_user: dict = Depends(get_current_user)):
     if modeState.expositionMode == "HDR":
         volumeState.processing = "Processing Frames..."
-        while True:
-            finished = processHDR(volumeState.click_timestamp)
-            if finished:
-                break
+        # while True:
+        #     finished = processHDR(volumeState.click_timestamp)
+        #     if finished:
+        #         break
     else:
         volumeState.processing = "Processing Image..."
 
@@ -1338,10 +1382,10 @@ def get_Volume_SingleBundle(current_user: dict = Depends(get_current_user)):
 def volume_MultiBundle(current_user: dict = Depends(get_current_user)):
     if modeState.expositionMode == "HDR":
         volumeState.processing = "Processing Frames..."
-        while True:
-            finished = processHDR(volumeState.click_timestamp)
-            if finished:
-                break
+        # while True:
+        #     finished = processHDR(volumeState.click_timestamp)
+        #     if finished:
+        #         break
     else:
         volumeState.processing = "Processing Image..."
 
@@ -1453,10 +1497,10 @@ def get_Volume_MultiBundle(current_user: dict = Depends(get_current_user)):
 def volume_Real(current_user: dict = Depends(get_current_user)):
     if modeState.expositionMode == "HDR":
         volumeState.processing = "Processing Frames..."
-        while True:
-            finished = processHDR(volumeState.click_timestamp)
-            if finished:
-                break
+        # while True:
+        #     finished = processHDR(volumeState.click_timestamp)
+        #     if finished:
+        #         break
     else:
         volumeState.processing = "Processing Image..."
 
@@ -1583,10 +1627,10 @@ def get_Volume_Real(current_user: dict = Depends(get_current_user)):
          tags=["Volume"])
 def volume_Individual(current_user: dict = Depends(get_current_user)):
     volumeState.processing = "Processing Frames..."
-    while True:
-        finished = processHDR(volumeState.click_timestamp)
-        if finished:
-            break
+    # while True:
+    #     finished = processHDR(volumeState.click_timestamp)
+    #     if finished:
+    #         break
 
     colorFrame = frameState.colorFrame
 
@@ -1753,7 +1797,14 @@ def systemInfo(current_user: dict = Depends(require_admin)):
 def update_systemInfo(info: SystemUpdate, current_user: dict = Depends(get_current_user)):
     if info.exposureTime is not None:
         camState.exposureTime = info.exposureTime
-        camState.camera.VZ_SetExposureTime(VzSensorType.VzToFSensor, c_int32(camState.exposureTime))
+        ret = lib.scSetExposureTime(
+            camState.camera,
+            0x01,  # SC_TOF_SENSOR
+            ctypes.c_int32(camState.exposureTime)
+        )
+
+        if ret != 0:
+            print("scSetExposureTime failed:", ret)
 
     if info.colorSlope is not None:
         camState.colorSlope = info.colorSlope
@@ -1781,7 +1832,7 @@ def update_systemInfo(info: SystemUpdate, current_user: dict = Depends(get_curre
 
     if info.fps is not None:
         camState.fps = info.fps
-        setFPS(info.fps)
+        setFPS()
 
     if info.countdown is not None:
         volumeState.countdown = info.countdown

@@ -31,7 +31,7 @@ class VzenseTofCam():
                     print(libpath)
                     self.vz_cam_lib = cdll.LoadLibrary(libpath)
             elif machine_ == 'aarch64':
-                libpath = os.path.join(base_dir, "../../AArch64/Lib/libNebula_api.so")  # ajusta conforme a tua estrutura
+                libpath = os.path.join(base_dir, "../../AArch64/NebulaSDK/Lib/libNebula_api.so")  # ajusta conforme a tua estrutura
                 print("Carregando biblioteca:", libpath)
                 if not os.path.exists(libpath):
                     raise FileNotFoundError(f"Biblioteca não encontrada: {libpath}")
@@ -42,11 +42,11 @@ class VzenseTofCam():
         elif platform.system() == 'Windows':
             if machine_ == 'amd64':
                 if architecture_ == '64bit':
-                    libpath = (os.path.abspath(os.path.dirname(os.getcwd()) + os.path.sep + "../../../"))+"/Windows/Bin/x64/Nebula_api.dll"
+                    libpath = (os.path.abspath(os.path.dirname(os.getcwd()) + os.path.sep + "../../../"))+"/Windows/NebulaSDK/Bin/x64/Nebula_api.dll"
                     print(libpath)
                     self.vz_cam_lib = cdll.LoadLibrary(libpath)
                 else:
-                    libpath = (os.path.abspath(os.path.dirname(os.getcwd()) + os.path.sep + "../../../"))+"/Windows/Bin/x86/Nebula_api.dll"
+                    libpath = (os.path.abspath(os.path.dirname(os.getcwd()) + os.path.sep + "../../../"))+"/Windows/NebulaSDK/Bin/x86/Nebula_api.dll"
                     print(libpath)
                     self.vz_cam_lib = cdll.LoadLibrary(libpath)
             else:
