@@ -100,7 +100,10 @@ sudo apt install -y chromium
 cat > "$HOME/start_qubic.sh" <<EOF
 #!/bin/bash
 
-sleep 3
+until curl -s http://localhost:5173 > /dev/null; do
+    sleep 1
+done
+
 /usr/bin/chromium --kiosk --password-store=basic http://localhost:5173
 EOF
 
