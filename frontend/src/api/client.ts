@@ -14,7 +14,8 @@
 // It also keeps the 100 ms /volume/status poller from firing a refresh per
 // tick while the token is expired.
 
-const API_URL: string = import.meta.env.VITE_API_URL;
+// const API_URL: string = import.meta.env.VITE_API_URL;
+const API_URL = "";
 
 type AuthFailureHandler = () => void;
 

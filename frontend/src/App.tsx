@@ -53,7 +53,8 @@ interface MeasurementData {
 // |                           Variables                               | //
 // --------------------------------------------------------------------- //
 function App(){
-    const API_URL: string = import.meta.env.VITE_API_URL;
+    // const API_URL: string = import.meta.env.VITE_API_URL;
+    const API_URL: string = "";
 
     // -----------------------------
     // Messages variables

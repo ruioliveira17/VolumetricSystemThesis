@@ -35,6 +35,8 @@ sys.path.insert(0, PROJECT)
 
 os.environ.setdefault("DATABASE_PATH", os.path.join(PROJECT, "data", "dev_app.db"))
 
+FRONTEND_DIR = os.path.join(os.path.dirname(PROJECT), "frontend", "dist")
+
 #------------------------------------------------------   Classes    -------------------------------------------------------
 
 from db.migrate import run_migrations
@@ -2058,3 +2060,11 @@ def get_measurement_image(measurement_id: int, kind: str, current_user: dict = D
          tags=["Server"])
 def serverStatus():
     return {"status": "ok"}
+
+
+
+app.mount(
+    "/",
+    StaticFiles(directory=FRONTEND_DIR, html=True),
+    name="frontend"
+)

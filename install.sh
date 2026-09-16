@@ -45,11 +45,11 @@ fi
 
 echo "[3/8] Creating environment files..."
 
-# Generate a random JWT secret
-JWT_SECRET_KEY=$(python3 -c 'import secrets; print(secrets.token_hex(32))')
+# Generate a random JWT secret only if .env does not already exist
+if [ ! -f "$PROJECT_DIR/.env" ]; then
+    JWT_SECRET_KEY=$(python3 -c 'import secrets; print(secrets.token_hex(32))')
 
-# Backend .env
-cat > "$PROJECT_DIR/.env" <<EOF
+    cat > "$PROJECT_DIR/.env" <<EOF
 JWT_SECRET_KEY=$JWT_SECRET_KEY
 JWT_ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=30
@@ -57,21 +57,18 @@ REFRESH_TOKEN_EXPIRE_DAYS=7
 ADMIN_REGISTER_CODE=ADMBM
 EOF
 
-# Get Raspberry Pi local IP
-RASPBERRY_IP=$(hostname -I | awk '{print $1}')
-
-# Frontend .env
-cat > "$PROJECT_DIR/frontend/.env" <<EOF
-VITE_API_URL=http://$RASPBERRY_IP:8000
-EOF
-
-echo "Backend .env created."
-echo "Frontend .env created with API URL: http://$RASPBERRY_IP:8000"
+    echo "Backend .env created."
+else
+    echo "Backend .env already exists. Keeping existing configuration."
+fi
 
 echo "[4/8] Creating Python virtual environment..."
 
 if [ ! -d "$PROJECT_DIR/.venv" ]; then
     python3 -m venv "$PROJECT_DIR/.venv"
+    echo "Python virtual environment created."
+else
+    echo "Python virtual environment already exists."
 fi
 
 echo "[5/8] Installing Python dependencies..."
@@ -85,7 +82,15 @@ echo "[6/8] Installing frontend dependencies..."
 
 cd "$PROJECT_DIR/frontend"
 
-npm ci
+if [ ! -d "$PROJECT_DIR/frontend/node_modules" ]; then
+    echo "Installing frontend dependencies..."
+    npm ci
+else
+    echo "Frontend dependencies already installed."
+fi
+
+echo "Building frontend..."
+npm run build
 
 echo "[7/8] Preparing application data..."
 
@@ -100,11 +105,11 @@ sudo apt install -y chromium
 cat > "$HOME/start_qubic.sh" <<EOF
 #!/bin/bash
 
-while ! curl -s http://localhost:5173 > /dev/null; do
+while ! curl -s http://localhost:8000 > /dev/null; do
     sleep 0.2
 done
 
-/usr/bin/chromium --kiosk --password-store=basic http://localhost:5173
+/usr/bin/chromium --kiosk --password-store=basic http://localhost:8000
 EOF
 
 chmod +x "$HOME/start_qubic.sh"
@@ -147,7 +152,12 @@ echo "======================================"
 echo ""
 echo "Project: $PROJECT_DIR"
 echo ""
-echo "System will reboot in 5 seconds..."
+read -r -p "Do you want to reboot now? [y/n]: " REBOOT
 
-sleep 5
-sudo reboot
+if [[ "$REBOOT" =~ ^[Yy]$ ]]; then
+    echo "Rebooting..."
+    sudo reboot
+else
+    echo "Reboot skipped."
+    echo "You can reboot later with: sudo reboot"
+fi
