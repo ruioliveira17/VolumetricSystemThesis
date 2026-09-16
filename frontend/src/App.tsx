@@ -500,6 +500,12 @@ function App(){
     // --------------------------------------------------------------------- //
 
     useEffect(() => {
+        if (appReady) {
+            document.getElementById("boot-curtain")?.classList.add("off");
+        }
+    }, [appReady]);
+
+    useEffect(() => {
         async function init() {
             let serverReady = false;
 
