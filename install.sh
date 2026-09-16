@@ -18,8 +18,7 @@ sudo apt install -y \
     python3-pip \
     python3-venv \
     git \
-    curl \
-    xdotool
+    curl
 
 if ! command -v node >/dev/null 2>&1; then
     echo "Node.js not found. Installing Node.js 20..."
@@ -129,35 +128,7 @@ done
 /usr/bin/chromium \
     --kiosk \
     --password-store=basic \
-    --start-minimized \
     http://localhost:8000 &
-
-CHROMIUM_PID=$!
-
-WINDOW_ID=""
-
-while [ -z "$WINDOW_ID" ]; do
-    WINDOW_ID=$(xdotool search --onlyvisible --class chromium 2>/dev/null | head -n 1 || true)
-    sleep 0.1
-done
-
-# Espera até a página Qubic estar carregada
-while true; do
-    WINDOW_TITLE=$(xdotool getwindowname "$WINDOW_ID" 2>/dev/null || true)
-
-    if [[ "$WINDOW_TITLE" == *"Qubic"* ]]; then
-        break
-    fi
-
-    sleep 0.1
-done
-
-# Mostra o Chromium
-xdotool windowmap "$WINDOW_ID"
-xdotool windowactivate "$WINDOW_ID"
-
-wait "$CHROMIUM_PID"
-
 EOF
 
 chmod +x "$HOME/start_qubic.sh"
