@@ -24,13 +24,6 @@ class CameraState:
 
         self.hdrEnabled = True
 
-        self.hdrExposuresLow_Fast = [30, 525]
-        self.hdrExposuresLow_Intermedium = [30, 195, 360, 525]
-        self.hdrExposuresLow_Slow = [30, 129, 228, 327, 426, 525]
-        self.hdrExposuresMedium_Fast = [690, 1185]
-        self.hdrExposuresMedium_Intermedium = [690, 855, 1020, 1185]
-        self.hdrExposuresMedium_Slow = [690, 789, 888, 987, 1086, 1185]
-
         self.hdrIndex = 0
 
 camState = CameraState()

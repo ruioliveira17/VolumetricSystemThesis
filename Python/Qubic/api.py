@@ -182,7 +182,6 @@ async def lifespan(app: FastAPI):
         try:
             modeState.expositionMode = config["expositionMode"]
             modeState.volumeMode = config["volumeMode"]
-            modeState.speedMode = config["speedMode"]
             modeState.workingMode = config["workingMode"]
             modeState.debugMode = config["debugMode"]
             camState.exposureTime = config["exposureTime"]
@@ -240,8 +239,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# app.mount("/static", StaticFiles(directory="/home/marques/Tese/html"), name="static")
 
 #-------------------------------------------------------   HTML    --------------------------------------------------------
 
@@ -655,7 +652,6 @@ def getColorFrame(current_user: dict = Depends(get_current_user)):
     buf.seek(0)
 
     return Response(content=buf.read(), media_type="image/png")
-    #return Response(content=frameState.colorFrame.tobytes(), media_type="application/octet-stream")
 
 @app.get("/getFrame/colorToDepth", summary="Get ColorToDepth Frame",
          description="""
@@ -715,7 +711,6 @@ def getDepthFrame(current_user: dict = Depends(get_current_user)):
     buf.seek(0)
 
     return Response(buf.read(), media_type="image/png")
-    #return Response(content=frameState.depthFrame.tobytes(), media_type="application/octet-stream")
 
 @app.get("/getFrame/workspaceDetectedFrame", summary="Get Workspace Detected Frame",
          description="""
@@ -745,7 +740,6 @@ def getWorkspaceDetectedFrame(current_user: dict = Depends(get_current_user)):
     buf.seek(0)
 
     return Response(content=buf.read(), media_type="image/png")
-    #return Response(content=frameState.workspaceDetectedFrame.tobytes(), media_type="application/octet-stream")
 
 @app.get("/getFrame/maskFrame", summary="Get Mask Frame",
          description="""
@@ -772,8 +766,6 @@ def getMaskFrame(current_user: dict = Depends(get_current_user)):
 
     return Response(content=buf.read(), media_type="image/png")
 
-    #return Response(content=frameState.maskFrame.tobytes(), media_type="application/octet-stream")
-
 @app.get("/getFrame/detectedObjectsFrame", summary="Get Detected Objects Frame",
          description="""
          Grabs the latest color frame captured by the camera and applies an algorithm that makes the detected objects visible to the user and returns it as a PNG image. If no frame is available, it returns an error message.
@@ -798,8 +790,6 @@ def getDetectedObjectsFrame(current_user: dict = Depends(get_current_user)):
     buf.seek(0)
 
     return Response(content=buf.read(), media_type="image/png")
-    #return Response(content=frameState.detectedObjectsFrame.tobytes(), media_type="application/octet-stream")
-
 
 #-------------------------------------------------------   Mask    -------------------------------------------------------
 @app.post("/mask/color", summary="Set Mask Color",
@@ -1045,35 +1035,6 @@ def manualCalibration(current_user: dict = Depends(get_current_user)):
     modeState.calibrationMode = "Manual"
     return {"mode:": modeState.calibrationMode}
 
-#----------------------------------------------------- Speed  Mode ----------------------------------------------------
-
-@app.post("/speed/mode/slow", summary="Sets the Speed Mode to Slow",
-         description="""
-         Sets the speed mode to "Slow".
-         """,
-         tags=["Using Modes"])
-def slowSpeed(current_user: dict = Depends(get_current_user)):
-    modeState.speedMode = "Slow"
-    return {"mode:": modeState.speedMode}
-
-@app.post("/speed/mode/intermedium", summary="Sets the Speed Mode to Intermedium",
-         description="""
-         Sets the speed mode to "Intermedium".
-         """,
-         tags=["Using Modes"])
-def intermediumSpeed(current_user: dict = Depends(get_current_user)):
-    modeState.speedMode = "Intermedium"
-    return {"mode:": modeState.speedMode}
-
-@app.post("/speed/mode/fast", summary="Sets the Speed Mode to Fast",
-         description="""
-         Sets the speed mode to "Fast".
-         """,
-         tags=["Using Modes"])
-def fastSpeed(current_user: dict = Depends(get_current_user)):
-    modeState.speedMode = "Fast"
-    return {"mode:": modeState.speedMode}
-
 #---------------------------------------------------- Working Mode -----------------------------------------------------
 
 @app.get("/working/mode", summary="Gets the Working Mode",
@@ -1279,14 +1240,7 @@ def volumeStatus(current_user: dict = Depends(get_current_user)):
          """,
          tags=["Volume"])
 def volume_SingleBundle(current_user: dict = Depends(get_current_user)):
-    if modeState.expositionMode == "HDR":
-        volumeState.processing = "Processing Frames..."
-        # while True:
-        #     finished = processHDR(volumeState.click_timestamp)
-        #     if finished:
-        #         break
-    else:
-        volumeState.processing = "Processing Image..."
+    volumeState.processing = "Processing Frames..."
 
     colorFrame = frameState.colorFrame
 
@@ -1306,13 +1260,6 @@ def volume_SingleBundle(current_user: dict = Depends(get_current_user)):
     if depthState.objects_info is not None and len(depthState.objects_info) != 0:
         depthState.minimum_depth = depthState.objects_info[0]["depth"]
         depthState.minimum_value = depthState.minimum_depth
-
-    #depthState.not_set, depthState.objects_info = MinDepthAPI(depthFrame, workspaceState.detection_area, workspaceState.workspace_warning, workspaceState.workspace_depth, depthState.threshold, depthState.not_set, camState.cx_d, camState.cy_d, camState.fx_d, camState.fy_d)
-
-    #if depthState.objects_info is not None and len(depthState.objects_info) != 0:
-    #    depthState.minimum_value = depthState.objects_info[0]["depth"]
-
-    #    print("New Min Value", depthState.minimum_value)
 
     if depthState.objects_info is not None:
         volumeState.processing = "Identifying Objects..."
@@ -1382,14 +1329,7 @@ def get_Volume_SingleBundle(current_user: dict = Depends(get_current_user)):
          """,
          tags=["Volume"])
 def volume_MultiBundle(current_user: dict = Depends(get_current_user)):
-    if modeState.expositionMode == "HDR":
-        volumeState.processing = "Processing Frames..."
-        # while True:
-        #     finished = processHDR(volumeState.click_timestamp)
-        #     if finished:
-        #         break
-    else:
-        volumeState.processing = "Processing Image..."
+    volumeState.processing = "Processing Frames..."
 
     colorFrame = frameState.colorFrame
 
@@ -1497,14 +1437,7 @@ def get_Volume_MultiBundle(current_user: dict = Depends(get_current_user)):
          """,
          tags=["Volume"])
 def volume_Real(current_user: dict = Depends(get_current_user)):
-    if modeState.expositionMode == "HDR":
-        volumeState.processing = "Processing Frames..."
-        # while True:
-        #     finished = processHDR(volumeState.click_timestamp)
-        #     if finished:
-        #         break
-    else:
-        volumeState.processing = "Processing Image..."
+    volumeState.processing = "Processing Frames..."
 
     colorFrame = frameState.colorFrame
 
@@ -1629,10 +1562,6 @@ def get_Volume_Real(current_user: dict = Depends(get_current_user)):
          tags=["Volume"])
 def volume_Individual(current_user: dict = Depends(get_current_user)):
     volumeState.processing = "Processing Frames..."
-    # while True:
-    #     finished = processHDR(volumeState.click_timestamp)
-    #     if finished:
-    #         break
 
     colorFrame = frameState.colorFrame
 
@@ -1645,14 +1574,6 @@ def volume_Individual(current_user: dict = Depends(get_current_user)):
         depthFrame = frameState.depthFrame
     else:
         depthFrame = frameState.depthFrameHDR
-
-    #depthState.not_set, depthState.objects_info = MinDepthAPI(depthFrame, workspaceState.detection_area, workspaceState.workspace_warning, workspaceState.workspace_depth, depthState.threshold, depthState.not_set, camState.cx_d, camState.cy_d, camState.fx_d, camState.fy_d)
-
-    #if depthState.objects_info is not None and len(depthState.objects_info) != 0:
-    #    depthState.minimum_depth = depthState.objects_info[0]["depth"]
-    #    depthState.minimum_value = depthState.minimum_depth
-
-    #    print("New Min Value", depthState.minimum_value)
 
     if workspaceState.workspace_warning is not None:
         volumeState.processing = "Finding Depths..."
@@ -1860,10 +1781,10 @@ def get_configuration_status(current_user: dict = Depends(get_current_user)):
         return {"configured": False}
 
     try:
-        if "expositionMode" not in data or "volumeMode" not in data or "speedMode" not in data:
+        if "expositionMode" not in data or "volumeMode" not in data:
             return {"configured": False}
 
-        return {"configured": True, "expositionMode": data["expositionMode"], "volumeMode": data["volumeMode"], "speedMode": data["speedMode"], "cropArea": data["cropArea"], "cropWindow": data["cropWindow"]}
+        return {"configured": True, "expositionMode": data["expositionMode"], "volumeMode": data["volumeMode"], "cropArea": data["cropArea"], "cropWindow": data["cropWindow"]}
 
     except:
         return {"configured": False}
@@ -2014,8 +1935,6 @@ def _snapshot_measurement_frames(measurement_id):
     os.makedirs(folder, exist_ok=True)
 
     frames = {
-        #"color": frameState.colorFrame,
-        #"colorToDepth": frameState.colorToDepthFrame,
         "detectedObjects": frameState.detectedObjectsFrame,
     }
 

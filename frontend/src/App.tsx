@@ -170,7 +170,7 @@ function App(){
     const [expHDR, setExpHDR] = useState(false);
     const [volBundleMode, setVolBundleMode] = useState<boolean>(false);
     const [volumeMode, setVolumeMode] = useState<string>("multi_bundle");
-    const [speedMode, setSpeedMode] = useState("fast");
+
     const [cropArea, setCropArea] = useState<any>(DEFAULT_CROP);
     const [savedCropArea, setSavedCropArea] = useState(null);
 
@@ -499,30 +499,28 @@ function App(){
 
     useEffect(() => {
         async function init() {
-        let serverReady = false;
+            let serverReady = false;
 
-        while (!serverReady){
-            serverReady = await waitForServer();
+            while (!serverReady){
+                serverReady = await waitForServer();
 
-            if (!serverReady) {
-            console.error("Servidor indisponível");
+                if (!serverReady) {
+                console.error("Servidor indisponível");
+                }
             }
-        }
 
-        const storedUser = localStorage.getItem("current_user");
+            const storedUser = localStorage.getItem("current_user");
 
-        if (!storedUser) {
-            setAppReady(true);
-            return;
-        }
-
-        const user = JSON.parse(storedUser);
-
-        setSavedUser(user);
-
-        await loggedIn();
-
-        setAppReady(true);
+            if (!storedUser) {
+                setAppReady(true);
+                logout();
+                return;
+            } else {
+                const user = JSON.parse(storedUser);
+                setSavedUser(user);
+                await loggedIn();
+                setAppReady(true);
+            }
         }
 
         init();
@@ -1737,17 +1735,9 @@ function App(){
                 } else if (config_data.volumeMode === "Real") {
                     setVolumeMode("real");
                     setVolBundleMode(false);
-                } else if (config_data.volumeMode === "Individual") {
-                    setVolumeMode("individual");
-                    setVolBundleMode(false);
-                }
-
-                if (config_data.speedMode === "Slow"){
-                    setSpeedMode("slow");
-                } else if (config_data.speedMode === "Intermedium"){
-                    setSpeedMode("intermedium");
-                } else if (config_data.speedMode === "Fast"){
-                    setSpeedMode("fast");
+                // } else if (config_data.volumeMode === "Individual") {
+                //     setVolumeMode("individual");
+                //     setVolBundleMode(false);
                 }
 
                 if (config_data.cropArea && config_data.cropWindow){
@@ -2305,8 +2295,8 @@ function App(){
                 await volumeMultiBundle(access_token);
             } else if (volumeMode["Volume Mode"] === "Real") {
                 await volumeReal(access_token);
-            } else if (volumeMode["Volume Mode"] === "Individual") {
-                await volumeIndividual(access_token);
+            // } else if (volumeMode["Volume Mode"] === "Individual") {
+            //     await volumeIndividual(access_token);
             }
 
             const end = performance.now();
@@ -2866,74 +2856,74 @@ function App(){
     }
 
     // Individual Volume Algorithm
-    async function volumeIndividual(access_token: string): Promise<void> {
-        try {
-            await apiFetch("/volume/individual", { method: "POST"});
+    // async function volumeIndividual(access_token: string): Promise<void> {
+    //     try {
+    //         await apiFetch("/volume/individual", { method: "POST"});
 
-            const response = await apiFetch("/getObjectsOutOfLine");
-            const data = await response.json();
+    //         const response = await apiFetch("/getObjectsOutOfLine");
+    //         const data = await response.json();
 
-            const objectsDetected = data.objects_outOfLine.length > 0;
-            const objectsOutOfLine = data.objects_outOfLine
-                .map((val: boolean, i: number) => val ? i + 1 : null)
-                .filter((v: number | null) => v !== null);
+    //         const objectsDetected = data.objects_outOfLine.length > 0;
+    //         const objectsOutOfLine = data.objects_outOfLine
+    //             .map((val: boolean, i: number) => val ? i + 1 : null)
+    //             .filter((v: number | null) => v !== null);
 
-            setNoObjectsDetected(!objectsDetected);
+    //         setNoObjectsDetected(!objectsDetected);
 
-            if(objectsDetected){
-                if (objectsOutOfLine.length > 0) {
-                    setObjectsOutOfLine(true);
-                } else {
-                    const dataResponse = await apiFetch("/volume/individual/results");
-                    const volumeData = await dataResponse.json();
+    //         if(objectsDetected){
+    //             if (objectsOutOfLine.length > 0) {
+    //                 setObjectsOutOfLine(true);
+    //             } else {
+    //                 const dataResponse = await apiFetch("/volume/individual/results");
+    //                 const volumeData = await dataResponse.json();
 
-                    setVolumeData(volumeData);
+    //                 setVolumeData(volumeData);
 
-                    const imgResp = await apiFetch("/getFrame/detectedObjectsFrame");
-                    if (imgResp.status === 404) throw new Error("Frame not Available");
+    //                 const imgResp = await apiFetch("/getFrame/detectedObjectsFrame");
+    //                 if (imgResp.status === 404) throw new Error("Frame not Available");
 
-                    const blob = await imgResp.blob();
-                    const url = URL.createObjectURL(blob);
-                    setObjectImage(url);
-                    setShowCamera(false);
+    //                 const blob = await imgResp.blob();
+    //                 const url = URL.createObjectURL(blob);
+    //                 setObjectImage(url);
+    //                 setShowCamera(false);
 
-                    const objIdentified = Object.keys(volumeData).filter((key: string) => key !== "Total");
+    //                 const objIdentified = Object.keys(volumeData).filter((key: string) => key !== "Total");
 
-                    if (objIdentified.length === 1) {
-                        const key = objIdentified[0];
-                        const objData = volumeData[key];
+    //                 if (objIdentified.length === 1) {
+    //                     const key = objIdentified[0];
+    //                     const objData = volumeData[key];
 
-                        setSelectedObject(key);
-                        setObjectList([key]);
-                        setVolInfo({
-                            volume_m: objData.volume_m,
-                            volume_cm: objData.volume_cm,
-                            width: objData.x,
-                            length: objData.y,
-                            height: objData.z
-                        });
-                    } else if (objIdentified.length > 1) {
-                        setObjectList(objIdentified);
-                        setSelectedObject("");
-                        setVolInfo(null);
-                    }
+    //                     setSelectedObject(key);
+    //                     setObjectList([key]);
+    //                     setVolInfo({
+    //                         volume_m: objData.volume_m,
+    //                         volume_cm: objData.volume_cm,
+    //                         width: objData.x,
+    //                         length: objData.y,
+    //                         height: objData.z
+    //                     });
+    //                 } else if (objIdentified.length > 1) {
+    //                     setObjectList(objIdentified);
+    //                     setSelectedObject("");
+    //                     setVolInfo(null);
+    //                 }
 
-                    // NOTE (port): no App.py original o modo Individual chamava saveMeasurement()
-                    // sem argumentos (nunca construía measurementData) - guardar nunca chegou a
-                    // ser implementado para este modo. Deixado por implementar de propósito.
+    //                 // NOTE (port): no App.py original o modo Individual chamava saveMeasurement()
+    //                 // sem argumentos (nunca construía measurementData) - guardar nunca chegou a
+    //                 // ser implementado para este modo. Deixado por implementar de propósito.
 
-                    setMessage([TextClear]);
-                }
-            } 
+    //                 setMessage([TextClear]);
+    //             }
+    //         } 
 
-        } catch (error) {
-            setVolInfo(null);
-            setMessage([TextError]);
-            console.error(error);
-        } finally {
-            setLoadingVolume(false);
-        }
-    }
+    //     } catch (error) {
+    //         setVolInfo(null);
+    //         setMessage([TextError]);
+    //         console.error(error);
+    //     } finally {
+    //         setLoadingVolume(false);
+    //     }
+    // }
 
     // Draw the detected workspace (auto applies mask, manual draws the polygon)
     async function workspaceDrawing(): Promise<void> {
@@ -3268,33 +3258,13 @@ function App(){
                 await apiFetch("/volume/mode/real", { method: "POST"});
                 setVolBundleMode(false);
                 break;
-            case "individual":
-                await apiFetch("/volume/mode/individual", { method: "POST"});
-                setVolBundleMode(false);
-                break;
+            // case "individual":
+            //     await apiFetch("/volume/mode/individual", { method: "POST"});
+            //     setVolBundleMode(false);
+            //     break;
         }
 
         await apiFetch("/saveInfo", { method: "POST" });
-    }
-
-    // Change System Speed (Slow / Intermedium / Fast)
-    async function handleSpeedMode(e: React.ChangeEvent<HTMLInputElement>): Promise<void> {
-        const mode = e.target.value;
-        setSpeedMode(mode);
-
-        switch (mode) {
-            case "slow":
-                await apiFetch("/speed/mode/slow", { method: "POST"});
-                break;
-            case "intermedium":
-                await apiFetch("/speed/mode/intermedium", { method: "POST"});
-                break;
-            case "fast":
-                await apiFetch("/speed/mode/fast", { method: "POST"});
-                break;
-        }
-
-        await apiFetch("/saveInfo", { method: "POST"});
     }
 
     // Change Exposure Time (only for Fixed Exposition)
@@ -3899,9 +3869,6 @@ function App(){
 
                             currentMenu={currentMenu}
                             setShowCropWindow={setShowCropWindow}
-
-                            speedMode={speedMode}
-                            handleSpeedMode={handleSpeedMode}
                         />
                     )}
 

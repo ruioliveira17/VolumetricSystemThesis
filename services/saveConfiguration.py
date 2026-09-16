@@ -10,7 +10,6 @@ def save_configuration():
         "expositionMode":    modeState.expositionMode,
         "volumeMode":        modeState.volumeMode,
         "calibrationMode":   modeState.calibrationMode,
-        "speedMode":         modeState.speedMode,
         "workingMode":       modeState.mode,
         "debugMode":         modeState.debugMode,
         "exposureTime":      int(camState.exposureTime),

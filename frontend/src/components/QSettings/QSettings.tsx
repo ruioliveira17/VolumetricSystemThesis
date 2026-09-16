@@ -28,10 +28,6 @@ interface QSettingsProps {
   // Crop ("Define")
   currentMenu: string;
   setShowCropWindow: React.Dispatch<React.SetStateAction<boolean>>;
-
-  // Speed
-  speedMode: string;
-  handleSpeedMode: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 function QSettings({
@@ -48,9 +44,7 @@ function QSettings({
   setCountdownTimer,
   countdownTimerSet_click,
   currentMenu,
-  setShowCropWindow,
-  speedMode,
-  handleSpeedMode
+  setShowCropWindow
 }: QSettingsProps) {
   const popupStyle: CSSProperties = settingsAnchorRect
     ? {
@@ -156,24 +150,6 @@ function QSettings({
             <button onClick={() => setShowCropWindow(true)} disabled={currentMenu !== "volume-menu"} className="define-button">
               <span className="define_text"> Define </span>
             </button>
-          </div>
-
-          <span className="text">System Speed</span>
-          <div className="radio-group">
-            <label className="radio-option">
-              <input type="radio" name="speedMode" value="slow" checked={speedMode === "slow"} onChange={handleSpeedMode} />
-              <span className="label">Slow</span>
-            </label>
-
-            <label className="radio-option">
-              <input type="radio" name="speedMode" value="intermedium" checked={speedMode === "intermedium"} onChange={handleSpeedMode} />
-              <span className="label">Intermedium</span>
-            </label>
-
-            <label className="radio-option">
-              <input type="radio" name="speedMode" value="fast" checked={speedMode === "fast"} onChange={handleSpeedMode} />
-              <span className="label">Fast</span>
-            </label>
           </div>
         </div>
       </div>
