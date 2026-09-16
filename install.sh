@@ -130,8 +130,9 @@ done
     --password-store=basic \
     --no-first-run \
     --no-default-browser-check \
-    --disable-session-crashed-bubble \
-    --disable-features=Translate \
+    --disable-gpu \
+    --disable-gpu-compositing \
+    --disable-software-rasterizer \
     http://localhost:8000
 EOF
 
