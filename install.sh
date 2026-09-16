@@ -125,7 +125,14 @@ while ! curl -s http://localhost:8000 > /dev/null; do
     sleep 0.2
 done
 
-/usr/bin/chromium --kiosk --password-store=basic http://localhost:8000
+/usr/bin/chromium \
+    --kiosk \
+    --password-store=basic \
+    --no-first-run \
+    --no-default-browser-check \
+    --disable-session-crashed-bubble \
+    --disable-features=Translate \
+    http://localhost:8000
 EOF
 
 chmod +x "$HOME/start_qubic.sh"
