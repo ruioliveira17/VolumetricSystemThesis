@@ -3527,7 +3527,7 @@ function App(){
         };
     }, [showSettingsPopup, settingsAnchorEl]);
 
-    if (appReady){
+    if (!isLoaderVisible){
         return (
             <>
                 <div className="app-container" ref={appContainerRef}>
@@ -3914,7 +3914,7 @@ function App(){
                 </div>
             </>
         );
-    } else if (!appReady || isLoaderVisible) {
+    } else if (isLoaderVisible) {
         return <QSystemLoader fadingOut={appReady} />;
     }
 }
