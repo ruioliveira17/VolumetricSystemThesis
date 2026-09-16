@@ -54,7 +54,6 @@ JWT_SECRET_KEY=$JWT_SECRET_KEY
 JWT_ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=30
 REFRESH_TOKEN_EXPIRE_DAYS=7
-ADMIN_REGISTER_CODE=ADMBM
 EOF
 
     echo "Backend .env created."
@@ -128,6 +127,7 @@ done
 /usr/bin/chromium \
     --kiosk \
     --password-store=basic \
+    --default-background-color=ff0a0a0a \
     http://localhost:8000 &
 EOF
 
