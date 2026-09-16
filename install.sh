@@ -127,7 +127,7 @@ done
 /usr/bin/chromium \
     --kiosk \
     --password-store=basic \
-    --default-background-color=0a0a0a \
+    --force-dark-mode \
     http://localhost:8000 &
 EOF
 
