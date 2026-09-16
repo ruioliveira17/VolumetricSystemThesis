@@ -94,6 +94,22 @@ npm run build
 
 echo "[7/8] Preparing application data..."
 
+SDK_LIB_DIR="$PROJECT_DIR/AArch64/ScepterSDK/Lib"
+SDK_DRIVERS_DIR="$SDK_LIB_DIR/Drivers"
+SDK_FILE="$SDK_LIB_DIR/libScepter_api.so"
+
+if [ ! -f "$SDK_FILE" ]; then
+    echo "ERROR: ScepterSDK library not found:"
+    echo "$SDK_FILE"
+    exit 1
+fi
+
+if [ ! -d "$SDK_DRIVERS_DIR" ]; then
+    echo "ERROR: ScepterSDK Drivers directory not found:"
+    echo "$SDK_DRIVERS_DIR"
+    exit 1
+fi
+
 mkdir -p "$PROJECT_DIR/Python/data"
 
 echo "[8/8] Configuring automatic startup..."
@@ -125,6 +141,7 @@ Wants=network-online.target
 Type=simple
 User=$(id -un)
 WorkingDirectory=$PROJECT_DIR
+Environment="LD_LIBRARY_PATH=$PROJECT_DIR/AArch64/ScepterSDK/Lib:$PROJECT_DIR/AArch64/ScepterSDK/Lib/Drivers"
 ExecStart=$PROJECT_DIR/.venv/bin/python $PROJECT_DIR/run_api.py
 Restart=always
 RestartSec=5
@@ -152,7 +169,7 @@ echo "======================================"
 echo ""
 echo "Project: $PROJECT_DIR"
 echo ""
-read -r -p "Do you want to reboot now? [y/n]: " REBOOT
+read -r -p "Do you want to reboot now? [y/n]: " REBOOT < /dev/tty
 
 if [[ "$REBOOT" =~ ^[Yy]$ ]]; then
     echo "Rebooting..."

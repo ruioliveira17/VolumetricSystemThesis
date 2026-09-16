@@ -1980,10 +1980,16 @@ def get_measurement_image(measurement_id: int, kind: str, current_user: dict = D
 def serverStatus():
     return {"status": "ok"}
 
+# ----------------------------------- Frontend Mount -----------------------------------
 
+if os.path.isdir(FRONTEND_DIR):
+    print(f"Frontend found: {FRONTEND_DIR}")
+else:
+    print(f"WARNING: Frontend directory not found: {FRONTEND_DIR}")
+    print("WARNING: API will start without the frontend.")
 
 app.mount(
     "/",
-    StaticFiles(directory=FRONTEND_DIR, html=True),
+    StaticFiles(directory=FRONTEND_DIR, html=True, check_dir=False),
     name="frontend"
 )

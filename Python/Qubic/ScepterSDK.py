@@ -1,10 +1,12 @@
+from pathlib import Path
 import ctypes
+import os
 
-SDK_PATH = (
-    "/home/marques/Tese/AArch64/"
-    "ScepterSDK/Lib/libScepter_api.so"
-)
-lib = ctypes.CDLL(SDK_PATH)
+PROJECT_DIR = Path(__file__).resolve().parents[2]
+
+SDK_PATH = PROJECT_DIR / "AArch64" / "ScepterSDK" / "Lib" / "libScepter_api.so"
+
+lib = ctypes.CDLL(os.fspath(SDK_PATH))
 
 # ============================================================
 # Tipos
