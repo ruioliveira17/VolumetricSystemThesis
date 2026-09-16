@@ -499,11 +499,11 @@ function App(){
     // |                          Use Effects                              | //
     // --------------------------------------------------------------------- //
 
-    useEffect(() => {
-        if (appReady) {
-            document.getElementById("boot-curtain")?.classList.add("off");
-        }
-    }, [appReady]);
+    // useEffect(() => {
+    //     if (appReady) {
+    //         document.getElementById("boot-curtain")?.classList.add("off");
+    //     }
+    // }, [appReady]);
 
     useEffect(() => {
         async function init() {

@@ -128,11 +128,7 @@ done
 /usr/bin/chromium \
     --kiosk \
     --password-store=basic \
-    --no-first-run \
-    --no-default-browser-check \
-    --disable-gpu \
-    --disable-gpu-compositing \
-    --disable-software-rasterizer \
+    --disable-features=UseOzonePlatform \
     http://localhost:8000
 EOF
 
