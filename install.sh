@@ -5,6 +5,8 @@ set -e
 PROJECT_DIR="$HOME/Qubic"
 REPO_URL="https://github.com/ruioliveira17/VolumetricSystemThesis.git"
 
+URL="http://localhost:3000"
+
 echo "======================================"
 echo "        Qubic - Installation"
 echo "======================================"
@@ -127,8 +129,35 @@ done
 /usr/bin/chromium \
     --kiosk \
     --password-store=basic \
-    --force-dark-mode \
-    http://localhost:8000 &
+    --disable-session-crashed-bubble \
+    --disable-infobars \
+    "$URL" &
+
+CHROMIUM_PID=$!
+ 
+# Wait until Chromium creates a window
+WINDOW=""
+ 
+while [ -z "$WINDOW" ]; do
+    WINDOW=$(xdotool search --pid "$CHROMIUM_PID" 2>/dev/null | head -n 1)
+    sleep 0.1
+done
+ 
+# Hide the Chromium window
+xdotool windowunmap "$WINDOW"
+ 
+# Wait for the web application to become available
+until curl -sf "$URL" > /dev/null; do
+    sleep 0.2
+done
+ 
+# Give Chromium a moment to render
+sleep 1
+ 
+# Show Chromium
+xdotool windowmap "$WINDOW"
+xdotool windowactivate "$WINDOW"
+
 EOF
 
 chmod +x "$HOME/start_qubic.sh"
