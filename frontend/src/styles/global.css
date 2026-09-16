@@ -23,7 +23,9 @@
 }
 
 /* ----- BODY ----- */
-
+html, body {
+  background-color: red;
+}
 body {
   background-image: url("/qubic_background.jpg");
   background-size: cover;
