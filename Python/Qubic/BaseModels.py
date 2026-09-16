@@ -59,7 +59,7 @@ class ObjectIn(BaseModel):
 
 class MeasurementIn(BaseModel):
     volume_mode: str
-    weight: Optional[Any] = None
+    weight: float
     objects: List[ObjectIn]
 
 class RefreshData(BaseModel):

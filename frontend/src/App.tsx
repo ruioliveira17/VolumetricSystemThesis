@@ -2323,12 +2323,6 @@ function App(){
         try {
             setMessage([TextClear]);
 
-            const access_token = localStorage.getItem("access_token");
-
-            if (!access_token) {
-                throw new Error("No access token");
-            }
-
             const res = await apiFetch("/saveMeasurements", {
                 method: "POST",
                 headers: {
@@ -2614,7 +2608,7 @@ function App(){
 
                         const measurementData = {
                             volume_mode: "Single Bundle",
-                            weight: Number(measurementWeight),
+                            weight: Number(measurementWeight.weight),
                             objects: [
                                 {
                                     idx: 1,
@@ -2737,7 +2731,7 @@ function App(){
 
                         const measurementData: MeasurementData = {
                             volume_mode: "Multi Bundle",
-                            weight: Number(measurementWeight),
+                            weight: Number(measurementWeight.weight),
                             objects
                         };
 
@@ -2835,7 +2829,7 @@ function App(){
 
                         const measurementData: MeasurementData = {
                             volume_mode: "Real",
-                            weight: Number(measurementWeight),
+                            weight: Number(measurementWeight.weight),
                             objects
                         };
 
