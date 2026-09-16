@@ -3,6 +3,8 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+  opacity: 1;
+  transition: opacity 0.35s ease;
 }
 
 @media (max-height: 1079px){
@@ -21,6 +23,11 @@
   .systemLoader{
     width: clamp(280px, 25.8cqh, 300px);
   }
+}
+
+.system-loader.fade-out {
+    opacity: 0;
+    pointer-events: none;
 }
 
 .initText{

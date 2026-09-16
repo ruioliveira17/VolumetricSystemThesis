@@ -57,6 +57,7 @@ function App(){
     const API_URL: string = "";
 
     const authScreens = ["login-menu", "register", "changePassword-menu"]
+    const [isLoaderVisible, setIsLoaderVisible] = useState(true);
 
     // -----------------------------
     // Messages variables
@@ -504,6 +505,16 @@ function App(){
     //         document.getElementById("boot-curtain")?.classList.add("off");
     //     }
     // }, [appReady]);
+
+    useEffect(() => {
+        if (appReady) {
+            const timer = setTimeout(() => {
+                setIsLoaderVisible(false);
+            }, 350);
+
+            return () => clearTimeout(timer);
+        }
+    }, [appReady]);
 
     useEffect(() => {
         async function init() {
@@ -3903,8 +3914,8 @@ function App(){
                 </div>
             </>
         );
-    } else if (!appReady) {
-        return <QSystemLoader />;
+    } else if (!appReady || isLoaderVisible) {
+        return <QSystemLoader fadingOut={appReady} />;
     }
 }
 

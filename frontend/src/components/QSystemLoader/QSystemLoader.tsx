@@ -4,9 +4,13 @@ import QubicLoader from '@assets/icons/qubic-loader.svg?react';
 
 import QBackgroundBranding from "../QBackgroundBranding";
 
-function QSystemLoader(){
+interface QSystemLoaderProps {
+    fadingOut?: boolean;
+}
+
+function QSystemLoader({ fadingOut = false }: QSystemLoaderProps){
     return (
-        <div>
+        <div className={`system-loader ${fadingOut ? "fade-out" : ""}`}>
             <QBackgroundBranding />
             <div className="menu-wrapper">
                 <div className="systemLoader">
