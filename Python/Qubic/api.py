@@ -66,7 +66,7 @@ from Bundle2 import objIdentifier
 from CalibrationDefTkinter import calibrateAPI, maskAPI
 from CameraOptions import startCamera, stopCamera, setFPS, setFlyingPixelFilter, setFillHoleFilter, setSpatialFilter, setConfidenceFilter
 from MinDepth2 import MinDepthAPI
-from VolumeTkinter import volumeSingleBundleAPI, volumeMultiBundleAPI, volumeRealAPI, volumeIndividualAPI
+from VolumeTkinter import volumeSingleBundleAPI, volumeMultiBundleAPI, volumeRealAPI #, volumeIndividualAPI
 from Weight import weight_loop, weight_lock
 
 #------------------------------------------------------   Services    ------------------------------------------------------
@@ -1560,121 +1560,121 @@ def buildVolumeRealResponse():
 def get_Volume_Real(current_user: dict = Depends(get_current_user)):
     return buildVolumeRealResponse()
 
-@app.post("/volume/individual", summary="Starts the Individual Volume Algorithm",
-         description="""
-         Starts the individual volume algorithm.
-         """,
-         tags=["Volume"])
-def volume_Individual(current_user: dict = Depends(get_current_user)):
-    volumeState.processing = "Processing Frames..."
+# @app.post("/volume/individual", summary="Starts the Individual Volume Algorithm",
+#          description="""
+#          Starts the individual volume algorithm.
+#          """,
+#          tags=["Volume"])
+# def volume_Individual(current_user: dict = Depends(get_current_user)):
+#     volumeState.processing = "Processing Frames..."
 
-    colorFrame = frameState.colorFrame
+#     colorFrame = frameState.colorFrame
 
-    if frameState.colorToDepthFrameHDR is None or modeState.expositionMode == "Fixed Exposition":
-        colorToDepthFrame = frameState.colorToDepthFrame
-    else:
-        colorToDepthFrame = frameState.colorToDepthFrameHDR
+#     if frameState.colorToDepthFrameHDR is None or modeState.expositionMode == "Fixed Exposition":
+#         colorToDepthFrame = frameState.colorToDepthFrame
+#     else:
+#         colorToDepthFrame = frameState.colorToDepthFrameHDR
 
-    if frameState.depthFrameHDR is None or modeState.expositionMode == "Fixed Exposition":
-        depthFrame = frameState.depthFrame
-    else:
-        depthFrame = frameState.depthFrameHDR
+#     if frameState.depthFrameHDR is None or modeState.expositionMode == "Fixed Exposition":
+#         depthFrame = frameState.depthFrame
+#     else:
+#         depthFrame = frameState.depthFrameHDR
 
-    if workspaceState.detection_area is not None:
-        volumeState.processing = "Finding Depths..."
-        depthState.not_set, depthState.objects_info = MinDepthAPI(depthFrame, workspaceState.detection_area, workspaceState.workspace_depth, depthState.threshold, depthState.not_set, camState.cx_d, camState.cy_d, camState.fx_d, camState.fy_d)
-    if depthState.objects_info is not None and len(depthState.objects_info) != 0:
-        depthState.minimum_depth = depthState.objects_info[0]["depth"]
-        depthState.minimum_value = depthState.minimum_depth
+#     if workspaceState.detection_area is not None:
+#         volumeState.processing = "Finding Depths..."
+#         depthState.not_set, depthState.objects_info = MinDepthAPI(depthFrame, workspaceState.detection_area, workspaceState.workspace_depth, depthState.threshold, depthState.not_set, camState.cx_d, camState.cy_d, camState.fx_d, camState.fy_d)
+#     if depthState.objects_info is not None and len(depthState.objects_info) != 0:
+#         depthState.minimum_depth = depthState.objects_info[0]["depth"]
+#         depthState.minimum_value = depthState.minimum_depth
 
-    if depthState.not_set == 0:
-        volumeState.processing = "Identifying Objects..."
-        depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine, volumeState.united_contours = objIdentifier(colorFrame, colorToDepthFrame, depthFrame, frameState.calibrationColorFrame, frameState.calibrationDepthFrame, modeState.volumeMode, depthState.objects_info, workspaceState.workspace_depth, depthState.threshold, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb, camState.fx_d, camState.fy_d, camState.fx_rgb, camState.fy_rgb)
-        if volumeState.depths or not any(volumeState.objects_outOfLine):
-            if volumeState.box_limits is not None and len(volumeState.box_limits) > 0:
-                volumeState.processing = "Calculating Volumes..."
-                volumeState.volume, volumeState.width_meters, volumeState.length_meters, volumeState.height_meters = volumeIndividualAPI(depthFrame, frameState.calibrationDepthFrame, workspaceState.workspace_depth, volumeState.box_limits, volumeState.depths, camState.fx_d, camState.fy_d, camState.cx_d, camState.cy_d)
-            else:
-                volumeState.volume = 0
-                volumeState.width_meters = 0
-                volumeState.length_meters = 0
-                volumeState.height_meters = 0
-                depthState.minimum_depth = workspaceState.workspace_depth
-        else:
-            volumeState.volume = 0
-            volumeState.width_meters = 0
-            volumeState.length_meters = 0
-            volumeState.height_meters = 0
-            depthState.minimum_depth = workspaceState.workspace_depth
-    else:
-        volumeState.volume = 0
-        volumeState.width_meters = 0
-        volumeState.length_meters = 0
-        depthState.minimum_depth = workspaceState.workspace_depth
+#     if depthState.not_set == 0:
+#         volumeState.processing = "Identifying Objects..."
+#         depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine, volumeState.united_contours = objIdentifier(colorFrame, colorToDepthFrame, depthFrame, frameState.calibrationColorFrame, frameState.calibrationDepthFrame, modeState.volumeMode, depthState.objects_info, workspaceState.workspace_depth, depthState.threshold, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb, camState.fx_d, camState.fy_d, camState.fx_rgb, camState.fy_rgb)
+#         if volumeState.depths or not any(volumeState.objects_outOfLine):
+#             if volumeState.box_limits is not None and len(volumeState.box_limits) > 0:
+#                 volumeState.processing = "Calculating Volumes..."
+#                 volumeState.volume, volumeState.width_meters, volumeState.length_meters, volumeState.height_meters = volumeIndividualAPI(depthFrame, frameState.calibrationDepthFrame, workspaceState.workspace_depth, volumeState.box_limits, volumeState.depths, camState.fx_d, camState.fy_d, camState.cx_d, camState.cy_d)
+#             else:
+#                 volumeState.volume = 0
+#                 volumeState.width_meters = 0
+#                 volumeState.length_meters = 0
+#                 volumeState.height_meters = 0
+#                 depthState.minimum_depth = workspaceState.workspace_depth
+#         else:
+#             volumeState.volume = 0
+#             volumeState.width_meters = 0
+#             volumeState.length_meters = 0
+#             volumeState.height_meters = 0
+#             depthState.minimum_depth = workspaceState.workspace_depth
+#     else:
+#         volumeState.volume = 0
+#         volumeState.width_meters = 0
+#         volumeState.length_meters = 0
+#         depthState.minimum_depth = workspaceState.workspace_depth
 
-    if isinstance(volumeState.width_meters, list):
-        volumeState.width_meters = [w * 100 for w in volumeState.width_meters]
-    else:
-        volumeState.width_meters = volumeState.width_meters * 100
+#     if isinstance(volumeState.width_meters, list):
+#         volumeState.width_meters = [w * 100 for w in volumeState.width_meters]
+#     else:
+#         volumeState.width_meters = volumeState.width_meters * 100
 
-    if isinstance(volumeState.length_meters, list):
-        volumeState.length_meters = [w * 100 for w in volumeState.length_meters]
-    else:
-        volumeState.length_meters = volumeState.length_meters * 100
+#     if isinstance(volumeState.length_meters, list):
+#         volumeState.length_meters = [w * 100 for w in volumeState.length_meters]
+#     else:
+#         volumeState.length_meters = volumeState.length_meters * 100
 
-    if isinstance(volumeState.height_meters, list):
-        volumeState.height_meters = [h * 100 for h in volumeState.height_meters]
-    else:
-        volumeState.height_meters = volumeState.height_meters * 100
+#     if isinstance(volumeState.height_meters, list):
+#         volumeState.height_meters = [h * 100 for h in volumeState.height_meters]
+#     else:
+#         volumeState.height_meters = volumeState.height_meters * 100
 
-    volumeState.processing = ""
+#     volumeState.processing = ""
 
-    return{
-        "volume": volumeState.volume,
-        "width": volumeState.width_meters,
-        "length": volumeState.length_meters,
-        "height": volumeState.height_meters,
-        "depth": depthState.minimum_depth / 10,
-        "ws_depth": workspaceState.workspace_depth / 10
-    }
+#     return{
+#         "volume": volumeState.volume,
+#         "width": volumeState.width_meters,
+#         "length": volumeState.length_meters,
+#         "height": volumeState.height_meters,
+#         "depth": depthState.minimum_depth / 10,
+#         "ws_depth": workspaceState.workspace_depth / 10
+#     }
 
-@app.get("/volume/individual/results", summary="Gets the Individual Volume Algorithm Results",
-         description="""
-         Gets the results of the individual volume algorithm.
-         """,
-         tags=["Volume"])
-def get_Volume_Individual(current_user: dict = Depends(get_current_user)):
-    response = {}
+# @app.get("/volume/individual/results", summary="Gets the Individual Volume Algorithm Results",
+#          description="""
+#          Gets the results of the individual volume algorithm.
+#          """,
+#          tags=["Volume"])
+# def get_Volume_Individual(current_user: dict = Depends(get_current_user)):
+#     response = {}
 
-    volumes = volumeState.volume if isinstance(volumeState.volume, list) else [volumeState.volume]
-    widths = volumeState.width_meters if isinstance(volumeState.width_meters, list) else [volumeState.width_meters]
-    lengths = volumeState.length_meters if isinstance(volumeState.length_meters, list) else [volumeState.length_meters]
-    heights = volumeState.height_meters if isinstance(volumeState.height_meters, list) else [volumeState.height_meters]
-    depths = volumeState.depths if isinstance(volumeState.depths, list) else [volumeState.depths]
+#     volumes = volumeState.volume if isinstance(volumeState.volume, list) else [volumeState.volume]
+#     widths = volumeState.width_meters if isinstance(volumeState.width_meters, list) else [volumeState.width_meters]
+#     lengths = volumeState.length_meters if isinstance(volumeState.length_meters, list) else [volumeState.length_meters]
+#     heights = volumeState.height_meters if isinstance(volumeState.height_meters, list) else [volumeState.height_meters]
+#     depths = volumeState.depths if isinstance(volumeState.depths, list) else [volumeState.depths]
 
-    num_objects = min(
-        len(volumes),
-        len(widths),
-        len(lengths),
-        len(heights),
-        len(depths)
-    )
+#     num_objects = min(
+#         len(volumes),
+#         len(widths),
+#         len(lengths),
+#         len(heights),
+#         len(depths)
+#     )
 
-    for i in range(num_objects):
-        response[f"{i+1}"] = {
-            "volume_m": round(float(volumes[i]), 6),
-            "volume_cm": round(float(volumes[i] * 1000000), 2),
-            "x": round(float(widths[i]), 1),
-            "y": round(float(lengths[i]), 1),
-            "z": round(float(heights[i]), 1)
-        }
+#     for i in range(num_objects):
+#         response[f"{i+1}"] = {
+#             "volume_m": round(float(volumes[i]), 6),
+#             "volume_cm": round(float(volumes[i] * 1000000), 2),
+#             "x": round(float(widths[i]), 1),
+#             "y": round(float(lengths[i]), 1),
+#             "z": round(float(heights[i]), 1)
+#         }
 
-    response["Total"] = {
-        "volume_m": round(float(volumes[-1]), 6),
-        "volume_cm": round(float(volumes[-1] * 1000000), 2)
-    }
+#     response["Total"] = {
+#         "volume_m": round(float(volumes[-1]), 6),
+#         "volume_cm": round(float(volumes[-1] * 1000000), 2)
+#     }
     
-    return response
+#     return response
 
 @app.get("/getObjectsOutOfLine", summary="Gets the array of objects that are inside or outside the workspace area",
          description="""
