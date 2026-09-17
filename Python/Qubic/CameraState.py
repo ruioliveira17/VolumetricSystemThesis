@@ -6,7 +6,7 @@ class CameraState:
         self._thread = None
 
         self.colorSlope = 4100
-        self.exposureTime = 4000
+        self.exposureTime = 100
         self.fps = 10
         self.cx_d = 0
         self.cy_d = 0
@@ -16,11 +16,6 @@ class CameraState:
         self.cy_rgb = 0
         self.fx_rgb = 0
         self.fy_rgb = 0
-
-        self.flyingPixelFilter = True
-        self.fillHoleFilter = True
-        self.spatialFilter = True
-        self.confidenceFilter = False
 
         self.hdrEnabled = True
 

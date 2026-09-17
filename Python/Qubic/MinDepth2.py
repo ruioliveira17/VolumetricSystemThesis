@@ -1,12 +1,11 @@
 from pickle import FALSE, TRUE
-import sys
+import cv2
+import numpy
 import os
+import sys
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(BASE_DIR, "Python"))
-import numpy
-
-from API.VzenseDS_api import *
-import cv2
 
 def project_points(pts_pixels, workspace_depth, object_depth, cx_d, cy_d, fx_d, fy_d):
     pts = numpy.array(pts_pixels, dtype=numpy.float32)
@@ -21,7 +20,7 @@ def project_points(pts_pixels, workspace_depth, object_depth, cx_d, cy_d, fx_d, 
 
     return numpy.stack([X_new, Y_new], axis=1).astype(numpy.int32).tolist()
 
-def MinDepthAPI(depthFrame, detection_area, workspace_warning, workspace_depth, threshold, not_set, cx_d, cy_d, fx_d, fy_d):
+def MinDepthAPI(depthFrame, detection_area, workspace_depth, threshold, not_set, cx_d, cy_d, fx_d, fy_d):
     depth_copy = depthFrame.copy()
     objects_info = []
 
@@ -90,14 +89,12 @@ def MinDepthAPI(depthFrame, detection_area, workspace_warning, workspace_depth, 
                         big_kernel = numpy.ones((51, 51), dtype=numpy.uint8)
                         dilated = cv2.dilate(surface_band, big_kernel)
                         depth_copy[dilated > 0] = 9999
-                        #depth_copy[y, x] = 9999
 
                     else:
                         suppress = numpy.zeros_like(depth_copy, dtype=numpy.uint8)
                         suppress[y, x] = 1
                         suppress = cv2.dilate(suppress, kernel)
                         depth_copy[suppress > 0] = 9999
-                        #depth_copy[y, x] = 9999
 
                     suppressed_any = True
                     break
@@ -111,9 +108,6 @@ def MinDepthAPI(depthFrame, detection_area, workspace_warning, workspace_depth, 
         if objects_info:
             objects_info = sorted(objects_info, key=lambda obj: obj["depth"])
             not_set = 0
-
-        # else:
-        #     print("Nenhum ponto válido encontrado dentro do workspace")
 
     except Exception as e :
         print(e)

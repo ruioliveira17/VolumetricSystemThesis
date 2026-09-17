@@ -1,6 +1,6 @@
+import serial
 import threading
 import time
-import serial
 
 weight_lock = threading.Lock()
 ser = serial.Serial("/dev/ttyUSB0", 9600, timeout=3)

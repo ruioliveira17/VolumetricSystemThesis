@@ -1,12 +1,12 @@
-import time
 import ctypes
+import numpy
+import threading
+import time
 
 from CameraState import camState
 from FilterState import filterState
 from FrameState import frameState
 from ScepterSDK import *
-import threading
-import numpy
 
 def statusCamera():
     print("Status")
@@ -195,13 +195,13 @@ def startCamera():
             ret
         )
 
-    setFlyingPixelFilter(value = camState.flyingPixelFilter) 
+    setFlyingPixelFilter(value = filterState.flyingPixelFilter) 
     
-    setFillHoleFilter(value = camState.fillHoleFilter)
+    setFillHoleFilter(value = filterState.fillHoleFilter)
 
-    setSpatialFilter(value = camState.spatialFilter)
+    setSpatialFilter(value = filterState.spatialFilter)
         
-    setConfidenceFilter(value = camState.confidenceFilter)
+    setConfidenceFilter(value = filterState.confidenceFilter)
 
     # Intrinsic Parameters Depth
 
@@ -417,92 +417,6 @@ def captureLoop():
                 frameState.colorFrame = colorFrame
                 frameState.colorToDepthFrameHDR = colorToDepthFrame
                 frameState.depthFrameHDR = depthFrame
-
-# def buildHDRDepth(depthFrames):
-#     stacked_d = numpy.stack(depthFrames, axis=0).astype(numpy.float32)
-
-#     mask_d = (stacked_d > 150) & (stacked_d <= 5000)
-#     stacked_d[~mask_d] = numpy.nan
-
-#     median_d = numpy.nanmedian(stacked_d, axis=0)
-
-#     mad_d = numpy.nanmedian(
-#         numpy.abs(stacked_d - median_d),
-#         axis=0
-#     )
-
-#     unstable = mad_d > 15
-
-#     hdrDepth = median_d.copy()
-
-#     min_d = numpy.nanmin(stacked_d, axis=0)
-#     hdrDepth[unstable] = min_d[unstable]
-
-#     return numpy.nan_to_num(
-#         hdrDepth,
-#         nan=0
-#     ).astype(numpy.uint16)
-
-# def buildHDRColor(colorFrames):
-#     stacked = numpy.stack(colorFrames, axis=0).astype(numpy.float32)
-
-#     mask = stacked > 0
-#     stacked[~mask] = 0
-
-#     count = mask.sum(axis=0).clip(min=1)
-
-#     return (
-#         stacked.sum(axis=0) / count
-#     ).astype(numpy.uint8)
-
-# def processHDR(click_timestamp):
-#     global colorArray, depthArray, timestampArray
-#     finished = False
-
-#     if click_timestamp is None:
-#         click_timestamp = 0
-
-#     if (any(frame is None for frame in colorArray) or any(frame is None for frame in depthArray)) or any(ts <= click_timestamp for ts in timestampArray):
-#         #print("Não tem frames suficientes")
-#         finished = False
-#     else:
-#         #lowHDRColor = colorArray[:4]
-#         #lowHDRDepth = depthArray[:4]
-
-#         #mediumHDRColor = colorArray[4:]
-#         #mediumHDRDepth = depthArray[4:]
-
-#         #hdrLowColor = buildHDRColor(lowHDRColor)
-#         #hdrMediumColor = buildHDRColor(mediumHDRColor)
- 
-#         #hdrLowDepth = buildHDRDepth(lowHDRDepth)
-#         #hdrMediumDepth = buildHDRDepth(mediumHDRDepth)
-
-#         #finalColor = buildHDRColor([hdrLowColor, hdrMediumColor])
-#         #finalDepth = buildHDRDepth([hdrLowDepth, hdrMediumDepth])
-
-#         finalColor = buildHDRColor(colorArray)
-#         finalDepth = buildHDRDepth(depthArray)
-
-#         print("HDR Processed")
-
-#         frameState.colorToDepthFrameHDR = finalColor
-#         frameState.depthFrameHDR = finalDepth
-
-#         finished = True
-
-#     return finished
-
-# def processHDR2():
-#     global colorArray, depthArray, timestampArray
-
-#     finalColor = buildHDRColor(colorArray)
-#     finalDepth = buildHDRDepth(depthArray)
-
-#     print("HDR Processed")
-
-#     frameState.colorToDepthFrameHDR = finalColor
-#     frameState.depthFrameHDR = finalDepth
 
 def setFlyingPixelFilter(value: bool):
     params = ScFlyingPixelFilterParams()

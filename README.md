@@ -1,48 +1,54 @@
-## Vzense Nebula Software Develop Kit
+## Scepter Software Develop Kit
 
 ### Supported Devices
 
-- DS77 (DS77_S_20220530_B16  and later) 
-- DS77C (DS77_S_20220530_B16  and later )
-- DS86 (DS86_R_20230321  and later )
-- DCAM650 (DCAM650_R_20231214_B06  and later )
+- NYX Camera
+
+  - NYX650/660 (NYX650_R_20240325_B02  and later )
+  - NYX320 (NYX320_R_20260401_B41 and later )
+  - NYX310 (NYX310_R_20260416_B27 and later )
+
+- Vzense Camera
+    - DS86/87 (DS86_R_20230321  and later )
+    - DS77C (DS77_S_20220530_B16  and later )
+    - DS77 (DS77_S_20220530_B16  and later) 
+    - DS63 (DS63_R_20260402_B30 and later )
+    - DS62 (DS62_R_20260506_B27 and later )
 
 ### Supported Platform
 
-- AArch64
+- Arm-Linux(AArch64)
 - Ubuntu16.04 (x86_64 platform), e.g. intel i5,i7
-- Ubuntu18.04 (x86_64 platform), e.g. intel i5,i7
+- Ubuntu(x86_64 platform), e.g. intel i5,i7
 - Windows 10/11
 
 ### Folder description
--  **AArch64** 
+- **AArch64** 
 
-    Ubuntu18.04 arm64 SDK package that is developed for personal computer platform(arm64), use standard compiler aarch64-linux-gnu(v7.5.0)
-   
+    - The AArch64 folder is used for arm64 software development and contains the header files and library files, that is developed for personal computer platform(arm64), use standard compiler aarch64-linux-gnu(v7.5.0)
+
+    - The AArch64 folder also has some samples that show the sequence of API calls and how to use them
 -  **Ubuntu16.04** 
    
-   Ubuntu16.04 PC SDK package that is developed for personal computer platform(x86_64), use standard compiler x86_64-linux-gnu(v5.4.0)
+   - The Ubuntu16.04 folder is used for Ubuntu16.04 platform software development and contains the header files and library files,  that is developed for personal computer platform(x86_64), use standard compiler x86_64-linux-gnu(v5.4.0)
+   - The Ubuntu16.04 folder also has some samples that show the sequence of API calls and how to use them
    
--  **Ubuntu18.04** 
+-  **Ubuntu** 
 
-    Ubuntu18.04 PC SDK package that is developed for personal computer platform(x86_64), use standard compiler x86_64-linux-gnu(v7.5.0)
-    Ubuntu18.04 SDK package compatible with Ubuntu20.04
+    - Ubuntu directory contains the personal computer platform (with the standard compiler x86_64-linux-gnu) Ubuntu18.04/20.04/22.04/24.04 development package.
 
 -  **Windows** 
 
-    Windows PC SDK package that is developed for personal computer platform(x86_64), use standard compiler VS2017
-
+    - The Windows folder is used for Windows platform software development and contains the header files and library files,  that is developed for personal computer platform(x86_64), use standard compiler VS2017
+    - The Windows folder also has some samples that show the sequence of API calls and how to use them
 
 ### Summary Of The Guidelines
 
-- Choose the right base branch;
+- Choose the right version for different device types
 
-- Include sample project and documentation;
+- Refer to samples and documents for functional development
 
 ### Resources
 
-- Homepage: https://www.vzense.com/
-- Order: https://www.vzense.com/
-- Docs: [Vzense ToF Sensor and Application](https://vzense.com/Downloads.html)
-- Develop tools: https://github.com/Vzense , https://gitee.com/Vzense
-- Q&A forum: [FAQ - 青岛维感科技有限公司 (vzense.com)](https://vzense.com/Newsdispalys_faq.html)
+- Download links: https://github.com/ScepterSW , https://gitee.com/ScepterSW
+- Develop wiki: https://wiki.vzense.com/#/

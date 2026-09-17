@@ -3,7 +3,6 @@ class FrameState:
         self.colorToDepthFrame = None
         self.depthFrame = None 
         self.colorFrame = None
-        self.timeStampsHDR = None
         self.workspaceDetectedFrame = None
         self.depthFrameCopy = None
         self.maskFrame = None

@@ -1,13 +1,12 @@
 from pickle import FALSE, TRUE
-import sys
-import os
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(os.path.join(BASE_DIR, "Python"))
 
 import cv2
 import numpy
+import os
+import sys
 
-from color_presets import COLOR_PRESETS
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.join(BASE_DIR, "Python"))
 
 x_area = 0
 y_area = 0
@@ -29,9 +28,8 @@ def contour_distance(contours, cx_d, cy_d):
     cy = int(M["m01"] / M["m00"])
     return (cx - cx_d)**2 + (cy - cy_d)**2
 
-def maskAPI(colorToDepthFrame, lower, upper, color, cx_d, cy_d):
+def maskAPI(colorToDepthFrame, lower, upper, cx_d, cy_d):
     detection_area = None
-    workspace_warning = None
 
     try:
         colorToDepthFrame = cv2.resize(colorToDepthFrame, (640, 480))
@@ -76,18 +74,11 @@ def maskAPI(colorToDepthFrame, lower, upper, color, cx_d, cy_d):
                 if hierarchy[i][3] != -1:
                     inner_contours.append(contour)
 
-            if len(inner_contours) > 0:
-                largest_inner = max(inner_contours, key=cv2.contourArea)
-                rect = cv2.minAreaRect(largest_inner)
-
-                workspace_warning = cv2.boxPoints(rect)
-                workspace_warning = numpy.int32(workspace_warning)
-
         # PONTO CENTRAL
         
         cv2.circle(colorToDepthFrame_copy, (cx_d, cy_d), radius=3, color=(255, 255, 255), thickness=1)
         
-        return result, colorToDepthFrame_copy, detection_area, workspace_warning 
+        return result, colorToDepthFrame_copy, detection_area
                 
     except Exception as e :
         print(e)
@@ -186,12 +177,6 @@ def calibrateAPI(colorToDepthFrame, depthFrame, colorFrame, detection_area, lowe
 
             proportionColor_valid = numpy.sum(mask_color) / border_pixels.shape[0]
 
-            debug = colorToDepthFrame.copy()
-            debug[border == 255] = (0, 0, 255)  # vermelho sobre a fita
-            # cv2.imwrite("ZED.png", debug)
-
-            # print("Proporção Cor:", proportionColor_valid)
-
             if proportionColor_valid >= 0.95:
                 workspace_interrupted = False
             else:
@@ -219,20 +204,12 @@ def calibrateAPI(colorToDepthFrame, depthFrame, colorFrame, detection_area, lowe
         valid_values = workspace_region[(workspace_region >= 15)]
         
         if valid_values.size > 0:
-            avg_depth = numpy.mean(valid_values) # média da profundidade
-            # print(detection_area)
-            # print("Avg Depth:", avg_depth)
-            # print("Workspace Depth", workspace_depth)
             count = numpy.sum(numpy.abs(valid_values - workspace_depth) <= 15)
-            # print("Count:", count)
-            # print("Size:", valid_values.size)
             proportion_valid = count / valid_values.size
-            # print("Proporção Profundidade:", round(proportion_valid, 3))
 
             if proportion_valid >= 0.95:
                 workspace_free = True
                 workspace_depth = float(numpy.median(valid_values))
-                #workspace_depth = avg_depth
             else:
                 workspace_free = False
 
@@ -248,27 +225,8 @@ def calibrateAPI(colorToDepthFrame, depthFrame, colorFrame, detection_area, lowe
             detection_area = None
             workspace_depth = None
 
-        key = cv2.waitKey(1)
-
         if calibrated is True:
-            # print("System calibrated successfully!")
-            # print("Center is aligned")
-            # print("Workspace is aligned! Depth:", workspace_depth, "Workspace:", detection_area)
-            # print("---end---")
-            
             return detection_area, workspace_depth, center_aligned, workspace_clear, colorFrame, depth_copy
-        # else:
-        #     print("System isnt calibrated!")
-        #     print("Try Again!")
-        #     print("Remember: central point must be detected, workspace should be empty and all the yellow tape must be detected...")
-        #     if center_aligned is True:
-        #         print("Center Aligned!")
-        #     else: 
-        #         print("Center not Aligned!")
-        #     if workspace_clear is True:
-        #         print("Workspace is Empty!")
-        #     else:
-        #         print("Clear Workspace!")
                 
     except Exception as e :
         print(e)

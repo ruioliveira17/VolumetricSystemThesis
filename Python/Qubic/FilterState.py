@@ -1,8 +1,8 @@
 class FilterState:
     def __init__(self):
-        self.flyingPixelFilter = None
-        self.fillHoleFilter = None
-        self.spatialFilter = None
-        self.confidenceFilter = None
+        self.flyingPixelFilter = True
+        self.fillHoleFilter = True
+        self.spatialFilter = True
+        self.confidenceFilter = False
 
 filterState = FilterState()
