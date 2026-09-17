@@ -268,6 +268,10 @@
     margin: 0;
   }
 
+.radio-option input[type="radio"]:disabled {
+  opacity: 0.6;
+}
+
 @media (min-width: 426px) and (max-width: 768px){
   .radio-option input[type="radio"]{
     width: 12px;
@@ -342,6 +346,10 @@
   text-align: center;
 }
 
+.exposure-input:disabled{
+  opacity: 0.6;
+}
+
 .exposure-input:focus {
   outline: none;
 }
@@ -388,6 +396,10 @@
   border-radius: 4px;
 
   cursor: pointer;
+}
+
+.exposure-btn:disabled{
+  opacity: 0.6;
 }
 
 @media (max-height: 1079px){
@@ -439,11 +451,11 @@
   }
 }
 
-.exposure-btn:hover{
+.exposure-btn:not(:disabled):hover{
   background: white;
 }
 
-.exposure-btn:hover .text{
+.exposure-btn:not(:disabled):hover .text{
   color: black;
 }
 

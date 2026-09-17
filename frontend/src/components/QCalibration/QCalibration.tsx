@@ -21,6 +21,7 @@ interface QCalibrationProps {
 
   toggleMenu: () => void;
 
+  cameraStatus: string;
   cameraVideo: RefObject<HTMLVideoElement | null>;
   workspaceCanvas: RefObject<HTMLCanvasElement | null>;
 
@@ -40,6 +41,7 @@ interface QCalibrationProps {
 function QCalibration({
   message,
   toggleMenu,
+  cameraStatus,
   cameraVideo,
   handleColorClick,
   workspaceCanvas,
@@ -78,10 +80,11 @@ function QCalibration({
                 2 - If necessary, the "Adjust" mode grants you the option to manually adjust the points given in the previous step.
               </span>
             </div>
-            <div className="btn-group">
+            <div className="btn-group"  disabled={cameraStatus !== "online"}>
               <button
                 className={`btn-mode ${calibrationMode === "auto" ? "active" : ""}`}
                 onClick={() => handleCalibrationModeChange(false)}
+                disabled={cameraStatus !== "online"}
               >
                 <div className="color-swatch" style={{ backgroundColor: `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})` }} />
                 <div className="btn-content">
@@ -93,6 +96,7 @@ function QCalibration({
               <button
                 className={`btn-mode ${calibrationMode === "manual" ? "active" : ""}`}
                 onClick={() => handleCalibrationModeChange(true)}
+                disabled={cameraStatus !== "online"}
               >
                 <div className="btn-content">
                   <img src="/activity_zone.svg" alt="ACTIVITY_ZONE" className="icon" />
@@ -124,7 +128,7 @@ function QCalibration({
             )}
 
             {/* Button */}
-            <button onClick={calibrate_click} className="calibration-button" disabled={loadingCalibration}>
+            <button onClick={calibrate_click} className="calibration-button" disabled={loadingCalibration || cameraStatus !== "online"}>
               <div className="calibration-button-info-container">
                 <img src="/filter_zone.svg" alt="FILTER_ZONE" className="icon" />
                 <span className="text">Calibrate</span>

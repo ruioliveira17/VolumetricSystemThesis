@@ -200,7 +200,11 @@ async def lifespan(app: FastAPI):
     else:
         print("There arent any last configurations!")
 
-    startCamera()
+    camera_thread = threading.Thread(
+        target=startCamera,
+        daemon=True
+    )
+    camera_thread.start()
 
     thread = threading.Thread(
         target=weight_loop,
@@ -220,7 +224,6 @@ async def lifespan(app: FastAPI):
         )
         pcs.clear()
 
-        #stop_ObjProcessing()
         stopCamera()
 
 #----------------------------------------------------   Criar App   -------------------------------------------------------
@@ -580,7 +583,19 @@ def restore_measurements(current_user: dict = Depends(get_current_user)):
 #-------------------------------------------------------   Stream   -------------------------------------------------------
 
 @app.post("/offer")
-async def offer(request: Request, current_user: dict = Depends(get_current_user)): 
+async def offer(request: Request, current_user: dict = Depends(get_current_user)):
+    timeout = 30
+    start = time.monotonic()
+
+    while camState.cameraStatus != "online":
+        if time.monotonic() - start >= timeout:
+            raise HTTPException(
+                status_code=503,
+                detail=f"Camera is not ready. Status: {camState.cameraStatus}"
+            )
+
+        await asyncio.sleep(0.1)
+    
     params = await request.json() 
     streamType = params.get("stream", "volume")
     offer = RTCSessionDescription(sdp=params["sdp"], type=params["type"]) 
@@ -1103,6 +1118,7 @@ def fixedExp(current_user: dict = Depends(get_current_user)):
         0x01,  # SC_TOF_SENSOR
         ctypes.c_int32(camState.exposureTime)
     )
+    
     return {"Exposition Mode:": modeState.expositionMode}
 
 @app.post("/exposition/mode/hdr", summary="Sets the Exposition Mode to HDR",
@@ -1975,6 +1991,45 @@ def get_measurement_image(measurement_id: int, kind: str, current_user: dict = D
 
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Image not found.")
 
+# ----------------------------------- Camera  Status -----------------------------------
+# @app.get("/camera/status", summary="Checks the status of the camera",
+#          description="""
+#          Checks the status of the camera. It returns the current state of the camera.
+#          """,
+#          tags=["Camera"])
+# def cameraStatus():
+#     return {"status": camState.cameraStatus}
+
+
+@app.get("/health", summary="Estado do servidor e da câmara",
+         description="""
+         Devolve o estado da API e da câmara. Sem autenticação, tal como o /status,
+         porque é usado pelo ecrã de arranque antes de existir sessão.
+
+         camera:
+           offline = a câmara não está aberta
+           starting     = aberta, ainda não chegou nenhum frame
+           online       = último frame há menos de 2 segundos
+           stale        = há frames antigos mas a câmara parou de os produzir
+         """,
+         tags=["Server"])
+def health():
+    now = time.monotonic()
+    ts = frameState.lastFrameAt
+    age = None
+    
+    if ts is None:
+        camState.cameraStatus = "starting"
+    elif camState.camera is not None and ts is not None:
+        
+        age = round(now - ts, 2)
+        camState.cameraStatus = "online" if age < 2.0 else "stale"
+
+    return {
+        "api": "ok",
+        "cameraStatus": camState.cameraStatus,
+        "last_frame_age_s": age,
+    }
 
 # ----------------------------------- Server  Status -----------------------------------
 @app.get("/status", summary="Checks the status of the server",

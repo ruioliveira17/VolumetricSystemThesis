@@ -248,7 +248,7 @@ function App(){
         b: 0
     });
 
-    const [calibrationMode, setCalibrationMode] = useState<string>("auto");
+    const [calibrationMode, setCalibrationMode] = useState<string>("off");
     const [calibrationModalOpen, setCalibrationModalOpen] = useState<boolean>(false);
     const [loadingCalibration, setLoadingCalibration] = useState<boolean>(false);
 
@@ -496,6 +496,9 @@ function App(){
     const [measureObjCenters, setMeasureObjCenters] = useState<any[]>([]);
     const [measureObjAngles, setMeasureObjAngles] = useState<any[]>([]);
 
+
+    const [cameraStatus, setCameraStatus] = useState<string>("starting");
+
     // --------------------------------------------------------------------- //
     // |                          Use Effects                              | //
     // --------------------------------------------------------------------- //
@@ -543,6 +546,33 @@ function App(){
         }
 
         init();
+    }, []);
+
+    useEffect(() => {
+        let cancelled = false;
+
+        async function check() {
+            try {
+                const res = await fetch("/health");
+                const data = await res.json();
+
+                if (!cancelled) {
+                    setCameraStatus(data.cameraStatus);
+                }
+            } catch {
+                if (!cancelled) {
+                    setCameraStatus("unreachable");
+                }
+            }
+        }
+
+        check();
+        const id = setInterval(check, 2000);
+
+        return () => {
+            cancelled = true;
+            clearInterval(id);
+        };
     }, []);
 
     useEffect(() => {
@@ -979,7 +1009,7 @@ function App(){
             const r = await apiFetch("/calibrate/mode");
             const calibData = await r.json();
 
-            if (calibData["Calibrate Mode"] === "Manual") {
+            if (calibData["Calibrate Mode"] === "Manual" && cameraStatus === "online") {
                 const rParams = await apiFetch("/calibrate/params");
                 detectionArea.current = (await rParams.json())["Detected Area"];
                 workspaceDrawing();
@@ -1741,8 +1771,10 @@ function App(){
             if (config_data.configured) {
                 if (config_data.expositionMode === "HDR") {
                     setExpHDR(true);
+                    handleExpHDR_toggle;
                 } else if (config_data.expositionMode === "Fixed Exposition") {
                     setExpHDR(false);
+                    handleExpHDR_toggle;
                 }
 
                 if (config_data.volumeMode === "Single Bundle") {
@@ -2192,22 +2224,54 @@ function App(){
         pc.current.addTransceiver('video', { direction: 'recvonly' });
 
         pc.current.ontrack = async (event) => {
+            console.log("[WebRTC] ONTRACK", event);
+
             cameraStream.current = event.streams[0];
 
-            if(cameraVideo.current){
-                cameraVideo.current.srcObject = cameraStream.current;
-                cameraVideo.current.muted = true;
+            console.log("[WebRTC] cameraStream:", cameraStream.current);
+            console.log("[WebRTC] cameraVideo:", cameraVideo.current);
 
-                try {
-                    await cameraVideo.current.play();
+            let attempts = 0;
+            const maxAttempts = 10;
 
-                    if (streamType === "calibration") {
-                        await workspaceDrawing();
+            const tryAttachVideo = async (): Promise<void> => {
+                if (cameraVideo.current) {
+                    console.log("[WebRTC] Video element available");
+
+                    cameraVideo.current.srcObject = cameraStream.current;
+                    cameraVideo.current.muted = true;
+
+                    try {
+                        await cameraVideo.current.play();
+
+                        console.log("[WebRTC] VIDEO PLAYING");
+
+                        if (streamType === "calibration") {
+                            await workspaceDrawing();
+                        }
+                    } catch (e) {
+                        console.error("[WebRTC] PLAY ERROR:", e);
                     }
-                } catch (e) {
-                    console.log("PLAY ERROR:", e);
+
+                    return;
                 }
-            }
+
+                attempts++;
+
+                if (attempts < maxAttempts) {
+                    console.log(
+                        `[WebRTC] cameraVideo.current is null. Retry ${attempts}/${maxAttempts}`
+                    );
+
+                    setTimeout(tryAttachVideo, 100);
+                } else {
+                    console.error(
+                        "[WebRTC] Video element not available after retries"
+                    );
+                }
+            };
+
+            await tryAttachVideo();
         };
 
         const offer = await pc.current.createOffer();
@@ -2230,6 +2294,14 @@ function App(){
                 stream: streamType
             })
         });
+
+        if (!response.ok) {
+            const error = await response.json();
+
+            throw new Error(
+                error.detail || "Failed to establish WebRTC connection"
+            );
+        }
 
         const answer = await response.json();
 
@@ -2945,10 +3017,10 @@ function App(){
             const access_token = localStorage.getItem("access_token");
             const r = await apiFetch("/calibrate/mode");
             const calibData = await r.json();
-            if (calibData["Calibrate Mode"] === "Automatic") {
+            if (calibData["Calibrate Mode"] === "Automatic" && cameraStatus === "online") {
                 if (currentMenu !== "calibration-menu") return;
                 applyMask(access_token!);
-            } else if (calibData["Calibrate Mode"] === "Manual") {
+            } else if (calibData["Calibrate Mode"] === "Manual" && cameraStatus === "online") {
                 applyManualWorkspace();
             }
         } catch (err) {
@@ -3689,6 +3761,7 @@ function App(){
                                     showCamera={showCamera}
                                     setShowCamera={setShowCamera}
 
+                                    cameraStatus={cameraStatus}
                                     cameraVideo={cameraVideo}
                                     objectImage={objectImage}
                                     cropVideoReady={cropVideoReady}
@@ -3791,6 +3864,7 @@ function App(){
 
                                     toggleMenu={toggleMenu}
 
+                                    cameraStatus={cameraStatus}
                                     cameraVideo={cameraVideo}
                                     handleColorClick={handleColorClick}
                                     workspaceCanvas={workspaceCanvas}
@@ -3871,6 +3945,7 @@ function App(){
                                     settingsAnchorRect={settingsAnchorRect}
                                     setShowSettingsPopup={setShowSettingsPopup}
 
+                                    cameraStatus={cameraStatus}
                                     expHDR={expHDR}
                                     handleExpHDR_toggle={handleExpHDR_toggle}
                                     exposureTime={exposureTime}

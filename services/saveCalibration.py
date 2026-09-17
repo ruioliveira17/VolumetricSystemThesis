@@ -16,7 +16,6 @@ def save_WS_calibration():
 
     data = {
         "detection_area": workspaceState.detection_area.tolist() if isinstance(workspaceState.detection_area, numpy.ndarray) else workspaceState.detection_area,
-        "workspace_warning": workspaceState.workspace_warning.tolist() if isinstance(workspaceState.workspace_warning, numpy.ndarray) else workspaceState.workspace_warning,
         "workspace_depth": float(workspaceState.workspace_depth),
         "hmin": int(maskState.hmin),
         "hmax": int(maskState.hmax),

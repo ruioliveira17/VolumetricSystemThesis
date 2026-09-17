@@ -11,257 +11,252 @@ from ScepterSDK import *
 def statusCamera():
     print("Status")
 
-    if camState.camera is not None:
-        camState.status = "Opened"
-        return{"status": "Camera is opened!"}
-    else:
-        camState.status = "Closed"
+    if camState.camera is not None and camState.cameraStatus == "online":
+        return{"status": "Camera is already opened!"}
+    elif camState.cameraStatus == "starting":
+        return{"status": "Camera is starting!"}
+    elif camState.cameraStatus == "shutting_down":
+        return{"status": "Camera is closing!"}
+    elif camState.camera is None:
         return{"status": "Camera is closed!"}
     
 def startCamera():
-    if camState.camera is not None:
-        print("Camera is already opened!")
-        return{"message": "Nothing to Open"}
+    try:
+        if camState.camera is not None and camState.cameraStatus == "online":
+            print("Camera is already opened!")
+            return{"message": "Nothing to Open"}
+        elif camState.cameraStatus == "starting":
+            print("Camera is starting!")
+            return{"message": "Nothing to Open"}
 
-    print("Opening Camera!")
+        print("Opening Camera!")
 
-    ret = lib.scInitialize()
-    print("scInitialize:", ret)
+        camState.cameraStatus = "starting"
 
-    if ret != 0:
-        raise RuntimeError("Failed to initialize Scepter SDK!")
+        ret = lib.scInitialize()
+        print("scInitialize:", ret)
 
-    camera_count = ctypes.c_uint32(0)
-    retry_count = 100
+        if ret != 0:
+            raise RuntimeError("Failed to initialize Scepter SDK!")
 
-    while camera_count.value==0 and retry_count > 0:
-        ret = lib.scGetDeviceCount(ctypes.byref(camera_count), 1000)
+        camera_count = ctypes.c_uint32(0)
+        retry_count = 20
 
-        print(
-            "scGetDeviceCount:",
-            ret,
-            "| câmaras:",
-            camera_count.value
-        )
+        while camera_count.value==0 and retry_count > 0:
+            ret = lib.scGetDeviceCount(ctypes.byref(camera_count), 1000)
+
+            print(
+                "scGetDeviceCount:",
+                ret,
+                "| câmaras:",
+                camera_count.value
+            )
+
+            if camera_count.value == 0:
+                retry_count -= 1
+                time.sleep(1)
+                print("Scanning......   ", retry_count)
 
         if camera_count.value == 0:
-            retry_count -= 1
-            time.sleep(1)
-            print("Scanning......   ", retry_count)
+            print("There are no cameras found")
+            camState.cameraStatus = "error"
+            lib.scShutdown()
+            return {"message": "No camera detected"}
 
-    if camera_count.value == 0:
-        print("There are no cameras found")
-        lib.scShutdown()
-        return {"message": "No camera detected"}
+        device_info_list = (ScDeviceInfo * camera_count.value)()
 
-    device_info_list = (ScDeviceInfo * camera_count.value)()
+        print("ANTES scGetDeviceInfoList")
 
-    print("ANTES scGetDeviceInfoList")
-
-    ret = lib.scGetDeviceInfoList(
-        camera_count.value,
-        device_info_list
-    )
-
-    print("DEPOIS scGetDeviceInfoList:", ret)
-
-    if ret != 0:
-        lib.scShutdown()
-        raise RuntimeError("Failed to get camera information!")
-
-    device_info = device_info_list[0]
-
-    print("Camera")
-    print("--------------------")
-    print("Product:", device_info.productName.decode(errors="ignore"))
-    print("Serial:", device_info.serialNumber.decode(errors="ignore"))
-    print("IP:", device_info.ip.decode(errors="ignore"))
-    print("Status:", device_info.status)
-
-    # Abrir câmara pelo número de série
-    camera = ScDeviceHandle()
-
-    serial = device_info.serialNumber
-
-    print("Opening camera...")
-    ret = lib.scOpenDeviceBySN(
-        serial,
-        ctypes.byref(camera)
-    )
-
-    print("scOpenDeviceBySN:", ret)
-
-    if ret != 0:
-        lib.scShutdown()
-        return {"message": "Failed"}
-
-    print("Device handle:", camera)
-    print("Camera opened successfully!")
-
-    camState.camera = camera
-
-    # Iniciar stream
-    ret = lib.scStartStream(camState.camera)
-    print("scStartStream:", ret)
-
-    if ret != 0:
-        lib.scCloseDevice(ctypes.byref(camState.camera))
-        camState.camera = None
-        lib.scShutdown()
-        raise RuntimeError("Failed to start camera stream!")
-
-    params = ScTimeFilterParams()
-
-    ret = lib.scGetTimeFilterParams(
-        camState.camera,
-        ctypes.byref(params)
-    )
-
-    if ret == 0:
-        print("The default TimeFilter switch is " + str(params.enable))
-    else:
-        print("scGetTimeFilterParams failed:" + str(ret))
-
-    params.enable = True
-
-    ret = lib.scSetTimeFilterParams(
-        camState.camera,
-        params
-    )
-
-    if ret == 0:
-        print(
-            "Set TimeFilter switch to "
-            + str(params.enable)
-            + " is Ok"
-        )
-    else:
-        print(
-            "scSetTimeFilterParams failed:"
-            + str(ret)
+        ret = lib.scGetDeviceInfoList(
+            camera_count.value,
+            device_info_list
         )
 
-    # Definir modo de exposição manual
-    ret = lib.scSetExposureControlMode(
-        camState.camera,
-        0x01,  # SC_TOF_SENSOR
-        1      # SC_EXPOSURE_CONTROL_MODE_MANUAL
-    )
+        print("DEPOIS scGetDeviceInfoList:", ret)
 
-    if ret == 0:
-        print("Set exposure control mode to manual is ok")
-    else:
-        print("scSetExposureControlMode failed:", ret)
+        if ret != 0:
+            camState.cameraStatus = "error"
+            lib.scShutdown()
+            raise RuntimeError("Failed to get camera information!")
 
-    # Definir tempo de exposição
-    ret = lib.scSetExposureTime(
-        camState.camera,
-        0x01,  # SC_TOF_SENSOR
-        ctypes.c_int32(camState.exposureTime)
-    )
+        device_info = device_info_list[0]
 
-    if ret == 0:
-        print("Set exposure time is ok")
-    else:
-        print("scSetExposureTime failed:", ret)
+        print("Camera")
+        print("--------------------")
+        print("Product:", device_info.productName.decode(errors="ignore"))
+        print("Serial:", device_info.serialNumber.decode(errors="ignore"))
+        print("IP:", device_info.ip.decode(errors="ignore"))
+        print("Status:", device_info.status)
 
-    # Confirmar tempo de exposição
-    exposureTime = ctypes.c_int32()
+        # Abrir câmara pelo número de série
+        camera = ScDeviceHandle()
 
-    ret = lib.scGetExposureTime(
-        camState.camera,
-        0x01,  # SC_TOF_SENSOR
-        ctypes.byref(exposureTime)
-    )
+        serial = device_info.serialNumber
 
-    if ret == 0:
-        print("Exposure Time:", exposureTime.value)
-    else:
-        print("scGetExposureTime failed:", ret)
-
-    setFPS()
-
-    # Ativar transformação Color -> Depth
-    ret = lib.scSetTransformColorImgToDepthSensorEnabled(
-        camState.camera,
-        True
-    )
-
-    if ret == 0:
-        print("scSetTransformColorImgToDepthSensorEnabled ok")
-    else:
-        print(
-            "scSetTransformColorImgToDepthSensorEnabled failed:",
-            ret
+        print("Opening camera...")
+        ret = lib.scOpenDeviceBySN(
+            serial,
+            ctypes.byref(camera)
         )
 
-    setFlyingPixelFilter(value = filterState.flyingPixelFilter) 
-    
-    setFillHoleFilter(value = filterState.fillHoleFilter)
+        print("scOpenDeviceBySN:", ret)
 
-    setSpatialFilter(value = filterState.spatialFilter)
+        if ret != 0:
+            camState.cameraStatus = "error"
+            lib.scShutdown()
+            return {"message": "Failed"}
+
+        print("Device handle:", camera)
+        print("Camera opened successfully!")
+
+        camState.camera = camera
+
+        # Iniciar stream
+        ret = lib.scStartStream(camState.camera)
+        print("scStartStream:", ret)
+
+        if ret != 0:
+            lib.scCloseDevice(ctypes.byref(camState.camera))
+            camState.camera = None
+            camState.cameraStatus = "error"
+            lib.scShutdown()
+            raise RuntimeError("Failed to start camera stream!")
+
+        params = ScTimeFilterParams()
+
+        ret = lib.scGetTimeFilterParams(
+            camState.camera,
+            ctypes.byref(params)
+        )
+
+        if ret == 0:
+            print("The default TimeFilter switch is " + str(params.enable))
+        else:
+            print("scGetTimeFilterParams failed:" + str(ret))
+
+        params.enable = True
+
+        ret = lib.scSetTimeFilterParams(
+            camState.camera,
+            params
+        )
+
+        if ret == 0:
+            print(
+                "Set TimeFilter switch to "
+                + str(params.enable)
+                + " is Ok"
+            )
+        else:
+            print(
+                "scSetTimeFilterParams failed:"
+                + str(ret)
+            )
+
+        # Definir modo de exposição manual
+        ret = lib.scSetExposureControlMode(
+            camState.camera,
+            0x01,  # SC_TOF_SENSOR
+            1      # SC_EXPOSURE_CONTROL_MODE_MANUAL
+        )
+
+        if ret == 0:
+            print("Set exposure control mode to manual is ok")
+        else:
+            print("scSetExposureControlMode failed:", ret)
+
+        setFPS()
+
+        # Ativar transformação Color -> Depth
+        ret = lib.scSetTransformColorImgToDepthSensorEnabled(
+            camState.camera,
+            True
+        )
+
+        if ret == 0:
+            print("scSetTransformColorImgToDepthSensorEnabled ok")
+        else:
+            print(
+                "scSetTransformColorImgToDepthSensorEnabled failed:",
+                ret
+            )
+
+        setFlyingPixelFilter(value = filterState.flyingPixelFilter) 
         
-    setConfidenceFilter(value = filterState.confidenceFilter)
+        setFillHoleFilter(value = filterState.fillHoleFilter)
 
-    # Intrinsic Parameters Depth
+        setSpatialFilter(value = filterState.spatialFilter)
+            
+        setConfidenceFilter(value = filterState.confidenceFilter)
 
-    intrParam = ScSensorIntrinsicParameters()
+        # Intrinsic Parameters Depth
 
-    ret = lib.scGetSensorIntrinsicParameters(
-        camState.camera,
-        0x01,  # SC_TOF_SENSOR
-        ctypes.byref(intrParam)
-    )
+        intrParam = ScSensorIntrinsicParameters()
 
-    if ret != 0:
-        raise RuntimeError("Error obtaining depth intrinsic parameters!")
-        
-    camState.fx_d = intrParam.fx
-    camState.fy_d = intrParam.fy
-    camState.cx_d = intrParam.cx
-    camState.cy_d = intrParam.cy
+        ret = lib.scGetSensorIntrinsicParameters(
+            camState.camera,
+            0x01,  # SC_TOF_SENSOR
+            ctypes.byref(intrParam)
+        )
 
-    print("Cx Depth:", camState.cx_d)
-    print("Cy Depth:", camState.cy_d)
-    print("fx Depth:", camState.fx_d)
-    print("fy Depth:", camState.fy_d)
+        if ret != 0:
+            raise RuntimeError("Error obtaining depth intrinsic parameters!")
+            
+        camState.fx_d = intrParam.fx
+        camState.fy_d = intrParam.fy
+        camState.cx_d = intrParam.cx
+        camState.cy_d = intrParam.cy
 
-    # Intrinsic Parameters RGB
+        print("Cx Depth:", camState.cx_d)
+        print("Cy Depth:", camState.cy_d)
+        print("fx Depth:", camState.fx_d)
+        print("fy Depth:", camState.fy_d)
 
-    intrParam = ScSensorIntrinsicParameters()
+        # Intrinsic Parameters RGB
 
-    ret = lib.scGetSensorIntrinsicParameters(
-        camState.camera,
-        0x02,  # SC_COLOR_SENSOR
-        ctypes.byref(intrParam)
-    )
+        intrParam = ScSensorIntrinsicParameters()
 
-    if ret != 0:
-        raise RuntimeError("Error obtaining color intrinsic parameters!")
+        ret = lib.scGetSensorIntrinsicParameters(
+            camState.camera,
+            0x02,  # SC_COLOR_SENSOR
+            ctypes.byref(intrParam)
+        )
 
-    camState.fx_rgb = intrParam.fx
-    camState.fy_rgb = intrParam.fy
-    camState.cx_rgb = intrParam.cx
-    camState.cy_rgb = intrParam.cy
+        if ret != 0:
+            raise RuntimeError("Error obtaining color intrinsic parameters!")
 
-    print("Cx RGB:", camState.cx_rgb)
-    print("Cy RGB:", camState.cy_rgb)
-    print("fx RGB:", camState.fx_rgb)
-    print("fy RGB:", camState.fy_rgb)
+        camState.fx_rgb = intrParam.fx
+        camState.fy_rgb = intrParam.fy
+        camState.cx_rgb = intrParam.cx
+        camState.cy_rgb = intrParam.cy
 
-    print("Camera ready")
+        print("Cx RGB:", camState.cx_rgb)
+        print("Cy RGB:", camState.cy_rgb)
+        print("fx RGB:", camState.fx_rgb)
+        print("fy RGB:", camState.fy_rgb)
 
-    camState._running = True
-    camState._thread = threading.Thread(target=captureLoop, daemon=True)
-    camState._thread.start()
+        print("Camera ready")
+
+        camState._running = True
+        camState._thread = threading.Thread(target=captureLoop, daemon=True)
+        camState._thread.start()
+
+        camState.cameraStatus = "online"
+
+    except Exception as e:
+        camState.cameraStatus = "error"
+        print("Camera startup error:", e)
 
 def stopCamera():
     camState._running = False
     if camState._thread:
         camState._thread.join(timeout=3)
+
     if camState.camera is None:
         return{"message": "Nothing to Close"}
     else:
+        camState.cameraStatus = "shutting_down"
+
         ret = lib.scStopStream(camState.camera)    
         if  ret == 0:
             print("stop stream successful")
@@ -273,6 +268,7 @@ def stopCamera():
         ) 
         if  ret == 0:
             camState.camera = None
+            camState.cameraStatus = "offline"
             print("[CameraStream] Câmara fechada.")
             return{"message": "Success"}
         else:
@@ -314,6 +310,14 @@ def captureLoop():
         )
 
         if ret != 0:
+            now = time.monotonic()
+
+            if (frameState.lastFrameAt is not None
+                    and now - frameState.lastFrameAt > 5
+                    and now - camState.lastFrameWarnAt > 5):
+                camState.lastFrameWarnAt = now
+                print(f"[CameraStream] sem frames há {now - frameState.lastFrameAt:.1f}s")
+
             continue
 
         else:
@@ -417,6 +421,7 @@ def captureLoop():
                 frameState.colorFrame = colorFrame
                 frameState.colorToDepthFrameHDR = colorToDepthFrame
                 frameState.depthFrameHDR = depthFrame
+                frameState.lastFrameAt = time.monotonic()
 
 def setFlyingPixelFilter(value: bool):
     params = ScFlyingPixelFilterParams()

@@ -298,6 +298,10 @@
   transition: all 0.3s ease;
 }
 
+.volume-button:disabled{
+  opacity: 0.6;
+}
+
 .volume-button-info-container{
   position: absolute;
   top: 50%;
@@ -354,15 +358,15 @@
   }
 }
 
-.volume-button:hover {
+.volume-button:not(:disabled):hover {
   background: white;
 }
 
-.volume-button:hover .text {
+.volume-button:not(:disabled):hover .text {
   color: black;
 }
 
-.volume-button:hover .icon {
+.volume-button:not(:disabled):hover .icon {
   filter: invert(1);
 }
 

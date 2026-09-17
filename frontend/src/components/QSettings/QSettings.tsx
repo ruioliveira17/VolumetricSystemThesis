@@ -9,6 +9,7 @@ interface QSettingsProps {
 
   setShowSettingsPopup: React.Dispatch<React.SetStateAction<boolean>>;
 
+  cameraStatus: string;
   // Exposition
   expHDR: boolean;
   handleExpHDR_toggle: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -33,6 +34,7 @@ interface QSettingsProps {
 function QSettings({
   settingsAnchorRect,
   setShowSettingsPopup,
+  cameraStatus,
   expHDR,
   handleExpHDR_toggle,
   exposureTime,
@@ -83,12 +85,12 @@ function QSettings({
           <span className="text">Exposition Type</span>
           <div className="radio-group">
             <label className="radio-option">
-              <input type="radio" name="abertura" value="true" checked={expHDR} onChange={handleExpHDR_toggle} />
+              <input type="radio" name="abertura" value="true" checked={expHDR} onChange={handleExpHDR_toggle} disabled={cameraStatus !== "online"} />
               <span className="label">HDR</span>
             </label>
 
             <label className="radio-option">
-              <input type="radio" name="abertura" value="false" checked={!expHDR} onChange={handleExpHDR_toggle} />
+              <input type="radio" name="abertura" value="false" checked={!expHDR} onChange={handleExpHDR_toggle} disabled={cameraStatus !== "online"} />
               <span className="label">Exposure Time</span>
             </label>
 
@@ -99,9 +101,10 @@ function QSettings({
                   className="exposure-input"
                   value={exposureTime}
                   onChange={(e) => setExposureTime(e.target.value)}
+                  disabled={cameraStatus !== "online"}
                 />
 
-                <button className="exposure-btn" onClick={exposureSet_click}>
+                <button className="exposure-btn" onClick={exposureSet_click} disabled={cameraStatus !== "online"}>
                   <span className="text">Set</span>
                 </button>
               </div>
@@ -147,7 +150,7 @@ function QSettings({
           <span className="text">Preferences</span>
           <div className="image-crop-preference">
             <span className="video-size"> Video Size </span>
-            <button onClick={() => setShowCropWindow(true)} disabled={currentMenu !== "volume-menu"} className="define-button">
+            <button onClick={() => setShowCropWindow(true)} disabled={currentMenu !== "volume-menu" || cameraStatus !== "online"} className="define-button">
               <span className="define_text"> Define </span>
             </button>
           </div>

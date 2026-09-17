@@ -21,6 +21,7 @@ interface QVolumeProps {
   showCamera: boolean;
   setShowCamera: React.Dispatch<React.SetStateAction<boolean>>;
 
+  cameraStatus: string;
   cameraVideo: RefObject<HTMLVideoElement | null>;
   objectImage: string | null;
   cropVideoReady: boolean;
@@ -64,6 +65,7 @@ function QVolume({
   showCamera,
   setShowCamera,
 
+  cameraStatus,
   cameraVideo,
   objectImage,
   cropVideoReady,
@@ -154,7 +156,7 @@ function QVolume({
             </div>
 
             {/* Button */}
-            <button onClick={volume_click} className="volume-button" disabled={loadingVolume || !weightStable}>
+            <button onClick={volume_click} className="volume-button" disabled={loadingVolume || !weightStable || cameraStatus !== "online"}>
                 {loadingVolume && (
                     <>
                         <div className="loadingVolume-icon">

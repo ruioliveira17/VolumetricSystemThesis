@@ -177,6 +177,10 @@
   z-index: 2;
 }
 
+.btn-group:disabled {
+  opacity: 0.2;
+}
+
 @media (min-height: 1173px){
   .btn-group {
     margin-top: 25px;
@@ -197,6 +201,10 @@
 
   transition: ease 0.3s;
   white-space: nowrap;
+}
+
+.btn-mode:disabled{
+  opacity: 0.6;
 }
 
 .btn-content {
@@ -268,7 +276,7 @@
   }
 }
 
-.btn-mode:hover {
+.btn-mode:not(:disabled):hover {
   background: rgba(255, 255, 255, 0.15);
 }
 
@@ -453,6 +461,10 @@
   transition: all 0.3s ease;
 }
 
+.calibration-button:disabled{
+  opacity: 0.6;
+}
+
 @media (min-height: 1173px){
   .calibration-button {
     height: 65px;
@@ -501,15 +513,15 @@
   }
 }
 
-.calibration-button:hover {
+.calibration-button:not(:disabled):hover {
   background: white;
 }
 
-.calibration-button:hover .text {
+.calibration-button:not(:disabled):hover .text {
   color: black;
 }
 
-.calibration-button:hover .icon {
+.calibration-button:not(:disabled):hover .icon {
   filter: invert(1);
 }
 

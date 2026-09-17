@@ -1,6 +1,7 @@
 class CameraState:
     def __init__(self):
         self.camera = None
+        self.cameraStatus = "offline"
 
         self._running = False
         self._thread = None
@@ -20,5 +21,7 @@ class CameraState:
         self.hdrEnabled = True
 
         self.hdrIndex = 0
+
+        self.lastFrameWarnAt = 0.0
 
 camState = CameraState()

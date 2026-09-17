@@ -4,18 +4,36 @@ import time
 import cv2
 
 from aiortc import VideoStreamTrack
+from aiortc.mediastreams import MediaStreamError
 from av import VideoFrame
 
 from FrameState import frameState
 from CameraState import camState
 from ModeState import modeState
 
+FRAME_WAIT_TIMEOUT = 5.0
+
+async def _wait_for_frame(get_frame):
+    """
+    Espera por um frame sem bloquear o event loop.
+    Levanta MediaStreamError se não aparecer nenhum dentro do tempo limite,
+    o que termina o track em vez de o deixar em ciclo infinito.
+    """
+    deadline = time.monotonic() + FRAME_WAIT_TIMEOUT
+    frame = get_frame()
+
+    while frame is None:
+        if time.monotonic() > deadline:
+            raise MediaStreamError("Sem frames da câmara")
+
+        await asyncio.sleep(0.05)
+        frame = get_frame()
+
+    return frame
+
 class CameraTrack(VideoStreamTrack):
     async def recv(self):
-        frame = frameState.colorFrame
-        while frame is None:
-            #await asyncio.sleep(0.05)
-            frame = frameState.colorFrame
+        frame = await _wait_for_frame(lambda: frameState.colorFrame)
 
         if frame.dtype != numpy.uint8:
             frame = (numpy.clip(frame, 0, 1) * 255).astype(numpy.uint8)
@@ -25,21 +43,13 @@ class CameraTrack(VideoStreamTrack):
 class CTDTrack(VideoStreamTrack):
     async def recv(self):
         if modeState.calibrationMode == "Automatic":
-            frame = frameState.workspaceDetectedFrame
-            while frame is None:
-                #await asyncio.sleep(0.05)
-                frame = frameState.workspaceDetectedFrame
-            
-            if frame.dtype != numpy.uint8:
-                frame = (numpy.clip(frame, 0, 1) * 255).astype(numpy.uint8)
+            frame = await _wait_for_frame(lambda: frameState.workspaceDetectedFrame)
+
         if modeState.calibrationMode == "Manual":
-            if camState.hdrEnabled and frameState.colorToDepthFrameHDR is not None:
-                frame = frameState.colorToDepthFrameHDR
-            elif not camState.hdrEnabled:
-                frame = frameState.colorToDepthFrame
-            while frame is None:
-                #await asyncio.sleep(0.05)
-                frame = frameState.colorToDepthFrame
+            if camState.hdrEnabled:
+                frame = await _wait_for_frame(lambda: frameState.colorToDepthFrameHDR)
+            else:
+                frame = await _wait_for_frame(lambda: frameState.colorToDepthFrame)
             
             if frame.dtype != numpy.uint8:
                 frame = (numpy.clip(frame, 0, 1) * 255).astype(numpy.uint8)
