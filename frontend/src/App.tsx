@@ -248,7 +248,7 @@ function App(){
         b: 0
     });
 
-    const [calibrationMode, setCalibrationMode] = useState<string>("off");
+    const [calibrationMode, setCalibrationMode] = useState<string>("auto");
     const [calibrationModalOpen, setCalibrationModalOpen] = useState<boolean>(false);
     const [loadingCalibration, setLoadingCalibration] = useState<boolean>(false);
 
