@@ -64,7 +64,7 @@ from color_presets import COLOR_PRESETS
 from auth import create_access_token, create_refresh_token, get_password_hash, verify_password, verify_token
 from Bundle2 import objIdentifier
 from CalibrationDefTkinter import calibrateAPI, maskAPI
-from CameraOptions import startCamera, stopCamera, setFPS, setFlyingPixelFilter, setFillHoleFilter, setSpatialFilter, setConfidenceFilter
+from CameraOptions import startCamera, stopCamera, setFPS, setFlyingPixelFilter, setFillHoleFilter, setSpatialFilter, setConfidenceFilter, processHDR
 from MinDepth2 import MinDepthAPI
 from VolumeTkinter import volumeSingleBundleAPI, volumeMultiBundleAPI, volumeRealAPI #, volumeIndividualAPI
 from Weight import weight_loop, weight_lock
@@ -471,10 +471,6 @@ def save_measurement(data: Optional[MeasurementIn] = Body(default=None), current
     
     total_m = round(sum(o["volume_m"] for o in objects), 6)
     total_cm = round(sum(o["volume_cm"] for o in objects), 2)
-
-    print("DATA:", data)
-    print("WEIGHT:", data.weight)
-    print("WEIGHT TYPE:", type(data.weight))
 
     mid = measurements_repo.create_measurement(
         user_id=owner["id"], volume_mode=volume_mode, object_count=len(objects),
@@ -893,10 +889,8 @@ def apply_mask(data: HSVValue, current_user: dict = Depends(get_current_user)):
     lower = (data.hmin, data.smin, data.vmin)
     upper = (data.hmax, data.smax, data.vmax)
 
-    if frameState.colorToDepthFrameHDR is None or modeState.expositionMode == "Fixed Exposition":
-        colorToDepthFrame = frameState.colorToDepthFrame
-    else:
-        colorToDepthFrame = frameState.colorToDepthFrameHDR
+    
+    colorToDepthFrame = frameState.colorToDepthFrame
 
     result = maskAPI(colorToDepthFrame, lower, upper, int(camState.cx_d), int(camState.cy_d))
 
@@ -955,16 +949,8 @@ def calibrate(data: HSVValue, current_user: dict = Depends(get_current_user)):
     upper = (data.hmax, data.smax, data.vmax)
 
     colorFrame = frameState.colorFrame
-
-    if frameState.colorToDepthFrameHDR is None or modeState.expositionMode == "Fixed Exposition":
-        colorToDepthFrame = frameState.colorToDepthFrame
-    else:
-        colorToDepthFrame = frameState.colorToDepthFrameHDR
-
-    if frameState.depthFrameHDR is None or modeState.expositionMode == "Fixed Exposition":
-        depthFrame = frameState.depthFrame
-    else:
-        depthFrame = frameState.depthFrameHDR
+    colorToDepthFrame = frameState.colorToDepthFrame
+    depthFrame = frameState.depthFrame
 
     detection_area, workspace_depth, center_aligned, workspace_clear, calibrationColorFrame, calibrationDepthFrame = calibrateAPI(colorToDepthFrame, depthFrame, colorFrame, workspaceState.detected_area, lower, upper, camState.colorSlope, int(camState.cx_d), int(camState.cy_d), int(camState.fx_d), int(camState.fy_d), modeState.calibrationMode)
 
@@ -1262,18 +1248,16 @@ def volumeStatus(current_user: dict = Depends(get_current_user)):
          tags=["Volume"])
 def volume_SingleBundle(current_user: dict = Depends(get_current_user)):
     volumeState.processing = "Processing Frames..."
+    if modeState.expositionMode == "HDR":
+        while True:
+            finished, depthFrame = processHDR(volumeState.click_timestamp)
+            if finished:
+                break
+    else:
+        depthFrame = frameState.depthFrame
 
     colorFrame = frameState.colorFrame
-
-    if frameState.colorToDepthFrameHDR is None or modeState.expositionMode == "Fixed Exposition":
-        colorToDepthFrame = frameState.colorToDepthFrame
-    else:
-        colorToDepthFrame = frameState.colorToDepthFrameHDR
-
-    if frameState.depthFrameHDR is None or modeState.expositionMode == "Fixed Exposition":
-        depthFrame = frameState.depthFrame
-    else:
-        depthFrame = frameState.depthFrameHDR
+    colorToDepthFrame = frameState.colorToDepthFrame
 
     if workspaceState.detection_area is not None:
         volumeState.processing = "Finding Depths..."
@@ -1351,18 +1335,16 @@ def get_Volume_SingleBundle(current_user: dict = Depends(get_current_user)):
          tags=["Volume"])
 def volume_MultiBundle(current_user: dict = Depends(get_current_user)):
     volumeState.processing = "Processing Frames..."
+    if modeState.expositionMode == "HDR":
+        while True:
+            finished, depthFrame = processHDR(volumeState.click_timestamp)
+            if finished:
+                break
+    else:
+        depthFrame = frameState.depthFrame
 
     colorFrame = frameState.colorFrame
-
-    if frameState.colorToDepthFrameHDR is None or modeState.expositionMode == "Fixed Exposition":
-        colorToDepthFrame = frameState.colorToDepthFrame
-    else:
-        colorToDepthFrame = frameState.colorToDepthFrameHDR
-
-    if frameState.depthFrameHDR is None or modeState.expositionMode == "Fixed Exposition":
-        depthFrame = frameState.depthFrame
-    else:
-        depthFrame = frameState.depthFrameHDR
+    colorToDepthFrame = frameState.colorToDepthFrame
 
     if workspaceState.detection_area is not None:
         volumeState.processing = "Finding Depths..."
@@ -1459,18 +1441,16 @@ def get_Volume_MultiBundle(current_user: dict = Depends(get_current_user)):
          tags=["Volume"])
 def volume_Real(current_user: dict = Depends(get_current_user)):
     volumeState.processing = "Processing Frames..."
+    if modeState.expositionMode == "HDR":
+        while True:
+            finished, depthFrame = processHDR(volumeState.click_timestamp)
+            if finished:
+                break
+    else:
+        depthFrame = frameState.depthFrame
 
     colorFrame = frameState.colorFrame
-
-    if frameState.colorToDepthFrameHDR is None or modeState.expositionMode == "Fixed Exposition":
-        colorToDepthFrame = frameState.colorToDepthFrame
-    else:
-        colorToDepthFrame = frameState.colorToDepthFrameHDR
-
-    if frameState.depthFrameHDR is None or modeState.expositionMode == "Fixed Exposition":
-        depthFrame = frameState.depthFrame
-    else:
-        depthFrame = frameState.depthFrameHDR
+    colorToDepthFrame = frameState.colorToDepthFrame
 
     if workspaceState.detection_area is not None:
         volumeState.processing = "Finding Depths..."
@@ -1887,6 +1867,22 @@ def get_weight(current_user: dict = Depends(get_current_user)):
          tags=["Menu"])
 def updateCurrentMenu(data: CurrentMenu, current_user: dict = Depends(get_current_user)):
     modeState.currentMenu = data.currentMenu
+
+    if data.currentMenu == "calibration-menu" and camState.hdrEnabled:
+        ret = lib.scSetExposureTimeOfHDR(camState.camera, 0, 100)
+    
+        if ret != 0:
+            print("scSetExposureTimeOfHDR frame 0 failed:", ret)
+            return {"message": "Failed"}
+    
+        ret = lib.scSetExposureTimeOfHDR(camState.camera, 1, 1800)
+    
+        if ret != 0:
+            print("scSetExposureTimeOfHDR frame 1 failed:", ret)
+            return {"message": "Failed"}
+    
+        print("HDR enabled: 100 us + 1800 us")
+
     return{"message:": "Success"}
 
 # --------------------------------------- Measurements ---------------------------------------
@@ -2031,6 +2027,26 @@ def health():
         "last_frame_age_s": age,
     }
 
+
+def depthToPointCloud(depth, fx, fy, cx, cy):
+    height, width = depth.shape
+
+    y, x = numpy.indices((height, width))
+
+    z = depth.astype(numpy.float32)
+
+    valid = z > 0
+
+    x3d = ((x - cx) * z) / fx
+    y3d = ((y - cy) * z) / fy
+
+    points = numpy.stack(
+        (x3d[valid], y3d[valid], z[valid]),
+        axis=1
+    )
+
+    return points
+
 # ----------------------------------- Server  Status -----------------------------------
 @app.get("/status", summary="Checks the status of the server",
          description="""
@@ -2039,6 +2055,80 @@ def health():
          tags=["Server"])
 def serverStatus():
     return {"status": "ok"}
+
+
+from fastapi.responses import HTMLResponse
+
+@app.get("/hdr/analysis", response_class=HTMLResponse)
+def getHDRAnalysis():
+    if frameState.hdrDepth is None:
+        return HTMLResponse(
+            "<h1>Não existe HDR disponível.</h1>",
+            status_code=404
+        )
+
+    points = depthToPointCloud(
+        frameState.hdrDepth,
+        camState.fx_d,
+        camState.fy_d,
+        camState.cx_d,
+        camState.cy_d
+    )
+
+    x = points[:, 0].tolist()
+    y = points[:, 1].tolist()
+    z = points[:, 2].tolist()
+
+    html = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+    </head>
+
+    <body style="margin: 0;">
+        <div id="pointCloud" style="width: 100vw; height: 100vh;"></div>
+
+        <script>
+            const trace = {{
+                x: {x},
+                y: {y},
+                z: {z},
+                mode: 'markers',
+                type: 'scatter3d',
+                marker: {{
+                    size: 2
+                }}
+            }};
+
+            const layout = {{
+                 title: 'HDR Point Cloud',
+                scene: {{
+                    xaxis: {{
+                        title: 'X (mm)'
+                    }},
+                    yaxis: {{
+                        title: 'Y (mm)'
+                    }},
+                    zaxis: {{
+                        title: 'Depth (mm)',
+                        autorange: 'reversed'
+                    }}
+                }}
+            }};
+
+            Plotly.newPlot(
+                'pointCloud',
+                [trace],
+                layout
+            );
+        </script>
+    </body>
+    </html>
+    """
+
+    return HTMLResponse(content=html)
 
 # ----------------------------------- Frontend Mount -----------------------------------
 

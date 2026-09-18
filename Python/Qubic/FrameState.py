@@ -14,4 +14,7 @@ class FrameState:
         self.calibrationDepthFrame = None
 
         self.lastFrameAt = None
+
+        self.hdrDepth = None
+
 frameState = FrameState()

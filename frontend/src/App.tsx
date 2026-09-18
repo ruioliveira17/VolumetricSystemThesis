@@ -1823,9 +1823,19 @@ function App(){
 
         if (!data.calibrated) {
             setCurrentMenu("calibration-menu");
+            await apiFetch("/currentMenu", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({currentMenu: currentMenu})
+                });
             setLockMenu(true);
         } else {
             setCurrentMenu("volume-menu");
+            await apiFetch("/currentMenu", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({currentMenu: currentMenu})
+                });
             setLockMenu(false);
 
             setRgb({

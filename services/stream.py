@@ -46,10 +46,7 @@ class CTDTrack(VideoStreamTrack):
             frame = await _wait_for_frame(lambda: frameState.workspaceDetectedFrame)
 
         if modeState.calibrationMode == "Manual":
-            if camState.hdrEnabled:
-                frame = await _wait_for_frame(lambda: frameState.colorToDepthFrameHDR)
-            else:
-                frame = await _wait_for_frame(lambda: frameState.colorToDepthFrame)
+            frame = await _wait_for_frame(lambda: frameState.colorToDepthFrame)
             
             if frame.dtype != numpy.uint8:
                 frame = (numpy.clip(frame, 0, 1) * 255).astype(numpy.uint8)
@@ -69,10 +66,8 @@ def generateRGB_Stream():
 
 def generateDepth_Stream():
     while True:
-        if camState.hdrEnabled and frameState.depthFrameHDR is not None:
-            depth = frameState.depthFrameHDR
-        elif not camState.hdrEnabled:
-            depth = frameState.depthFrame
+        depth = frameState.depthFrame
+
         if depth is not None:
             img = numpy.int32(depth)
             img = img * 255 / camState.colorSlope
@@ -95,10 +90,8 @@ def generateCalibrationCTD_Stream():
                     b'Content-Type: image/jpeg\r\n\r\n' + jpeg.tobytes() + b'\r\n')
             time.sleep(0.05)
         if modeState.calibrationMode == "Manual":
-            if camState.hdrEnabled and frameState.colorToDepthFrameHDR is not None:
-                frame = frameState.colorToDepthFrameHDR
-            elif not camState.hdrEnabled:
-                frame = frameState.colorToDepthFrame
+            frame = frameState.colorToDepthFrame
+            
             if frame is not None:
                 if frame.dtype != numpy.uint8:
                     frame = (numpy.clip(frame, 0, 1) * 255).astype(numpy.uint8)

@@ -6,7 +6,18 @@ import time
 from CameraState import camState
 from FilterState import filterState
 from FrameState import frameState
+from ModeState import modeState
 from ScepterSDK import *
+
+hdrExposures = [
+    (30, 500),      # 0-2: low
+    (500, 1200),     # 3-5: medium
+    (1200, 2000),    # 6-8: high
+    (100, 1800)      # 9: all
+]
+
+depthArray = [None] * 10
+timestampArray = [0] * 10
 
 def statusCamera():
     print("Status")
@@ -297,9 +308,61 @@ def setFPS():
         print("scGetFrameRate failed:"+ str(ret))  
 
 def captureLoop():
+    global depthArray, timestampArray, hdrExposures
+
     print("[CameraStream] Iniciando captura de frames...")
+    bufferIndex = 0
 
     while camState._running:
+        if camState.hdrEnabled and modeState.currentMenu == "volume-menu":
+            if bufferIndex in (0, 3, 6, 9):
+                if bufferIndex == 0:
+                    low, high = hdrExposures[0]
+                elif bufferIndex == 3:
+                    low, high = hdrExposures[1]
+                elif bufferIndex == 6:
+                    low, high = hdrExposures[2]
+                else:
+                    low, high = hdrExposures[3]
+
+                ret = lib.scSetExposureTimeOfHDR(camState.camera, 0, low)
+                if ret != 0:
+                    print("scSetExposureTimeOfHDR frame 0 failed:", ret)
+                    return {"message": "Failed"}
+            
+                ret = lib.scSetExposureTimeOfHDR(camState.camera, 1, high)
+                if ret != 0:
+                    print("scSetExposureTimeOfHDR frame 1 failed:", ret)
+                    return {"message": "Failed"}
+            
+                print(f"HDR enabled: {low}us to {high}us!")
+
+        # print("Did the HDR interval really change?")
+
+        # exposure0 = ctypes.c_int32()
+        # exposure1 = ctypes.c_int32()
+
+        # ret = lib.scGetExposureTimeOfHDR(
+        #     camState.camera,
+        #     0,
+        #     ctypes.byref(exposure0)
+        # )
+
+        # if ret != 0:
+        #     print("scGetExposureTimeOfHDR frame 0 failed:", ret)
+        # else:
+        #     print(f"HDR frame 0 exposure: {exposure0.value} us")
+
+        # ret = lib.scGetExposureTimeOfHDR(
+        #     camState.camera,
+        #     1,
+        #     ctypes.byref(exposure1)
+        # )
+
+        # if ret != 0:
+        #     print("scGetExposureTimeOfHDR frame 1 failed:", ret)
+        # else:
+        #     print(f"HDR frame 1 exposure: {exposure1.value} us")
 
         frameReady = ScFrameReady()
 
@@ -416,12 +479,102 @@ def captureLoop():
                 colorFrame = frametmp.copy()
 
             if hasColorToDepth == 1 and hasDepth == 1 and hasColor == 1:
+                now = time.monotonic()
                 frameState.colorToDepthFrame = colorToDepthFrame
                 frameState.depthFrame = depthFrame
                 frameState.colorFrame = colorFrame
-                frameState.colorToDepthFrameHDR = colorToDepthFrame
-                frameState.depthFrameHDR = depthFrame
-                frameState.lastFrameAt = time.monotonic()
+                frameState.lastFrameAt = now
+
+                depthArray[bufferIndex] = depthFrame
+                timestampArray[bufferIndex] = now
+
+                bufferIndex = (bufferIndex + 1) % 10
+
+# BUILD HDR ANTIGO (PODE SER IMPORTANTE)
+# def buildHDRDepth(depthFrames):
+#     stacked_d = numpy.stack(depthFrames, axis=0).astype(numpy.float32)
+
+#     mask_d = (stacked_d > 150) & (stacked_d <= 5000)
+#     stacked_d[~mask_d] = numpy.nan
+
+#     median_d = numpy.nanmedian(stacked_d, axis=0)
+
+#     mad_d = numpy.nanmedian(
+#         numpy.abs(stacked_d - median_d),
+#         axis=0
+#     )
+
+#     unstable = mad_d > 15
+
+#     hdrDepth = median_d.copy()
+
+#     min_d = numpy.nanmin(stacked_d, axis=0)
+#     hdrDepth[unstable] = min_d[unstable]
+
+#     return numpy.nan_to_num(
+#         hdrDepth,
+#         nan=0
+#     ).astype(numpy.uint16)
+
+def buildHDRDepth(depthFrames):
+    stacked_d = numpy.stack(depthFrames, axis=0).astype(numpy.float32)
+
+    mask_d = (stacked_d > 150) & (stacked_d <= 5000)
+    stacked_d[~mask_d] = numpy.nan
+
+    sorted_d = numpy.sort(stacked_d, axis=0)
+
+    valid_count = numpy.sum(~numpy.isnan(sorted_d), axis=0)
+
+    trimmed_d = sorted_d.copy()
+
+    trimmed_d[0] = numpy.where(
+        valid_count > 4,
+        numpy.nan,
+        trimmed_d[0]
+    )
+
+    trimmed_d[-1] = numpy.where(
+        valid_count > 4,
+        numpy.nan,
+        trimmed_d[-1]
+    )
+
+    median_d = numpy.nanmedian(trimmed_d, axis=0)
+
+    deviation = numpy.abs(trimmed_d - median_d)
+
+    valid_d = deviation <= 5
+
+    filtered_d = numpy.where(valid_d, trimmed_d, numpy.nan)
+
+    hdrDepth = numpy.rint(numpy.nanmean(filtered_d, axis=0))
+
+    return numpy.nan_to_num(
+        hdrDepth,
+        nan=0
+    ).astype(numpy.uint16)
+
+def processHDR(click_timestamp):
+    global depthArray, timestampArray
+    finished = False
+    finalHDRDepth = None
+
+    if click_timestamp is None:
+        click_timestamp = 0
+
+    if any(frame is None for frame in depthArray) or any(ts <= click_timestamp for ts in timestampArray):
+        finished = False
+    else:
+        finalHDRDepth = buildHDRDepth(depthArray)
+
+        frameState.hdrDepth = finalHDRDepth
+
+        print("HDR Processed (Done Building HDR)! Number of data analized", len(depthArray))
+
+        finished = True
+
+    return finished, finalHDRDepth
 
 def setFlyingPixelFilter(value: bool):
     params = ScFlyingPixelFilterParams()
