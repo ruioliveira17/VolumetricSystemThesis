@@ -315,9 +315,9 @@ function App(){
 
     const searchByOptions = [
         { value: "all", label: "All" },
-        { value: "mode", label: "Measurement Mode" },
-        { value: "object", label: "No. of Objects" },
-        { value: "user", label: "User" },
+        { value: "mode_multiBundle", label: "Multi Bundle" },
+        { value: "mode_Real", label: "Real" },
+        { value: "mode_singleBundle", label: "Single Bundle" },
     ];
 
     const dateOptions = [
@@ -400,81 +400,58 @@ function App(){
             })
             .toLowerCase();
 
-        let matchesSearch = true;
+        // -------------------------
+        // Search
+        // -------------------------
 
-        if (search) {
-            switch (searchBy) {
-                case "id":
-                    matchesSearch = measurement.id
-                        .toString()
-                        .includes(search);
-                    break;
+        const matchesSearch = !search ||
+            measurement.id.toString().includes(search) ||
+            measurement.user_id.toString().includes(search) ||
+            user?.username?.toLowerCase().includes(search) ||
+            measurement.volume_mode.toLowerCase().includes(search) ||
+            measurement.object_count.toString().includes(search) ||
+            measurement.weight.toString().includes(search) ||
+            formattedDate.includes(search);
 
-                case "user":
-                    matchesSearch =
-                        measurement.user_id
-                            .toString()
-                            .includes(search) ||
-                        user?.username
-                            .toLowerCase()
-                            .includes(search);
-                    break;
+        // -------------------------
+        // Mode filter
+        // -------------------------
 
-                case "mode":
-                    matchesSearch = measurement.volume_mode
-                        .toLowerCase()
-                        .includes(search);
-                    break;
+        let matchesMode = true;
 
-                case "object":
-                    matchesSearch = measurement.object_count
-                        .toString()
-                        .includes(search);
-                    break;
+        switch (searchBy) {
+            case "mode_multiBundle":
+                matchesMode =
+                    measurement.volume_mode === "Multi Bundle";
+                break;
 
-                case "weight":
-                    matchesSearch = measurement.weight
-                        .toString()
-                        .includes(search);
-                    break;
+            case "mode_Real":
+                matchesMode =
+                    measurement.volume_mode === "Real";
+                break;
 
-                case "all":
-                default:
-                    matchesSearch =
-                        measurement.id
-                            .toString()
-                            .includes(search) ||
-                        measurement.user_id
-                            .toString()
-                            .includes(search) ||
-                        user?.username
-                            .toLowerCase()
-                            .includes(search) ||
-                        measurement.volume_mode
-                            .toLowerCase()
-                            .includes(search) ||
-                        measurement.object_count
-                            .toString()
-                            .includes(search) ||
-                        measurement.weight
-                            .toString()
-                            .includes(search) ||
-                        formattedDate.includes(search);
-                    break;
-            }
+            case "mode_singleBundle":
+                matchesMode =
+                    measurement.volume_mode === "Single Bundle";
+                break;
+
+            case "all":
+            default:
+                matchesMode = true;
+                break;
         }
 
-    // -------------------------
-    // Date filter
-    // -------------------------
+        // -------------------------
+        // Date filter
+        // -------------------------
 
-    const matchesDate = isDateInRange(
-        measurement.created_at,
-        dateFilter
-    );
+        const matchesDate = isDateInRange(
+            measurement.created_at,
+            dateFilter
+        );
 
-    return matchesSearch && matchesDate;
-});
+        return matchesSearch && matchesMode && matchesDate;
+    });
 
     const [selectedID, setSelectedID] = useState<number | null>(null);
 

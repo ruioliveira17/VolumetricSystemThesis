@@ -64,7 +64,7 @@ from color_presets import COLOR_PRESETS
 from auth import create_access_token, create_refresh_token, get_password_hash, verify_password, verify_token
 from Bundle2 import objIdentifier
 from CalibrationDefTkinter import calibrateAPI, maskAPI
-from CameraOptions import startCamera, stopCamera, setFPS, setFlyingPixelFilter, setFillHoleFilter, setSpatialFilter, setConfidenceFilter, processHDR
+from CameraOptions import startCamera, stopCamera, setFPS, setExposureTime, setEnableHDR, setHDRInterval, setFlyingPixelFilter, setFillHoleFilter, setSpatialFilter, setConfidenceFilter, processHDR
 from MinDepth2 import MinDepthAPI
 from VolumeTkinter import volumeSingleBundleAPI, volumeMultiBundleAPI, volumeRealAPI #, volumeIndividualAPI
 from Weight import weight_loop, weight_lock
@@ -1091,19 +1091,8 @@ def get_expMode(current_user: dict = Depends(get_current_user)):
 def fixedExp(current_user: dict = Depends(get_current_user)):
     modeState.expositionMode = "Fixed Exposition"
     camState.hdrEnabled = False
-    ret = lib.scSetHDRModeEnabled(
-        camState.camera,
-        False
-    )
-
-    if ret != 0:
-        print("scSetHDRModeEnabled failed:", ret)
-
-    ret = lib.scSetExposureTime(
-        camState.camera,
-        0x01,  # SC_TOF_SENSOR
-        ctypes.c_int32(camState.exposureTime)
-    )
+    setEnableHDR(camState.hdrEnabled)
+    setExposureTime(camState.exposureTime)
     
     return {"Exposition Mode:": modeState.expositionMode}
 
@@ -1116,37 +1105,10 @@ def hdrExp(current_user: dict = Depends(get_current_user)):
     modeState.expositionMode = "HDR"
     
     camState.hdrEnabled = True
+    setEnableHDR(camState.hdrEnabled)
+    setExposureTime(camState.exposureTime)
 
-    ret = lib.scSetHDRModeEnabled(
-        camState.camera,
-        True
-    )
-
-    if ret != 0:
-        print("scSetHDRModeEnabled failed:", ret)
-        return {"message": "Failed"}
-
-    ret = lib.scSetExposureTimeOfHDR(
-        camState.camera,
-        0,
-        100
-    )
-
-    if ret != 0:
-        print("scSetExposureTimeOfHDR frame 0 failed:", ret)
-        return {"message": "Failed"}
-
-    ret = lib.scSetExposureTimeOfHDR(
-        camState.camera,
-        1,
-        1800
-    )
-
-    if ret != 0:
-        print("scSetExposureTimeOfHDR frame 1 failed:", ret)
-        return {"message": "Failed"}
-
-    print("HDR enabled: 100 us + 1800 us")
+    setHDRInterval(100, 1800)
 
     return {"Exposition Mode:": modeState.expositionMode}
 
@@ -1721,14 +1683,7 @@ def systemInfo(current_user: dict = Depends(require_admin)):
 def update_systemInfo(info: SystemUpdate, current_user: dict = Depends(get_current_user)):
     if info.exposureTime is not None:
         camState.exposureTime = info.exposureTime
-        ret = lib.scSetExposureTime(
-            camState.camera,
-            0x01,  # SC_TOF_SENSOR
-            ctypes.c_int32(camState.exposureTime)
-        )
-
-        if ret != 0:
-            print("scSetExposureTime failed:", ret)
+        setExposureTime(camState.exposureTime)  
 
     if info.colorSlope is not None:
         camState.colorSlope = info.colorSlope
@@ -1869,19 +1824,7 @@ def updateCurrentMenu(data: CurrentMenu, current_user: dict = Depends(get_curren
     modeState.currentMenu = data.currentMenu
 
     if data.currentMenu == "calibration-menu" and camState.hdrEnabled:
-        ret = lib.scSetExposureTimeOfHDR(camState.camera, 0, 100)
-    
-        if ret != 0:
-            print("scSetExposureTimeOfHDR frame 0 failed:", ret)
-            return {"message": "Failed"}
-    
-        ret = lib.scSetExposureTimeOfHDR(camState.camera, 1, 1800)
-    
-        if ret != 0:
-            print("scSetExposureTimeOfHDR frame 1 failed:", ret)
-            return {"message": "Failed"}
-    
-        print("HDR enabled: 100 us + 1800 us")
+        setHDRInterval(100, 1800)
 
     return{"message:": "Success"}
 

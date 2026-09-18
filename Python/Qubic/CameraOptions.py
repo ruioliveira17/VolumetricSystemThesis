@@ -3,6 +3,8 @@ import numpy
 import threading
 import time
 
+from camera.factory import create_camera
+
 from CameraState import camState
 from FilterState import filterState
 from FrameState import frameState
@@ -176,8 +178,6 @@ def startCamera():
         else:
             print("scSetExposureControlMode failed:", ret)
 
-        setFPS()
-
         # Ativar transformação Color -> Depth
         ret = lib.scSetTransformColorImgToDepthSensorEnabled(
             camState.camera,
@@ -191,6 +191,8 @@ def startCamera():
                 "scSetTransformColorImgToDepthSensorEnabled failed:",
                 ret
             )
+
+        setFPS()
 
         setFlyingPixelFilter(value = filterState.flyingPixelFilter) 
         
@@ -325,17 +327,7 @@ def captureLoop():
                 else:
                     low, high = hdrExposures[3]
 
-                ret = lib.scSetExposureTimeOfHDR(camState.camera, 0, low)
-                if ret != 0:
-                    print("scSetExposureTimeOfHDR frame 0 failed:", ret)
-                    return {"message": "Failed"}
-            
-                ret = lib.scSetExposureTimeOfHDR(camState.camera, 1, high)
-                if ret != 0:
-                    print("scSetExposureTimeOfHDR frame 1 failed:", ret)
-                    return {"message": "Failed"}
-            
-                print(f"HDR enabled: {low}us to {high}us!")
+                setHDRInterval(low, high)
 
         # print("Did the HDR interval really change?")
 
@@ -679,3 +671,52 @@ def setConfidenceFilter(value: bool):
         print("Set ConfidenceFilter switch to "+ str(params.enable) + " is Ok")   
     else:
         print("scSetConfidenceFilterParams failed:"+ str(ret))
+
+def setExposureTime(value: int):
+    ret = lib.scSetExposureTime(
+        camState.camera,
+        0x01,  # SC_TOF_SENSOR
+        ctypes.c_int32(value)
+    )
+
+    if ret != 0:
+        print("scSetExposureTime failed:", ret)
+        return False
+
+    return True
+
+def setEnableHDR(value: bool):
+    ret = lib.scSetHDRModeEnabled(
+        camState.camera,
+        value
+    )
+
+    if ret != 0:
+        print("scSetHDRModeEnabled failed:", ret)
+        return False
+
+    return True
+
+def setHDRInterval(low: int, high: int):
+    ret = lib.scSetExposureTimeOfHDR(
+        camState.camera,
+        0,
+        low
+    )
+
+    if ret != 0:
+        print("scSetExposureTimeOfHDR frame 0 failed:", ret)
+        return False
+
+    ret = lib.scSetExposureTimeOfHDR(
+        camState.camera,
+        1,
+        high
+    )
+
+    if ret != 0:
+        print("scSetExposureTimeOfHDR frame 1 failed:", ret)
+        return False
+
+    print(f"HDR enabled: {low} us + {high} us")
+    return True
