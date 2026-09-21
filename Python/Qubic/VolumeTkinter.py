@@ -10,6 +10,9 @@ sys.path.append(os.path.join(BASE_DIR, "Python"))
 
 i = None
 
+from FrameState import frameState
+from WorkspaceState import workspaceState
+
 OVERLAP_RATIO = 0.05
 
 def volumeSingleBundleAPI(depthFrame, workspace_depth, minimum_depth, box_limits, depths, fx_d, fy_d, cx_d, cy_d): 
@@ -270,6 +273,113 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
 
             contour_px = contour_px[valid]
             z_contour = z_contour[valid]
+
+            ################ TESTE
+
+            all_heights = []
+
+            # ---------------------------------------------------------
+            # Obter todos os píxeis dentro do contorno
+            # ---------------------------------------------------------
+
+            fill_img = numpy.zeros((480, 640), dtype=numpy.uint8)
+
+            cv2.fillPoly(
+                fill_img,
+                [contour_px.astype(numpy.int32)],
+                255
+            )
+
+            ys, xs = numpy.where(fill_img > 0)
+
+            # ---------------------------------------------------------
+            # Limites da detectionArea
+            # ---------------------------------------------------------
+
+            detection_area = numpy.array(workspaceState.detection_area)
+
+            xmin = int(detection_area[:, 0].min())
+            xmax = int(detection_area[:, 0].max())
+            ymin = int(detection_area[:, 1].min())
+            ymax = int(detection_area[:, 1].max())
+
+            # ---------------------------------------------------------
+            # Para cada frame HDR
+            # ---------------------------------------------------------
+
+            for depth_frame in frameState.depthArrayHDR:
+
+                for x, y in zip(xs, ys):
+
+                    # Z do ponto no frame HDR
+                    z_hdr = float(depth_frame[y, x])
+
+                    if z_hdr <= 0:
+                        continue
+
+                    # -------------------------------------------------
+                    # Encontrar o ponto correspondente na calibração
+                    # -------------------------------------------------
+
+                    # Se estiver dentro da detectionArea,
+                    # usa o próprio (x, y).
+                    if xmin <= x <= xmax and ymin <= y <= ymax:
+
+                        x_cal = x
+                        y_cal = y
+
+                    # Se estiver fora, aproxima ao ponto mais próximo
+                    # dentro do retângulo.
+                    else:
+
+                        x_cal = int(numpy.clip(x, xmin, xmax))
+                        y_cal = int(numpy.clip(y, ymin, ymax))
+
+                    # Z correspondente da calibração
+                    z_cal = float(
+                        frameState.calibrationDepthFrame[y_cal, x_cal]
+                    )
+
+                    if z_cal <= 0:
+                        continue
+
+                    # -------------------------------------------------
+                    # Altura deste ponto
+                    # -------------------------------------------------
+
+                    height = z_cal - z_hdr
+
+                    all_heights.append(height)
+
+
+            # ---------------------------------------------------------
+            # Remover 15% menores + 15% maiores
+            # ---------------------------------------------------------
+
+            all_heights = numpy.array(all_heights, dtype=numpy.float32)
+
+            sorted_heights = numpy.sort(all_heights)
+
+            n = len(sorted_heights)
+            cut = int(n * 0.15)
+
+            central_heights = sorted_heights[cut:n-cut]
+
+
+            # ---------------------------------------------------------
+            # Mediana final
+            # ---------------------------------------------------------
+
+            median_height_mm = numpy.median(central_heights)
+
+            height_meters_test = median_height_mm / 1000.0
+
+            print("_________________________________________________________________________")
+            print("Média de valores de altura:", height_meters_test)
+            print("_________________________________________________________________________")
+
+
+            ################ TESTE
 
             Zc = z_contour / 1000.0
             Xc_m = (contour_px[:, 0] - cx_d) * Zc / fx_d

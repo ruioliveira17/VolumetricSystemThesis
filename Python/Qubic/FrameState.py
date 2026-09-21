@@ -16,5 +16,6 @@ class FrameState:
         self.lastFrameAt = None
 
         self.hdrDepth = None
+        self.depthArrayHDR = None
 
 frameState = FrameState()

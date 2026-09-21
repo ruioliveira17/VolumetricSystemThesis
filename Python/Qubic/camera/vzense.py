@@ -37,9 +37,8 @@ class VzenseCamera(Camera):
 
         if camera_count.value == 0:
             print("There are no cameras found")
-            camState.cameraStatus = "error"
             lib.scShutdown()
-            return {"message": "No camera detected"}
+            raise RuntimeError("No camera detected")
 
         device_info_list = (ScDeviceInfo * camera_count.value)()
 
@@ -53,7 +52,6 @@ class VzenseCamera(Camera):
         print("DEPOIS scGetDeviceInfoList:", ret)
 
         if ret != 0:
-            camState.cameraStatus = "error"
             lib.scShutdown()
             raise RuntimeError("Failed to get camera information!")
 
@@ -77,9 +75,8 @@ class VzenseCamera(Camera):
         print("scOpenDeviceBySN:", ret)
 
         if ret != 0:
-            camState.cameraStatus = "error"
             lib.scShutdown()
-            return {"message": "Failed"}
+            raise RuntimeError("Failed to open camera")
 
         print("Device handle:", self._handle)
         print("Camera opened successfully!")
@@ -91,7 +88,6 @@ class VzenseCamera(Camera):
         if ret != 0:
             lib.scCloseDevice(ctypes.byref(self._handle))
             self._handle = None
-            camState.cameraStatus = "error"
             lib.scShutdown()
             raise RuntimeError("Failed to start camera stream!")
 
@@ -164,11 +160,9 @@ class VzenseCamera(Camera):
         ) 
         if  ret == 0:
             self._handle = None
-            camState.cameraStatus = "offline"
-            print("[CameraStream] Câmara fechada.")
-            return{"message": "Success"}
+            return True
         else:
-            return{"message": "Failed"}
+            return False
 
     def get_frames(self):
         frameReady = ScFrameReady()
@@ -270,15 +264,17 @@ class VzenseCamera(Camera):
 
         return None
 
-    def set_fps(self):
+    def set_fps(self, fps):
         ret = lib.scSetFrameRate(
             self._handle,
-            ctypes.c_int32(camState.fps)
+            ctypes.c_int32(fps)
         )
         if  ret == 0:
             print("Set frame rate is ok")   
         else:
-            print("scSetFrameRate failed:"+ str(ret)) 
+            raise RuntimeError(
+                f"scSetFrameRate failed: {ret}"
+            )
     
         frameRate = ctypes.c_int32()
     
@@ -290,36 +286,48 @@ class VzenseCamera(Camera):
         if  ret == 0:
             print("Get default frame rate:"+ str(frameRate.value))   
         else:
-            print("scGetFrameRate failed:"+ str(ret))
+            raise RuntimeError(
+                f"scGetFrameRate failed: {ret}"
+            )
 
-    def set_exposureTime(self, value):
+        return frameRate.value
+
+    def set_exposure_time(self, value):
         ret = lib.scSetExposureTime(
             self._handle,
             0x01,  # SC_TOF_SENSOR
             ctypes.c_int32(value)
         )
 
-    def set_enableHDR(self, value):
+        if ret != 0:
+            raise RuntimeError(
+                f"scSetExposureTime failed: {ret}"
+            )
+
+    def set_enable_hdr(self, value):
         ret = lib.scSetHDRModeEnabled(
             self._handle,
             value
         )
     
         if ret != 0:
-            print("scSetHDRModeEnabled failed:", ret)
-            return {"message": "Failed"}
+            raise RuntimeError(
+                f"scSetHDRModeEnabled failed: {ret}"
+            )
 
     def set_hdr_interval(self, low, high):
         ret = lib.scSetExposureTimeOfHDR(self._handle, 0, low)
         if ret != 0:
-            print("scSetExposureTimeOfHDR frame 0 failed:", ret)
-            return {"message": "Failed"}
+            raise RuntimeError(
+                f"scSetExposureTimeOfHDR frame 0 failed: {ret}"
+            )
     
         ret = lib.scSetExposureTimeOfHDR(self._handle, 1, high)
         if ret != 0:
-            print("scSetExposureTimeOfHDR frame 1 failed:", ret)
-            return {"message": "Failed"}
-    
+            raise RuntimeError(
+                f"scSetExposureTimeOfHDR frame 1 failed: {ret}"
+            )
+        
         print(f"HDR enabled: {low}us to {high}us!")
 
     def get_depth_intrinsic_parameters(self):
@@ -350,7 +358,7 @@ class VzenseCamera(Camera):
 
         return rgbIntrParam
 
-    def set_filter_flyingPixel(self, value):
+    def set_filter_flying_pixel(self, value):
         params = ScFlyingPixelFilterParams()
 
         ret = lib.scGetFlyingPixelFilterParams(
@@ -361,7 +369,9 @@ class VzenseCamera(Camera):
         if  ret == 0:
             print("The default FlyingPixelFilter switch is " + str(params.enable))
         else:
-            print("scGetFlyingPixelFilterParams failed:"+ str(ret))   
+            raise RuntimeError(
+                f"scGetFlyingPixelFilterParams failed: {ret}"
+            )  
 
         params.enable = bool(value)
 
@@ -371,12 +381,14 @@ class VzenseCamera(Camera):
         )
 
         if  ret == 0:
-            filterState.flyingPixelFilter = params.enable
             print("Set FlyingPixelFilter switch to "+ str(params.enable) + " is Ok")   
+            return params.enable
         else:
-            print("scSetFlyingPixelFilterParams failed:"+ str(ret))
+            raise RuntimeError(
+                f"scSetFlyingPixelFilterParams failed: {ret}"
+            )
 
-    def set_filter_fillHole(self, value):
+    def set_filter_fill_hole(self, value):
         enable = ctypes.c_bool()
         
         ret = lib.scGetFillHoleFilterEnabled(
@@ -387,7 +399,9 @@ class VzenseCamera(Camera):
         if  ret == 0:
             print("The default FillHoleFilter switch is " + str(enable.value))
         else:
-            print("scGetFillHoleFilterEnabled failed:"+ str(ret))   
+            raise RuntimeError(
+                f"scGetFillHoleFilterEnabled failed: {ret}"
+            )
     
         enable.value = bool(value)
     
@@ -397,10 +411,12 @@ class VzenseCamera(Camera):
         )
     
         if  ret == 0:
-            filterState.fillHoleFilter = enable.value
             print("Set FillHoleFilter switch to "+ str(enable.value) + " is Ok")   
+            return enable.value
         else:
-            print("scSetFillHoleFilterEnabled failed:"+ str(ret)) 
+            raise RuntimeError(
+                f"scSetFillHoleFilterEnabled failed: {ret}"
+            )
 
     def set_filter_spatial(self, value):
         enable = ctypes.c_bool()
@@ -413,7 +429,9 @@ class VzenseCamera(Camera):
         if  ret == 0:
             print("The default SpatialFilter switch is " + str(enable.value))
         else:
-            print("scGetSpatialFilterEnabled failed:"+ str(ret))   
+            raise RuntimeError(
+                f"scGetSpatialFilterEnabled failed: {ret}"
+            ) 
     
         enable.value = bool(value)
     
@@ -423,10 +441,12 @@ class VzenseCamera(Camera):
         )
     
         if  ret == 0:
-            filterState.spatialFilter = enable.value
             print("Set SpatialFilter switch to "+ str(enable.value) + " is Ok")   
+            return enable.value
         else:
-            print("scSetSpatialFilterEnabled failed:"+ str(ret))
+            raise RuntimeError(
+                f"scSetSpatialFilterEnabled failed: {ret}"
+            )
         
     def set_filter_confidence(self, value):
         params = ScConfidenceFilterParams()
@@ -439,7 +459,9 @@ class VzenseCamera(Camera):
         if  ret == 0:
             print("The default ConfidenceFilter switch is " + str(params.enable))
         else:
-            print("scGetConfidenceFilterParams failed:"+ str(ret))
+            raise RuntimeError(
+            f"scGetConfidenceFilterParams failed: {ret}"
+        )
     
         params.enable = bool(value)
     
@@ -449,7 +471,9 @@ class VzenseCamera(Camera):
         )
     
         if  ret == 0:
-            filterState.confidenceFilter = params.enable
             print("Set ConfidenceFilter switch to "+ str(params.enable) + " is Ok")   
+            return params.enable
         else:
-            print("scSetConfidenceFilterParams failed:"+ str(ret))
+            raise RuntimeError(
+                f"scSetConfidenceFilterParams failed: {ret}"
+            )

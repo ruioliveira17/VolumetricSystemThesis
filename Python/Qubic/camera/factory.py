@@ -8,4 +8,6 @@ def create_camera():
     if camera_type == "vzense":
         return VzenseCamera()
 
-    raise ValueError("Unsupported camera")
+    raise ValueError(
+        f"Unsupported or missing CAMERA_TYPE: {camera_type}"
+    )

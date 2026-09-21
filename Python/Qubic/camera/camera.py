@@ -20,11 +20,11 @@ class Camera(ABC):
         pass
 
     @abstractmethod
-    def set_exposureTime(self, value):
+    def set_exposure_time(self, value):
         pass
 
     @abstractmethod
-    def set_enableHDR(self, value):
+    def set_enable_hdr(self, value):
         pass
 
     @abstractmethod
@@ -40,11 +40,11 @@ class Camera(ABC):
         pass
 
     @abstractmethod
-    def set_filter_flyingPixel(self, value):
+    def set_filter_flying_pixel(self, value):
         pass
 
     @abstractmethod
-    def set_filter_fillHole(self, value):
+    def set_filter_fill_hole(self, value):
         pass
 
     @abstractmethod
