@@ -127,7 +127,15 @@ function QVolume({
                         <span className="label">WEIGHT:</span>
                         <div className="value_units">
                             <span className="value">
-                                {weightInfo?.weight != null ? Number(weightInfo.weight).toFixed(2) : "0.00"}
+                                {(() => {
+                                    const value = String(weightInfo?.weight ?? "").trim();
+
+                                    if (/^-+$/.test(value)) return value;
+
+                                    const number = Number(value);
+
+                                    return Number.isFinite(number) ? number.toFixed(2) : "0.00";
+                                })()}
                             </span>
                             <span className="units">kg</span>
                         </div>
