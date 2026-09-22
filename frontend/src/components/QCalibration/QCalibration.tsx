@@ -5,6 +5,18 @@ import WarningIcon from '@assets/icons/warning.svg?react';
 
 import QBackgroundBranding from "../QBackgroundBranding";
 
+type TranslationKey =
+    | "settings"
+    | "language"
+    | "expositionType"
+    | "expositionTime"
+    | "volumeMode"
+    | "countdownTimer"
+    | "set"
+    | "preferences"
+    | "videoSize"
+    | "define";
+
 interface Message {
   type: string;
   text: string;
@@ -17,6 +29,8 @@ interface Rgb {
 }
 
 interface QCalibrationProps {
+  t: (key: TranslationKey) => string;
+
   message: Message[];
 
   toggleMenu: () => void;
@@ -44,6 +58,7 @@ interface QCalibrationProps {
 }
 
 function QCalibration({
+  t,
   message,
   toggleMenu,
   cameraStatus,
@@ -410,8 +425,8 @@ function QCalibration({
       {/* Menu */}
       <div className="menu-wrapper">
         <div className="title-container">
-          <div className="menu-title"> Calibration </div>
-          <div className="menu-info"> Calibrates the workspace based on the detected area </div>
+          <div className="menu-title"> {t("calibration.title")} </div>
+          <div className="menu-info"> {t("calibration.titleInfo")} </div>
         </div>
 
         <div className="caliMenu-container">
@@ -419,13 +434,13 @@ function QCalibration({
           <div className="calibrationInfo-container">
             <div className="background"></div>
             <div className="calibration-instructions">
-              <span className="bold">Steps to perform the calibration:</span>
+              <span className="bold">{t("calibration.procedureSteps")}</span>
               <span className="regular">
-                1 - In the "Select Color" mode, select the color in the camera image that corresponds to the platform's color.
+                {t("calibration.procedureSteps1")}
               </span>
 
               <span className="regular">
-                2 - If necessary, the "Adjust" mode grants you the option to manually adjust the points given in the previous step.
+                {t("calibration.procedureSteps2")}
               </span>
             </div>
             <div className="btn-group"  disabled={cameraStatus !== "online"}>
@@ -437,7 +452,7 @@ function QCalibration({
                 <div className="color-swatch" style={{ backgroundColor: `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})` }} />
                 <div className="btn-content">
                   <img src="/picker.svg" alt="Picker" className="icon" />
-                  <span className="text">Select Color</span>
+                  <span className="text">{t("calibration.selectColorButton")}</span>
                 </div>
               </button>
 
@@ -448,7 +463,7 @@ function QCalibration({
               >
                 <div className="btn-content">
                   <img src="/activity_zone.svg" alt="ACTIVITY_ZONE" className="icon" />
-                  <span className="text">Adjust</span>
+                  <span className="text">{t("calibration.adjustButton")}</span>
                 </div>
               </button>
             </div>
@@ -479,7 +494,7 @@ function QCalibration({
             <button onClick={calibrate_click} className="calibration-button" disabled={loadingCalibration || cameraStatus !== "online"}>
               <div className="calibration-button-info-container">
                 <img src="/filter_zone.svg" alt="FILTER_ZONE" className="icon" />
-                <span className="text">Calibrate</span>
+                <span className="text">{t("calibration.calibrateButton")}</span>
               </div>
             </button>
           </div>
@@ -524,10 +539,10 @@ function QCalibration({
           open={calibrationModalOpen}
           onClose={() => confirm_calibration(false)}
           onConfirm={() => confirm_calibration(true)}
-          title="Confirm Calibration"
-          subtitle="Do you want to confirm the changes?"
-          confirmText="Yes"
-          cancelText="No"
+          title={t("confirmCalibration.title")}
+          subtitle={t("confirmCalibration.subtitle")}
+          confirmText={t("confirmCalibration.confirmText")}
+          cancelText={t("confirmCalibration.cancelText")}
           container={portalContainer}
         />
       )}

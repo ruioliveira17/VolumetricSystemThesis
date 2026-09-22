@@ -20,6 +20,16 @@ import QTopBar from "./components/QTopBar";
 import { QToaster, notify } from "./components/QToast";
 
 import {apiFetch, apiJson, setOnAuthFailure, storeTokens} from "./api/client"
+
+// --------------------------------------------------------------------- //
+// |                      Available Languages                          | //
+// --------------------------------------------------------------------- //
+
+import en from "./translations/en";
+import pt from "./translations/pt";
+import es from "./translations/es";
+import fr from "./translations/fr";
+
 // --------------------------------------------------------------------- //
 // |                           Interfaces                              | //
 // --------------------------------------------------------------------- //
@@ -214,6 +224,25 @@ function App(){
         } catch (error) {
             console.error("Não foi possível alterar a linguagem:", error);
         }
+    };
+
+    const translations = {
+        en,
+        pt,
+        es,
+        fr,
+    };
+
+    const t = (key: string) => {
+        const keys = key.split(".");
+
+        let value: any = translations[language];
+
+        for (const k of keys) {
+            value = value?.[k];
+        }
+
+        return value ?? key;
     };
 
     // -----------------------------
@@ -3892,6 +3921,7 @@ function App(){
                             {/* Calibration Menu */}
                             {currentMenu === "calibration-menu" && (
                                 <QCalibration
+                                    t={t}
                                     message={message}
 
                                     toggleMenu={toggleMenu}
@@ -3978,6 +4008,7 @@ function App(){
                             {/* Settings Panel */}
                             {showSettingsPopup && (
                                 <QSettings
+                                    t={t}
                                     settingsAnchorRect={settingsAnchorRect}
                                     setShowSettingsPopup={setShowSettingsPopup}
 

@@ -6,12 +6,26 @@ import PopupConnection from '@assets/icons/popup_connection.svg?react';
 
 import Qselect from "../Qselect"
 
+type TranslationKey =
+    | "settings"
+    | "language"
+    | "expositionType"
+    | "expositionTime"
+    | "volumeMode"
+    | "countdownTimer"
+    | "set"
+    | "preferences"
+    | "videoSize"
+    | "define";
+
 interface LanguageOption {
     label: string;
     flag: string;
 }
 
 interface QSettingsProps {
+  t: (key: TranslationKey) => string;
+
   settingsAnchorRect: DOMRect | null;
 
   setShowSettingsPopup: React.Dispatch<React.SetStateAction<boolean>>;
@@ -43,6 +57,7 @@ interface QSettingsProps {
 }
 
 function QSettings({
+  t,
   settingsAnchorRect,
   setShowSettingsPopup,
   cameraStatus,
@@ -114,12 +129,12 @@ function QSettings({
         <PopupConnection />
       </div>
       <div className="settings-popup" style={popupStyle}>
-        <span className="text">Settings</span>
+        <span className="text">{t("settings.title")}</span>
         <div className="close-button">
           <CloseIcon onClick={() => setShowSettingsPopup(false)}/>
         </div>
         <div className="settings-buttons-container">
-          <span className="text">Language</span>
+          <span className="text">{t("settings.language")}</span>
           <div className="language-select">
             <Qselect
               label="Language"
@@ -130,7 +145,7 @@ function QSettings({
           </div>
           
           {/* Exposition */}
-          <span className="text">Exposition Type</span>
+          <span className="text">{t("settings.exposureType")}</span>
           <div className="radio-group">
             <label className="radio-option">
               <input type="radio" name="abertura" value="true" checked={expHDR} onChange={handleExpHDR_toggle} disabled={cameraStatus !== "online"} />
@@ -139,7 +154,7 @@ function QSettings({
 
             <label className="radio-option">
               <input type="radio" name="abertura" value="false" checked={!expHDR} onChange={handleExpHDR_toggle} disabled={cameraStatus !== "online"} />
-              <span className="label">Exposure Time</span>
+              <span className="label">{t("settings.exposureTime")}</span>
             </label>
 
             {!expHDR && (
@@ -160,7 +175,7 @@ function QSettings({
           </div>
 
           {/* Volume Mode */}
-          <span className="text">Volume Mode</span>
+          <span className="text">{t("settings.volumeMode")}</span>
           <div className="radio-group">
             <label className="radio-option">
               <input type="radio" name="volumeMode" value="single_bundle" checked={volumeMode === "single_bundle"} onChange={handleVolumeMode} />
@@ -181,7 +196,7 @@ function QSettings({
           </div>
 
           {/* Countdown Value */}
-          <span className="text">Countdown Timer</span>
+          <span className="text">{t("settings.countdownTimer")}</span>
           <div className="countdown-controls">
             <input
               type="number"
@@ -191,15 +206,15 @@ function QSettings({
             />
 
             <button className="countdown-btn" onClick={countdownTimerSet_click}>
-              <span className="text">Set</span>
+              <span className="text">{t("settings.set")}</span>
             </button>
           </div>
 
-          <span className="text">Preferences</span>
+          <span className="text">{t("settings.preferences")}</span>
           <div className="image-crop-preference">
-            <span className="video-size"> Video Size </span>
+            <span className="video-size">{t("settings.videoSize")}</span>
             <button onClick={() => setShowCropWindow(true)} disabled={currentMenu !== "volume-menu" || cameraStatus !== "online"} className="define-button">
-              <span className="define_text"> Define </span>
+              <span className="define_text">{t("settings.set")}</span>
             </button>
           </div>
         </div>
