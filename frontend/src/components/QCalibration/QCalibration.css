@@ -54,6 +54,55 @@
   align-items: center;
 }
 
+.calibration-magnifier {
+    position: absolute;
+    top: 10px;
+
+    border-radius: 50%;
+
+    pointer-events: none;
+
+    z-index: 20;
+
+    display: block;
+}
+
+@media (min-width: 426px) and (max-width: 768px){
+  .calibration-magnifier {
+    width: 60px;
+    height: 60px;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px){
+  .calibration-magnifier {
+    width: 90px;
+    height: 90px;
+  }
+}
+
+@media (min-width: 1025px) and (max-width: 1440px){
+  .calibration-magnifier {
+    width: 120px;
+    height: 120px;
+  }
+}
+
+@media (min-width: 1441px){
+  .calibration-magnifier {
+    width: 150px;
+    height: 150px;
+  }
+}
+
+.magnifier-left {
+    left: 10px;
+}
+
+.magnifier-right {
+    right: 10px;
+}
+
 .calibration-colorToDepthimg {
   display: block;
 

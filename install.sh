@@ -154,8 +154,28 @@ RestartSec=5
 WantedBy=multi-user.target
 EOF
 
+# Configure Qubic discovery systemd service
+sudo tee /etc/systemd/system/qubic-discovery.service > /dev/null <<EOF
+[Unit]
+Description=Qubic Network Discovery
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=$(id -un)
+WorkingDirectory=$PROJECT_DIR
+ExecStart=$PROJECT_DIR/.venv/bin/python $PROJECT_DIR/discovery.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
 sudo systemctl daemon-reload
-sudo systemctl enable qubic
+sudo systemctl enable --now qubic
+sudo systemctl enable --now qubic-discovery
 
 # Configure LXDE autostart
 mkdir -p "$HOME/.config/lxsession/rpd-x"

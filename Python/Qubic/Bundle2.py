@@ -129,6 +129,65 @@ def areContoursClose(c1, c2, threshold):
 
     return False
 
+def expand_polygon(poly, margin):
+    poly = numpy.asarray(poly, dtype=numpy.float32)
+
+    expanded = []
+
+    for i in range(len(poly)):
+        p1 = poly[i]
+        p2 = poly[(i + 1) % len(poly)]
+
+        edge = p2 - p1
+        length = numpy.linalg.norm(edge)
+
+        # Normal da aresta
+        normal = numpy.array([-edge[1], edge[0]]) / length
+
+        # Determinar se a normal aponta para fora
+        center = numpy.mean(poly, axis=0)
+        midpoint = (p1 + p2) / 2
+
+        if numpy.dot(normal, center - midpoint) > 0:
+            normal = -normal
+
+        expanded.append((
+            p1 + normal * margin,
+            p2 + normal * margin
+        ))
+
+    def line_intersection(line1, line2):
+        p1, p2 = line1
+        p3, p4 = line2
+
+        d1 = p2 - p1
+        d2 = p4 - p3
+
+        cross = d1[0] * d2[1] - d1[1] * d2[0]
+
+        if abs(cross) < 1e-8:
+            return p1
+
+        t = (
+            (p3[0] - p1[0]) * d2[1]
+            - (p3[1] - p1[1]) * d2[0]
+        ) / cross
+
+        return p1 + t * d1
+
+    result = []
+
+    for i in range(len(expanded)):
+        previous = expanded[i - 1]
+        current = expanded[i]
+
+        corner = line_intersection(previous, current)
+        result.append(corner)
+
+    return numpy.round(
+        numpy.array(result)
+    ).astype(numpy.int32)
+
 def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFrame, calibrationDepthFrame, volumeMode, objects_info, workspace_depth, threshold, colorSlope, cx_d, cy_d, cx_rgb, cy_rgb, fx_d, fy_d, fx_rgb, fy_rgb):
     contours = []
     box_ws = []
@@ -245,50 +304,68 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
                         
                     if belongs_to_previous:
                         break
+                    
                 if not belongs_to_previous:
                     workspace_warning = obj["workspace_limits"]
-                    ws_poly = numpy.array(workspace_warning, dtype = numpy.int32)
-                    margin = 2
-                    xmin = ws_poly[:, 0].min() - margin
-                    xmax = ws_poly[:, 0].max() + margin
-                    ymin = ws_poly[:, 1].min() - margin
-                    ymax = ws_poly[:, 1].max() + margin
-                    ws_poly = numpy.array([
-                        [xmin, ymin],
-                        [xmax, ymin],
-                        [xmax, ymax],
-                        [xmin, ymax]
-                    ], dtype=numpy.int32)
-                    value = False
+                    ws_poly = numpy.array(
+                        workspace_warning,
+                        dtype=numpy.int32
+                    )
 
-                    for pt in box:
-                        x, y = int(pt[0]), int(pt[1])
+                    margin = 5
 
-                        if cv2.pointPolygonTest(ws_poly, (x, y), False) < 0:
-                            value = True
-                            break
+                    ws_poly = expand_polygon(ws_poly, margin)
 
-                    if not value:
-                        belongs_to_previous = False
-                        all_shifted_contours = numpy.vstack([c])
-                        contours.append([all_shifted_contours])
-                        box_ws.append(obj["workspace_limits"])
-                        binaryImgs.append(binary)
+                    inside_points = 0
+                    outside_points = 0
 
-                        previous_mask = numpy.zeros(depth_copy.shape, dtype=numpy.uint8)
+                    for point in c:
+                        x, y = point[0]
 
-                        valid_mask = (
-                            (mask2 == 255) &
-                            (previous_mask == 0) &
-                            (depth_copy > 150) &
-                            (depth_copy < workspace_depth - threshold)
+                        result = cv2.pointPolygonTest(
+                            ws_poly,
+                            (float(x), float(y)),
+                            False
                         )
 
-                        depth_values = depth_copy[valid_mask]
-                        mean_depth = float(numpy.median(depth_values)) if depth_values.size > 0 else float(obj["depth"])
+                        if result >= 0:
+                            inside_points += 1
+                        else:
+                            outside_points += 1
 
-                        depths.append(mean_depth)
-                        curr_index += 1
+                    if inside_points == 0:
+                        continue
+
+                    value = outside_points > 0
+
+                    belongs_to_previous = False
+                    all_shifted_contours = numpy.vstack([c])
+                    contours.append([all_shifted_contours])
+                    box_ws.append(obj["workspace_limits"])
+                    binaryImgs.append(binary)
+
+                    previous_mask = numpy.zeros(
+                        depth_copy.shape,
+                        dtype=numpy.uint8
+                    )
+
+                    valid_mask = (
+                        (mask2 == 255) &
+                        (previous_mask == 0) &
+                        (depth_copy > 150) &
+                        (depth_copy < workspace_depth - threshold)
+                    )
+
+                    depth_values = depth_copy[valid_mask]
+
+                    mean_depth = (
+                        float(numpy.median(depth_values))
+                        if depth_values.size > 0
+                        else float(obj["depth"])
+                    )
+
+                    depths.append(mean_depth)
+                    curr_index += 1
 
                     object_outOfLine.append(value)
 

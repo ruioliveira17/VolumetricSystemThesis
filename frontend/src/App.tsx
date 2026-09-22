@@ -259,6 +259,8 @@ function App(){
     const angleRef = useRef<number>(0.4);
     const lastX = useRef<number>(0);
 
+    const [calibrationRender, setCalibrationRender] = useState(0);
+
     // -----------------------------
     // User variables
     // -----------------------------
@@ -878,9 +880,13 @@ function App(){
 
                 // Impede que o dedo "escape" do canvas
                 canvas.setPointerCapture(e.pointerId);
+
+                setCalibrationRender(prev => prev + 1);
             } else {
                 selectedPoint.current = null;
                 dragging.current = false;
+
+                setCalibrationRender(prev => prev + 1);
             }
 
             drawWorkspace();
@@ -897,6 +903,8 @@ function App(){
             detectionArea.current[selectedPoint.current] = clampPoint(x, y);
 
             drawWorkspace();
+
+            setCalibrationRender(prev => prev + 1);
         }
 
         function pointerUp(e: PointerEvent) {
@@ -907,6 +915,8 @@ function App(){
             }
 
             drawWorkspace();
+
+            setCalibrationRender(prev => prev + 1);
         }
 
         function keyDown(e: KeyboardEvent) {
@@ -945,6 +955,8 @@ function App(){
             detectionArea.current[selectedPoint.current] = clampPoint(x, y);
 
             drawWorkspace();
+
+            setCalibrationRender(prev => prev + 1);
         }
 
         canvas.addEventListener("pointerdown", pointerDown);
@@ -974,6 +986,7 @@ function App(){
 
             selectedPoint.current = null;
             dragging.current = false;
+            setCalibrationRender(prev => prev + 1);
         };
 
     }, [currentMenu, calibrationMode]);
@@ -3861,6 +3874,10 @@ function App(){
 
                                     loadingCalibration={loadingCalibration}
                                     calibrationModalOpen={calibrationModalOpen}
+
+                                    selectedPoint={selectedPoint.current}
+                                    detectionArea={detectionArea.current}
+                                    calibrationRender={calibrationRender}
 
                                     handleCalibrationModeChange={handleCalibrationModeChange}
                                     calibrate_click={calibrate_click}

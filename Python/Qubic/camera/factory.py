@@ -1,11 +1,10 @@
 import os
 
-from .vzense import VzenseCamera
-
 def create_camera():
     camera_type = os.getenv("CAMERA_TYPE", "vzense")
 
     if camera_type == "vzense":
+        from .vzense import VzenseCamera
         return VzenseCamera()
 
     raise ValueError(
