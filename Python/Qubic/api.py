@@ -1754,10 +1754,10 @@ def get_configuration_status(current_user: dict = Depends(get_current_user)):
 def get_language():
     return {"language": config_repo.get_language(), "supported": list(config_repo.SUPPORTED_LANGUAGES)}
 
-@app.put("/configuration/language", summary="Saves the selected interface language",
+@app.put("/configuration/set_language", summary="Saves the selected interface language",
          description="""
          Persists the language chosen in the settings menu so it survives a restart.
-         Accepts one of the supported codes ('pt', 'en'), otherwise returns 400.
+         Accepts one of the supported codes ('pt', 'en', 'es', 'fr'), otherwise returns 400.
          """,
          tags=["Configuration"])
 def set_language(info: LanguageIn, current_user: dict = Depends(get_current_user)):

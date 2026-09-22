@@ -7,8 +7,8 @@ LANGUAGE = "language"
 
 # Códigos i18next suportados pelo frontend. Acrescentar aqui quando houver
 # mais traduções (o valor guardado é validado contra esta lista).
-SUPPORTED_LANGUAGES = ("pt", "en")
-DEFAULT_LANGUAGE = "pt"
+SUPPORTED_LANGUAGES = ("pt", "en", "es", "fr")
+DEFAULT_LANGUAGE = "en"
 
 def _set_setting(key, value):
     with write_lock:

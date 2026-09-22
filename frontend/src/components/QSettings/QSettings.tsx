@@ -4,6 +4,13 @@ import "./QSettings.css";
 import CloseIcon from '@assets/icons/close.svg?react';
 import PopupConnection from '@assets/icons/popup_connection.svg?react';
 
+import Qselect from "../Qselect"
+
+interface LanguageOption {
+    label: string;
+    flag: string;
+}
+
 interface QSettingsProps {
   settingsAnchorRect: DOMRect | null;
 
@@ -26,6 +33,10 @@ interface QSettingsProps {
   setCountdownTimer: React.Dispatch<React.SetStateAction<string>>;
   countdownTimerSet_click: () => void;
 
+  language: string;
+  supportedLanguages: string[];
+  changeLanguage: (newLanguage: string) => Promise<void>;
+
   // Crop ("Define")
   currentMenu: string;
   setShowCropWindow: React.Dispatch<React.SetStateAction<boolean>>;
@@ -45,6 +56,9 @@ function QSettings({
   countdownTimer,
   setCountdownTimer,
   countdownTimerSet_click,
+  language,
+  supportedLanguages,
+  changeLanguage,
   currentMenu,
   setShowCropWindow
 }: QSettingsProps) {
@@ -66,6 +80,30 @@ function QSettings({
       }
     : {};
 
+  const languageOptions = {
+    en: {
+      label: "English",
+      flag: "🇬🇧",
+    },
+    pt: {
+      label: "Português",
+      flag: "🇵🇹",
+    },
+    es: {
+      label: "Español",
+      flag: "🇪🇸",
+    },
+    fr: {
+      label: "Français",
+      flag: "🇫🇷",
+    },
+  };
+
+  const availableLanguages = supportedLanguages.map((code) => ({
+    value: code,
+    ...languageOptions[code],
+  }));
+
   return (
     <>
       {/* Fundo Escuro */}
@@ -81,6 +119,16 @@ function QSettings({
           <CloseIcon onClick={() => setShowSettingsPopup(false)}/>
         </div>
         <div className="settings-buttons-container">
+          <span className="text">Language</span>
+          <div className="language-select">
+            <Qselect
+              label="Language"
+              value={language}
+              options={availableLanguages}
+              onChange={(value) => changeLanguage(value)}
+            />
+          </div>
+          
           {/* Exposition */}
           <span className="text">Exposition Type</span>
           <div className="radio-group">

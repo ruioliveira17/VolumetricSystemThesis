@@ -19,7 +19,7 @@ import { QUserModal, QUserPanel } from "./components/QUser";
 import QTopBar from "./components/QTopBar";
 import { QToaster, notify } from "./components/QToast";
 
-import {apiFetch, setOnAuthFailure, storeTokens} from "./api/client"
+import {apiFetch, apiJson, setOnAuthFailure, storeTokens} from "./api/client"
 // --------------------------------------------------------------------- //
 // |                           Interfaces                              | //
 // --------------------------------------------------------------------- //
@@ -191,6 +191,30 @@ function App(){
     const cropVideo = useRef<HTMLVideoElement | null>(null);
     const cropCanvas = useRef<HTMLCanvasElement | null>(null);
     const selectedCorner = useRef<string | null>(null);
+
+    const [language, setLanguage] = useState("en");
+    const [supportedLanguages, setSupportedLanguages] = useState<string[]>([]);
+
+    const changeLanguage = async (newLanguage: string) => {
+        try {
+            const data = await apiJson<{ language: string }>(
+                "/configuration/set_language",
+                {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        language: newLanguage,
+                    }),
+                }
+            );
+
+            setLanguage(data.language);
+        } catch (error) {
+            console.error("Não foi possível alterar a linguagem:", error);
+        }
+    };
 
     // -----------------------------
     // Video variables
@@ -482,12 +506,6 @@ function App(){
     // |                          Use Effects                              | //
     // --------------------------------------------------------------------- //
 
-    // useEffect(() => {
-    //     if (appReady) {
-    //         document.getElementById("boot-curtain")?.classList.add("off");
-    //     }
-    // }, [appReady]);
-
     useEffect(() => {
         if (appReady) {
             const timer = setTimeout(() => {
@@ -509,6 +527,20 @@ function App(){
                 console.error("Servidor indisponível");
                 }
             }
+
+            try {
+                const response = await fetch("/configuration/language");
+
+                if (response.ok) {
+                    const data = await response.json();
+
+                    setLanguage(data.language);
+                    setSupportedLanguages(data.supported);
+                }
+            } catch (error) {
+                console.error("Não foi possível obter a linguagem:", error);
+            }
+
 
             const storedUser = localStorage.getItem("current_user");
 
@@ -3962,6 +3994,10 @@ function App(){
                                     countdownTimer={countdownTimer}
                                     setCountdownTimer={setCountdownTimer}
                                     countdownTimerSet_click={countdownTimerSet_click}
+
+                                    language={language}
+                                    supportedLanguages={supportedLanguages}
+                                    changeLanguage={changeLanguage}
 
                                     currentMenu={currentMenu}
                                     setShowCropWindow={setShowCropWindow}
