@@ -5,6 +5,8 @@ import "./QLogin.css";
 import QBranding from "./QBranding";
 
 interface QLoginProps {
+  t: (key: string) => string;
+
   message: {
     type: string;
     text: string;
@@ -33,6 +35,7 @@ interface QLoginProps {
 }
 
 function QLogin({
+  t,
   message,
   username,
   setUsername,
@@ -52,12 +55,13 @@ function QLogin({
   const usernameRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
   const loginButtonRef = useRef<HTMLButtonElement | null>(null);
+
   return (
     <>
       <QBranding />
       <div className="login-panel-login">
         <div className="login-panel-title">
-          Login
+          {t("login.title")}
         </div>
 
         <div className="login-panel-error-or-info">
@@ -101,7 +105,7 @@ function QLogin({
             />
 
             <label className={usernameFocus || username ? "active" : ""}>
-              Username
+              {t("login.username")}
             </label>
           </div>
 
@@ -128,7 +132,7 @@ function QLogin({
             />
 
             <label className={passwordFocus || password ? "active" : ""}>
-              Password
+              {t("login.password")}
             </label>
           </div>
 
@@ -137,9 +141,9 @@ function QLogin({
 
             <div className="login-options">
               <p onClick={showRegisterScreen}>
-                Don't have an account?{" "}
+                {t("login.noAccount")}{" "}
                 <span>
-                  Register
+                  {t("login.register")}
                 </span>
               </p>
             </div>
@@ -147,7 +151,7 @@ function QLogin({
             <button ref={loginButtonRef} className="login-button" type="submit">
               <div className="background"></div>
               <span className="text">
-                Login
+                {t("login.loginButton")}
               </span>
             </button>
 

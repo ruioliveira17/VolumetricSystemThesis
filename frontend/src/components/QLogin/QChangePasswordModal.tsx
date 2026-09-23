@@ -6,6 +6,7 @@ import "../QUser/QUser.css";
 import CloseIcon from '@assets/icons/close.svg?react';
 
 interface QChangePasswordModalProps {
+  t: (key: string) => string;
   message: {
     type: string;
     text: string;
@@ -43,6 +44,7 @@ interface QChangePasswordModalProps {
 }
 
 function QChangePasswordModal({
+  t,
   message,
   closeChangePasswordModal,
   changeUsername,
@@ -78,7 +80,7 @@ function QChangePasswordModal({
 
         <div className="changePassword-panel">
         
-            <div className="login-panel-title">Redefine Password</div>
+            <div className="login-panel-title">{t("changePassword.title")}</div>
 
             <div className="changePassword-close-button">
                 <CloseIcon onClick={closeChangePasswordModal}/>
@@ -113,7 +115,7 @@ function QChangePasswordModal({
                         onMouseDown={(e) => e.preventDefault()}
                     />
                     <label className={changeUsername ? "active" : ""}>
-                        Username
+                        {t("changePassword.username")}
                     </label>
                 </div>
 
@@ -138,7 +140,7 @@ function QChangePasswordModal({
                         onChange={(e) => setChangeCurrentPassword(e.target.value)}
                     />
                     <label className={changeCurrentPasswordFocus || changeCurrentPassword ? "active" : ""}>
-                        Current Password
+                        {t("changePassword.currentPassword")}
                     </label>
                 </div>
 
@@ -163,7 +165,7 @@ function QChangePasswordModal({
                         onChange={(e) => setChangePassword(e.target.value)}
                     />
                     <label className={changePasswordFocus || changePassword ? "active" : ""}>
-                        New Password
+                        {t("changePassword.newPassword")}
                     </label>
                 </div>
 
@@ -192,14 +194,14 @@ function QChangePasswordModal({
                         changeConfirmPasswordFocus || changeConfirmPassword ? "active" : ""
                     }
                     >
-                        Confirm New Password
+                        {t("changePassword.confirmNewPassword")}
                     </label>
                 </div>
 
                 <div className="changePassword-actions">
                     <button ref={changeButtonRef} className="confirmChangePassword-button" type="submit">
                         <div className="background"></div>
-                        <span className="text">Confirm</span>
+                        <span className="text">{t("changePassword.confirmButton")}</span>
                     </button>
                 </div>
             </form>

@@ -5,6 +5,8 @@ import CloseIcon from '@assets/icons/close.svg?react';
 import PopupConnection from '@assets/icons/popup_connection.svg?react';
 
 interface QUserModalProps {
+    t: (key: string) => string;
+
     savedUser: {
         username: string;
         role: string;
@@ -18,6 +20,7 @@ interface QUserModalProps {
 }
 
 function QUserModal({
+    t,
     savedUser,
     setShowUserPopup,
     userAnchorRect,
@@ -61,11 +64,11 @@ function QUserModal({
 
                         <div className="user-texts">
                             <span className="text-user">
-                                User: {savedUser?.username}
+                                {t("userMenu.user")} {savedUser?.username}
                             </span>
 
                             <span className="text-role">
-                                Role: {savedUser?.role}
+                                {t("userMenu.role")} {savedUser?.role}
                             </span>
                         </div>
 
@@ -84,7 +87,7 @@ function QUserModal({
                         className="logout-option"
                         onClick={openChangePasswordModal}
                     >
-                        Redefine Password
+                        {t("userMenu.changePassword")}
                     </div>
 
                     {savedUser?.role === "admin" && (
@@ -92,7 +95,7 @@ function QUserModal({
                             className="logout-option"
                             onClick={openUsersPanel}
                         >
-                            Manage Users
+                            {t("userMenu.manageUsers")}
                         </div>
                     )}
 
@@ -101,7 +104,7 @@ function QUserModal({
                         className="logout-option"
                         onClick={logout}
                     >
-                        Logout
+                        {t("userMenu.logout")}
                     </div>
 
                 </div>

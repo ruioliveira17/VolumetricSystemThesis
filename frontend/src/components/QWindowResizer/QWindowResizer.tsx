@@ -2,6 +2,7 @@ import React, { RefObject } from "react";
 import "./QWindowResizer.css";
 
 interface QWindowResizerProps {
+    t: (key: string) => string;
     cropVideo: RefObject<HTMLVideoElement>;
     cropCanvas: RefObject<HTMLCanvasElement>;
 
@@ -20,6 +21,7 @@ interface QWindowResizerProps {
 }
 
 function QWindowResizer({
+    t,
     cropVideo,
     cropCanvas,
     cropArea,
@@ -37,7 +39,7 @@ function QWindowResizer({
             <div className="crop-window">
 
                 <div className="crop-title">
-                    <span>Window Resizer</span>
+                    <span>{t("windowResizer.title")}</span>
                 </div>
 
                 <div className="crop-video-wrapper">
@@ -60,7 +62,7 @@ function QWindowResizer({
                         className="crop-button"
                         onClick={() => setShowCropWindow(false)}
                     >
-                        <span className="text">Cancel</span>
+                        <span className="text">{t("windowResizer.cancelButton")}</span>
                     </button>
 
 
@@ -86,7 +88,7 @@ function QWindowResizer({
                             );
                         }}
                     >
-                        <span className="text">Revert</span>
+                        <span className="text">{t("windowResizer.revertButton")}</span>
                     </button>
 
 
@@ -110,7 +112,7 @@ function QWindowResizer({
                             );
                         }}
                     >
-                        <span className="text">Confirm</span>
+                        <span className="text">{t("windowResizer.confirmButton")}</span>
                     </button>
 
                 </div>

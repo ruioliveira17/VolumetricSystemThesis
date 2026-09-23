@@ -5,6 +5,7 @@ import "./QLogin.css";
 import QBranding from "./QBranding";
 
 interface QChangePasswordProps {
+  t: (key: string) => string;
   message: {
     type: string;
     text: string;
@@ -34,6 +35,7 @@ interface QChangePasswordProps {
 }
 
 function QChangePassword({
+  t,
   message,
   changeUsername,
   changePassword,
@@ -59,7 +61,7 @@ function QChangePassword({
     <div>
       <QBranding />
       <div className="login-panel-register">
-        <div className="login-panel-title">Redefine Password</div>
+        <div className="login-panel-title">{t("changePassword.title")}</div>
 
         <div className="login-panel-register-error-or-info">
           {message.map((msg, i) => (
@@ -90,7 +92,7 @@ function QChangePassword({
               onMouseDown={(e) => e.preventDefault()}
             />
             <label className={changeUsername ? "active" : ""}>
-              Username
+              {t("changePassword.username")}
             </label>
           </div>
 
@@ -115,7 +117,7 @@ function QChangePassword({
               onChange={(e) => setChangePassword(e.target.value)}
             />
             <label className={changePasswordFocus || changePassword ? "active" : ""}>
-              Password
+              {t("changePassword.newPassword")}
             </label>
           </div>
 
@@ -144,7 +146,7 @@ function QChangePassword({
                 changeConfirmPasswordFocus || changeConfirmPassword ? "active" : ""
               }
             >
-              Confirm Password
+              {t("changePassword.confirmNewPassword")}
             </label>
           </div>
 
@@ -157,7 +159,7 @@ function QChangePassword({
 
             <button ref={changeButtonRef} className="login-button" type="submit">
               <div className="background"></div>
-              <span className="text">Confirm</span>
+              <span className="text">{t("changePassword.confirmButton")}</span>
             </button>
           </div>
         </form>

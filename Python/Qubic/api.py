@@ -263,7 +263,7 @@ def login(login_data: LoginData):
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid username or password."
+            detail="INVALID_USERNAME_OR_PASSWORD"
         )
 
     reset_token = reset_tokens.get(user["id"])
@@ -277,7 +277,7 @@ def login(login_data: LoginData):
             return {"changePassword": True, "user_id": user["id"], "username": user["username"], "access_token": access_token}
 
     if not verify_password(login_data.password, user["password_hash"]):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid username or password.")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="INVALID_USERNAME_OR_PASSWORD")
     
     access_token = create_access_token({"sub": user["username"], "role": user["role"]})
     refresh_token = create_refresh_token({"sub": user["username"], "role": user["role"]})
@@ -296,25 +296,25 @@ def login(login_data: LoginData):
          tags=["User"])
 def register(register_data: RegisterData):
     if not register_data.username or not register_data.password or not register_data.confirm_password:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Please fill all fields!")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="REGISTER_FIELDS_MISSING")
 
     if get_by_username(register_data.username) is not None:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username already used! Choose another username.")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="REGISTER_USERNAME_EXISTS")
 
     if register_data.password != register_data.confirm_password:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Passwords do not match!")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="REGISTER_PASSWORDS_DO_NOT_MATCH")
 
     password = register_data.password
     # 8 characters, 1 uppercase letter, 1 number and one special character 
     if len(password) < 8 or not re.search(r"[A-Z]", password) or not re.search(r"\d", password) or not re.search(r"[^A-Za-z0-9]", password):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="The password should have atleast 8 digits, one uppercase letter, one number, and one special character.")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="REGISTER_PASSWORD_REQUIREMENTS")
 
     #if get_by_email(register_data.email) is not None:
     #    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already used! Choose another email.")
 
     create_user(username=register_data.username, email=register_data.email, password_hash=get_password_hash(register_data.password), role="user")
 
-    return {"message": "Utilizador criado com sucesso!"}
+    return {"message": "REGISTER_SUCCESS"}
 
 @app.post("/refresh", summary="Access Token Refresh",
          description="""
@@ -342,7 +342,6 @@ def refresh(data: RefreshData):
     new_refresh_token = create_refresh_token({"sub": username, "role": user["role"]})
 
     return {"access_token": new_access_token, "refresh_token": new_refresh_token}
-
 
 @app.post("/refreshAccessToken", summary="Access Token Refresh",
          description="""
@@ -422,33 +421,33 @@ def changePassword(changePassword_data: ChangePasswordData, current_user: dict =
     user = get_by_username(current_user["username"])
     
     if not user:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User not found.")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="CHANGE_PASSWORD_USER_NOT_FOUND")
 
     if not changePassword_data.password or not changePassword_data.confirm_password:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Please fill all fields!")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="CHANGE_PASSWORD_MISSING_FIELDS")
 
     if not current_user["from_reset"]:
         if not changePassword_data.current_password:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Please fill all fields!")
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="CHANGE_PASSWORD_FILL_FIELDS")
 
         if not (verify_password(changePassword_data.current_password, user["password_hash"])):
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Current password is invalid.")
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="CHANGE_PASSWORD_CURRENT_INVALID")
 
     password = changePassword_data.password
     if len(password) < 8 or not re.search(r"[A-Z]", password) or not re.search(r"\d", password) or not re.search(r"[^A-Za-z0-9]", password):
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="The password should have atleast 8 digits, one uppercase letter, one number, and one special character.")
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="CHANGE_PASSWORD_REQUIREMENTS")
 
     if changePassword_data.password != changePassword_data.confirm_password:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Passwords do not match!")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="CHANGE_PASSWORD_NOT_MATCH")
 
     if (verify_password(changePassword_data.password, user["password_hash"])):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="New password can't be the same as the current one.")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="CHANGE_PASSWORD_NEW_CANNOT_BE_SAME")
 
     change_password(user_id=user["id"], password_hash=get_password_hash(changePassword_data.password))
 
     reset_tokens.pop(user["id"], None)
     
-    return {"message": "Palavra passe alterada com sucesso!", "user_id": user["id"]}
+    return {"message": "CHANGE_PASSWORD_SUCCESS"}
 
 
 #----------------------------------------------------   Measurements   ----------------------------------------------------

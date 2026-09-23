@@ -6,25 +6,13 @@ import PopupConnection from '@assets/icons/popup_connection.svg?react';
 
 import Qselect from "../Qselect"
 
-type TranslationKey =
-    | "settings"
-    | "language"
-    | "expositionType"
-    | "expositionTime"
-    | "volumeMode"
-    | "countdownTimer"
-    | "set"
-    | "preferences"
-    | "videoSize"
-    | "define";
-
 interface LanguageOption {
     label: string;
     flag: string;
 }
 
 interface QSettingsProps {
-  t: (key: TranslationKey) => string;
+  t: (key: string) => string;
 
   settingsAnchorRect: DOMRect | null;
 

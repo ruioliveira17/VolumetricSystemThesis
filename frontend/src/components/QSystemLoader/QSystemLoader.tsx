@@ -5,10 +5,12 @@ import QubicLoader from '@assets/icons/qubic-loader.svg?react';
 import QBackgroundBranding from "../QBackgroundBranding";
 
 interface QSystemLoaderProps {
+    t: (key: string) => string;
+
     fadingOut?: boolean;
 }
 
-function QSystemLoader({ fadingOut = false }: QSystemLoaderProps){
+function QSystemLoader({ t, fadingOut = false }: QSystemLoaderProps){
     return (
         <div className={`system-loader ${fadingOut ? "fade-out" : ""}`}>
             <QBackgroundBranding />
@@ -18,8 +20,8 @@ function QSystemLoader({ fadingOut = false }: QSystemLoaderProps){
                 </div>
 
                 <div className="initText">
-                    <span>INITIALIZING</span>
-                    <span>Please wait a moment...</span>
+                    <span>{t("systemLoader.initializing")}</span>
+                    <span>{t("systemLoader.waitAMoment")}</span>
                 </div>
             </div>
         </div>

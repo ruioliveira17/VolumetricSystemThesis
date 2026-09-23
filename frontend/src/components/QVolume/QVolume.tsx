@@ -13,6 +13,7 @@ interface Message {
 }
 
 interface QVolumeProps {
+  t: (key: string) => string;
   message: Message[];
 
   loadingVolume: boolean;
@@ -58,6 +59,7 @@ interface QVolumeProps {
 }
 
 function QVolume({
+  t,
   message,
   loadingVolume,
   processingMessage,
@@ -109,8 +111,8 @@ function QVolume({
         {/* Menu */}
         <div className="menu-wrapper">
             <div className="title-container">
-                <div className="menu-title">Volume</div>
-                <div className="menu-info">Calculates the volume of objects on the platform</div>
+                <div className="menu-title">{t("volumeMenu.title")}</div>
+                <div className="menu-info">{t("volumeMenu.titleInfo")}</div>
             </div>
 
             <div className="interactive-container">
@@ -124,7 +126,7 @@ function QVolume({
                     </div>
 
                     <div className="weightBar-value">
-                        <span className="label">WEIGHT:</span>
+                        <span className="label">{t("volumeMenu.weightBar")}</span>
                         <div className="value_units">
                             <span className="value">
                                 {(() => {
@@ -178,7 +180,7 @@ function QVolume({
 
                 <div className="volume-button-info-container">
                     <img src="/VIEW_IN_AR.svg" alt="VIEW_IN_AR" className="icon"/>
-                    <span className="text">Get Volume</span>
+                    <span className="text">{t("volumeMenu.volumeButton")}</span>
                 </div>
             </button>
 
@@ -217,32 +219,32 @@ function QVolume({
 
                                     <div className="boxBundleInfoText-container">
                                         <div style={{ color: "#6CD08A" }} className="boxBundleInfo-text">
-                                            <span className="label">Width (cm):</span>
+                                            <span className="label">{t("volumeMenu.width")}</span>
                                             <span className="value">{volInfo.width.toFixed(1)}</span> 
                                         </div>
 
                                         <div style={{ color: "#C66D6D" }} className="boxBundleInfo-text">
-                                            <span className="label">Length (cm):</span> 
+                                            <span className="label">{t("volumeMenu.length")}</span> 
                                             <span className="value">{volInfo.length.toFixed(1)}</span> 
                                         </div>
 
                                         <div style={{ color: "#9EB0FD" }} className="boxBundleInfo-text">
-                                            <span className="label">Height (cm):</span> 
+                                            <span className="label">{t("volumeMenu.height")}</span> 
                                             <span className="value">{volInfo.height.toFixed(1)}</span>     
                                         </div>
 
                                         <div style={{ color: "#FFFFFF" }} className="boxBundleInfo-text">
-                                            <span className="label">Volume (m³):</span> 
+                                            <span className="label">{t("volumeMenu.volume_m")}</span> 
                                             <span className="value">{volInfo.volume_m.toFixed(6)}</span> 
                                         </div>
 
                                         <div style={{ color: "#FFFFFF" }} className="boxBundleInfo-text">
-                                            <span className="label">Volume (cm³):</span> 
+                                            <span className="label">{t("volumeMenu.volume_cm")}</span> 
                                             <span className="value">{volInfo.volume_cm.toFixed(2)}</span> 
                                         </div>
 
                                         <div style={{ color: "#FFFFFF" }} className="boxBundleInfo-text">
-                                            <span className="label">Weight (kg):</span> 
+                                            <span className="label">{t("volumeMenu.weight")}</span> 
                                             <span className="value">{measurementWeightInfo?.weight != null ? Number(measurementWeightInfo.weight).toFixed(2) : "0.00"} </span> 
                                         </div>
 
@@ -254,7 +256,7 @@ function QVolume({
                         <>
                             {volInfo &&(
                                 <div className="objects-text">
-                                    Objects:
+                                    {t("volumeMenu.objects")}
                                 </div>
                             )}
 
@@ -275,27 +277,27 @@ function QVolume({
                                     <canvas ref={canvasRef} className="volume-canvas"/>
                                     <div className="boxInfoText-container">
                                     <div style={{ color: "#6CD08A" }} className="boxInfo-text">
-                                        <span className="label">Width (cm):</span>
+                                        <span className="label">{t("volumeMenu.width")}</span>
                                         <span className="value">{(volumeMode === "real" ? volInfo.width?.[0] : volInfo.width).toFixed(1)}</span>
                                     </div>
 
                                     <div style={{ color: "#C66D6D" }} className="boxInfo-text">
-                                        <span className="label">Length (cm):</span>
+                                        <span className="label">{t("volumeMenu.length")}</span>
                                         <span className="value">{(volumeMode === "real" ? volInfo.length?.[0] : volInfo.length).toFixed(1)}</span>
                                     </div>
 
                                     <div style={{ color: "#9EB0FD" }} className="boxInfo-text">
-                                        <span className="label">Height (cm):</span>
+                                        <span className="label">{t("volumeMenu.height")}</span>
                                         <span className="value">{(volumeMode === "real" ? volInfo.height?.[0] : volInfo.height).toFixed(1)}</span>
                                     </div>
 
                                     <div style={{ color: "#FFFFFF" }} className="boxInfo-text">
-                                        <span className="label">Volume (m³):</span>
+                                        <span className="label">{t("volumeMenu.volume_m")}</span>
                                         <span className="value">{volInfo.volume_m.toFixed(6)}</span>
                                     </div>
 
                                     <div style={{ color: "#FFFFFF" }} className="boxInfo-text">
-                                        <span className="label">Volume (cm³):</span>
+                                        <span className="label">{t("volumeMenu.volume_cm")}</span>
                                         <span className="value">{volInfo.volume_cm.toFixed(2)}</span>
                                     </div>
 
@@ -307,13 +309,13 @@ function QVolume({
                                 <div className="object-total">
                                     <div className="total-divider"></div>
                                     <div className="total-row">
-                                        <span className="total-label">TOTAL WEIGHT:</span>
+                                        <span className="total-label">{t("volumeMenu.totalWeight")}</span>
                                         <span className="total-value">
                                             {measurementWeightInfo?.weight != null ? Number(measurementWeightInfo.weight).toFixed(2) : "0.00"} kg
                                         </span>
                                     </div>
                                     <div className="total-row">
-                                        <span className="total-label">TOTAL VOLUME:</span>
+                                        <span className="total-label">{t("volumeMenu.totalVolume")}</span>
                                         <span className="total-value">
                                             {multipleVolumeData?.Total?.volume_m ?? 0} m³
                                         </span>
@@ -332,8 +334,8 @@ function QVolume({
                                     <WarningIcon />
                                 </div>
                                 <div className="text">
-                                    <span>There are objects outside the workspace area.</span>
-                                    <span>To detect them, make sure they are inside.</span>
+                                    <span>{t("volumeMenu.outOfWSArea")}</span>
+                                    <span>{t("volumeMenu.outOfWSArea_Help")}</span>
                                 </div>
                             </div>
                         </>
@@ -347,7 +349,7 @@ function QVolume({
                                     <WarningIcon />
                                 </div>
                                 <div className="text">
-                                    <span>Failed to identify any objects.</span>
+                                    <span>{t("volumeMenu.failedToIdentify")}</span>
                                 </div>
                             </div>
                         </>

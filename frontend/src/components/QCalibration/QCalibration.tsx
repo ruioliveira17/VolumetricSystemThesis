@@ -5,18 +5,6 @@ import WarningIcon from '@assets/icons/warning.svg?react';
 
 import QBackgroundBranding from "../QBackgroundBranding";
 
-type TranslationKey =
-    | "settings"
-    | "language"
-    | "expositionType"
-    | "expositionTime"
-    | "volumeMode"
-    | "countdownTimer"
-    | "set"
-    | "preferences"
-    | "videoSize"
-    | "define";
-
 interface Message {
   type: string;
   text: string;
@@ -29,7 +17,7 @@ interface Rgb {
 }
 
 interface QCalibrationProps {
-  t: (key: TranslationKey) => string;
+  t: (key: string) => string;
 
   message: Message[];
 

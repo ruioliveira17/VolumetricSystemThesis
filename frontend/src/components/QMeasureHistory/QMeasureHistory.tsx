@@ -24,6 +24,8 @@ interface Position {
 }
 
 interface QMeasureHistoryProps {
+  t: (key: string) => string;
+
   message: Message[];
 
   toggleMenu: () => void;
@@ -84,6 +86,7 @@ interface QMeasureHistoryProps {
 }
 
 function QMeasureHistory({
+  t, 
   message,
   toggleMenu,
 
@@ -208,8 +211,8 @@ function QMeasureHistory({
 
       <div className="menu-wrapper">
         <div className="title-container">
-          <div className="menu-title">Measurement History</div>
-          <div className="menu-info">Shows the data of the measurements made on the last 90 days</div>
+          <div className="menu-title">{t("measurementHistory.title")}</div>
+          <div className="menu-info">{t("measurementHistory.titleInfo")}</div>
         </div>
 
         {/* Measurement Info*/}
@@ -217,25 +220,25 @@ function QMeasureHistory({
           <div className="background"></div>
           <div className="searchBar">
             <Qselect
-              label="Period"
+              label={t("measurementHistory.labelTimePeriod")}
               value={dateFilter}
               options={dateOptions}
               onChange={(value) => setDateFilter(value)}
             />
             <Qselect
-              label="Sort By"
+              label={t("measurementHistory.labelSortBy")}
               value={sortField}
               options={sortOptions}
               onChange={handleSortChange}
             />
             <Qselect
-              label="Search By"
+              label={t("measurementHistory.labelSearchBy")}
               value={searchBy}
               options={searchByOptions}
               onChange={(value) => setSearchBy(value)}
             />
             <Qsearch
-              placeholder="Search..."
+              placeholder={t("measurementHistory.labelSearchBar")}
               value={searchValue}
               onChange={(e) => setSearchValue(e.target.value)}
             />
@@ -244,12 +247,12 @@ function QMeasureHistory({
           <div className="history-container">
             <div className="history-header">
               <div className="history-header-text">ID</div>
-              <div className="history-header-text">User</div>
-              <div className="history-header-text">Measurement Mode</div>
-              <div className="history-header-text">No. of Objects</div>
-              <div className="history-header-text">Total Volume</div>
-              <div className="history-header-text">Weight</div>
-              <div className="history-header-text">Measurement Date</div>
+              <div className="history-header-text">{t("measurementHistory.headerUser")}</div>
+              <div className="history-header-text">{t("measurementHistory.headerMeasurementMode")}</div>
+              <div className="history-header-text">{t("measurementHistory.headerObjects")}</div>
+              <div className="history-header-text">{t("measurementHistory.headerTotalVolume")}</div>
+              <div className="history-header-text">{t("measurementHistory.headerWeight")}</div>
+              <div className="history-header-text">{t("measurementHistory.headerMeasurementDate")}</div>
               <img
                 ref={measurementsMoreOptionsRef}
                 src="/more_options.svg"
@@ -326,7 +329,7 @@ function QMeasureHistory({
             onClick={() => { deleteAllMeasurements(); toggleMeasurementsModal(); }}
           >
             <DeleteForeverIcon className="deleteMeasurements-icon" />
-            <div className="deleteMeasurements-text">Delete All</div>
+            <div className="deleteMeasurements-text">{t("measurementHistory.deleteAllButton")}</div>
           </div>
         </div>
       )}
@@ -347,7 +350,7 @@ function QMeasureHistory({
             onClick={() => { deleteMeasurement(selectedID); toggleMeasurementModal(); }}
           >
             <DeleteForeverIcon className="deleteMeasurement-icon" />
-            <div className="deleteMeasurement-text">Delete</div>
+            <div className="deleteMeasurement-text">{t("measurementHistory.deleteButton")}</div>
           </div>
         </div>
       )}
@@ -356,7 +359,7 @@ function QMeasureHistory({
         <div className="measurement-info-popup">
           <div className="measurement-info-window">
             <div className="measurement-info-title">
-              <span> Measurement Info </span>
+              <span> {t("measurementInfo.title")} </span>
             </div>
 
             <div className="measurement-info-container">
@@ -379,32 +382,32 @@ function QMeasureHistory({
                       <canvas ref={canvasRef} className="measurement-volume-bundle-canvas" />
                       <div className="measurement-boxBundleInfoText-container">
                         <div style={{ color: "#6CD08A" }} className="measurement-boxBundleInfo-text">
-                          <span className="label">Width (cm):</span>
+                          <span className="label">{t("measurementInfo.width")}</span>
                           <span className="value">{measureVolumeInfo.width.toFixed(1)}</span>
                         </div>
 
                         <div style={{ color: "#C66D6D" }} className="measurement-boxBundleInfo-text">
-                          <span className="label">Length (cm):</span>
+                          <span className="label">{t("measurementInfo.length")}</span>
                           <span className="value">{measureVolumeInfo.length.toFixed(1)}</span>
                         </div>
 
                         <div style={{ color: "#9EB0FD" }} className="measurement-boxBundleInfo-text">
-                          <span className="label">Height (cm):</span>
+                          <span className="label">{t("measurementInfo.height")}</span>
                           <span className="value">{measureVolumeInfo.height.toFixed(1)}</span>
                         </div>
 
                         <div style={{ color: "#FFFFFF" }} className="measurement-boxBundleInfo-text">
-                          <span className="label">Volume (m³):</span>
+                          <span className="label">{t("measurementInfo.volume_m")}</span>
                           <span className="value">{measureVolumeInfo.volume_m.toFixed(6)}</span>
                         </div>
 
                         <div style={{ color: "#FFFFFF" }} className="measurement-boxBundleInfo-text">
-                          <span className="label">Volume (cm³):</span>
+                          <span className="label">{t("measurementInfo.volume_cm")}</span>
                           <span className="value">{measureVolumeInfo.volume_cm.toFixed(2)}</span>
                         </div>
 
                         <div style={{ color: "#FFFFFF" }} className="measurement-boxBundleInfo-text">
-                          <span className="label">Weight (kg):</span>
+                          <span className="label">{t("measurementInfo.weight")}</span>
                           <span className="value">{measureVolumeInfo?.weight != null ? Number(measureVolumeInfo.weight).toFixed(2) : "0.00"}</span>
                         </div>
                       </div>
@@ -418,7 +421,7 @@ function QMeasureHistory({
                   <div className="measurement-boxInfo-container">
                     <div className="background"></div>
                     <div className="measurement-objects-text">
-                      Objects:
+                      {t("measurementInfo.objects")}
                     </div>                  
 
                     <div className="measurement-object-tabs">
@@ -442,27 +445,27 @@ function QMeasureHistory({
                         <canvas ref={canvasRef} className="measurement-volume-canvas" />
                         <div className="measurement-boxInfoText-container">
                           <div style={{ color: "#6CD08A" }} className="measurement-boxInfo-text">
-                            <span className="label">Width (cm):</span>
+                            <span className="label">{t("measurementInfo.width")}</span>
                             <span className="value">{measurementMode === "Real" ? measureVolumeInfo.width?.[0] : measureVolumeInfo?.width}</span>
                           </div>
 
                           <div style={{ color: "#C66D6D" }} className="measurement-boxInfo-text">
-                            <span className="label">Length (cm):</span>
+                            <span className="label">{t("measurementInfo.length")}</span>
                             <span className="value">{measurementMode === "Real" ? measureVolumeInfo.length?.[0] : measureVolumeInfo?.length}</span>
                           </div>
 
                           <div style={{ color: "#9EB0FD" }} className="measurement-boxInfo-text">
-                            <span className="label">Height (cm):</span>
+                            <span className="label">{t("measurementInfo.height")}</span>
                             <span className="value">{measurementMode === "Real" ? measureVolumeInfo.height?.[0] : measureVolumeInfo?.height}</span>
                           </div>
 
                           <div style={{ color: "#FFFFFF" }} className="measurement-boxInfo-text">
-                            <span className="label">Volume (m³):</span>
+                            <span className="label">{t("measurementInfo.volume_m")}</span>
                             <span className="value">{measureVolumeInfo?.volume_m}</span>
                           </div>
 
                           <div style={{ color: "#FFFFFF" }} className="measurement-boxInfo-text">
-                            <span className="label">Volume (cm³):</span>
+                            <span className="label">{t("measurementInfo.volume_cm")}</span>
                             <span className="value">{measureVolumeInfo?.volume_cm}</span>
                           </div>
                         </div>
@@ -473,13 +476,13 @@ function QMeasureHistory({
                       <div className="measurement-object-total">
                           <div className="measurement-total-divider"></div>
                           <div className="measurement-total-row">
-                              <span className="measurement-total-label">TOTAL WEIGHT:</span>
+                              <span className="measurement-total-label">{t("measurementInfo.totalWeight")}</span>
                               <span className="measurement-total-value">
                                   {measureMultipleVolumeData?.Total?.weight != null ? Number(measureMultipleVolumeData?.Total?.weight).toFixed(2) : "0.00"} Kg
                               </span>
                           </div>
                           <div className="measurement-total-row">
-                              <span className="measurement-total-label">TOTAL VOLUME:</span>
+                              <span className="measurement-total-label">{t("measurementInfo.totalVolume")}</span>
                               <span className="measurement-total-value">
                                   {measureMultipleVolumeData?.Total?.volume_m ?? 0} m³
                               </span>

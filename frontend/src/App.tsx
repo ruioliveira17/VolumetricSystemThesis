@@ -73,23 +73,23 @@ function App(){
     // Messages variables
     // -----------------------------
 
-    const TextServerConnection: Message = {text: "Server connection error", type: "error"};
-    const TextError: Message = {text: "Error", type: "error"};
-    const TextClear: Message = {text: "", type: "info"};
+    // const TextServerConnection: Message = {text: "Server connection error", type: "error"};
+    // const TextError: Message = {text: "Error", type: "error"};
+    // const TextClear: Message = {text: "", type: "info"};
 
-    const TextLoginWelcome: Message = {text: "Welcome!", type: "info"};
-    const TextLoginCredentials: Message = {text: "Please insert your login credentials.", type: "info"};
-    const TextFillAllFields: Message = {text: "Please fill all fields", type: "error"};
+    // const TextLoginWelcome: Message = {text: "Welcome!", type: "info"};
+    // const TextLoginCredentials: Message = {text: "Please insert your login credentials.", type: "info"};
+    // const TextFillAllFields: Message = {text: "Please fill all fields", type: "error"};
 
-    const TextRegistrationError: Message = {text: "Registration failed", type: "error"};
+    // const TextRegistrationError: Message = {text: "Registration failed", type: "error"};
 
-    const TextResetTokenExpired: Message = {text: "Reset Token expired. Please generate another.", type: "error"};
-    const TextChangePasswordError: Message = {text: "Changing Password failed", type: "error"}
+    // const TextResetTokenExpired: Message = {text: "Reset Token expired. Please generate another.", type: "error"};
+    // const TextChangePasswordError: Message = {text: "Changing Password failed", type: "error"}
     
-    const TextNotCalibrated: Message = { text: "System was not Calibrated.", type: "error" };
-    const TextCenterNotAligned: Message = { text: "Center Point isn't Aligned.", type: "error" };
-    const TextWsNotEmpty: Message = { text: "Workspace isn't Empty.", type: "error" };
-    const TextWsNotEmptyAndCenterNotAligned: Message = { text: "Center Point isn't Aligned and Workspace isn't Empty.", type: "error" };
+    // const TextNotCalibrated: Message = { text: "System was not Calibrated.", type: "error" };
+    // const TextCenterNotAligned: Message = { text: "Center Point isn't Aligned.", type: "error" };
+    // const TextWsNotEmpty: Message = { text: "Workspace isn't Empty.", type: "error" };
+    // const TextWsNotEmptyAndCenterNotAligned: Message = { text: "Center Point isn't Aligned and Workspace isn't Empty.", type: "error" };
 
     const ORIGINAL_CROP = { x: 0, y: 0, width: 1600, height: 1200 };
     const DEFAULT_CROP = { x: 15, y: 15, width: 1570, height: 1170 };
@@ -202,9 +202,9 @@ function App(){
     const cropCanvas = useRef<HTMLCanvasElement | null>(null);
     const selectedCorner = useRef<string | null>(null);
 
-    const [language, setLanguage] = useState("en");
+    const [language, setLanguage] = useState<string | null>(null);
     const [supportedLanguages, setSupportedLanguages] = useState<string[]>([]);
-
+    
     const changeLanguage = async (newLanguage: string) => {
         try {
             const data = await apiJson<{ language: string }>(
@@ -244,6 +244,122 @@ function App(){
 
         return value ?? key;
     };
+
+    // -----------------------------
+    // Messages variables
+    // -----------------------------
+
+    const TextServerConnection = (): Message => ({
+        text: t("error_and_info_messages.serverConnectionError"),
+        type: "error",
+    });
+
+    const TextError = (): Message => ({
+        text: t("error_and_info_messages.error"),
+        type: "error",
+    });
+
+    const TextClear = (): Message => ({
+        text: "",
+        type: "info",
+    });
+
+    const TextLoginWelcome = (): Message => ({
+        text: t("error_and_info_messages.loginWelcome"),
+        type: "info",
+    });
+
+    const TextLoginCredentials = (): Message => ({
+        text: t("error_and_info_messages.loginInsertCredentials"),
+        type: "info",
+    });
+
+    const TextFillAllFields = (): Message => ({
+        text: t("error_and_info_messages.errorFillAllFields"),
+        type: "error",
+    });
+
+    const TextRegistrationError = (): Message => ({
+        text: t("error_and_info_messages.registerFailed"),
+        type: "error",
+    });
+
+    const TextPasswordsDoNotMatch = (): Message => ({
+        text: t("error_and_info_messages.passwordsDoNotMatch"),
+        type: "error",
+    })
+
+    const TextResetTokenExpired = (): Message => ({
+        text: t("error_and_info_messages.resetTokenExpired"),
+        type: "error",
+    });
+
+    const TextSessionExpired = (): Message => ({
+        text: t("error_and_info_messages.sessionExpired"),
+        type: "error",
+    })
+
+    const TextChangePasswordError = (): Message => ({
+        text: t("error_and_info_messages.changePasswordError"),
+        type: "error",
+    });
+
+    const TextNotCalibrated = (): Message => ({
+        text: t("error_and_info_messages.systemNotCalibrated"),
+        type: "error",
+    });
+
+    const TextCenterNotAligned = (): Message => ({
+        text: t("error_and_info_messages.centerPointNotAligned"),
+        type: "error",
+    });
+
+    const TextWsNotEmpty = (): Message => ({
+        text: t("error_and_info_messages.workspaceNotEmpty"),
+        type: "error",
+    });
+
+    const TextWsNotEmptyAndCenterNotAligned = (): Message => ({
+        text: t(
+            "error_and_info_messages.workspaceNotEmptyAndCenterPointNotAligned"
+        ),
+        type: "error",
+    });
+
+    const TextSaveMeasurementError = (): Message => ({
+        text: t("error_and_info_messages.saveMeasurementerror"),
+        type: "error",
+    })
+
+    const TextMeasurementLoadError = (): Message => ({
+        text: t("error_and_info_messages.measurementLoadError"),
+        type: "error",
+    })
+
+    const TextMeasurementDeleteError = (): Message => ({
+        text: t("error_and_info_messages.measurementDeleteError"),
+        type: "error",
+    })
+
+    const TextMeasurementsDeleteError = (): Message => ({
+        text: t("error_and_info_messages.measurementsDeleteError"),
+        type: "error",
+    })
+
+    const TextAdminNeededError = (): Message => ({
+        text: t("error_and_info_messages.adminNeededError"),
+        type: "error",
+    })
+
+    const TextUsersLoadError = (): Message => ({
+        text: t("error_and_info_messages.usersLoadError"),
+        type: "error",
+    })
+
+    const TextUserDeleteError = (): Message => ({
+        text: t("error_and_info_messages.userDeleteError"),
+        type: "error",
+    })
 
     // -----------------------------
     // Video variables
@@ -336,10 +452,10 @@ function App(){
     const [sortOrder, setSortOrder] = useState<string>("desc");
 
     const sortOptions = [
-        { label: "Date", value: "created_at" },
-        { label: "Measurement Mode", value: "volume_mode" },
-        { label: "No. of Objects", value: "object_count" },
-        { label: "User", value: "user_id" },
+        { label: t("measurementSearchOptions.date"), value: "created_at" },
+        { label: t("measurementSearchOptions.measurementMode"), value: "volume_mode" },
+        { label: t("measurementSearchOptions.objectNumber"), value: "object_count" },
+        { label: t("measurementSearchOptions.user"), value: "user_id" },
     ];
 
     const sortedMeasurements = [...measurementsList].sort((a, b) => {
@@ -369,18 +485,18 @@ function App(){
     const [searchValue, setSearchValue] = useState("");
 
     const searchByOptions = [
-        { value: "all", label: "All" },
+        { value: "all", label: t("measurementSearchOptions.all")},
         { value: "mode_multiBundle", label: "Multi Bundle" },
         { value: "mode_Real", label: "Real" },
         { value: "mode_singleBundle", label: "Single Bundle" },
     ];
 
     const dateOptions = [
-        { value: "today", label: "Today" },
-        { value: "yesterday", label: "Yesterday" },
-        { value: "this_week", label: "This Week" },
-        { value: "this_month", label: "This Month" },
-        { value: "last_3_months", label: "Last 3 Months" },
+        { value: "today", label: t("measurementSearchOptions.today")},
+        { value: "yesterday", label: t("measurementSearchOptions.yesterday")},
+        { value: "this_week", label: t("measurementSearchOptions.thisWeek")},
+        { value: "this_month", label: t("measurementSearchOptions.thisMonth")},
+        { value: "last_3_months", label: t("measurementSearchOptions.lastMonths")},
     ];
 
     const [dateFilter, setDateFilter] = useState("last_3_months");
@@ -553,7 +669,7 @@ function App(){
                 serverReady = await waitForServer();
 
                 if (!serverReady) {
-                console.error("Servidor indisponível");
+                    console.error("Servidor indisponível");
                 }
             }
 
@@ -567,9 +683,8 @@ function App(){
                     setSupportedLanguages(data.supported);
                 }
             } catch (error) {
-                console.error("Não foi possível obter a linguagem:", error);
+                console.error("Não foi possível obter a idioma:", error);
             }
-
 
             const storedUser = localStorage.getItem("current_user");
 
@@ -580,7 +695,9 @@ function App(){
             } else {
                 const user = JSON.parse(storedUser);
                 setSavedUser(user);
+
                 await loggedIn();
+                
                 setAppReady(true);
             }
         }
@@ -615,16 +732,19 @@ function App(){
         };
     }, []);
 
-    useEffect(() => {
+    useEffect(()=>{
+        if (currentMenu !== "login-menu") return;
         if (currentMenu === "login-menu") {
-            setMessage([TextLoginWelcome, TextLoginCredentials]);
+            setMessage([TextLoginWelcome(), TextLoginCredentials()]);
         }
+    },[currentMenu, language]);
 
+    useEffect(() => {
         if (currentMenu === "login-menu" || currentMenu === "register") {
             return;
         }
 
-        setMessage([TextClear]);
+        setMessage([TextClear()]);
 
         if (currentMenu === "calibration-menu") {
             workspaceDrawing();
@@ -1900,7 +2020,7 @@ function App(){
     // Show Screen Functions
     function showRegisterScreen(): void {
         setCurrentMenu("register");
-        setMessage([TextClear]);
+        setMessage([TextClear()]);
         setUsername("");
         setPassword("");
         setRegUsernameFocus(false);
@@ -1914,7 +2034,7 @@ function App(){
 
     function showLoginScreen(): void {
         setCurrentMenu("login-menu");
-        setMessage([TextClear]);
+        setMessage([TextClear()]);
         setRegUsername("");
         setRegEmail("");
         setRegPassword("");
@@ -1928,24 +2048,24 @@ function App(){
         setShowChangePasswordModal(false);
         setUsernameFormError(false);
         setPasswordFormError(false);
-    }
-
-    function showChangePasswordScreen(): void {
-        setCurrentMenu("changePassword-menu");
-        setMessage([TextClear]);
-        setUsername("");
-        setPassword("");
-        setChangePasswordFocus(false);
-        setChangeConfirmPasswordFocus(false);
 
         setChangePasswordFormError(false);
         setChangeConfirmPasswordFormError(false);
     }
 
+    function showChangePasswordScreen(): void {
+        setCurrentMenu("changePassword-menu");
+        setMessage([TextClear()]);
+        setUsername("");
+        setPassword("");
+        setChangePasswordFocus(false);
+        setChangeConfirmPasswordFocus(false);
+    }
+
     // Login Algorithm
     async function login(): Promise<void> {
         if (!username || !password) {
-            setMessage([TextFillAllFields]);
+            setMessage([TextFillAllFields()]);
             setUsernameFormError(true);
             setPasswordFormError(true);
             return;
@@ -1964,7 +2084,7 @@ function App(){
                 const data = await response.json();
 
                 if(data.resetTokenExpired){
-                    setMessage([TextResetTokenExpired]);
+                    setMessage([TextResetTokenExpired()]);
                 }else if (data.changePassword){
                     localStorage.setItem("access_token", data.access_token);
                     setChangeUserId(data.user_id);
@@ -1994,33 +2114,39 @@ function App(){
 
                     setMenuSideNavOpen(true);
 
-                    setMessage([TextClear]);
-
+                    setMessage([TextClear()]);
                 };
 
             } else {
                 const data = await response.json();
+                let errorMessage;
 
+                if (data.detail === "INVALID_USERNAME_OR_PASSWORD"){
+                    errorMessage = t("error_and_info_messages.invalidUsernameOrPassword");
+                }else{
+                    errorMessage = t("error_and_info_messages.loginFailed");
+                }
+
+                
                 setMessage([
                     {
-                    text: errorText(data.detail, TextServerConnection.text),
+                    text: errorText(errorMessage, TextServerConnection().text),
                     type: "error"
                     }
                 ]);
-
                 setUsernameFormError(true);
                 setPasswordFormError(true);
             }
 
         } catch {
-            setMessage([TextServerConnection]);
+            setMessage([TextServerConnection()]);
         }
     }
 
     // Register Algorithm
     async function register(): Promise<void> {
         if (!regUsername || !regPassword || !regConfirmPassword) {
-            setMessage([TextFillAllFields]);
+            setMessage([TextFillAllFields()]);
 
             setRegUsernameFormError(true);
             setRegPasswordFormError(true);
@@ -2029,12 +2155,7 @@ function App(){
         }
 
         if (regPassword !== regConfirmPassword) {
-            setMessage([
-                {
-                text: "Passwords do not match!",
-                type: "error",
-                },
-            ]);
+            setMessage([TextPasswordsDoNotMatch()]);
 
             setRegUsernameFormError(true);
             setRegPasswordFormError(true);
@@ -2055,9 +2176,33 @@ function App(){
             const data = await response.json();
 
             if (!response.ok) {
+                let errorMessage;
+
+                switch (data.detail) {
+                    case "REGISTER_USERNAME_EXISTS":
+                        errorMessage = t("error_and_info_messages.userAlreadyExists");
+                        break;
+
+                    case "REGISTER_PASSWORDS_DO_NOT_MATCH":
+                        errorMessage = t("error_and_info_messages.passwordsDoNotMatch");
+                        break;
+
+                    case "REGISTER_PASSWORD_REQUIREMENTS":
+                        errorMessage = t("error_and_info_messages.passwordRequirements");
+                        break;
+
+                    case "REGISTER_FIELDS_MISSING":
+                        errorMessage = t("error_and_info_messages.errorFillAllFields");
+                        break;
+
+                    default:
+                        errorMessage = t("error_and_info_messages.registerFailed");
+                        break;
+                }
+
                 setMessage([
                     {
-                    text: errorText(data.detail, TextRegistrationError.text),
+                    text: errorText(errorMessage, TextRegistrationError().text),
                     type: "error",
                     },
                 ]);
@@ -2069,7 +2214,7 @@ function App(){
             }
 
         } catch (error) {
-            setMessage([TextServerConnection]);
+            setMessage([TextServerConnection()]);
 
             setRegUsernameFormError(true);
             setRegPasswordFormError(true);
@@ -2077,7 +2222,7 @@ function App(){
             return;
         }
 
-        notify.success("New user registered with success");
+        notify.success(t("error_and_info_messages.registerSuccess"));
 
         showLoginScreen();
     }
@@ -2086,7 +2231,7 @@ function App(){
     async function confirmChangePassword(): Promise<void> {
         if(currentMenu === "changePassword-menu"){
             if (!changeUserId || !changePassword || !changeConfirmPassword) {
-                setMessage([TextFillAllFields]);
+                setMessage([TextFillAllFields()]);
 
                 setChangePasswordFormError(true);
                 setChangeConfirmPasswordFormError(true);
@@ -2094,12 +2239,7 @@ function App(){
             }
 
             if (changePassword !== changeConfirmPassword) {
-                setMessage([
-                    {
-                    text: "Passwords do not match!",
-                    type: "error",
-                    },
-                ]);
+                setMessage([TextPasswordsDoNotMatch()]);
 
                 setChangePasswordFormError(true);
                 setChangeConfirmPasswordFormError(true);
@@ -2117,9 +2257,41 @@ function App(){
                 const data = await response.json();
 
                 if (!response.ok) {
+                    let errorMessage;
+
+                    switch (data.detail) {
+                        case "CHANGE_PASSWORD_USER_NOT_FOUND":
+                            errorMessage = t("error_and_info_messages.userNotFound");
+                            break;
+
+                        case "CHANGE_PASSWORD_MISSING_FIELDS":
+                            errorMessage = t("error_and_info_messages.errorFillAllFields");
+                            break;
+
+                        case "CHANGE_PASSWORD_CURRENT_INVALID":
+                            errorMessage = t("error_and_info_messages.currentPasswordInvalid");
+                            break;
+
+                        case "CHANGE_PASSWORD_REQUIREMENTS":
+                            errorMessage = t("error_and_info_messages.passwordRequirements");
+                            break;
+
+                        case "CHANGE_PASSWORD_NOT_MATCH":
+                            errorMessage = t("error_and_info_messages.passwordsDoNotMatch");
+                            break;
+
+                        case "CHANGE_PASSWORD_NEW_CANNOT_BE_SAME":
+                            errorMessage = t("error_and_info_messages.newPasswordCannotBeSame");
+                            break;
+
+                        default:
+                            errorMessage = t("error_and_info_messages.registerFailed");
+                            break;
+                    }
+
                     setMessage([
                         {
-                        text: errorText(data.detail, TextChangePasswordError.text),
+                        text: errorText(errorMessage, TextChangePasswordError().text),
                         type: "error",
                         },
                     ]);
@@ -2129,7 +2301,7 @@ function App(){
                     return;
                 }
 
-                notify.success("Changed password with success");
+                notify.success(t("error_and_info_messages.changePasswordSuccess"));
 
                 setResetTokensByUser((prev) => {
                     const updated = { ...prev };
@@ -2140,7 +2312,7 @@ function App(){
                 showLoginScreen();
 
             } catch (error) {
-                setMessage([TextServerConnection]);
+                setMessage([TextServerConnection()]);
 
                 setChangePasswordFormError(true);
                 setChangeConfirmPasswordFormError(true);
@@ -2148,7 +2320,7 @@ function App(){
             }
         } else if (currentMenu !== "login-menu" && currentMenu !== "register" && currentMenu !== "changePassword-menu"){
             if (!changeUserId || !changeCurrentPassword || !changePassword || !changeConfirmPassword) {
-                setMessage([TextFillAllFields]);
+                setMessage([TextFillAllFields()]);
 
                 setChangeCurrentPasswordFormError(true);
                 setChangePasswordFormError(true);
@@ -2157,12 +2329,7 @@ function App(){
             }
 
             if (changePassword !== changeConfirmPassword) {
-                setMessage([
-                    {
-                    text: "Passwords do not match!",
-                    type: "error",
-                    },
-                ]);
+                setMessage([TextPasswordsDoNotMatch()]);
 
                 setChangePasswordFormError(true);
                 setChangeConfirmPasswordFormError(true);
@@ -2183,7 +2350,7 @@ function App(){
                 if (!response.ok) {
                     setMessage([
                         {
-                        text: errorText(data.detail, TextChangePasswordError.text),
+                        text: errorText(data.detail, TextChangePasswordError().text),
                         type: "error",
                         },
                     ]);
@@ -2194,7 +2361,7 @@ function App(){
                     return;
                 }
 
-                notify.success("Changed password with success");
+                notify.success(t("error_and_info_messages.changePasswordSuccess"));
 
                 setResetTokensByUser((prev) => {
                     const updated = { ...prev };
@@ -2206,7 +2373,7 @@ function App(){
                 showLoginScreen();
 
             } catch (error) {
-                setMessage([TextServerConnection]);
+                setMessage([TextServerConnection()]);
 
                 setChangePasswordFormError(true);
                 setChangeConfirmPasswordFormError(true);
@@ -2264,7 +2431,7 @@ function App(){
 
     useEffect(() => {
         setOnAuthFailure(() => {
-            notify.error("Session expired. Login once again.")
+            notify.error(t("error_and_info_messages.sessionExpired"))
             logout();
         });
 
@@ -2396,7 +2563,7 @@ function App(){
 
             setObjectList([]);
             setSelectedObject("");
-            setMessage([TextClear]);
+            setMessage([TextClear()]);
             setVolInfo(null);
             setVolumeData(null);
             setObjectImage(null);
@@ -2474,7 +2641,7 @@ function App(){
     // Save the current measurement (objects + snapshot images) in the database
     async function saveMeasurement(measurementData: MeasurementData): Promise<void> {
         try {
-            setMessage([TextClear]);
+            setMessage([TextClear()]);
 
             const res = await apiFetch("/saveMeasurements", {
                 method: "POST",
@@ -2488,41 +2655,23 @@ function App(){
             if (res.ok) {
                 const data = await res.json();
 
-                notify.success(`Measurement saved (#${data.id}).`);
+                notify.success(`${t("error_and_info_messages.saveMeasurementSuccess")} (#${data.id}).`);
 
             } else if (res.status === 401) {
 
-                setMessage([
-                    {
-                        text: "Session expired. Please login again.",
-                        type: "error"
-                    }
-                ]);
+                setMessage([TextSessionExpired()]);
 
             } else {
 
                 const data = await res.json().catch(() => ({}));
 
-                setMessage([
-                    {
-                        text: errorText(
-                            data.detail,
-                            "Could not save the measurement."
-                        ),
-                        type: "error"
-                    }
-                ]);
+                setMessage([TextSaveMeasurementError()]);
             }
 
 
         } catch (e) {
 
-            setMessage([
-                {
-                    text: "Server connection error.",
-                    type: "error"
-                }
-            ]);
+            setMessage([TextServerConnection()]);
 
         }
     }
@@ -2535,7 +2684,7 @@ function App(){
                 const data = await res.json();
                 setMeasurementsList(data.measurements || []);
             } else {
-                setMessage([{ text: "Could not load measurements.", type: "error" }]);
+                setMessage([TextMeasurementLoadError()]);
             }
 
             const user_res = await apiFetch("/users");
@@ -2543,12 +2692,12 @@ function App(){
                 const data = await user_res.json();
                 setUsersIDList(data.users || []);
             } else if (user_res.status === 403) {
-                setMessage([{ text: "Admin privileges required.", type: "error" }]);
+                setMessage([TextAdminNeededError()]);
             } else {
-                setMessage([{ text: "Could not load users.", type: "error" }]);
+                setMessage([TextUsersLoadError()]);
             }
         } catch (e) {
-            setMessage([{ text: "Server connection error.", type: "error" }]);
+            setMessage([TextServerConnection()]);
         }
     }
 
@@ -2562,10 +2711,10 @@ function App(){
             if (res.ok) {
                 setMeasurementsList(prev => prev.filter((u) => u.id !== measurementID));
             } else {
-                setMessage([{ text: "Could not delete measurement.", type: "error" }]);
+                setMessage([TextMeasurementDeleteError()]);
             }
         } catch (e) {
-            setMessage([{ text: "Server connection error.", type: "error" }]);
+            setMessage([TextServerConnection()]);
         }
     }
 
@@ -2578,11 +2727,10 @@ function App(){
             if (res.ok) {
                 setMeasurementsList([]);
             } else {
-                setMessage([{ text: "Could not delete measurement.", type: "error" }]);
-                setMessage([{ text: "Could not delete all measurements.", type: "error" }]);
+                setMessage([TextMeasurementsDeleteError()]);
             }
         } catch (e) {
-            setMessage([{ text: "Server connection error.", type: "error" }]);
+            setMessage([TextServerConnection()]);
         }
     }
 
@@ -2739,7 +2887,7 @@ function App(){
                 if (objectsOutOfLine.length > 0) {
                     setObjectsOutOfLine(true);
                 } else {
-                    setMessage([TextClear]);
+                    setMessage([TextClear()]);
 
                     const dataResponse = await apiFetch("/volume/singleBundle/results");
 
@@ -2804,7 +2952,7 @@ function App(){
             }
 
         } catch (error) {
-            setMessage([TextError]);
+            setMessage([TextError()]);
             console.error(error);
 
         } finally {
@@ -2891,13 +3039,13 @@ function App(){
                         await saveMeasurement(measurementData);
                     }
 
-                    setMessage([TextClear]);
+                    setMessage([TextClear()]);
                 }
             }
 
         } catch (error) {
             setVolInfo(null);
-            setMessage([TextError]);
+            setMessage([TextError()]);
             console.error(error);
         } finally {
             setLoadingVolume(false);
@@ -2989,13 +3137,13 @@ function App(){
                         await saveMeasurement(measurementData);
                     }
 
-                    setMessage([TextClear]);
+                    setMessage([TextClear()]);
                 }
             }
 
         } catch (error) {
             setVolInfo(null);
-            setMessage([TextError]);
+            setMessage([TextError()]);
             console.error(error);
         } finally {
             setLoadingVolume(false);
@@ -3185,7 +3333,7 @@ function App(){
     async function calibrate_click(): Promise<void> {
         try {
             setLoadingCalibration(true);
-            setMessage([TextClear]);
+            setMessage([TextClear()]);
 
             await apiFetch("/applyManualWorkspace", {
                 method: "POST",
@@ -3216,17 +3364,17 @@ function App(){
             if (center_aligned && ws_clear) {
                 setCalibrationModalOpen(true);
             } else if (center_aligned && !ws_clear) {
-                setMessage([TextNotCalibrated, TextWsNotEmpty]);
+                setMessage([TextNotCalibrated(), TextWsNotEmpty()]);
             } else if (!center_aligned && ws_clear) {
-                setMessage([TextNotCalibrated, TextCenterNotAligned]);
+                setMessage([TextNotCalibrated(), TextCenterNotAligned()]);
             } else {
-                setMessage([TextNotCalibrated, TextWsNotEmptyAndCenterNotAligned]);
+                setMessage([TextNotCalibrated(), TextWsNotEmptyAndCenterNotAligned()]);
             }
 
             selectedPoint.current = null;
 
         } catch (error) {
-            setMessage([TextError]);
+            setMessage([TextError()]);
             console.error(error);
         } finally {
             setLoadingCalibration(false);
@@ -3247,11 +3395,11 @@ function App(){
                 if (!calibrateResponse.ok) throw new Error("Save calibration request failed");
                 setLockMenu(false);
                 setCurrentMenu("volume-menu");
-                notify.success("System was calibrated with success.");
+                notify.success(t("error_and_info_messages.systemCalibratedSuccess"));
             }
 
         } catch (error) {
-            setMessage([TextError]);
+            setMessage([TextError()]);
             console.error(error);
         }
     }
@@ -3271,18 +3419,18 @@ function App(){
     async function loadUsers(): Promise<void> {
         try {
             setUsersLoading(true);
-            setMessage([TextClear]);
+            setMessage([TextClear()]);
             const res = await apiFetch("/users");
             if (res.ok) {
                 const data = await res.json();
                 setUsersList(data.users || []);
             } else if (res.status === 403) {
-                setMessage([{ text: "Admin privileges required.", type: "error" }]);
+                setMessage([TextAdminNeededError()]);
             } else {
-                setMessage([{ text: "Could not load users.", type: "error" }]);
+                setMessage([TextUsersLoadError()]);
             }
         } catch (e) {
-            setMessage([{ text: "Server connection error.", type: "error" }]);
+            setMessage([TextServerConnection()]);
         } finally {
             setUsersLoading(false);
         }
@@ -3301,7 +3449,7 @@ function App(){
     }
 
     async function closeChangePasswordModal(): Promise<void> {
-        setMessage([TextClear]);
+        setMessage([TextClear()]);
         setShowChangePasswordModal(false); 
         setChangeCurrentPassword(""); 
         setChangePassword(""), 
@@ -3326,10 +3474,10 @@ function App(){
             if (res.ok) {
                 setUsersList(prev => prev.map((u) => (u.id === userId ? { ...u, role } : u)));
             } else {
-                notify.error("Could not update the user role");
+                notify.error(t("error_and_info_messages.userChangeRoleError"));
             }
         } catch (e) {
-            setUsersMsg("Server connection error.");
+            setUsersMsg(t("error_and_info_messages.serverConnectionError"));
         }
     }
 
@@ -3358,10 +3506,10 @@ function App(){
             if (res.ok) {
                 setUsersList(prev => prev.filter((u) => u.id !== userId));
             } else {
-                setMessage([{ text: "Could not delete user.", type: "error" }]);
+                setMessage([TextUserDeleteError()]);
             }
         } catch (e) {
-            setMessage([{ text: "Server connection error.", type: "error" }]);
+            setMessage([TextServerConnection()]);
         }
     }
 
@@ -3419,12 +3567,12 @@ function App(){
         const value = Number(exposureTime);
 
         if (!Number.isInteger(value)) {
-            notify.error("Only integer values are allowed for exposure time");
+            notify.error(t("error_and_info_messages.exposureTimeValuesType"));
             return;
         }
 
         if (value < 100 || value > 2000) {
-            notify.error("Exposure Time value must be between 100 and 2000");
+            notify.error(t("error_and_info_messages.exposureTimeValuesRange"));
             return;
         }
 
@@ -3434,7 +3582,7 @@ function App(){
 
             await apiFetch("/saveInfo", { method: "POST"});
 
-            notify.success("Exposure Time updated successfully");
+            notify.success(t("error_and_info_messages.exposureTimeSuccess"));
         } catch (error) {
             console.error("Exposure set error:", error);
         }
@@ -3445,12 +3593,12 @@ function App(){
         const value = Number(countdownTimer);
 
         if (!Number.isInteger(value)) {
-            notify.error("Only integer values are allowed for the Countdown Timer");
+            notify.error(t("error_and_info_messages.countdownTimerValuesType"));
             return;
         }
 
         if (value < 0 || value > 10) {
-            notify.error("Countdown Timer value must be between 0 and 10");
+            notify.error(t("error_and_info_messages.countdownTimerValuesRange"));
             return;
         }
 
@@ -3464,7 +3612,7 @@ function App(){
 
             await apiFetch("/saveInfo", { method: "POST"});
 
-            notify.success("Countdown Timer updated successfully");
+            notify.success(t("error_and_info_messages.countdownTimerSuccess"));
         } catch (error) {
             console.error("Countdown set error:", error);
         }
@@ -3535,17 +3683,17 @@ function App(){
     const navItems = [
         {
             key: 'volume',
-            label: 'Volume',
+            label: t("topBar.volume"),
             menu: 'volume-menu',
         },
         {
             key: 'calibration',
-            label: 'Calibration',
+            label: t("topBar.calibration"),
             menu: 'calibration-menu',
         },
         {
             key: 'measurement',
-            label: 'Measurement History',
+            label: t("topBar.measurementHistory"),
             menu: 'measurementHistory-menu',
         },
     ];
@@ -3734,6 +3882,7 @@ function App(){
                             {/* Login Menu */}
                             {currentMenu === "login-menu" && (
                                 <QLogin
+                                    t={t}
                                     message={message}
 
                                     username={username}
@@ -3763,6 +3912,7 @@ function App(){
                             {/* Register Menu */}
                             {currentMenu === "register" && (
                                 <QRegister
+                                    t={t}
                                     message={message}
                                     regUsername={regUsername}
                                     regPassword={regPassword}
@@ -3790,6 +3940,7 @@ function App(){
                             {/* Register Menu */}
                             {currentMenu === "changePassword-menu" && (
                                 <QChangePassword
+                                    t={t}
                                     message={message}
                                     changeUsername={changeUsername}
                                     changePassword={changePassword}
@@ -3814,6 +3965,7 @@ function App(){
                             {/* Volume Menu */}
                             {currentMenu === "volume-menu" && (
                                 <QVolume
+                                    t={t}
                                     message={message}
 
                                     loadingVolume={loadingVolume}
@@ -3862,6 +4014,7 @@ function App(){
                             {/* Measurement History Menu */}
                             {currentMenu === "measurementHistory-menu" && (
                                 <QMeasureHistory
+                                    t={t}
                                     message={message}
 
                                     toggleMenu={toggleMenu}
@@ -3951,6 +4104,7 @@ function App(){
                             {/* User Panel */}
                             {showUserPopup && (
                                 <QUserModal
+                                    t={t}
                                     savedUser={savedUser}
                                     setShowUserPopup={setShowUserPopup}
                                     userAnchorRect={userAnchorRect}
@@ -3963,6 +4117,7 @@ function App(){
                             {/* Manage Users */}
                             {showUsersPanel && (
                                 <QUserPanel
+                                    t={t}
                                     usersList={usersList}
                                     usersLoading={usersLoading}
                                     usersMsg={usersMsg}
@@ -3979,6 +4134,7 @@ function App(){
 
                             {showChangePasswordModal && (
                                 <QChangePasswordModal
+                                    t={t}
                                     message={message}
                                     closeChangePasswordModal={closeChangePasswordModal}
                                     changeUsername={changeUsername}
@@ -4038,6 +4194,7 @@ function App(){
                             {/* Window Resizer Panel */}
                             {showCropWindow && (
                                 <QWindowResizer
+                                    t={t}
                                     cropVideo={cropVideo}
                                     cropCanvas={cropCanvas}
 
@@ -4061,7 +4218,7 @@ function App(){
             </>
         );
     } else if (isLoaderVisible) {
-        return <QSystemLoader fadingOut={appReady} />;
+        return <QSystemLoader t={t} fadingOut={appReady} />;
     }
 }
 

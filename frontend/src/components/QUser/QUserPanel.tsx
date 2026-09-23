@@ -12,6 +12,7 @@ interface User {
 }
 
 interface QUserPanelProps {
+    t: (key: string) => string;
     usersList: User[];
     usersLoading: boolean;
     usersMsg: string;
@@ -40,6 +41,7 @@ interface QUserPanelProps {
 
 
 function QUserPanel({
+    t,
     usersList,
     usersLoading,
     usersMsg,
@@ -88,12 +90,12 @@ function QUserPanel({
                 <div className="user-panel" onClick={(e) => e.stopPropagation()}>
 
                     <div className="user-panel-title">
-                        Manage Users
+                        {t("userMenu.manageUsers")}
                     </div>
 
                     {usersLoading && (
                         <div className="user-panel-loading">
-                            Loading...
+                            {t("userMenu.loading")}
                         </div>
                     )}
 
@@ -107,8 +109,8 @@ function QUserPanel({
                         <div className="user-table-container">
 
                             <div className="user-header">
-                                <div>User</div>
-                                <div>Role</div>
+                                <div>{t("userMenu.headerUser")}</div>
+                                <div>{t("userMenu.headerRole")}</div>
                                 <div></div>
                                 <div></div>
                             </div>
@@ -170,7 +172,7 @@ function QUserPanel({
                                                         className="generate-token-button"
                                                         onClick={() => generateResetToken(u.id)}
                                                     >
-                                                        <span>Generate Token</span>
+                                                        <span>{t("userMenu.generateToken")}</span>
                                                     </button>
                                                 )}
                                             </div>
@@ -186,7 +188,7 @@ function QUserPanel({
                                 })}
                                 {otherUsers.length === 0 && !usersMsg && (
                                     <div className="no-users">
-                                        No other users.
+                                        {t("userMenu.noUsers")}
                                     </div>
                                 )}
                             </div>

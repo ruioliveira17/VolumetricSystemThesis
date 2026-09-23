@@ -5,6 +5,8 @@ import "./QLogin.css";
 import QBranding from "./QBranding";
 
 interface QRegisterProps {
+  t: (key: string) => string;
+
   message: {
     type: string;
     text: string;
@@ -39,6 +41,7 @@ interface QRegisterProps {
 }
 
 function QRegister({
+  t,
   message,
   regUsername,
   regPassword,
@@ -69,7 +72,7 @@ function QRegister({
     <div>
       <QBranding />
       <div className="login-panel-register">
-        <div className="login-panel-title">Register</div>
+        <div className="login-panel-title">{t("register.title")}</div>
 
         <div className="login-panel-register-error-or-info">
           {message.map((msg, i) => (
@@ -110,7 +113,7 @@ function QRegister({
               onChange={(e) => setRegUsername(e.target.value)}
             />
             <label className={regUsernameFocus || regUsername ? "active" : ""}>
-              Username
+              {t("register.username")}
             </label>
           </div>
 
@@ -135,7 +138,7 @@ function QRegister({
               onChange={(e) => setRegPassword(e.target.value)}
             />
             <label className={regPasswordFocus || regPassword ? "active" : ""}>
-              Password
+              {t("register.password")}
             </label>
           </div>
 
@@ -164,20 +167,20 @@ function QRegister({
                 regConfirmPasswordFocus || regConfirmPassword ? "active" : ""
               }
             >
-              Confirm Password
+              {t("register.confirmPassword")}
             </label>
           </div>
 
           <div className="login-actions">
             <div className="login-options">
               <p onClick={showLoginScreen}>
-                Already have an account? <span>Login</span>
+                {t("register.haveAnAccount")} <span>{t("register.loginButton")}</span>
               </p>
             </div>
 
             <button ref={registerButtonRef} className="login-button" type="submit">
               <div className="background"></div>
-              <span className="text">Register</span>
+              <span className="text">{t("register.registerButton")}</span>
             </button>
           </div>
         </form>
