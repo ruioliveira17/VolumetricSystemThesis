@@ -175,6 +175,16 @@ const es = {
         revertButton: "Revert",
         confirmButton: "Confirm" 
     },
+    power: {
+        title: "Power Options",
+        subtitle: "What do you want to do?",
+        shutdown: "Shutdown",
+        restart: "Restart",
+        confirmShutdown: "Are you sure you want to shut down?",
+        confirmRestart: "Are you sure you want to restart?",
+        yes: "Yes",
+        no: "No",
+    },
     userMenu: {
         user: "User:",
         role: "Role:",

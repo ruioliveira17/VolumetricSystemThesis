@@ -175,6 +175,16 @@ const pt = {
         revertButton: "Reverter",
         confirmButton: "Confirmar" 
     },
+    power: {
+        title: "Sistema",
+        subtitle: "O que deseja fazer?",
+        shutdown: "Desligar",
+        restart: "Reiniciar",
+        confirmShutdown: "Tem a certeza que quer desligar?",
+        confirmRestart: "Tem a certeza que quer reiniciar?",
+        yes: "Sim",
+        no: "Não",
+    },
     userMenu: {
         user: "Utilizador:",
         role: "Cargo:",

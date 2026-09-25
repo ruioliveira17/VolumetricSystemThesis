@@ -1,10 +1,15 @@
 import React from "react";
 import { type CSSProperties } from 'react';
 import "./QSettings.css";
+import { QConfirmationModal } from "../QConfirmationModal"
+
 import CloseIcon from '@assets/icons/close.svg?react';
 import PopupConnection from '@assets/icons/popup_connection.svg?react';
+import PowerOff from '@assets/icons/power.svg?react';
 
 import Qselect from "../Qselect"
+
+import {apiFetch} from "../../api/client"
 
 interface LanguageOption {
     label: string;
@@ -107,6 +112,34 @@ function QSettings({
     ...languageOptions[code],
   }));
 
+  const [powerModalOpen, setPowerModalOpen] = React.useState(false);
+  const [confirmModalOpen, setConfirmModalOpen] = React.useState(false);
+  const [powerAction, setPowerAction] = React.useState<"shutdown" | "restart" | null>(null);
+
+  const handlePowerAction = (action: "shutdown" | "restart") => {
+    setPowerModalOpen(false);
+    setPowerAction(action);
+    setConfirmModalOpen(true);
+  };
+
+  const handleConfirmAction = async (action: "shutdown" | "restart") => {
+    setConfirmModalOpen(false);
+
+    try {
+      if (action === "shutdown") {
+        await apiFetch("/system/shutdown", {
+          method: "POST",
+        });
+      } else if (action === "restart") {
+        await apiFetch("/system/restart", {
+          method: "POST",
+        });
+      }
+    } catch (error) {
+      console.error(`Failed to ${action} system:`, error);
+    }
+  };
+
   return (
     <>
       {/* Fundo Escuro */}
@@ -194,7 +227,7 @@ function QSettings({
             />
 
             <button className="countdown-btn" onClick={countdownTimerSet_click}>
-              <span className="text">{t("settings.set")}</span>
+              <span className="set-text">{t("settings.set")}</span>
             </button>
           </div>
 
@@ -205,8 +238,43 @@ function QSettings({
               <span className="define_text">{t("settings.set")}</span>
             </button>
           </div>
+
+          <div className="poweroff-button" onClick={() => setPowerModalOpen(true)}>
+            <div  className="poweroff-icon">
+              <PowerOff/>
+            </div>
+          </div>
         </div>
       </div>
+
+      {powerModalOpen}{
+        <QConfirmationModal
+          open={powerModalOpen}
+          onClose={() =>  handlePowerAction("shutdown")}
+          onConfirm={() => handlePowerAction("restart")}
+          title={t("power.title")}
+          subtitle={t("power.subtitle")}
+          confirmText={t("power.restart")}
+          cancelText={t("power.shutdown")}
+        />
+      }
+
+      {confirmModalOpen && powerAction && (
+        <QConfirmationModal
+          open={confirmModalOpen}
+          onClose={() => setConfirmModalOpen(false)}
+          onConfirm={() => handleConfirmAction(powerAction)}
+          title={t("power.title")}
+          subtitle={
+            powerAction === "shutdown"
+              ? t("power.confirmShutdown")
+              : t("power.confirmRestart")
+          }
+          confirmText={t("power.yes")}
+          cancelText={t("power.no")}
+        />
+      )}
+
     </>
   );
 }
