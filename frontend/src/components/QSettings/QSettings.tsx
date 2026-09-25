@@ -2,6 +2,7 @@ import React from "react";
 import { type CSSProperties } from 'react';
 import "./QSettings.css";
 import { QConfirmationModal } from "../QConfirmationModal"
+import { QPowerOptionsModal } from "../QPowerOptionsModal"
 
 import CloseIcon from '@assets/icons/close.svg?react';
 import PopupConnection from '@assets/icons/popup_connection.svg?react';
@@ -242,25 +243,26 @@ function QSettings({
             </button>
           </div>
 
-          <div className="poweroff-button" onClick={() => setPowerModalOpen(true)}>
-            <div  className="poweroff-icon">
+          <div className="poweroff-button">
+            <div  className="poweroff-icon" onClick={() => setPowerModalOpen(true)}>
               <PowerOff/>
             </div>
           </div>
         </div>
       </div>
 
-      {powerModalOpen}{
-        <QConfirmationModal
+      {powerModalOpen && (
+        <QPowerOptionsModal
           open={powerModalOpen}
-          onClose={() =>  handlePowerAction("shutdown")}
-          onConfirm={() => handlePowerAction("restart")}
-          title={t("power.title")}
-          subtitle={t("power.subtitle")}
-          confirmText={t("power.restart")}
-          cancelText={t("power.shutdown")}
+          onClose={() => setPowerModalOpen(false)}
+          title={t('power.title')}
+          subtitle={t('power.subtitle')}
+          option1Text={t('power.restart')}
+          option2Text={t('power.shutdown')}
+          onOption1={() => handlePowerAction("restart")}
+          onOption2={() =>  handlePowerAction("shutdown")}
         />
-      }
+      )}
 
       {confirmModalOpen && powerAction && (
         <QConfirmationModal

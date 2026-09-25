@@ -1,0 +1,105 @@
+/* ==========================
+   QPOWEROPTIONS MODAL
+========================== */
+
+@media (min-width: 426px) and (max-width: 768px){
+  .qpower_options-modal {
+    width: clamp(120px, 45.6cqw, 350px);
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px){
+  .qpower_options-modal {
+    width: clamp(350px, 39.1cqw, 400px);
+  }
+}
+
+@media (min-width: 1025px) and (max-width: 1440px){
+  .qpower_options-modal {
+    width: clamp(400px, 35cqw, 440px);
+  }
+}
+
+@media (min-width: 1441px){
+  .qpower_options-modal {
+    width: clamp(440px, 18.8cqw, 480px);
+  }
+}
+
+.qpower_options-modal .qmodal__header {
+  padding-top: 30px;
+  /* padding-bottom: 30px; */
+}
+
+.qpower_options-modal .qmodal__body {
+  padding: 15px 24px 24px 24px;
+}
+
+.qpower_options-modal__content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Illustrative icon (e.g. a trash can) centered above the message. */
+.qpower_options-modal__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text);
+}
+
+.qpower_options-modal__icon svg {
+  width: 38px;
+  height: 38px;
+  color: #ff6666;
+}
+
+.qpower_options-modal__subtitle {
+  margin: 0;
+  font-size: var(--font-md);
+  color: var(--color-text);
+  text-align: center;
+  white-space: pre-line;
+  margin-bottom: 30px;
+}
+
+/* Emphasised fragment within the message (e.g. the entity name). */
+.qpower_options-modal__subtitle strong {
+  color: var(--color-text);
+  font-family: var(--font-family-bold)
+}
+
+.qpower_options-modal__footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 50px;
+  padding-top: 4px;
+}
+
+.qbutton.qpower_options-modal__option {
+  padding: 14px 35px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  border: none;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  color: white;
+  font-family: "Inter Regular", sans-serif;
+}
+
+.qbutton.qpower_options-modal__option:hover {
+  background: white;
+  color: black;
+}
+
+.qbutton.qpower_options-modal__option--danger {
+  background: var(--color-notification);
+  color: var(--color-white-100);
+}
+
+.qbutton.qpower_options-modal__option--danger:hover {
+  background: white;
+  color: black;
+}
