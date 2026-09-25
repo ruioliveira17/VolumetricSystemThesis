@@ -2348,9 +2348,41 @@ function App(){
                 const data = await response.json();
 
                 if (!response.ok) {
+                    let errorMessage;
+
+                    switch (data.detail) {
+                        case "CHANGE_PASSWORD_USER_NOT_FOUND":
+                            errorMessage = t("error_and_info_messages.userNotFound");
+                            break;
+
+                        case "CHANGE_PASSWORD_MISSING_FIELDS":
+                            errorMessage = t("error_and_info_messages.errorFillAllFields");
+                            break;
+
+                        case "CHANGE_PASSWORD_CURRENT_INVALID":
+                            errorMessage = t("error_and_info_messages.currentPasswordInvalid");
+                            break;
+
+                        case "CHANGE_PASSWORD_REQUIREMENTS":
+                            errorMessage = t("error_and_info_messages.passwordRequirements");
+                            break;
+
+                        case "CHANGE_PASSWORD_NOT_MATCH":
+                            errorMessage = t("error_and_info_messages.passwordsDoNotMatch");
+                            break;
+
+                        case "CHANGE_PASSWORD_NEW_CANNOT_BE_SAME":
+                            errorMessage = t("error_and_info_messages.newPasswordCannotBeSame");
+                            break;
+
+                        default:
+                            errorMessage = t("error_and_info_messages.registerFailed");
+                            break;
+                    }
+
                     setMessage([
                         {
-                        text: errorText(data.detail, TextChangePasswordError().text),
+                        text: errorText(errorMessage, TextChangePasswordError().text),
                         type: "error",
                         },
                     ]);
