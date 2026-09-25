@@ -82,8 +82,10 @@ function QChangePasswordModal({
         
             <div className="login-panel-title">{t("changePassword.title")}</div>
 
-            <div className="changePassword-close-button">
-                <CloseIcon onClick={closeChangePasswordModal}/>
+            <div className="changePassword-close-button" onClick={closeChangePasswordModal}>
+                <div  className="changePassword-close-icon">
+                    <CloseIcon/>
+                </div>
             </div>
 
             <div className="login-panel-register-error-or-info">

@@ -671,16 +671,132 @@
 
 .manage-users-close-button {
   position: absolute;
-  top: 2%;
-  right: 2.5%;
+  top: 15px;
+  right: 20px;
+}
+
+.manage-users-close-icon{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  color: white;
   cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+@media (max-height: 1079px){
+  .manage-users-close-icon{
+    height: calc(clamp(13px, 2.68cqh, 22px) + 8px);
+    width: calc(clamp(13px, 2.68cqh, 22px) + 8px);
+  }
+}
+
+@media (min-height: 1080px) and (max-height: 1172px){
+  .manage-users-close-icon{
+    height: calc(clamp(20px, 2.23cqh, 24px) + 8px);
+    width: calc(clamp(20px, 2.23cqh, 24px) + 8px);
+  }
+}
+
+@media (min-height: 1173px){
+  .manage-users-close-icon{
+    height: calc(clamp(24px, 2.4cqh, 28px) + 8px);
+    width: calc(clamp(24px, 2.4cqh, 28px) + 8px);
+  }
+}
+
+.manage-users-close-icon:hover{
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+}
+
+@media (max-height: 1079px){
+  .manage-users-close-icon svg{
+    height: clamp(13px, 2.68cqh, 22px);
+    width: clamp(13px, 2.68cqh, 22px);
+  }
+}
+
+@media (min-height: 1080px) and (max-height: 1172px){
+  .manage-users-close-icon svg{
+    height: clamp(20px, 2.23cqh, 24px);
+    width: clamp(20px, 2.23cqh, 24px);
+  }
+}
+
+@media (min-height: 1173px){
+  .manage-users-close-icon svg{
+    height: clamp(24px, 2.4cqh, 28px);
+    width: clamp(24px, 2.4cqh, 28px);
+  }
 }
 
 .user-panel-close-button {
   position: absolute;
-  top: 3.5%;
+  top: 15px;
   right: 5%;
+}
+
+.user-panel-close-icon{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  color: white;
   cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+@media (max-height: 1079px){
+  .user-panel-close-icon{
+    height: calc(clamp(13px, 2.68cqh, 22px) + 8px);
+    width: calc(clamp(13px, 2.68cqh, 22px) + 8px);
+  }
+}
+
+@media (min-height: 1080px) and (max-height: 1172px){
+  .user-panel-close-icon{
+    height: calc(clamp(20px, 2.23cqh, 24px) + 8px);
+    width: calc(clamp(20px, 2.23cqh, 24px) + 8px);
+  }
+}
+
+@media (min-height: 1173px){
+  .user-panel-close-icon{
+    height: calc(clamp(24px, 2.4cqh, 28px) + 8px);
+    width: calc(clamp(24px, 2.4cqh, 28px) + 8px);
+  }
+}
+
+.user-panel-close-icon:hover{
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+}
+
+@media (max-height: 1079px){
+  .user-panel-close-icon svg{
+    height: clamp(13px, 2.68cqh, 22px);
+    width: clamp(13px, 2.68cqh, 22px);
+  }
+}
+
+@media (min-height: 1080px) and (max-height: 1172px){
+  .user-panel-close-icon svg{
+    height: clamp(20px, 2.23cqh, 24px);
+    width: clamp(20px, 2.23cqh, 24px);
+  }
+}
+
+@media (min-height: 1173px){
+  .user-panel-close-icon svg{
+    height: clamp(24px, 2.4cqh, 28px);
+    width: clamp(24px, 2.4cqh, 28px);
+  }
 }
 
 .changePassword-panel{
@@ -762,48 +878,66 @@
 
 .changePassword-close-button {
   position: absolute;
+  top: 15px;
+  right: 20px;
+}
+
+.changePassword-close-icon{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  color: white;
   cursor: pointer;
-}
-
-@media (min-width: 426px) and (max-width: 768px){
-  .changePassword-close-button{
-    right: min(30px, 2cqw);
-  }
-}
-
-@media (min-width: 769px) and (max-width: 1024px){
-  .changePassword-close-button{
-    right: min(30px, 2cqw);
-  }
-}
-
-@media (min-width: 1025px) and (max-width: 1440px){
-  .changePassword-close-button{
-    right: min(30px, 2cqw);
-  }
-}
-
-@media (min-width: 1441px){
-  .changePassword-close-button{
-    right: min(30px, 2cqw);
-  }
+  transition: all 0.3s ease;
 }
 
 @media (max-height: 1079px){
-  .changePassword-close-button{
-    top: clamp(15px, 2.5cqh, 30px);
+  .changePassword-close-icon{
+    height: calc(clamp(13px, 2.68cqh, 22px) + 8px);
+    width: calc(clamp(13px, 2.68cqh, 22px) + 8px);
   }
 }
 
 @media (min-height: 1080px) and (max-height: 1172px){
-  .changePassword-close-button{
-    top: clamp(5px, 2cqh, 30px);
+  .changePassword-close-icon{
+    height: calc(clamp(20px, 2.23cqh, 24px) + 8px);
+    width: calc(clamp(20px, 2.23cqh, 24px) + 8px);
   }
 }
 
 @media (min-height: 1173px){
-  .changePassword-close-button{
-    top: clamp(5px, 2cqh, 30px);
+  .changePassword-close-icon{
+    height: calc(clamp(24px, 2.4cqh, 28px) + 8px);
+    width: calc(clamp(24px, 2.4cqh, 28px) + 8px);
+  }
+}
+
+.changePassword-close-icon:hover{
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+}
+
+@media (max-height: 1079px){
+  .changePassword-close-icon svg{
+    height: clamp(13px, 2.68cqh, 22px);
+    width: clamp(13px, 2.68cqh, 22px);
+  }
+}
+
+@media (min-height: 1080px) and (max-height: 1172px){
+  .changePassword-close-icon svg{
+    height: clamp(20px, 2.23cqh, 24px);
+    width: clamp(20px, 2.23cqh, 24px);
+  }
+}
+
+@media (min-height: 1173px){
+  .changePassword-close-icon svg{
+    height: clamp(24px, 2.4cqh, 28px);
+    width: clamp(24px, 2.4cqh, 28px);
   }
 }
 

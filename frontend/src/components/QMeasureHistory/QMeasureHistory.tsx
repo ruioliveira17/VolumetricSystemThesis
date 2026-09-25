@@ -4,6 +4,8 @@ import { RefObject } from "react";
 import "./QMeasureHistory.css";
 import Qselect from "../Qselect"
 import Qsearch from "../Qsearch"
+
+import CloseIcon from '@assets/icons/close.svg?react';
 import DeleteForeverIcon from "@assets/icons/delete_forever.svg?react";
 
 import QBackgroundBranding from "../QBackgroundBranding";
@@ -495,8 +497,10 @@ function QMeasureHistory({
               )}
             </div>
 
-            <div className="measurement-info-button">
-              <img src="/close.svg" onClick={() => { setShowMeasurementInfo(false); setMeasureVolumeInfo(null); }} />
+            <div className="measurement-info-button" onClick={() => { setShowMeasurementInfo(false); setMeasureVolumeInfo(null); }}>
+                <div  className="measurement-info-icon">
+                    <CloseIcon/>
+                </div>
             </div>
           </div>
         </div>

@@ -75,9 +75,12 @@ function QUserModal({
                     </div>
                 </div>
 
-                <div className="user-panel-close-button">
-                    <CloseIcon onClick={() => setShowUserPopup(false)}/>
+                <div className="user-panel-close-button" onClick={() => setShowUserPopup(false)}>
+                    <div  className="user-panel-close-icon">
+                        <CloseIcon/>
+                    </div>
                 </div>
+                    
 
                 <div
                     className="user-options"

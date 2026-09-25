@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import "./QUser.css";
 import Qselect from "../Qselect"
 import CheckIcon from "@assets/icons/check_icon.svg?react";
+import CloseIcon from '@assets/icons/close.svg?react';
 import CopyIcon from "@assets/icons/copy.svg?react";
 import DeleteForeverIcon from "@assets/icons/delete_forever.svg?react";
 
@@ -196,8 +197,10 @@ function QUserPanel({
                         </div>
                     )}
 
-                    <div className="manage-users-close-button ">
-                        <img src="/close.svg" onClick={() => setShowUsersPanel(false)} />
+                    <div className="manage-users-close-button" onClick={() => setShowUsersPanel(false)}>
+                        <div  className="manage-users-close-icon">
+                            <CloseIcon/>
+                        </div>
                     </div>
 
                 </div>

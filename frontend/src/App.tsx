@@ -896,13 +896,6 @@ function App(){
                 (video.videoHeight / rect.height)
             );
 
-            console.log("CLICK:", {
-                x,
-                y,
-                videoWidth: video.videoWidth,
-                videoHeight: video.videoHeight
-            });
-
             if (calibData["Calibrate Mode"] !== "Automatic") {
                 return;
             }
@@ -2484,19 +2477,13 @@ function App(){
         pc.current.addTransceiver('video', { direction: 'recvonly' });
 
         pc.current.ontrack = async (event) => {
-            console.log("[WebRTC] ONTRACK", event);
-
             cameraStream.current = event.streams[0];
-
-            console.log("[WebRTC] cameraStream:", cameraStream.current);
-            console.log("[WebRTC] cameraVideo:", cameraVideo.current);
 
             let attempts = 0;
             const maxAttempts = 10;
 
             const tryAttachVideo = async (): Promise<void> => {
                 if (cameraVideo.current) {
-                    console.log("[WebRTC] Video element available");
 
                     cameraVideo.current.srcObject = cameraStream.current;
                     cameraVideo.current.muted = true;
@@ -2504,13 +2491,10 @@ function App(){
                     try {
                         await cameraVideo.current.play();
 
-                        console.log("[WebRTC] VIDEO PLAYING");
-
                         if (streamType === "calibration") {
                             await workspaceDrawing();
                         }
                     } catch (e) {
-                        console.error("[WebRTC] PLAY ERROR:", e);
                     }
 
                     return;
@@ -2519,15 +2503,7 @@ function App(){
                 attempts++;
 
                 if (attempts < maxAttempts) {
-                    console.log(
-                        `[WebRTC] cameraVideo.current is null. Retry ${attempts}/${maxAttempts}`
-                    );
-
                     setTimeout(tryAttachVideo, 100);
-                } else {
-                    console.error(
-                        "[WebRTC] Video element not available after retries"
-                    );
                 }
             };
 
@@ -2652,18 +2628,6 @@ function App(){
             }
 
             const end = performance.now();
-
-            console.log(
-                "After Countdown UI TIME:",
-                end - aftercountdown,
-                "ms"
-            );
-
-            console.log(
-                "TOTAL UI TIME:",
-                end - start,
-                "ms"
-            );
 
         } catch (error) {
             console.warn(error);
@@ -3777,10 +3741,6 @@ function App(){
     }, []);
 
     useEffect(() => {
-        console.log("USER POPUP EFFECT", {
-            showUserPopup,
-            userAnchorEl,
-        });
         if (!showUserPopup || !userAnchorEl) return;
 
         const update = () => {
@@ -3809,10 +3769,6 @@ function App(){
     }, [showUserPopup, userAnchorEl]);
 
     useEffect(() => {
-        console.log("USER POPUP EFFECT", {
-            showSettingsPopup,
-            settingsAnchorEl,
-        });
         if (!showSettingsPopup || !settingsAnchorEl) return;
 
         const update = () => {

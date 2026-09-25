@@ -151,9 +151,12 @@ function QSettings({
       </div>
       <div className="settings-popup" style={popupStyle}>
         <span className="text">{t("settings.title")}</span>
-        <div className="close-button">
-          <CloseIcon onClick={() => setShowSettingsPopup(false)}/>
+        <div className="close-button" onClick={() => setShowSettingsPopup(false)}>
+          <div  className="close-icon">
+            <CloseIcon/>
+          </div>
         </div>
+
         <div className="settings-buttons-container">
           <span className="text">{t("settings.language")}</span>
           <div className="language-select">
