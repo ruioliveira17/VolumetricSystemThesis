@@ -1,6 +1,9 @@
 import json
+import logging
 import socket
 import subprocess
+
+logger = logging.getLogger("qubic.discovery")
 
 PRODUCT_NAME = "QUBIC"
 
@@ -45,7 +48,7 @@ def get_interface_ips():
                 break
 
     except (OSError, subprocess.SubprocessError, json.JSONDecodeError) as exc:
-        print(f"Failed to get interface addresses: {exc}")
+        logger.warning("Failed to get network interface addresses")
 
     return ips
 
@@ -78,14 +81,21 @@ def main():
 
     sock.bind(("0.0.0.0", DISCOVERY_PORT))
 
-    print(f"Qubic discovery listening on UDP {DISCOVERY_PORT}")
+    logger.info(
+        "Qubic discovery listening on UDP %s",
+        DISCOVERY_PORT
+    )
 
     while True:
         data, address = sock.recvfrom(1024)
 
         message = data.decode("utf-8", errors="ignore").strip()
 
-        print(f"Discovery request from {address}: {message}")
+        logger.debug(
+            "Discovery request received from %s: %s",
+            address,
+            message
+        )
 
         if message != DISCOVERY_MESSAGE:
             continue
@@ -95,8 +105,11 @@ def main():
 
         sock.sendto(response_data, address)
 
-        print(f"Discovery response sent to {address}:")
-        print(json.dumps(response, indent=2))
+        logger.debug(
+            "Discovery response sent to %s: %s",
+            address,
+            response
+        )
 
 if __name__ == "__main__":
     main()

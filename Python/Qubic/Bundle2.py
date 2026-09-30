@@ -1,6 +1,5 @@
-from pickle import FALSE, TRUE
-
 import cv2
+import logging
 import numpy
 import os
 import sys
@@ -9,6 +8,8 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(BASE_DIR, "Python"))
 
 from FrameState import frameState
+
+logger = logging.getLogger("qubic.volume")
 
 offset_x_959mm_depth = 40
 offset_y_959mm_depth = -15
@@ -189,360 +190,365 @@ def expand_polygon(poly, margin):
     ).astype(numpy.int32)
 
 def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFrame, calibrationDepthFrame, volumeMode, objects_info, workspace_depth, threshold, colorSlope, cx_d, cy_d, cx_rgb, cy_rgb, fx_d, fy_d, fx_rgb, fy_rgb):
-    contours = []
-    box_ws = []
-    box_limits = []
-    depths = []
-    object_outOfLine = []
-    belongs_to_previous = False
-    pending_merges = []
-    contours_united = set()
-    binaryImgs = []
-    curr_index = 0
+    try:
+        contours = []
+        box_ws = []
+        box_limits = []
+        depths = []
+        object_outOfLine = []
+        belongs_to_previous = False
+        pending_merges = []
+        contours_united = set()
+        binaryImgs = []
+        curr_index = 0
 
-    colorToDepth_copy2 = colorFrame.copy()
-    colorToDepth_copy3 = colorToDepthFrame.copy()
-    depth_copy = depthFrame.copy()
-    color_copy = colorFrame.copy()
+        colorToDepth_copy2 = colorFrame.copy()
+        colorToDepth_copy3 = colorToDepthFrame.copy()
+        depth_copy = depthFrame.copy()
+        color_copy = colorFrame.copy()
 
-    Sx = fx_rgb / fx_d
-    Sy = fy_rgb / fy_d
+        Sx = fx_rgb / fx_d
+        Sy = fy_rgb / fy_d
 
-    if len(objects_info) != 0:
-        for i, obj in enumerate(objects_info):
-            mask = numpy.ones(depth_copy.shape, dtype = numpy.uint8)
+        if len(objects_info) != 0:
+            for i, obj in enumerate(objects_info):
+                mask = numpy.ones(depth_copy.shape, dtype = numpy.uint8)
 
-            workspace_area2 = cv2.bitwise_and(depth_copy, depth_copy, mask=mask)
+                workspace_area2 = cv2.bitwise_and(depth_copy, depth_copy, mask=mask)
 
-            if i == 0:
-                mask2 = (workspace_area2 >= (obj["depth"] - threshold)) & (workspace_area2 <= (obj["depth"] + threshold))
-            else:
-                if (obj["depth"] - threshold) < (objects_info[i-1]["depth"] + threshold):
-                    mask2 = (workspace_area2 >= (objects_info[i-1]["depth"] + threshold)) & (workspace_area2 <= (obj["depth"] + threshold))
-                else:
+                if i == 0:
                     mask2 = (workspace_area2 >= (obj["depth"] - threshold)) & (workspace_area2 <= (obj["depth"] + threshold))
-            
-            binary = mask2.astype(numpy.uint8) * 255
-
-            # Remove ruído pequeno
-            element_open = numpy.ones((3, 3), numpy.uint8)
-            binary = cv2.morphologyEx(binary, cv2.MORPH_OPEN, element_open)
-
-            # Fecha buracos e regulariza a forma
-            element_close = numpy.ones((7, 7), numpy.uint8)
-            binary = cv2.morphologyEx(binary, cv2.MORPH_CLOSE, element_close)
-
-            contour, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
-            for j, c in enumerate(contour):
-                colorToDepth_copy4 = colorToDepthFrame.copy()
+                else:
+                    if (obj["depth"] - threshold) < (objects_info[i-1]["depth"] + threshold):
+                        mask2 = (workspace_area2 >= (objects_info[i-1]["depth"] + threshold)) & (workspace_area2 <= (obj["depth"] + threshold))
+                    else:
+                        mask2 = (workspace_area2 >= (obj["depth"] - threshold)) & (workspace_area2 <= (obj["depth"] + threshold))
                 
-                cv2.drawContours(colorToDepth_copy4, [c], -1, (0, 255, 0), 2)
-                box = numpy.array(obj["workspace_limits"], dtype=numpy.int32)
-                cv2.drawContours(colorToDepth_copy4, [box], 0, (0, 0, 255), 2)
-                
-                texto = f"{float(obj['depth']):.1f}"
-                cv2.putText(colorToDepth_copy4, texto, (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 0), 6, cv2.LINE_AA)
-                cv2.putText(colorToDepth_copy4, texto, (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 255, 0), 2, cv2.LINE_AA)
+                binary = mask2.astype(numpy.uint8) * 255
 
-            for c in contour:
-                belongs_to_previous = False
-                rect = cv2.minAreaRect(c)
+                # Remove ruído pequeno
+                element_open = numpy.ones((3, 3), numpy.uint8)
+                binary = cv2.morphologyEx(binary, cv2.MORPH_OPEN, element_open)
+
+                # Fecha buracos e regulariza a forma
+                element_close = numpy.ones((7, 7), numpy.uint8)
+                binary = cv2.morphologyEx(binary, cv2.MORPH_CLOSE, element_close)
+
+                contour, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+                for j, c in enumerate(contour):
+                    colorToDepth_copy4 = colorToDepthFrame.copy()
+                    
+                    cv2.drawContours(colorToDepth_copy4, [c], -1, (0, 255, 0), 2)
+                    box = numpy.array(obj["workspace_limits"], dtype=numpy.int32)
+                    cv2.drawContours(colorToDepth_copy4, [box], 0, (0, 0, 255), 2)
+                    
+                    texto = f"{float(obj['depth']):.1f}"
+                    cv2.putText(colorToDepth_copy4, texto, (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 0), 6, cv2.LINE_AA)
+                    cv2.putText(colorToDepth_copy4, texto, (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 255, 0), 2, cv2.LINE_AA)
+
+                for c in contour:
+                    belongs_to_previous = False
+                    rect = cv2.minAreaRect(c)
+                    box = cv2.boxPoints(rect)
+                    box_scaled = numpy.copy(box)
+                    box_scaled[:,0] = (box[:,0] - cx_d) * Sx + cx_rgb + (offset_x_959mm_depth * or_depth_offset)/workspace_depth
+                    box_scaled[:,1] = (box[:,1] - cy_d) * Sy + cy_rgb #+ (offset_y_959mm_depth * or_depth_offset)/workspace_depth
+                    box_scaled = numpy.round(box_scaled).astype(numpy.int32)
+                    if not comparisonCaliImageCurrImage(colorFrame, calibrationColorFrame, depthFrame, calibrationDepthFrame, box_scaled, c):
+                        continue
+
+                    if not is_valid_area(c):
+                        continue
+
+                    bbox_c = get_bbox(c)
+
+                    for i_prev_obj, prev_list in enumerate(contours):
+                        for prev_c in prev_list:
+                            bbox_prev = get_bbox(prev_c)
+                            if contours_overlap_by_points(c, prev_c):
+                                if obj['depth'] - 5 <= depths[i_prev_obj] + threshold:
+                                    
+                                    pending_merges.append({
+                                        "current_index": curr_index,
+                                        "prev_index": i_prev_obj
+                                    })
+                                break
+
+                            if areContoursClose(c, prev_c, 10):
+                                imagIna = numpy.zeros(depthFrame.shape[:2], numpy.uint8)
+                                mask_prev = numpy.zeros(depthFrame.shape[:2], numpy.uint8)
+                                mask_curr = numpy.zeros(depthFrame.shape[:2], numpy.uint8)
+
+                                cv2.drawContours(mask_prev, [prev_c], -1, 255, -1)
+                                cv2.drawContours(mask_curr, [c], -1, 255, -1)
+
+                                union = cv2.bitwise_or(mask_prev, mask_curr)
+
+                                kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7,7))
+                                closed = cv2.morphologyEx(union, cv2.MORPH_CLOSE, kernel)
+
+                                new_pixels = cv2.subtract(closed, union)
+
+                                result = cv2.bitwise_or(mask_curr, new_pixels)
+
+                                contorno, _ = cv2.findContours(closed, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+                                if len(contorno) > 0:
+                                    new_c = max(contorno, key=cv2.contourArea)
+                                    if cv2.contourArea(new_c) > 0:
+                                        contours_united.add((curr_index, i_prev_obj))
+                                        c = new_c
+                                    cv2.drawContours(imagIna, [new_c], -1, 255, 2)
+
+                            if too_close(bbox_c, bbox_prev):
+                                belongs_to_previous = True
+                                break
+                            
+                        if belongs_to_previous:
+                            break
+                        
+                    if not belongs_to_previous:
+                        workspace_warning = obj["workspace_limits"]
+                        ws_poly = numpy.array(
+                            workspace_warning,
+                            dtype=numpy.int32
+                        )
+
+                        margin = 5
+
+                        ws_poly = expand_polygon(ws_poly, margin)
+
+                        inside_points = 0
+                        outside_points = 0
+
+                        for point in c:
+                            x, y = point[0]
+
+                            result = cv2.pointPolygonTest(
+                                ws_poly,
+                                (float(x), float(y)),
+                                False
+                            )
+
+                            if result >= 0:
+                                inside_points += 1
+                            else:
+                                outside_points += 1
+
+                        if inside_points == 0:
+                            continue
+
+                        value = outside_points > 0
+
+                        belongs_to_previous = False
+                        all_shifted_contours = numpy.vstack([c])
+                        contours.append([all_shifted_contours])
+                        box_ws.append(obj["workspace_limits"])
+                        binaryImgs.append(binary)
+
+                        previous_mask = numpy.zeros(
+                            depth_copy.shape,
+                            dtype=numpy.uint8
+                        )
+
+                        valid_mask = (
+                            (mask2 == 255) &
+                            (previous_mask == 0) &
+                            (depth_copy > 150) &
+                            (depth_copy < workspace_depth - threshold)
+                        )
+
+                        depth_values = depth_copy[valid_mask]
+
+                        mean_depth = (
+                            float(numpy.median(depth_values))
+                            if depth_values.size > 0
+                            else float(obj["depth"])
+                        )
+
+                        depths.append(mean_depth)
+                        curr_index += 1
+
+                        object_outOfLine.append(value)
+
+            if len(pending_merges) > 0:
+                to_delete = set()
+
+                for merge in pending_merges:
+                    current_index = merge["current_index"]
+                    prev_index = merge["prev_index"]
+
+                    if current_index in to_delete:
+                        continue
+
+                    if prev_index in to_delete:
+                        continue
+
+                    c = contours[current_index][0]
+                    prev_c = contours[prev_index][0]
+
+                    mask = numpy.zeros((480, 640), dtype=numpy.uint8)
+
+                    cv2.fillPoly(mask, [c.astype(numpy.int32)], 255)
+                    cv2.fillPoly(mask, [prev_c.astype(numpy.int32)], 255)
+
+                    kernel = numpy.ones((3,3), numpy.uint8)
+                    mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)      
+                    
+                    merged_contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+
+                    merged_contour = max(merged_contours, key=cv2.contourArea)          
+
+                    A = cv2.contourArea(c)
+                    B = cv2.contourArea(prev_c)
+
+                    if A > B:
+                        contours[current_index] = [merged_contour]
+
+                        depths[current_index] = min(depths[current_index], depths[prev_index])
+
+                        to_delete.add(prev_index)
+
+                        new_contours_united = set()
+                        for k, (a, b) in enumerate(contours_united):
+                            if a > prev_index:
+                                a -= 1
+                            if b > prev_index:
+                                b -= 1
+                            new_contours_united.add((a, b))
+
+                        contours_united = new_contours_united
+
+                    else:
+                        contours[prev_index] = [merged_contour]
+
+                        depths[prev_index] = min(depths[current_index], depths[prev_index])
+
+                        to_delete.add(current_index)
+
+                        new_contours_united = set()
+                        for k, (a, b) in enumerate(contours_united):
+                            if a > current_index:
+                                a -= 1
+                            if b > current_index:
+                                b -= 1
+                            new_contours_united.add((a, b))
+
+                        contours_united = new_contours_united
+
+                for idx in sorted(to_delete, reverse=True):
+                    del contours[idx]
+                    del depths[idx]
+                    del box_ws[idx]
+                    del object_outOfLine[idx]
+                    del binaryImgs[idx]
+
+        if volumeMode == "Single Bundle":
+            box_limits = [c for contour_list in contours for c in contour_list if c.size > 0]
+
+            if len(box_limits) > 0:
+                all_points = numpy.vstack(box_limits)
+
+                rect = cv2.minAreaRect(all_points)
                 box = cv2.boxPoints(rect)
                 box_scaled = numpy.copy(box)
                 box_scaled[:,0] = (box[:,0] - cx_d) * Sx + cx_rgb + (offset_x_959mm_depth * or_depth_offset)/workspace_depth
-                box_scaled[:,1] = (box[:,1] - cy_d) * Sy + cy_rgb #+ (offset_y_959mm_depth * or_depth_offset)/workspace_depth
+                box_scaled[:,1] = (box[:,1] - cy_d) * Sy + cy_rgb
                 box_scaled = numpy.round(box_scaled).astype(numpy.int32)
-                if not comparisonCaliImageCurrImage(colorFrame, calibrationColorFrame, depthFrame, calibrationDepthFrame, box_scaled, c):
+
+                cv2.drawContours(colorToDepth_copy2, [box_scaled], 0, (0, 0, 0), 16)
+                cv2.drawContours(colorToDepth_copy2, [box_scaled], 0, (255, 255, 0), 8)
+
+        elif volumeMode == "Real" or volumeMode == "Multi Bundle":
+            all_contours = [c for contour_list in contours for c in contour_list if c.size > 0]
+            groups = []
+            used = set()
+
+            for i in range(len(all_contours)):
+                if i in used:
                     continue
 
-                if not is_valid_area(c):
-                    continue
+                stack = [i]
+                group = []
 
-                bbox_c = get_bbox(c)
-
-                for i_prev_obj, prev_list in enumerate(contours):
-                    for prev_c in prev_list:
-                        bbox_prev = get_bbox(prev_c)
-                        if contours_overlap_by_points(c, prev_c):
-                            if obj['depth'] - 5 <= depths[i_prev_obj] + threshold:
-                                
-                                pending_merges.append({
-                                    "current_index": curr_index,
-                                    "prev_index": i_prev_obj
-                                })
-                            break
-
-                        if areContoursClose(c, prev_c, 10):
-                            imagIna = numpy.zeros(depthFrame.shape[:2], numpy.uint8)
-                            mask_prev = numpy.zeros(depthFrame.shape[:2], numpy.uint8)
-                            mask_curr = numpy.zeros(depthFrame.shape[:2], numpy.uint8)
-
-                            cv2.drawContours(mask_prev, [prev_c], -1, 255, -1)
-                            cv2.drawContours(mask_curr, [c], -1, 255, -1)
-
-                            union = cv2.bitwise_or(mask_prev, mask_curr)
-
-                            kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7,7))
-                            closed = cv2.morphologyEx(union, cv2.MORPH_CLOSE, kernel)
-
-                            new_pixels = cv2.subtract(closed, union)
-
-                            result = cv2.bitwise_or(mask_curr, new_pixels)
-
-                            contorno, _ = cv2.findContours(closed, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-                            if len(contorno) > 0:
-                                new_c = max(contorno, key=cv2.contourArea)
-                                if cv2.contourArea(new_c) > 0:
-                                    contours_united.add((curr_index, i_prev_obj))
-                                    c = new_c
-                                cv2.drawContours(imagIna, [new_c], -1, 255, 2)
-
-                        if too_close(bbox_c, bbox_prev):
-                            belongs_to_previous = True
-                            break
-                        
-                    if belongs_to_previous:
-                        break
+                while stack:
+                    idx = stack.pop()
                     
-                if not belongs_to_previous:
-                    workspace_warning = obj["workspace_limits"]
-                    ws_poly = numpy.array(
-                        workspace_warning,
-                        dtype=numpy.int32
-                    )
 
-                    margin = 5
-
-                    ws_poly = expand_polygon(ws_poly, margin)
-
-                    inside_points = 0
-                    outside_points = 0
-
-                    for point in c:
-                        x, y = point[0]
-
-                        result = cv2.pointPolygonTest(
-                            ws_poly,
-                            (float(x), float(y)),
-                            False
-                        )
-
-                        if result >= 0:
-                            inside_points += 1
-                        else:
-                            outside_points += 1
-
-                    if inside_points == 0:
+                    if idx in used:
                         continue
 
-                    value = outside_points > 0
+                    used.add(idx)
+                    group.append(all_contours[idx])
 
-                    belongs_to_previous = False
-                    all_shifted_contours = numpy.vstack([c])
-                    contours.append([all_shifted_contours])
-                    box_ws.append(obj["workspace_limits"])
-                    binaryImgs.append(binary)
+                    for j in range(len(all_contours)):
+                        if j in used:
+                            continue
 
-                    previous_mask = numpy.zeros(
-                        depth_copy.shape,
-                        dtype=numpy.uint8
-                    )
+                        box_i = all_contours[idx]
+                        box_j = all_contours[j]
 
-                    valid_mask = (
-                        (mask2 == 255) &
-                        (previous_mask == 0) &
-                        (depth_copy > 150) &
-                        (depth_copy < workspace_depth - threshold)
-                    )
+                        if contours_overlap_by_points(box_i, box_j) or intersection_edge(box_i, box_j, depthFrame) or areContoursClose(box_i, box_j, 10):
+                            stack.append(j)
 
-                    depth_values = depth_copy[valid_mask]
+                groups.append(group)
 
-                    mean_depth = (
-                        float(numpy.median(depth_values))
-                        if depth_values.size > 0
-                        else float(obj["depth"])
-                    )
-
-                    depths.append(mean_depth)
-                    curr_index += 1
-
-                    object_outOfLine.append(value)
-
-        if len(pending_merges) > 0:
-            to_delete = set()
-
-            for merge in pending_merges:
-                current_index = merge["current_index"]
-                prev_index = merge["prev_index"]
-
-                if current_index in to_delete:
-                    continue
-
-                if prev_index in to_delete:
-                    continue
-
-                c = contours[current_index][0]
-                prev_c = contours[prev_index][0]
-
-                mask = numpy.zeros((480, 640), dtype=numpy.uint8)
-
-                cv2.fillPoly(mask, [c.astype(numpy.int32)], 255)
-                cv2.fillPoly(mask, [prev_c.astype(numpy.int32)], 255)
-
-                kernel = numpy.ones((3,3), numpy.uint8)
-                mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)      
+            for obj_id, group in enumerate(groups, start=1):
+                all_points = numpy.vstack(group)
+                rect = cv2.minAreaRect(all_points)
+                box = cv2.boxPoints(rect)
+                box = numpy.round(box).astype(numpy.int32)
+                box_scaled = numpy.copy(box)
+                box_scaled[:,0] = (box[:,0] - cx_d) * Sx + cx_rgb + (offset_x_959mm_depth * or_depth_offset)/workspace_depth
+                box_scaled[:,1] = (box[:,1] - cy_d) * Sy + cy_rgb
+                box_scaled = numpy.round(box_scaled).astype(numpy.int32)
                 
-                merged_contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+                cv2.drawContours(colorToDepth_copy2, [box_scaled], 0, (0, 0, 0), 16)
+                cv2.drawContours(colorToDepth_copy2, [box_scaled], 0, (255, 255, 0), 8)
 
-                merged_contour = max(merged_contours, key=cv2.contourArea)          
+                box = numpy.round(box).astype(numpy.int32)
+                cv2.drawContours(colorToDepth_copy3, [box], 0, (0, 0, 0), 2)
+                cv2.drawContours(colorToDepth_copy3, [box], 0, (255, 255, 0), 1)
 
-                A = cv2.contourArea(c)
-                B = cv2.contourArea(prev_c)
+                idx_x = numpy.argmax(box_scaled[:,0])
+                x, y = box_scaled[idx_x]
 
-                if A > B:
-                    contours[current_index] = [merged_contour]
+                cv2.putText(colorToDepth_copy2, str(obj_id), (x + 15, y + 40), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 0), 14, cv2.LINE_AA)
+                cv2.putText(colorToDepth_copy2, str(obj_id), (x + 15, y + 40), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (255, 255, 255), 7, cv2.LINE_AA)    
 
-                    depths[current_index] = min(depths[current_index], depths[prev_index])
+        # elif volumeMode == "Individual":
+        #     for obj_id, contour_list in enumerate(contours, start=1):
+        #         for c in contour_list:
+        #             rect = cv2.minAreaRect(c)
+        #             box = cv2.boxPoints(rect)
+        #             box_scaled = numpy.copy(box)
+        #             box_scaled[:,0] = (box[:,0] - cx_d) * Sx + cx_rgb + (offset_x_959mm_depth * or_depth_offset)/workspace_depth
+        #             box_scaled[:,1] = (box[:,1] - cy_d) * Sy + cy_rgb
+        #             box_scaled = numpy.round(box_scaled).astype(numpy.int32)
+                    
+        #             cv2.drawContours(colorToDepth_copy2, [box_scaled], 0, (0, 0, 0), 16)
+        #             cv2.drawContours(colorToDepth_copy2, [box_scaled], 0, (255, 255, 0), 8)
 
-                    to_delete.add(prev_index)
+        #             box = numpy.round(box).astype(numpy.int32)
+        #             cv2.drawContours(colorToDepth_copy3, [box], 0, (0, 0, 0), 2)
+        #             cv2.drawContours(colorToDepth_copy3, [box], 0, (255, 255, 0), 1)
+                    
+        #             idx_x = numpy.argmax(box_scaled[:,0])
+        #             x, y = box_scaled[idx_x]
+                    
+        #             cv2.putText(colorToDepth_copy2, str(obj_id), (x + 15, y + 40), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 0), 14, cv2.LINE_AA)
+        #             cv2.putText(colorToDepth_copy2, str(obj_id), (x + 15, y + 40), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (255, 255, 255), 7, cv2.LINE_AA)
+        
+        colorToDepth_copy2 = cv2.resize(colorToDepth_copy2, (640, 480))
+        frameState.detectedObjectsFrame = colorToDepth_copy2
 
-                    new_contours_united = set()
-                    for k, (a, b) in enumerate(contours_united):
-                        if a > prev_index:
-                            a -= 1
-                        if b > prev_index:
-                            b -= 1
-                        new_contours_united.add((a, b))
-
-                    contours_united = new_contours_united
-
-                else:
-                    contours[prev_index] = [merged_contour]
-
-                    depths[prev_index] = min(depths[current_index], depths[prev_index])
-
-                    to_delete.add(current_index)
-
-                    new_contours_united = set()
-                    for k, (a, b) in enumerate(contours_united):
-                        if a > current_index:
-                            a -= 1
-                        if b > current_index:
-                            b -= 1
-                        new_contours_united.add((a, b))
-
-                    contours_united = new_contours_united
-
-            for idx in sorted(to_delete, reverse=True):
-                del contours[idx]
-                del depths[idx]
-                del box_ws[idx]
-                del object_outOfLine[idx]
-                del binaryImgs[idx]
-
-    if volumeMode == "Single Bundle":
         box_limits = [c for contour_list in contours for c in contour_list if c.size > 0]
 
-        if len(box_limits) > 0:
-            all_points = numpy.vstack(box_limits)
+        not_set = 1
+        minimum_value = 6000
+                        
+        return minimum_value, not_set, box_ws, box_limits, depths, object_outOfLine, contours_united
 
-            rect = cv2.minAreaRect(all_points)
-            box = cv2.boxPoints(rect)
-            box_scaled = numpy.copy(box)
-            box_scaled[:,0] = (box[:,0] - cx_d) * Sx + cx_rgb + (offset_x_959mm_depth * or_depth_offset)/workspace_depth
-            box_scaled[:,1] = (box[:,1] - cy_d) * Sy + cy_rgb
-            box_scaled = numpy.round(box_scaled).astype(numpy.int32)
-
-            cv2.drawContours(colorToDepth_copy2, [box_scaled], 0, (0, 0, 0), 16)
-            cv2.drawContours(colorToDepth_copy2, [box_scaled], 0, (255, 255, 0), 8)
-
-    elif volumeMode == "Real" or volumeMode == "Multi Bundle":
-        all_contours = [c for contour_list in contours for c in contour_list if c.size > 0]
-        groups = []
-        used = set()
-
-        for i in range(len(all_contours)):
-            if i in used:
-                continue
-
-            stack = [i]
-            group = []
-
-            while stack:
-                idx = stack.pop()
-                
-
-                if idx in used:
-                    continue
-
-                used.add(idx)
-                group.append(all_contours[idx])
-
-                for j in range(len(all_contours)):
-                    if j in used:
-                        continue
-
-                    box_i = all_contours[idx]
-                    box_j = all_contours[j]
-
-                    if contours_overlap_by_points(box_i, box_j) or intersection_edge(box_i, box_j, depthFrame) or areContoursClose(box_i, box_j, 10):
-                        stack.append(j)
-
-            groups.append(group)
-
-        for obj_id, group in enumerate(groups, start=1):
-            all_points = numpy.vstack(group)
-            rect = cv2.minAreaRect(all_points)
-            box = cv2.boxPoints(rect)
-            box = numpy.round(box).astype(numpy.int32)
-            box_scaled = numpy.copy(box)
-            box_scaled[:,0] = (box[:,0] - cx_d) * Sx + cx_rgb + (offset_x_959mm_depth * or_depth_offset)/workspace_depth
-            box_scaled[:,1] = (box[:,1] - cy_d) * Sy + cy_rgb
-            box_scaled = numpy.round(box_scaled).astype(numpy.int32)
-            
-            cv2.drawContours(colorToDepth_copy2, [box_scaled], 0, (0, 0, 0), 16)
-            cv2.drawContours(colorToDepth_copy2, [box_scaled], 0, (255, 255, 0), 8)
-
-            box = numpy.round(box).astype(numpy.int32)
-            cv2.drawContours(colorToDepth_copy3, [box], 0, (0, 0, 0), 2)
-            cv2.drawContours(colorToDepth_copy3, [box], 0, (255, 255, 0), 1)
-
-            idx_x = numpy.argmax(box_scaled[:,0])
-            x, y = box_scaled[idx_x]
-
-            cv2.putText(colorToDepth_copy2, str(obj_id), (x + 15, y + 40), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 0), 14, cv2.LINE_AA)
-            cv2.putText(colorToDepth_copy2, str(obj_id), (x + 15, y + 40), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (255, 255, 255), 7, cv2.LINE_AA)    
-
-    # elif volumeMode == "Individual":
-    #     for obj_id, contour_list in enumerate(contours, start=1):
-    #         for c in contour_list:
-    #             rect = cv2.minAreaRect(c)
-    #             box = cv2.boxPoints(rect)
-    #             box_scaled = numpy.copy(box)
-    #             box_scaled[:,0] = (box[:,0] - cx_d) * Sx + cx_rgb + (offset_x_959mm_depth * or_depth_offset)/workspace_depth
-    #             box_scaled[:,1] = (box[:,1] - cy_d) * Sy + cy_rgb
-    #             box_scaled = numpy.round(box_scaled).astype(numpy.int32)
-                
-    #             cv2.drawContours(colorToDepth_copy2, [box_scaled], 0, (0, 0, 0), 16)
-    #             cv2.drawContours(colorToDepth_copy2, [box_scaled], 0, (255, 255, 0), 8)
-
-    #             box = numpy.round(box).astype(numpy.int32)
-    #             cv2.drawContours(colorToDepth_copy3, [box], 0, (0, 0, 0), 2)
-    #             cv2.drawContours(colorToDepth_copy3, [box], 0, (255, 255, 0), 1)
-                
-    #             idx_x = numpy.argmax(box_scaled[:,0])
-    #             x, y = box_scaled[idx_x]
-                
-    #             cv2.putText(colorToDepth_copy2, str(obj_id), (x + 15, y + 40), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 0), 14, cv2.LINE_AA)
-    #             cv2.putText(colorToDepth_copy2, str(obj_id), (x + 15, y + 40), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (255, 255, 255), 7, cv2.LINE_AA)
-    
-    colorToDepth_copy2 = cv2.resize(colorToDepth_copy2, (640, 480))
-    frameState.detectedObjectsFrame = colorToDepth_copy2
-
-    box_limits = [c for contour_list in contours for c in contour_list if c.size > 0]
-
-    not_set = 1
-    minimum_value = 6000
-                    
-    return minimum_value, not_set, box_ws, box_limits, depths, object_outOfLine, contours_united
+    except Exception:
+        logger.exception("Error identifying objects")
+        raise

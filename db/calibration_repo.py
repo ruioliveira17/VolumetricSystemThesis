@@ -1,7 +1,9 @@
 import json
+import logging
 
 from db.connection import get_connection, write_lock
 
+logger = logging.getLogger("qubic.calibration")
 
 def save_calibration(data):
     with write_lock:
@@ -37,15 +39,21 @@ def save_calibration(data):
                 ),
             )
             conn.commit()
+            logger.info("Calibration saved successfully")
+
+        except Exception:
+            logger.exception("Error saving calibration")
+            raise
+
         finally:
             conn.close()
-
 
 def get_calibration():
     conn = get_connection()
     try:
         row = conn.execute("SELECT * FROM calibration WHERE id = 1").fetchone()
         if row is None:
+            logger.info("No calibration found in database")
             return None
         d = dict(row)
         # Devolve no mesmo formato do antigo workspace_calibration.json
@@ -61,5 +69,9 @@ def get_calibration():
             "calibrationColorFrame_path": d["calibration_color_frame_path"],
             "calibrationDepthFrame_path": d["calibration_depth_frame_path"],
         }
+    except Exception:
+        logger.exception("Error retrieving calibration from database")
+        raise
+    
     finally:
         conn.close()

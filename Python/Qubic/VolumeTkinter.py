@@ -1,6 +1,5 @@
-from pickle import FALSE, TRUE
-
 import cv2
+import logging
 import numpy
 import os
 import sys
@@ -8,405 +7,421 @@ import sys
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(BASE_DIR, "Python"))
 
-i = None
-
 from FrameState import frameState
 from WorkspaceState import workspaceState
+
+logger = logging.getLogger("qubic.volume")
+
+i = None
 
 OVERLAP_RATIO = 0.05
 
 def volumeSingleBundleAPI(depthFrame, workspace_depth, minimum_depth, box_limits, depths, fx_d, fy_d, cx_d, cy_d): 
-    volume = 0
-    width_meters = 0
-    length_meters = 0
-    i = 0
+    try:
+        volume = 0
+        width_meters = 0
+        length_meters = 0
+        i = 0
 
-    pts_m = []
+        pts_m = []
 
-    MIN_OBJ_HEIGHT_MM = 30
-    heights_mm = []
-    for i in range((len(depths))):
-        # obj_height_mm = workspace_depth - depths[i]
-        # if obj_height_mm < MIN_OBJ_HEIGHT_MM:
-        #     continue
-        obj_height_mm = contourMedianHeightMM(box_limits[i], depthFrame.shape)
-        if obj_height_mm is None or obj_height_mm < MIN_OBJ_HEIGHT_MM:
-             continue
-        heights_mm.append(obj_height_mm)
-        pts_flat = box_limits[i].reshape(-1,2)
-
-        DEPTH_TOL_MM = 40
-        for (u,v) in pts_flat:
-            Z_mm = depthFrame[int(v), int(u)]
-            if Z_mm <= 0 or Z_mm >= workspace_depth:
-                continue
-            if abs(Z_mm - depths[i]) > DEPTH_TOL_MM:
-                continue
-            Z = Z_mm / 1000
-            X = (u - cx_d) * Z / fx_d
-            Y = (v - cy_d) * Z / fy_d
-
-            pts_m.append([X, Y])
-
-    pts_m = numpy.array(pts_m, dtype=numpy.float32)
-
-    if len(pts_m) == 0 or not heights_mm:
-        return [0], [0], [0], [0]
-
-    rect_m = cv2.minAreaRect(pts_m)
-    width_meters, length_meters = rect_m[1]
-    # height_meters = (workspace_depth - minimum_depth) / 1000
-    height_meters = max(heights_mm) / 1000
-
-    volume = width_meters * length_meters * height_meters
-
-    return [volume], [width_meters], [length_meters], [height_meters]
-
-def volumeMultiBundleAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits, depths, fx_d, fy_d, cx_d, cy_d): 
-    volume = 0
-    width_meters = 0
-    length_meters = 0
-    i = 0
-
-    allObj_pts_m = []
-    volume_array = []
-    width_array = []
-    length_array = []
-    height_array = []
-    totalVolume = 0
-
-    groups = []
-    used = set()
-    depthsObj = []
-
-    MIN_OBJ_HEIGHT_MM = 30
-
-    for i in range(len(box_limits)):
-        if i in used:
-            continue
-
-        stack = [i]
-        group = []
-
-        while stack:
-            idx = stack.pop()
-
-            if idx in used:
-                continue
-
-            used.add(idx)
-            group.append((box_limits[idx], depths[idx]))
-
-            for j in range(len(box_limits)):
-                if j in used:
-                    continue
-
-                box_i = box_limits[idx]
-                box_j = box_limits[j]
-
-                if contours_overlap_by_points(box_i, box_j) or intersection_edge(box_i, box_j, depthFrame) or areContoursClose(box_i, box_j, 10):
-                    stack.append(j)
-        groups.append(group)
-
-    for i in range((len(groups))):
-        objPoints = []
+        MIN_OBJ_HEIGHT_MM = 30
         heights_mm = []
-        group = groups[i]
-         
-        for contour, depth in group:
-            median_height_mm = contourMedianHeightMM(contour, depthFrame.shape)
-            if median_height_mm is None or median_height_mm < MIN_OBJ_HEIGHT_MM:
+        for i in range((len(depths))):
+            # obj_height_mm = workspace_depth - depths[i]
+            # if obj_height_mm < MIN_OBJ_HEIGHT_MM:
+            #     continue
+            obj_height_mm = contourMedianHeightMM(box_limits[i], depthFrame.shape)
+            if obj_height_mm is None or obj_height_mm < MIN_OBJ_HEIGHT_MM:
                 continue
-            heights_mm.append(median_height_mm)
+            heights_mm.append(obj_height_mm)
+            pts_flat = box_limits[i].reshape(-1,2)
 
-            fill_img = numpy.zeros((480, 640), dtype=numpy.uint8)
-            cv2.fillPoly(fill_img, [contour.astype(numpy.int32)], 255)
+            DEPTH_TOL_MM = 40
+            for (u,v) in pts_flat:
+                Z_mm = depthFrame[int(v), int(u)]
+                if Z_mm <= 0 or Z_mm >= workspace_depth:
+                    continue
+                if abs(Z_mm - depths[i]) > DEPTH_TOL_MM:
+                    continue
+                Z = Z_mm / 1000
+                X = (u - cx_d) * Z / fx_d
+                Y = (v - cy_d) * Z / fy_d
 
-            ys_all, xs_all = numpy.where(fill_img > 0)
-            if len(xs_all) == 0 or len(ys_all) == 0:
-                continue
+                pts_m.append([X, Y])
 
-            zs_all = depthFrame[ys_all, xs_all]
-            valid = (zs_all > 0) & (zs_all < workspace_depth)
-            xs_v, ys_v, zs_v = xs_all[valid], ys_all[valid], zs_all[valid]
+        pts_m = numpy.array(pts_m, dtype=numpy.float32)
 
-            Z = zs_v / 1000.0
-            X = (xs_v - cx_d) * Z / fx_d
-            Y = (ys_v - cy_d) * Z / fy_d
+        if len(pts_m) == 0 or not heights_mm:
+            return [0], [0], [0], [0]
 
-            objPoints.extend(numpy.column_stack([X,Y]))
-
-        if not heights_mm or len(objPoints) == 0:
-            continue
-
-        allObj_pts_m.append(objPoints)
-        depthsObj.append(max(heights_mm) / 1000.0)
-
-    allObj_pts_m = [numpy.array(obj, dtype=numpy.float32) for obj in allObj_pts_m]
-      
-    for idx, obj in enumerate(allObj_pts_m):
-        rect_m = cv2.minAreaRect(allObj_pts_m[idx])
+        rect_m = cv2.minAreaRect(pts_m)
         width_meters, length_meters = rect_m[1]
-
-        height_meters = depthsObj[idx]
+        # height_meters = (workspace_depth - minimum_depth) / 1000
+        height_meters = max(heights_mm) / 1000
 
         volume = width_meters * length_meters * height_meters
-        width_array.append(width_meters)
-        length_array.append(length_meters)
-        height_array.append(height_meters)
-        volume_array.append(volume)
-        totalVolume += volume
 
-    volume_array.append(totalVolume)
-    volume = volume_array
-    width_meters = width_array
-    length_meters = length_array
-    height_meters = height_array
+        return [volume], [width_meters], [length_meters], [height_meters]
+    
+    except Exception:
+        logger.exception("Error calculating Single Bundle volume")
+        raise
 
-    return volume, width_meters, length_meters, height_meters
+def volumeMultiBundleAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits, depths, fx_d, fy_d, cx_d, cy_d): 
+    try:
+        volume = 0
+        width_meters = 0
+        length_meters = 0
+        i = 0
 
-def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits, contours_united, depths, fx_d, fy_d, cx_d, cy_d): 
-    volume = 0
-    width_meters = 0
-    length_meters = 0
-    i = 0
+        allObj_pts_m = []
+        volume_array = []
+        width_array = []
+        length_array = []
+        height_array = []
+        totalVolume = 0
 
-    groupWidths= []
-    groupLengths = []
-    groupHeights = []
-    groupAngles = []
-    groupRealVolume = []
+        groups = []
+        used = set()
+        depthsObj = []
 
-    volume_array = []
-    width_array = []
-    length_array = []
-    height_array = []
-    totalVolume = 0
+        MIN_OBJ_HEIGHT_MM = 30
 
-    allDepths = []
-
-    allGroupObjContours = []
-    allGroupObjPointsPixel = []
-    allGroupsObjPoints = []
-    allObjCenter = []
-    allOriginalIndexes = []
-    groups = []
-    used = set()
-
-    MIN_OBJ_HEIGHT_MM = 30
-
-    calibrationDepthFrame_copy = calibrationDepthFrame.copy()
-
-    for i in range(len(box_limits)):
-        if i in used:
-            continue
-
-        stack = [i]
-        group = []
-
-        while stack:
-            idx = stack.pop()
-
-            if idx in used:
+        for i in range(len(box_limits)):
+            if i in used:
                 continue
 
-            used.add(idx)
-            group.append((box_limits[idx], depths[idx], idx))
+            stack = [i]
+            group = []
 
-            for j in range(len(box_limits)):
-                if j in used:
+            while stack:
+                idx = stack.pop()
+
+                if idx in used:
                     continue
 
-                box_i = box_limits[idx]
-                box_j = box_limits[j]
+                used.add(idx)
+                group.append((box_limits[idx], depths[idx]))
 
-                if contours_overlap_by_points(box_i, box_j) or intersection_edge(box_i, box_j, depthFrame) or areContoursClose(box_i, box_j, 10):
-                    stack.append(j)
+                for j in range(len(box_limits)):
+                    if j in used:
+                        continue
 
-            stack.reverse()
+                    box_i = box_limits[idx]
+                    box_j = box_limits[j]
 
-        groups.append(group)
+                    if contours_overlap_by_points(box_i, box_j) or intersection_edge(box_i, box_j, depthFrame) or areContoursClose(box_i, box_j, 10):
+                        stack.append(j)
+            groups.append(group)
 
-    for i in range((len(groups))):
-        objPoints = []
-        allObj_contours = []
-        allObj_pts = []
-        allObj_pts_m = []
-        depthsObj = []
-        originalIndex = []
-        objCenter = []
-        irregularGroup = []
-        group = groups[i]
-        group.sort(key=lambda x: x[1], reverse=False)
-
-        for contour, depth, index in group:
-            fill_img = numpy.zeros((480, 640), dtype=numpy.uint8)
-            cv2.fillPoly(fill_img, [contour.astype(numpy.int32)], 255)
-
-            ys_all, xs_all = numpy.where(fill_img > 0)
-            if len(xs_all) == 0 or len(ys_all) == 0:
-                continue
-
-            zs_all = depthFrame[ys_all, xs_all].astype(numpy.float32)
-            valid = (zs_all > 0) & (zs_all < workspace_depth)
-            xs_v, ys_v, zs_v = xs_all[valid], ys_all[valid], zs_all[valid]
-
-            if len(xs_v) == 0:
-                continue
-
-            Z = zs_v / 1000.0
-            X = (xs_v - cx_d) * Z / fx_d
-            Y = (ys_v - cy_d) * Z / fy_d
-
-            objPoints.extend(numpy.column_stack([X,Y]))
-
-        if len(objPoints) == 0:
-            continue
-
-        allObj_pts_m.append(objPoints)
-        depthsObj.append(0.0)
-
-        for j in range(len(group)):
-            irregular = False
-            contour, depth, idx = group[j]
-
-            contour_px = contour.reshape(-1, 2)
-
-            z_contour = depthFrame[contour_px[:, 1], contour_px[:, 0]].astype(numpy.float32)
-
-            if len(contour_px) < 3:
-                continue
-
-            valid = (z_contour > 0) & (z_contour < workspace_depth)
-
-            contour_px = contour_px[valid]
-            z_contour = z_contour[valid]
-
-            median_height_mm = contourMedianHeightMM(contour, depthFrame.shape)
-
-            if median_height_mm is None or median_height_mm < MIN_OBJ_HEIGHT_MM:
-                continue
-
-            height_meters_test = median_height_mm / 1000.0
-
-            Zc = z_contour / 1000.0
-            Xc_m = (contour_px[:, 0] - cx_d) * Zc / fx_d
-            Yc_m = (contour_px[:, 1] - cy_d) * Zc / fy_d
-
-            contour_m = numpy.column_stack((Xc_m, Yc_m)).astype(numpy.float32)
+        for i in range((len(groups))):
+            objPoints = []
+            heights_mm = []
+            group = groups[i]
             
-            pts_flat = contour.reshape(-1,2)
+            for contour, depth in group:
+                median_height_mm = contourMedianHeightMM(contour, depthFrame.shape)
+                if median_height_mm is None or median_height_mm < MIN_OBJ_HEIGHT_MM:
+                    continue
+                heights_mm.append(median_height_mm)
 
-            mask = numpy.zeros(calibrationDepthFrame_copy.shape, dtype=numpy.uint8)
-            cv2.fillPoly(mask, [pts_flat.astype(numpy.int32)], 255)
+                fill_img = numpy.zeros((480, 640), dtype=numpy.uint8)
+                cv2.fillPoly(fill_img, [contour.astype(numpy.int32)], 255)
 
-            fill_img = numpy.zeros((480, 640), dtype=numpy.uint8)
-            cv2.fillPoly(fill_img, [pts_flat.astype(numpy.int32)], 255)
+                ys_all, xs_all = numpy.where(fill_img > 0)
+                if len(xs_all) == 0 or len(ys_all) == 0:
+                    continue
 
-            ys_all, xs_all = numpy.where(fill_img > 0)
-            if len(xs_all) == 0 or len(ys_all) == 0:
+                zs_all = depthFrame[ys_all, xs_all]
+                valid = (zs_all > 0) & (zs_all < workspace_depth)
+                xs_v, ys_v, zs_v = xs_all[valid], ys_all[valid], zs_all[valid]
+
+                Z = zs_v / 1000.0
+                X = (xs_v - cx_d) * Z / fx_d
+                Y = (ys_v - cy_d) * Z / fy_d
+
+                objPoints.extend(numpy.column_stack([X,Y]))
+
+            if not heights_mm or len(objPoints) == 0:
                 continue
 
-            zs_all = depthFrame[ys_all, xs_all].astype(numpy.float32)
-            valid = (zs_all > 0) & (zs_all < workspace_depth)
-            xs_v, ys_v, zs_v = xs_all[valid], ys_all[valid], zs_all[valid]
+            allObj_pts_m.append(objPoints)
+            depthsObj.append(max(heights_mm) / 1000.0)
 
-            Z = zs_v / 1000.0
-            X = (xs_v - cx_d) * Z / fx_d
-            Y = (ys_v - cy_d) * Z / fy_d
-
-            Xc = (max(X) + min(X)) / 2
-            Yc = (max(Y) + min(Y)) / 2
-
-            objCenter.append((Xc * 100, Yc * 100))
-            allObj_contours.append(contour_m)
-            allObj_pts.append(pts_flat.copy())
-            allObj_pts_m.append(numpy.column_stack([X, Y]).tolist())
-            depthsObj.append(height_meters_test)
-            originalIndex.append(idx)
-
-            if is_suspect_blob(contour):
-                irregular = True
-
-            irregularGroup.append(irregular)
-
-        if len(depthsObj) <= 1:
-            continue
-
-        depthsObj[0] = max(depthsObj[1:])
-
-        allGroupObjPointsPixel.append(allObj_pts)
-        allGroupObjContours.append(allObj_contours)
-        allGroupsObjPoints.append((allObj_pts_m, irregularGroup))
-        allDepths.append(depthsObj)
-        allObjCenter.append(objCenter)
-        allOriginalIndexes.append(originalIndex)
-
-    for idx, (allObjPtsM, irregular) in enumerate(allGroupsObjPoints):
-        allObjPixel = allGroupObjPointsPixel[idx]
-        allObjContour = allGroupObjContours[idx]
-        allObjIndex = allOriginalIndexes[idx]
-
-        depths = allDepths[idx]
-
-        objWidth= []
-        objLength = []
-        objHeight = []
-        objAngle = []
-        realVolume = 0
-        last_area = 0
-
-        allObjPtsM = [numpy.array(obj, dtype=numpy.float32) for obj in allObjPtsM]
+        allObj_pts_m = [numpy.array(obj, dtype=numpy.float32) for obj in allObj_pts_m]
         
-        for i, obj in enumerate(allObjPtsM):
-            rect_m = cv2.minAreaRect(allObjPtsM[i])
+        for idx, obj in enumerate(allObj_pts_m):
+            rect_m = cv2.minAreaRect(allObj_pts_m[idx])
             width_meters, length_meters = rect_m[1]
-            angle = rect_m[2]
 
-            height_meters = depths[i]
+            height_meters = depthsObj[idx]
 
-            if i!= 0:
-                for a, b in contours_united:
-                    if allObjIndex[i-1] == a and b in allObjIndex:
-                        prevIndex = allObjIndex.index(b)
-                        last_area = cv2.contourArea(allObjContour[prevIndex])
+            volume = width_meters * length_meters * height_meters
+            width_array.append(width_meters)
+            length_array.append(length_meters)
+            height_array.append(height_meters)
+            volume_array.append(volume)
+            totalVolume += volume
 
-                if i-1 > 0:
-                    area = cv2.contourArea(allObjContour[i-1]) - last_area
-                else:
-                    area = cv2.contourArea(allObjContour[i-1])
+        volume_array.append(totalVolume)
+        volume = volume_array
+        width_meters = width_array
+        length_meters = length_array
+        height_meters = height_array
 
-                volume = area * height_meters
+        return volume, width_meters, length_meters, height_meters
 
-            if i != 0:
-                totalVolume += volume
-                realVolume += volume
-            else:
-                volume = width_meters * length_meters * height_meters
+    except Exception:
+        logger.exception("Error calculating Multi Bundle volume")
+        raise
 
-            objWidth.append(width_meters)
-            objLength.append(length_meters)
-            objHeight.append(height_meters)
-            objAngle.append(angle)
-        
-        groupWidths.append(objWidth)
-        groupLengths.append(objLength)
-        groupHeights.append(objHeight)
-        groupAngles.append(objAngle)
-        groupRealVolume.append(realVolume)
-        
-    width_array = groupWidths
-    length_array = groupLengths
-    height_array = groupHeights
-    volume_array = groupRealVolume
+def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits, contours_united, depths, fx_d, fy_d, cx_d, cy_d): 
+    try:
+        volume = 0
+        width_meters = 0
+        length_meters = 0
+        i = 0
+
+        groupWidths= []
+        groupLengths = []
+        groupHeights = []
+        groupAngles = []
+        groupRealVolume = []
+
+        volume_array = []
+        width_array = []
+        length_array = []
+        height_array = []
+        totalVolume = 0
+
+        allDepths = []
+
+        allGroupObjContours = []
+        allGroupObjPointsPixel = []
+        allGroupsObjPoints = []
+        allObjCenter = []
+        allOriginalIndexes = []
+        groups = []
+        used = set()
+
+        MIN_OBJ_HEIGHT_MM = 30
+
+        calibrationDepthFrame_copy = calibrationDepthFrame.copy()
+
+        for i in range(len(box_limits)):
+            if i in used:
+                continue
+
+            stack = [i]
+            group = []
+
+            while stack:
+                idx = stack.pop()
+
+                if idx in used:
+                    continue
+
+                used.add(idx)
+                group.append((box_limits[idx], depths[idx], idx))
+
+                for j in range(len(box_limits)):
+                    if j in used:
+                        continue
+
+                    box_i = box_limits[idx]
+                    box_j = box_limits[j]
+
+                    if contours_overlap_by_points(box_i, box_j) or intersection_edge(box_i, box_j, depthFrame) or areContoursClose(box_i, box_j, 10):
+                        stack.append(j)
+
+                stack.reverse()
+
+            groups.append(group)
+
+        for i in range((len(groups))):
+            objPoints = []
+            allObj_contours = []
+            allObj_pts = []
+            allObj_pts_m = []
+            depthsObj = []
+            originalIndex = []
+            objCenter = []
+            irregularGroup = []
+            group = groups[i]
+            group.sort(key=lambda x: x[1], reverse=False)
+
+            for contour, depth, index in group:
+                fill_img = numpy.zeros((480, 640), dtype=numpy.uint8)
+                cv2.fillPoly(fill_img, [contour.astype(numpy.int32)], 255)
+
+                ys_all, xs_all = numpy.where(fill_img > 0)
+                if len(xs_all) == 0 or len(ys_all) == 0:
+                    continue
+
+                zs_all = depthFrame[ys_all, xs_all].astype(numpy.float32)
+                valid = (zs_all > 0) & (zs_all < workspace_depth)
+                xs_v, ys_v, zs_v = xs_all[valid], ys_all[valid], zs_all[valid]
+
+                if len(xs_v) == 0:
+                    continue
+
+                Z = zs_v / 1000.0
+                X = (xs_v - cx_d) * Z / fx_d
+                Y = (ys_v - cy_d) * Z / fy_d
+
+                objPoints.extend(numpy.column_stack([X,Y]))
+
+            if len(objPoints) == 0:
+                continue
+
+            allObj_pts_m.append(objPoints)
+            depthsObj.append(0.0)
+
+            for j in range(len(group)):
+                irregular = False
+                contour, depth, idx = group[j]
+
+                contour_px = contour.reshape(-1, 2)
+
+                z_contour = depthFrame[contour_px[:, 1], contour_px[:, 0]].astype(numpy.float32)
+
+                if len(contour_px) < 3:
+                    continue
+
+                valid = (z_contour > 0) & (z_contour < workspace_depth)
+
+                contour_px = contour_px[valid]
+                z_contour = z_contour[valid]
+
+                median_height_mm = contourMedianHeightMM(contour, depthFrame.shape)
+
+                if median_height_mm is None or median_height_mm < MIN_OBJ_HEIGHT_MM:
+                    continue
+
+                height_meters_test = median_height_mm / 1000.0
+
+                Zc = z_contour / 1000.0
+                Xc_m = (contour_px[:, 0] - cx_d) * Zc / fx_d
+                Yc_m = (contour_px[:, 1] - cy_d) * Zc / fy_d
+
+                contour_m = numpy.column_stack((Xc_m, Yc_m)).astype(numpy.float32)
+                
+                pts_flat = contour.reshape(-1,2)
+
+                mask = numpy.zeros(calibrationDepthFrame_copy.shape, dtype=numpy.uint8)
+                cv2.fillPoly(mask, [pts_flat.astype(numpy.int32)], 255)
+
+                fill_img = numpy.zeros((480, 640), dtype=numpy.uint8)
+                cv2.fillPoly(fill_img, [pts_flat.astype(numpy.int32)], 255)
+
+                ys_all, xs_all = numpy.where(fill_img > 0)
+                if len(xs_all) == 0 or len(ys_all) == 0:
+                    continue
+
+                zs_all = depthFrame[ys_all, xs_all].astype(numpy.float32)
+                valid = (zs_all > 0) & (zs_all < workspace_depth)
+                xs_v, ys_v, zs_v = xs_all[valid], ys_all[valid], zs_all[valid]
+
+                Z = zs_v / 1000.0
+                X = (xs_v - cx_d) * Z / fx_d
+                Y = (ys_v - cy_d) * Z / fy_d
+
+                Xc = (max(X) + min(X)) / 2
+                Yc = (max(Y) + min(Y)) / 2
+
+                objCenter.append((Xc * 100, Yc * 100))
+                allObj_contours.append(contour_m)
+                allObj_pts.append(pts_flat.copy())
+                allObj_pts_m.append(numpy.column_stack([X, Y]).tolist())
+                depthsObj.append(height_meters_test)
+                originalIndex.append(idx)
+
+                if is_suspect_blob(contour):
+                    irregular = True
+
+                irregularGroup.append(irregular)
+
+            if len(depthsObj) <= 1:
+                continue
+
+            depthsObj[0] = max(depthsObj[1:])
+
+            allGroupObjPointsPixel.append(allObj_pts)
+            allGroupObjContours.append(allObj_contours)
+            allGroupsObjPoints.append((allObj_pts_m, irregularGroup))
+            allDepths.append(depthsObj)
+            allObjCenter.append(objCenter)
+            allOriginalIndexes.append(originalIndex)
+
+        for idx, (allObjPtsM, irregular) in enumerate(allGroupsObjPoints):
+            allObjPixel = allGroupObjPointsPixel[idx]
+            allObjContour = allGroupObjContours[idx]
+            allObjIndex = allOriginalIndexes[idx]
+
+            depths = allDepths[idx]
+
+            objWidth= []
+            objLength = []
+            objHeight = []
+            objAngle = []
+            realVolume = 0
+            last_area = 0
+
+            allObjPtsM = [numpy.array(obj, dtype=numpy.float32) for obj in allObjPtsM]
             
-    volume_array.append(totalVolume)
-    volume = volume_array
-    width_meters = width_array
-    length_meters = length_array
-    height_meters = height_array
+            for i, obj in enumerate(allObjPtsM):
+                rect_m = cv2.minAreaRect(allObjPtsM[i])
+                width_meters, length_meters = rect_m[1]
+                angle = rect_m[2]
 
-    return volume, width_meters, length_meters, height_meters, allObjCenter, groupAngles
+                height_meters = depths[i]
+
+                if i!= 0:
+                    for a, b in contours_united:
+                        if allObjIndex[i-1] == a and b in allObjIndex:
+                            prevIndex = allObjIndex.index(b)
+                            last_area = cv2.contourArea(allObjContour[prevIndex])
+
+                    if i-1 > 0:
+                        area = cv2.contourArea(allObjContour[i-1]) - last_area
+                    else:
+                        area = cv2.contourArea(allObjContour[i-1])
+
+                    volume = area * height_meters
+
+                if i != 0:
+                    totalVolume += volume
+                    realVolume += volume
+                else:
+                    volume = width_meters * length_meters * height_meters
+
+                objWidth.append(width_meters)
+                objLength.append(length_meters)
+                objHeight.append(height_meters)
+                objAngle.append(angle)
+            
+            groupWidths.append(objWidth)
+            groupLengths.append(objLength)
+            groupHeights.append(objHeight)
+            groupAngles.append(objAngle)
+            groupRealVolume.append(realVolume)
+            
+        width_array = groupWidths
+        length_array = groupLengths
+        height_array = groupHeights
+        volume_array = groupRealVolume
+                
+        volume_array.append(totalVolume)
+        volume = volume_array
+        width_meters = width_array
+        length_meters = length_array
+        height_meters = height_array
+
+        return volume, width_meters, length_meters, height_meters, allObjCenter, groupAngles
+    except Exception:
+        logger.exception("Error calculating Real volume")
+        raise
 
 # def volumeIndividualAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits, depths, fx_d, fy_d, cx_d, cy_d): 
 #     MIN_OBJ_HEIGHT_MM = 30

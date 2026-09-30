@@ -1,7 +1,10 @@
+import logging
 import os
 
 from db.connection import get_connection, write_lock
 from db import users_repo
+
+logger = logging.getLogger("qubic.database")
 
 ADMIN_USERNAME = "admin"
 ADMIN_EMAIL = ""
@@ -31,10 +34,13 @@ def run_migrations(hash_password=None):
         try:
             applied = _applied_versions(conn)
             for filename in _pending_files(applied):
+                logger.info("Applying database migration")
                 with open(os.path.join(MIGRATIONS_DIR, filename), "r") as f:
                     conn.executescript(f.read())
                 conn.execute("INSERT INTO schema_migrations (version) VALUES (?)", (filename,))
                 conn.commit()
+
+                logger.info("Database migration applied successfully")
         finally:
             conn.close()
 
@@ -55,3 +61,5 @@ def _seed_admin(hash_password=None):
         password_hash=hash_password(ADMIN_DEFAULT_PASSWORD),
         role="admin",
     )
+
+    logger.info("Default admin user created")

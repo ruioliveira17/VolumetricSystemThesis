@@ -1,82 +1,82 @@
 const pt = {
     systemLoader: {
-        initializing: "INICIANDO",
-        waitAMoment: "Por favor, aguarde..."
+        initializing: "A INICIALIZAR",
+        waitAMoment: "Por favor, aguarde um momento..."
     },
     error_and_info_messages: {
-        serverConnectionError: "Erro de conexão ao servidor",
+        serverConnectionError: "Erro de ligação ao servidor",
         error: "Erro",
         loginWelcome: "Bem-vindo!",
-        loginInsertCredentials: "Por favor, insira as suas credenciais.",
+        loginInsertCredentials: "Por favor, introduza as suas credenciais de acesso.",
 
-        loginFailed: "Ocorreu um erro enquanto iniciava sessão.",
+        loginFailed: "Ocorreu um erro ao iniciar sessão.",
 
         registerFailed: "Ocorreu um erro ao registar o utilizador.",
         registerSuccess: "Novo utilizador registado com sucesso.",
 
         errorFillAllFields: "Por favor, preencha todos os campos.",
-        invalidUsernameOrPassword: "Utilizador ou palavra-passe inválida.",
-        passwordRequirements: "A palavra-passe deve conter 8 caráteres, 1 letra maiúscula, 1 número e 1 caratér especial.",
+        invalidUsernameOrPassword: "Nome de utilizador ou palavra-passe inválidos.",
+        passwordRequirements: "A palavra-passe deve ter, pelo menos, 8 caracteres, uma letra maiúscula, um número e um caráter especial.",
         passwordsDoNotMatch: "As palavras-passe não coincidem!",
-        currentPasswordInvalid: "Palavra-passe atual inválida.",
-        newPasswordCannotBeSame: "A nova palavra-passe não pode ser a mesma que a atual.",
+        currentPasswordInvalid: "A palavra-passe atual é inválida.",
+        newPasswordCannotBeSame: "A nova palavra-passe não pode ser igual à atual.",
 
-        resetTokenExpired: "O reset token expirou. Por favor, gere outro.",
-        sessionExpired: "Sessão expirada. Por favor, inicie a sessão outra vez.",
+        resetTokenExpired: "O código de reposição da palavra-passe expirou. Por favor, gere outro.",
+        sessionExpired: "A sessão expirou. Por favor, inicie sessão novamente.",
 
-        changePasswordError: "Alterar a palavra-passe falhou.",
-        changePasswordSuccess: "Palavra-Passe alterada com sucesso.",
-        
+        changePasswordError: "Ocorreu um erro ao tentar alterar a palavra-passe.",
+        changePasswordSuccess: "Palavra-passe alterada com sucesso.",
+
         systemNotCalibrated: "O sistema não foi calibrado.",
         systemCalibratedSuccess: "O sistema foi calibrado com sucesso.",
-        centerPointNotAligned: "O centro ótico não está alinhado.",
-        workspaceNotEmpty: "O espaço de trabalho não está vazio.",
-        workspaceNotEmptyAndCenterPointNotAligned: "O centro ótico não está alinhado e o espaço de trabalho não está vazio.",
+        centerPointNotAligned: "O ponto central não está alinhado.",
+        workspaceNotEmpty: "A área de trabalho não está vazia.",
+        workspaceNotEmptyAndCenterPointNotAligned: "O ponto central não está alinhado e a área de trabalho não está vazia.",
 
-        saveMeasurementError: "Não foi possível guuardar a medição.",
-        saveMeasurementSuccess: "Medição (#{{id}}) salva.",
+        saveMeasurementError: "Não foi possível guardar a medição.",
+        saveMeasurementSuccess: "Medição guardada ",
         measurementLoadError: "Não foi possível carregar as medições.",
-        measurementDeleteError: "Não foi possível apagar a medição.",
-        measurementsDeleteError: "Não foi possível apagar todas as medições.",
+        measurementDeleteError: "Não foi possível eliminar a medição.",
+        measurementsDeleteError: "Não foi possível eliminar todas as medições.",
 
-        adminNeededError: "São necessários previlégios de administrador.",
+        adminNeededError: "São necessários privilégios de administrador.",
         usersLoadError: "Não foi possível carregar os utilizadores.",
-        userDeleteError: "Não foi possível apagar o utilizador.",
-        userAlreadyExists: "Já existe esse utilizador.",
-        userChangeRoleError: "Não foi possível atualizar o cargo do utilizador.",
+        userDeleteError: "Não foi possível eliminar o utilizador.",
+        userAlreadyExists: "O nome de utilizador já existe.",
+        userChangeRoleError: "Não foi possível atualizar a função do utilizador.",
         userNotFound: "Utilizador não encontrado.",
 
-        exposureTimeValuesType: "Apenas valores inteiros são permitidos para o tempo de exposição.",
-        exposureTimeValuesRange: "Os valores do tempo de exposição deve estar entre 100 e 2000.",
-        exposureTimeSuccess: "O tempo de exposição foi alterado com sucesso.",
+        exposureTimeValuesType: "Apenas são permitidos valores inteiros para o tempo de exposição.",
+        exposureTimeValuesRange: "Os valores do tempo de exposição devem estar entre 100 e 2000.",
+        exposureTimeSuccess: "Tempo de Exposição atualizado com sucesso.",
 
-        countdownTimerValuesType: "Apenas valores inteiros são permitidos para o temporizador.",
-        countdownTimerValuesRange: "Os valores do temporizador devem estar entre 0 e 10.",
-        countdownTimerSuccess: "O valor do temporizador foi alterado com sucesso.",
+        countdownTimerValuesType: "Apenas são permitidos valores inteiros para a contagem decrescente.",
+        countdownTimerValuesRange: "Os valores da contagem decrescente devem estar entre 0 e 10.",
+        countdownTimerSuccess: "Contagem Decrescente atualizada com sucesso.",
     },
     login: {
         title: "Iniciar Sessão",
-        username: "Utilizador",
-        password: "Palavra-Passe",
+        username: "Nome de utilizador",
+        password: "Palavra-passe",
         noAccount: "Não tem conta?",
         register: "Registar",
-        loginButton: "Iniciar Sessão"
+        loginButton: "Entrar"
     },
     register: {
         title: "Registar",
-        username: "Utilizador",
-        password: "Palavra-Passe",
-        confirmPassword: "Confirmar Palavra-Passe",
-        haveAnAccount: "Já tem uma conta?",
-        loginButton: "Iniciar Sessão",
+        username: "Nome de utilizador",
+        password: "Palavra-passe",
+        confirmPassword: "Confirmar Palavra-passe",
+        haveAnAccount: "Já tem conta?",
+        loginButton: "Entrar",
         registerButton: "Registar"
     },
     changePassword: {
-        title: "Alterar Palavra-Passe",
-        username: "Utilizador",
-        currentPassword: "Palavra-Passe Atual",
-        newPassword: "Nova Palavra-Passe",
-        confirmNewPassword: "Confirmar Nova Palavra-Passe",
+        title: "Alterar Palavra-passe",
+        username: "Nome de utilizador",
+        currentPassword: "Palavra-passe Atual",
+        newPassword: "Nova Palavra-passe",
+        confirmNewPassword: "Confirmar Nova Palavra-passe",
         confirmButton: "Confirmar"
     },
     topBar:{
@@ -86,17 +86,17 @@ const pt = {
     },
     calibration: {
         title: "Calibração",
-        titleInfo: "Calibra o espaço de trabalho com base na área detetada",
+        titleInfo: "Calibra a área de trabalho com base na área detetada.",
         procedureSteps: "Passos para realizar a calibração:",
-        procedureSteps1: "1 - No modo \"Picar Cor\", selecione um ponto na imagem que corresponda à cor da plataforma.",
-        procedureSteps2: "2 - Se necessário, o modo \"Ajustar\" permite-o ajustar manualmente os pontos obtidos no passo anterior.",
-        selectColorButton: "Picar Cor",
+        procedureSteps1: "1 - No modo \"Selecionar Cor\", selecione um ponto na imagem da câmara que corresponda à cor da plataforma.",
+        procedureSteps2: "2 - Se necessário, o modo \"Ajustar\" permite ajustar manualmente os pontos obtidos no passo anterior.",
+        selectColorButton: "Selecionar Cor",
         adjustButton: "Ajustar",
         calibrateButton: "Calibrar"
     },
     confirmCalibration: {
         title: "Confirmar Calibração",
-        subtitle: "Deseja confirmar as alterações?",
+        subtitle: "Pretende confirmar as alterações?",
         confirmText: "Sim",
         cancelText: "Não"
     },
@@ -114,9 +114,9 @@ const pt = {
         weight: "Peso (kg)",
         totalWeight: "PESO TOTAL:",
         totalVolume: "VOLUME TOTAL:",
-        outOfWSArea: "Existem objetos fora do espaço de trabalho.",
-        outOfWSArea_Help: "Para detetá-los, certifique-se de que estejam dentro.",
-        failedToIdentify: "Falha ao identificar objetos."
+        outOfWSArea: "Existem objetos fora da área de trabalho.",
+        outOfWSArea_Help: "Para os detetar, certifique-se de que estão dentro da área.",
+        failedToIdentify: "Não foi possível identificar nenhum objeto."
     },
     measurementInfo: {
         title: "Informação da Medição",
@@ -132,19 +132,19 @@ const pt = {
     },
     measurementHistory: {
         title: "Histórico de Medições",
-        titleInfo: "Apresenta os dados das medições realizadas nos últimos 90 dias.",
+        titleInfo: "Mostra os dados das medições efetuadas nos últimos 90 dias.",
         labelTimePeriod: "Período",
         labelSortBy: "Ordenar Por",
-        labelSearchBy: "Procurar Por",
-        labelSearchBar: "Procurar...",
+        labelSearchBy: "Pesquisar Por",
+        labelSearchBar: "Pesquisar...",
         headerUser: "Utilizador",
         headerMeasurementMode: "Modo de Medição",
-        headerObjects: "No. de Objetos",
+        headerObjects: "N.º de Objetos",
         headerTotalVolume: "Volume Total",
         headerWeight: "Peso",
-        headerMeasurementDate: "Data de Medição",
-        deleteAllButton: "Apagar Tudo",
-        deleteButton: "Apagar"
+        headerMeasurementDate: "Data da Medição",
+        deleteAllButton: "Eliminar Tudo",
+        deleteButton: "Eliminar"
     },
     measurementSearchOptions: {
         all: "Todos",
@@ -155,16 +155,16 @@ const pt = {
         lastMonths: "Últimos 3 Meses",
         date: "Data",
         measurementMode: "Modo de Medição",
-        objectNumber: "No. de Objetos",
+        objectNumber: "N.º de Objetos",
         user: "Utilizador"
     },
     settings: {
-        title: "Configurações",
+        title: "Definições",
         language: "Idioma",
         exposureType: "Tipo de Exposição",
         exposureTime: "Tempo de Exposição",
         volumeMode: "Modo de Medição",
-        countdownTimer: "Temporizador",
+        countdownTimer: "Contagem Decrescente",
         set: "Definir",
         preferences: "Preferências",
         videoSize: "Tamanho do Vídeo"
@@ -173,29 +173,29 @@ const pt = {
         title: "Redimensionar Janela",
         cancelButton: "Cancelar",
         revertButton: "Reverter",
-        confirmButton: "Confirmar" 
+        confirmButton: "Confirmar"
     },
     power: {
-        title: "Sistema",
-        subtitle: "O que deseja fazer?",
-        shutdown: "Desligar",
+        title: "Opções de Energia",
+        subtitle: "O que pretende fazer?",
+        shutdown: "Encerrar",
         restart: "Reiniciar",
-        confirmShutdown: "Tem a certeza que quer desligar?",
-        confirmRestart: "Tem a certeza que quer reiniciar?",
+        confirmShutdown: "Tem a certeza de que pretende encerrar?",
+        confirmRestart: "Tem a certeza de que pretende reiniciar?",
         yes: "Sim",
         no: "Não",
     },
     userMenu: {
         user: "Utilizador:",
-        role: "Cargo:",
-        changePassword: "Alterar Palavra-Passe",
-        manageUsers: "Gerenciar Utilizadores",
-        logout: "Encerrar Sessão",
+        role: "Função:",
+        changePassword: "Alterar Palavra-passe",
+        manageUsers: "Gerir Utilizadores",
+        logout: "Terminar Sessão",
         loading: "A carregar...",
         headerUser: "Utilizador",
-        headerRole: "Cargo",
+        headerRole: "Função",
         generateToken: "Gerar Token",
-        noUsers: "Não existem mais utilizadores."
+        noUsers: "Não existem outros utilizadores."
     }
 }
 

@@ -1,5 +1,8 @@
+import logging
+
 from db.connection import get_connection, write_lock, row_to_dict, rows_to_dicts
 
+logger = logging.getLogger("qubic.user")
 
 def get_by_login(login):
     conn = get_connection()
@@ -50,6 +53,12 @@ def create_user(username, email, password_hash, role="user"):
             )
             conn.commit()
             return cursor.lastrowid
+        except Exception:
+            logger.exception(
+                "Error creating user '%s'",
+                username
+            )
+            raise
         finally:
             conn.close()
 
@@ -64,6 +73,12 @@ def change_password(user_id, password_hash):
             )
             conn.commit()
             return cursor.rowcount
+        except Exception:
+            logger.exception(
+                "Error changing password for user ID '%s'",
+                user_id
+            )
+            raise
         finally:
             conn.close()
 
@@ -87,6 +102,12 @@ def set_role(user_id, role):
             cursor = conn.execute("UPDATE users SET role = ? WHERE id = ?", (role, user_id))
             conn.commit()
             return cursor.rowcount
+        except Exception:
+            logger.exception(
+                "Error changing role for user ID '%s'",
+                user_id
+            )
+            raise
         finally:
             conn.close()
 
@@ -102,5 +123,11 @@ def delete_user(user_id):
             )
             conn.commit()
             return cursor.rowcount
+        except Exception:
+            logger.exception(
+                "Error deleting user ID '%s'",
+                user_id
+            )
+            raise
         finally:
             conn.close()

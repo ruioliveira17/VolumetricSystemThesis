@@ -4,49 +4,49 @@ const en = {
         waitAMoment: "Please wait a moment..."
     },
     error_and_info_messages: {
-        serverConnectionError: "Server connection error",
+        serverConnectionError: "Server connection error.",
         error: "Error",
         loginWelcome: "Welcome!",
-        loginInsertCredentials: "Please insert your login credentials.",
+        loginInsertCredentials: "Please enter your login credentials.",
 
         loginFailed: "An error occurred while logging in.",
 
         registerFailed: "An error occurred while registering the user.",
         registerSuccess: "New user registered successfully.",
 
-        errorFillAllFields: "Please fill all fields.",
+        errorFillAllFields: "Please fill in all fields.",
         invalidUsernameOrPassword: "Invalid username or password.",
         passwordRequirements: "The password must have at least 8 characters, one uppercase letter, one number, and one special character.",
         passwordsDoNotMatch: "Passwords do not match!",
-        currentPasswordInvalid: "Current password is invalid.",
-        newPasswordCannotBeSame: "New password can't be the same as the current one.",
-        
-        resetTokenExpired: "Reset token expired. Please generate another.",
-        sessionExpired: "Session expired. Please login again.",
-        
-        changePasswordError: "An error ocurred while trying to change the password.",
+        currentPasswordInvalid: "The current password is invalid.",
+        newPasswordCannotBeSame: "The new password cannot be the same as the current one.",
+
+        resetTokenExpired: "The password reset code has expired. Please generate a new one.",
+        sessionExpired: "Session expired. Please log in again.",
+
+        changePasswordError: "An error occurred while trying to change the password.",
         changePasswordSuccess: "Password changed successfully.",
 
         systemNotCalibrated: "The system was not calibrated.",
         systemCalibratedSuccess: "The system was calibrated successfully.",
-        centerPointNotAligned: "Center point isn't aligned.",
-        workspaceNotEmpty: "Workspace isn't empty.",
-        workspaceNotEmptyAndCenterPointNotAligned: "Center point isn't aligned and workspace isn't empty.",
-        
+        centerPointNotAligned: "The center point is not aligned.",
+        workspaceNotEmpty: "The workspace is not empty.",
+        workspaceNotEmptyAndCenterPointNotAligned: "The center point is not aligned and the workspace is not empty.",
+
         saveMeasurementError: "Could not save the measurement.",
-        saveMeasurementSuccess: "Measurement saved (#{{id}}).",
+        saveMeasurementSuccess: "Measurement saved ",
         measurementLoadError: "Could not load measurements.",
-        measurementDeleteError: "Could not delete measurement.",
+        measurementDeleteError: "Could not delete the measurement.",
         measurementsDeleteError: "Could not delete all measurements.",
-        
+
         adminNeededError: "Admin privileges required.",
         usersLoadError: "Could not load users.",
-        userDeleteError: "Could not delete user.",
+        userDeleteError: "Could not delete the user.",
         userAlreadyExists: "Username already exists.",
         userChangeRoleError: "Could not update the user role.",
         userNotFound: "User not found.",
 
-        exposureTimeValuesType: "Only integer values are allowed for exposure time.",
+        exposureTimeValuesType: "Only integer values are allowed for the exposure time.",
         exposureTimeValuesRange: "Exposure Time values must be between 100 and 2000.",
         exposureTimeSuccess: "Exposure Time updated successfully.",
 
@@ -55,12 +55,12 @@ const en = {
         countdownTimerSuccess: "Countdown Timer updated successfully.",
     },
     login: {
-        title: "Login",
+        title: "Log In",
         username: "Username",
         password: "Password",
-        noAccount: "Don't have an account?",
+        noAccount: "No account yet?",
         register: "Register",
-        loginButton: "Login"
+        loginButton: "Log In"
     },
     register: {
         title: "Register",
@@ -68,7 +68,7 @@ const en = {
         password: "Password",
         confirmPassword: "Confirm Password",
         haveAnAccount: "Already have an account?",
-        loginButton: "Login",
+        loginButton: "Log In",
         registerButton: "Register"
     },
     changePassword: {
@@ -88,8 +88,8 @@ const en = {
         title: "Calibration",
         titleInfo: "Calibrates the workspace based on the detected area.",
         procedureSteps: "Steps to perform the calibration:",
-        procedureSteps1: "1 - In the \"Color Pick\" mode, select a point in the camera image that corresponds to the platform's color.",
-        procedureSteps2: "2 - If necessary, the \"Adjust\" mode grants you the option to manually adjust the points given in the previous step.",
+        procedureSteps1: "1 - In \"Color Pick\" mode, select a point in the camera image that matches the platform's color.",
+        procedureSteps2: "2 - If necessary, use \"Adjust\" mode to manually adjust the detected points.",
         selectColorButton: "Color Pick",
         adjustButton: "Adjust",
         calibrateButton: "Calibrate"
@@ -102,7 +102,7 @@ const en = {
     },
     volumeMenu: {
         title: "Volume",
-        titleInfo: "Calculates the volume of objects on the platform",
+        titleInfo: "Calculates the volume of the objects on the platform.",
         weightBar: "WEIGHT:",
         volumeButton: "Get Volume",
         objects: "Objects:",
@@ -115,7 +115,7 @@ const en = {
         totalWeight: "TOTAL WEIGHT:",
         totalVolume: "TOTAL VOLUME:",
         outOfWSArea: "There are objects outside the workspace area.",
-        outOfWSArea_Help: "To detect them, make sure they are inside.",
+        outOfWSArea_Help: "To detect them, make sure they are inside the workspace area.",
         failedToIdentify: "Failed to identify any objects."
     },
     measurementInfo: {
@@ -132,7 +132,7 @@ const en = {
     },
     measurementHistory: {
         title: "Measurement History",
-        titleInfo: "Shows the data of the measurements made on the last 90 days.",
+        titleInfo: "Shows the data of the measurements made in the last 90 days.",
         labelTimePeriod: "Period",
         labelSortBy: "Sort By",
         labelSearchBy: "Search By",
@@ -173,12 +173,12 @@ const en = {
         title: "Window Resizer",
         cancelButton: "Cancel",
         revertButton: "Revert",
-        confirmButton: "Confirm" 
+        confirmButton: "Confirm"
     },
     power: {
         title: "Power Options",
         subtitle: "What do you want to do?",
-        shutdown: "Shutdown",
+        shutdown: "Shut Down",
         restart: "Restart",
         confirmShutdown: "Are you sure you want to shut down?",
         confirmRestart: "Are you sure you want to restart?",
@@ -190,11 +190,11 @@ const en = {
         role: "Role:",
         changePassword: "Change Password",
         manageUsers: "Manage Users",
-        logout: "Logout",
+        logout: "Log Out",
         loading: "Loading...",
         headerUser: "User",
         headerRole: "Role",
-        generateToken: "Generate Token",
+        generateToken: "Generate Code",
         noUsers: "No other users."
     }
 }

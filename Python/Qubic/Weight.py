@@ -1,14 +1,23 @@
+import logging
 import serial
 import threading
 import time
 
-weight_lock = threading.Lock()
-ser = serial.Serial("/dev/ttyUSB0", 9600, timeout=3)
-
 from WeightState import weightState
 
+weight_lock = threading.Lock()
+
+logger = logging.getLogger("qubic.weight")
+
+try:
+    ser = serial.Serial("/dev/ttyUSB0", 9600, timeout=3)
+    logger.info("Weight scale connected successfully")
+except Exception:
+    ser = None
+    logger.exception("Failed to connect to weight scale")
+
 def weight_loop():
-    print("Weight thread started")
+    logger.info("Weight thread started")
 
     while True:
         try: 
@@ -18,8 +27,8 @@ def weight_loop():
                 with weight_lock:
                     weightState.weight = weight
 
-        except Exception as e:
-            print("Weight error:", e)
+        except Exception:
+            logger.exception("Weight reading error")
 
         time.sleep(0.05)
 

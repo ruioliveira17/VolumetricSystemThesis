@@ -1,6 +1,9 @@
 import json
+import logging
 
 from db.connection import get_connection, write_lock
+
+logger = logging.getLogger("qubic.config")
 
 LAST_CONFIGURATION = "last_configuration"
 LANGUAGE = "language"
@@ -20,6 +23,11 @@ def _set_setting(key, value):
                 (key, value),
             )
             conn.commit()
+
+        except Exception:
+            logger.exception("Error saving setting '%s'", key)
+            raise
+
         finally:
             conn.close()
 
@@ -28,30 +36,54 @@ def _get_setting(key):
     conn = get_connection()
     try:
         row = conn.execute("SELECT value FROM settings WHERE key = ?", (key,)).fetchone()
-        return row["value"] if row else None
+        if row is None:
+            logger.info("No setting '%s' found in database", key)
+            return None
+        
+        return row["value"]
+
+    except Exception:
+        logger.exception("Error retrieving setting '%s' from database", key)
+        raise
+    
     finally:
         conn.close()
 
 
 def save_last_configuration(data):
     _set_setting(LAST_CONFIGURATION, json.dumps(data))
+    logger.info("Configuration saved successfully")
 
 
 def get_last_configuration():
     value = _get_setting(LAST_CONFIGURATION)
-    return json.loads(value) if value else None
+
+    if value:
+        return json.loads(value)
+
+    return None
 
 
 def get_language():
     """Língua escolhida na interface. Se não houver (ou for inválida), devolve o default."""
     value = _get_setting(LANGUAGE)
-    return value if value in SUPPORTED_LANGUAGES else DEFAULT_LANGUAGE
+
+    if value in SUPPORTED_LANGUAGES:
+        return value
+
+    logger.info(
+        "No valid language found, using default language '%s'",
+        DEFAULT_LANGUAGE
+    )
+    return DEFAULT_LANGUAGE
 
 
 def save_language(language):
     """Grava a língua escolhida. Levanta ValueError se não for suportada."""
     code = (language or "").strip().lower()
     if code not in SUPPORTED_LANGUAGES:
+        logger.error("Unsupported language '%s'", language)
         raise ValueError("Unsupported language: " + str(language))
     _set_setting(LANGUAGE, code)
+    logger.info("Language '%s' saved successfully", code)
     return code

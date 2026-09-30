@@ -1,9 +1,10 @@
-from pickle import FALSE, TRUE
-
 import cv2
+import logging
 import numpy
 import os
 import sys
+
+logger = logging.getLogger("qubic.calibration")
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(BASE_DIR, "Python"))
@@ -80,10 +81,9 @@ def maskAPI(colorToDepthFrame, lower, upper, cx_d, cy_d):
         
         return result, colorToDepthFrame_copy, detection_area
                 
-    except Exception as e :
-        print(e)
-    finally :
-        print('end')
+    except Exception:
+        logger.exception("Error during mask processing")
+        raise
 
 def calibrateAPI(colorToDepthFrame, depthFrame, colorFrame, detection_area, lower, upper, colorSlope, cx_d, cy_d, fx_d, fy_d, caliMode):
     center_aligned = False # Ponto central tem a cor da calibração
@@ -96,11 +96,10 @@ def calibrateAPI(colorToDepthFrame, depthFrame, colorFrame, detection_area, lowe
 
     workspace_depth = None
 
-    depth_copy = depthFrame.copy()
-
-    depth_copy2 = depth_copy.copy()
-
     try:
+        depth_copy = depthFrame.copy()
+        depth_copy2 = depth_copy.copy()
+
         colorToDepthFrame = cv2.resize(colorToDepthFrame, (640, 480))
 
         hsv_frame = cv2.cvtColor(colorToDepthFrame, cv2.COLOR_BGR2HSV)
@@ -228,9 +227,8 @@ def calibrateAPI(colorToDepthFrame, depthFrame, colorFrame, detection_area, lowe
         if calibrated is True:
             return detection_area, workspace_depth, center_aligned, workspace_clear, colorFrame, depth_copy
                 
-    except Exception as e :
-        print(e)
-    finally :
-        print('end')
+    except Exception:
+        logger.exception("Error during workspace calibration")
+        raise
 
     return detection_area, workspace_depth, center_aligned, workspace_clear, colorFrame, depth_copy

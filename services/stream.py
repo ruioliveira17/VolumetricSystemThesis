@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import numpy
 import time
 import cv2
@@ -10,6 +11,8 @@ from av import VideoFrame
 from FrameState import frameState
 from CameraState import camState
 from ModeState import modeState
+
+logger = logging.getLogger("qubic.camera")
 
 FRAME_WAIT_TIMEOUT = 5.0
 
@@ -24,6 +27,10 @@ async def _wait_for_frame(get_frame):
 
     while frame is None:
         if time.monotonic() > deadline:
+            logger.warning(
+                "No camera frame received within %s seconds",
+                FRAME_WAIT_TIMEOUT
+            )
             raise MediaStreamError("Sem frames da câmara")
 
         await asyncio.sleep(0.05)
@@ -45,11 +52,18 @@ class CTDTrack(VideoStreamTrack):
         if modeState.calibrationMode == "Automatic":
             frame = await _wait_for_frame(lambda: frameState.workspaceDetectedFrame)
 
-        if modeState.calibrationMode == "Manual":
+        elif modeState.calibrationMode == "Manual":
             frame = await _wait_for_frame(lambda: frameState.colorToDepthFrame)
             
             if frame.dtype != numpy.uint8:
                 frame = (numpy.clip(frame, 0, 1) * 255).astype(numpy.uint8)
+
+        else:
+            logger.error(
+                "Invalid calibration mode: '%s'",
+                modeState.calibrationMode
+            )
+            raise MediaStreamError("Invalid calibration mode")
 
         return VideoFrame.from_ndarray(frame, format='bgr24')
 
@@ -59,7 +73,12 @@ def generateRGB_Stream():
         if frame is not None:
             if frame.dtype != numpy.uint8:
                 frame = (numpy.clip(frame, 0, 1) * 255).astype(numpy.uint8)
-            _, jpeg = cv2.imencode('.jpg', frame)
+            success, jpeg = cv2.imencode('.jpg', frame)
+
+            if not success:
+                logger.warning("Failed to encode RGB frame as JPEG")
+                continue
+            
             yield (b'--frame\r\n'
                    b'Content-Type: image/jpeg\r\n\r\n' + jpeg.tobytes() + b'\r\n')
         time.sleep(0.05)
@@ -73,7 +92,12 @@ def generateDepth_Stream():
             img = img * 255 / camState.colorSlope
             img = numpy.clip(img, 0, 255).astype(numpy.uint8)
             depth_vis = cv2.applyColorMap(img, cv2.COLORMAP_RAINBOW)
-            _, jpeg = cv2.imencode('.jpg', depth_vis)
+            success, jpeg = cv2.imencode('.jpg', depth_vis)
+
+            if not success:
+                logger.warning("Failed to encode depth frame as JPEG")
+                continue
+
             yield (b'--frame\r\n'
                    b'Content-Type: image/jpeg\r\n\r\n' + jpeg.tobytes() + b'\r\n')
         time.sleep(0.05)
@@ -85,7 +109,12 @@ def generateCalibrationCTD_Stream():
             if frame is not None:
                 if frame.dtype != numpy.uint8:
                     frame = (numpy.clip(frame, 0, 1) * 255).astype(numpy.uint8)
-                _, jpeg = cv2.imencode('.jpg', frame)
+                success, jpeg = cv2.imencode('.jpg', frame)
+
+                if not success:
+                    logger.warning("Failed to encode CTD frame as JPEG")
+                    continue
+
                 yield (b'--frame\r\n'
                     b'Content-Type: image/jpeg\r\n\r\n' + jpeg.tobytes() + b'\r\n')
             time.sleep(0.05)
@@ -106,7 +135,12 @@ def generateCalibrationMask_Stream():
         if frame is not None:
             if frame.dtype != numpy.uint8:
                 frame = (numpy.clip(frame, 0, 1) * 255).astype(numpy.uint8)
-            _, jpeg = cv2.imencode('.jpg', frame)
+            success, jpeg = cv2.imencode('.jpg', frame)
+
+            if not success:
+                logger.warning("Failed to encode mask frame as JPEG")
+                continue
+
             yield (b'--frame\r\n'
                    b'Content-Type: image/jpeg\r\n\r\n' + jpeg.tobytes() + b'\r\n')
         time.sleep(0.05)

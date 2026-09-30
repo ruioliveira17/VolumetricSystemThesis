@@ -2,6 +2,10 @@ import uvicorn
 import os
 import sys
 
+from services.logger import logger
+
+logger.info("Starting Qubic")
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(BASE_DIR, "Python"))
 sys.path.append(os.path.join(BASE_DIR, "Python", "Qubic"))

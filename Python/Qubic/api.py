@@ -18,6 +18,7 @@ import ctypes
 import cv2
 import io
 import json
+import logging
 import numpy
 import os
 import re
@@ -26,6 +27,7 @@ import sys
 import time
 import threading
 
+logger = logging.getLogger("qubic.api")
 
 reset_tokens: dict[int, dict] = {}
 #------------------------------------------------------    Paths     -------------------------------------------------------
@@ -101,6 +103,8 @@ def scale_nested(data, factor):
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # STARTUP
+    logger.info("Starting API")
+    
     calib = calibration_repo.get_calibration()
     if calib:
         try:
@@ -118,12 +122,12 @@ async def lifespan(app: FastAPI):
             frameState.calibrationColorFrame = cv2.imread(calib["calibrationColorFrame_path"])
             frameState.calibrationDepthFrame = numpy.load(calib["calibrationDepthFrame_path"])
 
-            print("Calibration loaded!")
+            logger.info("Calibration loaded successfully")
 
-        except Exception as e:
-            print("Error loading calibration:", e)
+        except Exception:
+            logger.exception("Error loading calibration")
     else:
-        print("Its necessary to realize a calibration!")
+        logger.info("No calibration found. Calibration is required")
 
     config = config_repo.get_last_configuration()
     if config:
@@ -142,12 +146,14 @@ async def lifespan(app: FastAPI):
             volumeState.cropArea = CropWindow(**config["cropArea"])
             volumeState.cropWindow = CropWindow(**config["cropWindow"])
 
-            print("Last configurations loaded!")
+            logger.info("Last configuration loaded successfully")
 
-        except Exception as e:
-            print("Error loading last configuration:", e)
+        except Exception:
+            logger.exception("Error loading last configuration")
     else:
-        print("There arent any last configurations!")
+        logger.info("No last configurations found")
+
+    logger.info("Starting camera thread")
 
     camera_thread = threading.Thread(
         target=startCamera,
@@ -155,17 +161,19 @@ async def lifespan(app: FastAPI):
     )
     camera_thread.start()
 
-    thread = threading.Thread(
+    logger.info("Starting weight thread")
+
+    weight_thread = threading.Thread(
         target=weight_loop,
         daemon=True
     )
-    thread.start()
+    weight_thread.start()
 
     try:
         yield
     finally:
         #SHUTDOWN
-        print("API a desligar")
+        logger.info("Shutting down API")
         
         await asyncio.gather(
             *(pc.close() for pc in pcs),
@@ -211,6 +219,7 @@ def serve_manager():
 def login(login_data: LoginData):
     user = get_by_login(login_data.username)
     if not user:
+        logger.warning("Login failed: user '%s' not found", login_data.username)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="INVALID_USERNAME_OR_PASSWORD"
@@ -221,16 +230,21 @@ def login(login_data: LoginData):
     if reset_token is not None:
         if datetime.now(timezone.utc) >= reset_token["expires_at"]:
             del reset_tokens[user["id"]]
+            logger.info("ResetPassword token expired for user '%s'", user["username"])
             return {"resetTokenExpired": True}
         elif verify_password(login_data.password, reset_token["token_hash"]):
+            logger.info("ResetPassword login successful for user '%s'", user["username"])
             access_token = create_access_token({"sub": user["username"], "role": user["role"], "scope": "password_reset"})
             return {"changePassword": True, "user_id": user["id"], "username": user["username"], "access_token": access_token}
 
     if not verify_password(login_data.password, user["password_hash"]):
+        logger.warning("Login failed: invalid password for user '%s'", user["username"])
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="INVALID_USERNAME_OR_PASSWORD")
     
     access_token = create_access_token({"sub": user["username"], "role": user["role"]})
     refresh_token = create_refresh_token({"sub": user["username"], "role": user["role"]})
+
+    logger.info("User '%s' logged in successfully", user["username"])
 
     return {"role": user["role"], "username": user["username"], "user_id": user["id"], "access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"}
 
@@ -246,23 +260,29 @@ def login(login_data: LoginData):
          tags=["User"])
 def register(register_data: RegisterData):
     if not register_data.username or not register_data.password or not register_data.confirm_password:
+        logger.warning("Registration failed: required fields missing")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="REGISTER_FIELDS_MISSING")
 
     if get_by_username(register_data.username) is not None:
+        logger.warning("Registration failed: username '%s' already exists", register_data.username)
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="REGISTER_USERNAME_EXISTS")
 
     if register_data.password != register_data.confirm_password:
+        logger.warning("Registration failed: passwords do not match")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="REGISTER_PASSWORDS_DO_NOT_MATCH")
 
     password = register_data.password
     # 8 characters, 1 uppercase letter, 1 number and one special character 
     if len(password) < 8 or not re.search(r"[A-Z]", password) or not re.search(r"\d", password) or not re.search(r"[^A-Za-z0-9]", password):
+        logger.warning("Registration failed: password requirements not met")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="REGISTER_PASSWORD_REQUIREMENTS")
 
     #if get_by_email(register_data.email) is not None:
     #    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already used! Choose another email.")
 
     create_user(username=register_data.username, email=register_data.email, password_hash=get_password_hash(register_data.password), role="user")
+
+    logger.info("User '%s' registered successfully", register_data.username)
 
     return {"message": "REGISTER_SUCCESS"}
 
@@ -275,21 +295,30 @@ def refresh(data: RefreshData):
     try:
         payload = verify_token(data.refresh_token)
     except ExpiredSignatureError:
+        logger.warning("Refresh failed: refresh token expired")
         raise HTTPException(status_code=401, detail="Invalid token. Login again.")
     except JWTError:
+        logger.warning("Refresh failed: invalid refresh token")
         raise HTTPException(status_code=401, detail="Invalid token.")
 
     if payload.get("type") != "refresh":
+        logger.warning("Refresh failed: invalid token type")
         raise HTTPException(status_code=401, detail="Invalid token.")
 
     username = payload["sub"]
     user = get_by_username(username)
 
     if user is None or user.get("deleted_at") is not None:
+        logger.warning(
+            "Refresh failed: user '%s' not found or deleted",
+            username
+        )
         raise HTTPException(status_code=401, detail="User not found.")
 
     new_access_token = create_access_token({"sub": username, "role": user["role"]})
     new_refresh_token = create_refresh_token({"sub": username, "role": user["role"]})
+
+    logger.info("Tokens refreshed successfully for user '%s'", username)
 
     return {"access_token": new_access_token, "refresh_token": new_refresh_token}
 
@@ -302,20 +331,29 @@ def refreshAccessToken(data: RefreshData):
     try:
         payload = verify_token(data.refresh_token)
     except ExpiredSignatureError:
+        logger.warning("Refresh failed: refresh token expired")
         raise HTTPException(status_code=401, detail="Invalid token. Login again.")
     except JWTError:
+        logger.warning("Refresh failed: invalid refresh token")
         raise HTTPException(status_code=401, detail="Invalid token.")
 
     if payload.get("type") != "refresh":
+        logger.warning("Refresh failed: invalid token type")
         raise HTTPException(status_code=401, detail="Invalid token.")
 
     username = payload["sub"]
     user = get_by_username(username)
 
     if user is None or user.get("deleted_at") is not None:
+        logger.warning(
+            "Refresh failed: user '%s' not found or deleted",
+            username
+        )
         raise HTTPException(status_code=401, detail="User not found.")
 
     new_access_token = create_access_token({"sub": username, "role": user["role"]})
+
+    logger.info("Access Token refreshed successfully for user '%s'", username)
 
     return {"access_token": new_access_token}
 
@@ -326,6 +364,7 @@ def get_users(current_user: dict = Depends(get_current_user)):
 @app.patch("/users/{user_id}/role")
 def update_role(user_id: int, data: RoleUpdate, current_user: dict = Depends(require_admin)):
     if get_by_id(user_id) is None:
+        logger.warning("Role update failed: user ID '%s' not found", user_id)
         raise HTTPException(status_code=404, detail="User not found.")
     set_role(user_id, data.role)
     return {"id": user_id, "role": data.role}
@@ -333,6 +372,7 @@ def update_role(user_id: int, data: RoleUpdate, current_user: dict = Depends(req
 @app.delete("/users/{user_id}")
 def remove_user(user_id: int, current_user: dict = Depends(require_admin)):
     if get_by_id(user_id) is None:
+        logger.warning("Delete user failed: user ID '%s' not found", user_id)
         raise HTTPException(status_code=404, detail="User not found.")
     delete_user(user_id)
     return {"deleted": user_id}
@@ -344,6 +384,7 @@ def remove_user(user_id: int, current_user: dict = Depends(require_admin)):
          tags=["User"])
 def generateResetToken(user_id: int, current_user: dict = Depends(require_admin)):
     if get_by_id(user_id) is None:
+        logger.warning("Generate ResetPassword token failed: user ID '%s' not found", user_id)
         raise HTTPException(status_code=404, detail="User not found.")
 
     token = secrets.token_urlsafe(16)
@@ -371,31 +412,40 @@ def changePassword(changePassword_data: ChangePasswordData, current_user: dict =
     user = get_by_username(current_user["username"])
     
     if not user:
+        logger.warning("Password change failed: user '%s' not found", current_user["username"])
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="CHANGE_PASSWORD_USER_NOT_FOUND")
 
     if not changePassword_data.password or not changePassword_data.confirm_password:
+        logger.warning("Password change failed: required fields missing")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="CHANGE_PASSWORD_MISSING_FIELDS")
 
     if not current_user["from_reset"]:
         if not changePassword_data.current_password:
+            logger.warning("Password change failed: current password missing")
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="CHANGE_PASSWORD_FILL_FIELDS")
 
         if not (verify_password(changePassword_data.current_password, user["password_hash"])):
+            logger.warning("Password change failed: invalid current password")
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="CHANGE_PASSWORD_CURRENT_INVALID")
 
     password = changePassword_data.password
     if len(password) < 8 or not re.search(r"[A-Z]", password) or not re.search(r"\d", password) or not re.search(r"[^A-Za-z0-9]", password):
+            logger.warning("Password change failed: password requirements not met")
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="CHANGE_PASSWORD_REQUIREMENTS")
 
     if changePassword_data.password != changePassword_data.confirm_password:
+        logger.warning("Password change failed: passwords do not match")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="CHANGE_PASSWORD_NOT_MATCH")
 
     if (verify_password(changePassword_data.password, user["password_hash"])):
+        logger.warning("Password change failed: new password is the same as the current password")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="CHANGE_PASSWORD_NEW_CANNOT_BE_SAME")
 
     change_password(user_id=user["id"], password_hash=get_password_hash(changePassword_data.password))
 
     reset_tokens.pop(user["id"], None)
+
+    logger.info("Password change successfully for user '%s' %s", user["username"], "using password reset token" if current_user["from_reset"] else "")
     
     return {"message": "CHANGE_PASSWORD_SUCCESS"}
 
@@ -406,9 +456,11 @@ def changePassword(changePassword_data: ChangePasswordData, current_user: dict =
 def save_measurement(data: Optional[MeasurementIn] = Body(default=None), current_user: dict = Depends(get_current_user)):
     owner = get_by_username(current_user["username"])
     if owner is None:
+        logger.warning("Save measurement failed: user '%s' not found", owner["username"])
         raise HTTPException(status_code=404, detail="User not found.")
 
     if data is None:
+        logger.warning("Save measurement failed: no measurement available data provided")
         raise HTTPException(status_code=400, detail="No measurement available to save.")
     else:
         volume_mode = data.volume_mode
@@ -416,6 +468,7 @@ def save_measurement(data: Optional[MeasurementIn] = Body(default=None), current
         objects = [o.model_dump() for o in data.objects]
 
     if not objects:
+        logger.warning("Save measurement failed: no objects identified in the measurement")
         raise HTTPException(status_code=400, detail="No measurement available to save.")
     
     total_m = round(sum(o["volume_m"] for o in objects), 6)
@@ -429,6 +482,8 @@ def save_measurement(data: Optional[MeasurementIn] = Body(default=None), current
     images = _snapshot_measurement_frames(mid)
     if images:
         measurements_repo.add_images(mid, images)
+
+    logger.info("Measurement '%s' saved successfully by '%s'", mid, owner["username"])
 
     return {"id": mid, "object_count": len(objects), "total_volume_cm": total_cm}
 
@@ -452,9 +507,11 @@ def list_archived_measurements_endpoint(current_user: dict = Depends(get_current
 def get_measurement_endpoint(measurement_id: int, current_user: dict = Depends(get_current_user)):
     data = measurements_repo.get_measurement(measurement_id)
     if data is None:
+        logger.warning("Get measurement failed: measurement ID '%s' not found", measurement_id)
         raise HTTPException(status_code=404, detail="Measurement not found.")
 
     if not _owns_measurement(current_user, data["measurement"]):
+        logger.warning("Unauthorized access attempt to get measurement ID '%s' by user '%s'", measurement_id, current_user["username"])
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden.")
 
     return data
@@ -469,14 +526,19 @@ def get_measurement_endpoint(measurement_id: int, current_user: dict = Depends(g
 def remove_measurement(measurement_id: int, current_user: dict = Depends(get_current_user)):
     owner_id = measurements_repo.get_owner_id(measurement_id)
     if owner_id is None:
+        logger.warning("Remove measurement failed: measurement ID '%s' not found", measurement_id)
         raise HTTPException(status_code=404, detail="Measurement not found.")
 
     if current_user["role"] != "admin":
         owner = get_by_username(current_user["username"])
         if owner is None or owner["id"] != owner_id:
+            logger.warning("Unauthorized access attempt to archive measurement ID '%s' by user '%s'", measurement_id, current_user["username"])
             raise HTTPException(status_code=403, detail="Not allowed to archive this measurement.")
 
     measurements_repo.archive_measurement(measurement_id)
+
+    logger.info("Measurement ID '%s' archived by user '%s'", measurement_id, current_user["username"])
+
     return {"archived": measurement_id}
 
 @app.post("/measurements/restore/{measurement_id}", summary="Restores one archived measurement",
@@ -485,14 +547,19 @@ def remove_measurement(measurement_id: int, current_user: dict = Depends(get_cur
 def restore_one_measurement(measurement_id: int, current_user: dict = Depends(get_current_user)):
     owner_id = measurements_repo.get_owner_id(measurement_id)
     if owner_id is None:
+        logger.warning("Restore measurement failed: measurement ID '%s' not found", measurement_id)
         raise HTTPException(status_code=404, detail="Measurement not found.")
 
     if current_user["role"] != "admin":
         owner = get_by_username(current_user["username"])
         if owner is None or owner["id"] != owner_id:
+            logger.warning("Unauthorized access attempt to restore measurement ID '%s' by user '%s'", measurement_id, current_user["username"])
             raise HTTPException(status_code=403, detail="Not allowed to restore this measurement.")
 
     measurements_repo.restore_measurement(measurement_id)
+
+    logger.info("Measurement ID '%s' restored by user '%s'", measurement_id, current_user["username"])
+
     return {"restored": measurement_id}
 
 @app.delete("/measurements/deleteall", summary="Archives the measurements instead of deleting them",
@@ -508,8 +575,12 @@ def remove_measurements(current_user: dict = Depends(get_current_user)):
     else:
         owner = get_by_username(current_user["username"])
         if owner is None:
+            logger.warning("Archive all measurements failed: user '%s' not found", current_user["username"])
             raise HTTPException(status_code=404, detail="User not found.")
         archived = measurements_repo.archive_all_measurements(user_id=owner["id"])
+
+    logger.info("Archived %s measurement(s) for user '%s'", archived, current_user["username"])
+
     return {"message": "All measurements archived", "archived": archived}
 
 @app.post("/measurements/restoreall", summary="Restores the archived measurements",
@@ -521,19 +592,32 @@ def restore_measurements(current_user: dict = Depends(get_current_user)):
     else:
         owner = get_by_username(current_user["username"])
         if owner is None:
+            logger.warning("Restore all measurements failed: user '%s' not found", current_user["username"])
             raise HTTPException(status_code=404, detail="User not found.")
         restored = measurements_repo.restore_all_measurements(user_id=owner["id"])
+
+    logger.info("Restored %s measurement(s) for user '%s'", restored, current_user["username"])
+
     return {"message": "All measurements restored", "restored": restored}
 
 #-------------------------------------------------------   Stream   -------------------------------------------------------
 
-@app.post("/offer")
+@app.post("/offer", summary="Offer Stream",
+          description="""
+          Makes the offer to start streaming.
+          """,
+          tags=["Stream"])
 async def offer(request: Request, current_user: dict = Depends(get_current_user)):
     timeout = 30
     start = time.monotonic()
 
     while camState.cameraStatus != "online":
         if time.monotonic() - start >= timeout:
+            logger.warning(
+                "WebRTC offer failed: camera not ready after %s seconds. Status: %s",
+                timeout,
+                camState.cameraStatus
+            )
             raise HTTPException(
                 status_code=503,
                 detail=f"Camera is not ready. Status: {camState.cameraStatus}"
@@ -543,6 +627,17 @@ async def offer(request: Request, current_user: dict = Depends(get_current_user)
     
     params = await request.json() 
     streamType = params.get("stream", "volume")
+
+    if streamType not in ["volume", "calibration"]:
+        logger.warning(
+            "WebRTC offer failed: unsupported stream type '%s'",
+            streamType
+        )
+        raise HTTPException(
+            status_code=400,
+            detail="Unsupported stream type."
+        )
+
     offer = RTCSessionDescription(sdp=params["sdp"], type=params["type"]) 
     
     pc = RTCPeerConnection()
@@ -551,22 +646,34 @@ async def offer(request: Request, current_user: dict = Depends(get_current_user)
     @pc.on("connectionstatechange")
     async def on_connectionstatechange():
         if pc.connectionState in ["failed", "closed", "disconnected"]:
+            logger.warning(
+                "WebRTC connection %s",
+                pc.connectionState
+            )
             await pc.close()
             pcs.discard(pc)
-    
-    await pc.setRemoteDescription(offer)
-    if streamType == "volume":
-        pc.addTrack(CameraTrack())
-    elif streamType == "calibration":
-        pc.addTrack(CTDTrack())
-    
-    answer = await pc.createAnswer()
-    await pc.setLocalDescription(answer) 
-    
-    return { 
-        "sdp": pc.localDescription.sdp, 
-        "type": pc.localDescription.type
-    }
+    try:
+        await pc.setRemoteDescription(offer)
+        if streamType == "volume":
+            pc.addTrack(CameraTrack())
+        elif streamType == "calibration":
+            pc.addTrack(CTDTrack())
+        
+        answer = await pc.createAnswer()
+        await pc.setLocalDescription(answer) 
+        
+        return { 
+            "sdp": pc.localDescription.sdp, 
+            "type": pc.localDescription.type
+        }
+
+    except Exception:
+        logger.exception(
+            "WebRTC offer processing failed",
+        )
+        pcs.discard(pc)
+        await pc.close()
+        raise
 
 @app.get('/rgb', summary="RGB Stream",
           description="""
@@ -602,6 +709,7 @@ def calibrationMask_feed(request: Request):
 def getColorFrame(current_user: dict = Depends(get_current_user)):
     colorFrame = frameState.colorFrame 
     if colorFrame is None:
+        logger.warning("Color frame requested but no frame is available")
         return {"error": "No color frame available"}
     if colorFrame.dtype != numpy.uint8:
         # Normaliza caso não seja uint8
@@ -626,6 +734,7 @@ def getColorFrame(current_user: dict = Depends(get_current_user)):
 def getColorToDepthFrame(current_user: dict = Depends(get_current_user)):
     colorToDepthFrame = frameState.colorToDepthFrame
     if colorToDepthFrame is None:
+        logger.warning("ColorToDepth frame requested but no frame is available")
         return {"error": "No colorToDepth frame available"}
     if colorToDepthFrame.dtype != numpy.uint8:
         # Normaliza caso não seja uint8
@@ -651,6 +760,7 @@ def getColorToDepthFrame(current_user: dict = Depends(get_current_user)):
 def getDepthFrame(current_user: dict = Depends(get_current_user)):
     depthFrame = frameState.depthFrame
     if depthFrame is None:
+        logger.warning("Depth frame requested but no frame is available")
         return {"error": "No depth frame available"}
     colorSlope = camState.colorSlope
 
@@ -687,13 +797,16 @@ def getWorkspaceDetectedFrame(current_user: dict = Depends(get_current_user)):
 
     if workspaceDetectedFrame is None:
         workspaceDetectedFrame = frameState.colorToDepthFrame
-        if workspaceDetectedFrame.dtype != numpy.uint8:
-            # Normaliza caso não seja uint8
-            workspaceDetectedFrame = (numpy.clip(workspaceDetectedFrame, 0, 1) * 255).astype(numpy.uint8)
-    else:
-        if workspaceDetectedFrame.dtype != numpy.uint8:
-            # Normaliza caso não seja uint8
-            workspaceDetectedFrame = (numpy.clip(workspaceDetectedFrame, 0, 1) * 255).astype(numpy.uint8)
+
+    if workspaceDetectedFrame is None:
+        logger.warning(
+            "Workspace detected frame requested but no frame is available"
+        )
+        return {"error": "No workspace detected frame available"}
+
+    if workspaceDetectedFrame.dtype != numpy.uint8:
+        # Normaliza caso não seja uint8
+        workspaceDetectedFrame = (numpy.clip(workspaceDetectedFrame, 0, 1) * 255).astype(numpy.uint8)
     
     # Converte BGR -> RGB
     img_rgb = workspaceDetectedFrame[:, :, ::-1]
@@ -739,6 +852,7 @@ def getMaskFrame(current_user: dict = Depends(get_current_user)):
 def getDetectedObjectsFrame(current_user: dict = Depends(get_current_user)):
     detectedObjectsFrame = frameState.detectedObjectsFrame
     if detectedObjectsFrame is None:
+        logger.warning("Detected objects frame requested but no frame is available")
         raise HTTPException(status_code=404, detail="Frame not available")
     
     if detectedObjectsFrame.dtype != numpy.uint8:
@@ -764,6 +878,7 @@ def getDetectedObjectsFrame(current_user: dict = Depends(get_current_user)):
          tags=["Mask"])
 def set_maskColor(data: HSVValue, current_user: dict = Depends(get_current_user)):
     maskState.color = data.color
+    logger.info("Mask color changed to '%s'", maskState.color)
     return{"color": maskState.color}
 
 @app.post("/mask/colorClick", summary="Set Mask Color Through a Click",
@@ -787,7 +902,7 @@ def clickSet_maskColor(data: ColorCoords, current_user: dict = Depends(get_curre
 
         if lower[0] <= hsv[0] <= upper[0] and lower[1] <= hsv[1] <= upper[1] and lower[2] <= hsv[2] <= upper[2]:
             color_ack = True
-            print("Color:", color_name)
+            logger.info("Selected mask color: '%s'", color_name)
             maskState.color = color_name
     if color_ack == False:
         min_dist = float("inf")
@@ -801,7 +916,7 @@ def clickSet_maskColor(data: ColorCoords, current_user: dict = Depends(get_curre
                 min_dist = dist
                 closest_color = color_name
                 
-        print("Closest Color:", closest_color)
+        logger.info("Selected closest mask color: '%s'", closest_color)
         maskState.color = closest_color
     return{"color": maskState.color}
 
@@ -838,12 +953,12 @@ def apply_mask(data: HSVValue, current_user: dict = Depends(get_current_user)):
     lower = (data.hmin, data.smin, data.vmin)
     upper = (data.hmax, data.smax, data.vmax)
 
-    
     colorToDepthFrame = frameState.colorToDepthFrame
 
     result = maskAPI(colorToDepthFrame, lower, upper, int(camState.cx_d), int(camState.cy_d))
 
     if result is None:
+        logger.warning("Mask application failed")
         return{"message:": "Mask application failed!"}
     
     maskFrame, workspaceDetectedFrame, detection_area = result
@@ -854,7 +969,8 @@ def apply_mask(data: HSVValue, current_user: dict = Depends(get_current_user)):
         workspaceState.detected_area = detection_area.reshape((-1, 2)).tolist() if isinstance(detection_area, numpy.ndarray) else detection_area
     else: 
         workspaceState.detected_area = [[5, 5],[634, 5],[634, 474], [0, 474]]
-    # workspaceState.temp_workspace_warning = workspace_warning.reshape((-1, 2)).tolist() if isinstance(workspace_warning, numpy.ndarray) else workspace_warning
+
+    logger.info("Mask applied successfully")
     
     return{"message:": "Mask applied with success"}
 
@@ -867,6 +983,8 @@ def apply_mask(data: HSVValue, current_user: dict = Depends(get_current_user)):
          tags=["Mask"])
 def apply_manualWS(data: ManualWorkspace, current_user: dict = Depends(get_current_user)):
     workspaceState.detected_area = numpy.array(data.detection_area, dtype=int).reshape((-1, 2))
+
+    logger.info("Manual workspace applied successfully")
 
     return{"message:": "Mask applied with success"}
 
@@ -885,7 +1003,8 @@ def get_calibration_status(current_user: dict = Depends(get_current_user)):
 
     try:
         return {"calibrated": True, "colorRGB": data["colorRGB"]}
-    except:
+    except (KeyError, TypeError):
+        logger.warning("Invalid or incomplete calibration data")
         return {"calibrated": False}
 
 @app.post("/calibrate", summary="Calibrates the Workspace",
@@ -906,6 +1025,7 @@ def calibrate(data: HSVValue, current_user: dict = Depends(get_current_user)):
     if detection_area is None or workspace_clear is None:
         workspaceState.center_aligned = center_aligned
         workspaceState.workspace_clear = workspace_clear
+        logger.info("Workspace calibration failed. Workspace isn't clear or center point isn't aligned")
         return{"message:": "Calibration failed!"}
 
     workspaceState.center_aligned = center_aligned
@@ -915,6 +1035,8 @@ def calibrate(data: HSVValue, current_user: dict = Depends(get_current_user)):
     workspaceState.temp_workspace_depth = workspace_depth
     frameState.temp_calibrationColorFrame = calibrationColorFrame
     frameState.temp_calibrationDepthFrame = calibrationDepthFrame
+
+    logger.info("Workspace calibration completed successfully")
 
     return {"message:": "Calibration sucessfully done"}
 
@@ -934,7 +1056,13 @@ def saveCalibration(current_user: dict = Depends(get_current_user)):
     if workspaceState.center_aligned is True and workspaceState.workspace_clear is True:
         save_WS_calibration()
 
-    return {"message:": "Calibration saved successfully"}
+        logger.info("Workspace calibration saved successfully")
+
+        return {"message:": "Calibration saved successfully"}
+
+    logger.warning("Workspace calibration could not be saved: calibration conditions not met")
+
+    return {"message": "Calibration could not be saved"}
 
 @app.get("/calibrate/params", summary="Gets the Calibration Parameters",
          description="""
@@ -942,6 +1070,14 @@ def saveCalibration(current_user: dict = Depends(get_current_user)):
          """,
          tags=["Calibration"])
 def getCalibrationParameters(current_user: dict = Depends(get_current_user)):
+
+    if workspaceState.detected_area is None:
+        logger.warning("Calibration parameters unavailable: workspace not calibrated")
+        return {
+            "Detected Area": None,
+            "Workspace Depth": None,
+        }
+
     return {
         "Detected Area": [
             [int(x), int(y)] for x, y in workspaceState.detected_area
@@ -979,6 +1115,7 @@ def getCalibrationMode(current_user: dict = Depends(get_current_user)):
          tags=["Using Modes"])
 def automaticCalibration(current_user: dict = Depends(get_current_user)):
     modeState.calibrationMode = "Automatic"
+    logger.info("Calibration mode changed to Automatic")
     return {"mode:": modeState.calibrationMode}
 
 @app.post("/calibrate/mode/manual", summary="Sets the Calibration Mode to Manual",
@@ -988,6 +1125,7 @@ def automaticCalibration(current_user: dict = Depends(get_current_user)):
          tags=["Using Modes"])
 def manualCalibration(current_user: dict = Depends(get_current_user)):
     modeState.calibrationMode = "Manual"
+    logger.info("Calibration mode changed to Manual")
     return {"mode:": modeState.calibrationMode}
 
 #---------------------------------------------------- Working Mode -----------------------------------------------------
@@ -1009,6 +1147,7 @@ def get_mode(current_user: dict = Depends(get_current_user)):
          tags=["Using Modes"])
 def static(current_user: dict = Depends(require_admin)):
     modeState.mode = "Static"
+    logger.info("Working mode changed to Static")
     return {"mode:": modeState.mode}
 
 @app.post("/working/mode/dynamic", summary="Sets the Working Mode to Dynamic",
@@ -1018,6 +1157,7 @@ def static(current_user: dict = Depends(require_admin)):
          tags=["Using Modes"])
 def dynamic(current_user: dict = Depends(require_admin)):
     modeState.mode = "Dynamic"
+    logger.info("Working mode changed to Dynamic")
     return {"mode:": modeState.mode}
 
 #--------------------------------------------------- Exposition Mode --------------------------------------------------
@@ -1042,6 +1182,8 @@ def fixedExp(current_user: dict = Depends(get_current_user)):
     camState.hdrEnabled = False
     setEnableHDR(camState.hdrEnabled)
     setExposureTime(camState.exposureTime)
+
+    logger.info("Exposition mode changed to Fixed Exposition")
     
     return {"Exposition Mode:": modeState.expositionMode}
 
@@ -1058,6 +1200,8 @@ def hdrExp(current_user: dict = Depends(get_current_user)):
     setExposureTime(camState.exposureTime)
 
     setHDRInterval(100, 1800)
+
+    logger.info("Exposition mode changed to HDR")
 
     return {"Exposition Mode:": modeState.expositionMode}
 
@@ -1080,6 +1224,9 @@ def get_mode(current_user: dict = Depends(get_current_user)):
          tags=["Using Modes"])
 def single_bundle(current_user: dict = Depends(get_current_user)):
     modeState.volumeMode = "Single Bundle"
+
+    logger.info("Volume mode changed to Single Bundle")
+
     return {"mode:": modeState.volumeMode}
 
 @app.post("/volume/mode/multiBundle", summary="Sets the Volume Mode to Multi Bundle",
@@ -1089,6 +1236,9 @@ def single_bundle(current_user: dict = Depends(get_current_user)):
          tags=["Using Modes"])
 def multi_bundle(current_user: dict = Depends(get_current_user)):
     modeState.volumeMode = "Multi Bundle"
+
+    logger.info("Volume mode changed to Multi Bundle")
+
     return {"mode:": modeState.volumeMode}
 
 @app.post("/volume/mode/real", summary="Sets the Volume Mode to Real",
@@ -1098,16 +1248,22 @@ def multi_bundle(current_user: dict = Depends(get_current_user)):
          tags=["Using Modes"])
 def real(current_user: dict = Depends(get_current_user)):
     modeState.volumeMode = "Real"
+
+    logger.info("Volume mode changed to Real")
+
     return {"mode:": modeState.volumeMode}
 
-@app.post("/volume/mode/individual", summary="Sets the Volume Mode to Individual",
-         description="""
-         Sets the volume mode to "Individual".
-         """,
-         tags=["Using Modes"])
-def individual(current_user: dict = Depends(get_current_user)):
-    modeState.volumeMode = "Individual"
-    return {"mode:": modeState.volumeMode}
+# @app.post("/volume/mode/individual", summary="Sets the Volume Mode to Individual",
+#          description="""
+#          Sets the volume mode to "Individual".
+#          """,
+#          tags=["Using Modes"])
+# def individual(current_user: dict = Depends(get_current_user)):
+#     modeState.volumeMode = "Individual"
+
+#     logger.info("Volume mode changed to Individual")
+
+#     return {"mode:": modeState.volumeMode}
 
 #------------------------------------------------------- Debug -------------------------------------------------------
 
@@ -1128,6 +1284,9 @@ def get_debugMode(current_user: dict = Depends(get_current_user)):
          tags=["Using Modes"])
 def debugOff(current_user: dict = Depends(require_admin)):
     modeState.debugMode = "Off"
+
+    logger.info("Debug mode changed to Off")
+
     return {"Debug Mode:": modeState.debugMode}
 
 @app.post("/debug/mode/on", summary="Sets the Debug Mode to On",
@@ -1137,6 +1296,9 @@ def debugOff(current_user: dict = Depends(require_admin)):
          tags=["Using Modes"])
 def debugOn(current_user: dict = Depends(require_admin)):
     modeState.debugMode = "On"
+
+    logger.info("Debug mode changed to On")
+
     return {"Debug Mode:": modeState.debugMode}
 
 #------------------------------------------------------- Volume -------------------------------------------------------
@@ -1158,6 +1320,8 @@ def volumeStatus(current_user: dict = Depends(get_current_user)):
          """,
          tags=["Volume"])
 def volume_SingleBundle(current_user: dict = Depends(get_current_user)):
+    logger.info("Single bundle volume calculation started")
+
     volumeState.processing = "Processing Frames..."
     if modeState.expositionMode == "HDR":
         while True:
@@ -1170,9 +1334,22 @@ def volume_SingleBundle(current_user: dict = Depends(get_current_user)):
     colorFrame = frameState.colorFrame
     colorToDepthFrame = frameState.colorToDepthFrame
 
-    if workspaceState.detection_area is not None:
-        volumeState.processing = "Finding Depths..."
-        depthState.not_set, depthState.objects_info = MinDepthAPI(depthFrame, workspaceState.detection_area, workspaceState.workspace_depth, depthState.threshold, depthState.not_set, camState.cx_d, camState.cy_d, camState.fx_d, camState.fy_d)
+    if workspaceState.detection_area is None:
+        logger.warning("Single bundle volume calculation failed: workspace is not calibrated")
+
+        volumeState.processing = ""
+        return {
+            "volume": [0],
+            "width": [0],
+            "length": [0],
+            "height": [0],
+            "depth": workspaceState.workspace_depth / 10,
+            "ws_depth": workspaceState.workspace_depth / 10
+        }
+
+    volumeState.processing = "Finding Depths..."
+    depthState.not_set, depthState.objects_info = MinDepthAPI(depthFrame, workspaceState.detection_area, workspaceState.workspace_depth, depthState.threshold, depthState.not_set, camState.cx_d, camState.cy_d, camState.fx_d, camState.fy_d)
+
     if depthState.objects_info is not None and len(depthState.objects_info) != 0:
         depthState.minimum_depth = depthState.objects_info[0]["depth"]
         depthState.minimum_value = depthState.minimum_depth
@@ -1210,7 +1387,7 @@ def volume_SingleBundle(current_user: dict = Depends(get_current_user)):
     
     volumeState.processing = ""
 
-    print(f"volume: {volumeState.volume}, width {volumeState.width_meters}, length: {volumeState.length_meters}, height: {volumeState.height_meters}")
+    logger.info("Single bundle volume calculation completed successfully")
 
     return{
         "volume": volumeState.volume,
@@ -1245,6 +1422,8 @@ def get_Volume_SingleBundle(current_user: dict = Depends(get_current_user)):
          """,
          tags=["Volume"])
 def volume_MultiBundle(current_user: dict = Depends(get_current_user)):
+    logger.info("Multi bundle volume calculation started")
+
     volumeState.processing = "Processing Frames..."
     if modeState.expositionMode == "HDR":
         while True:
@@ -1257,9 +1436,35 @@ def volume_MultiBundle(current_user: dict = Depends(get_current_user)):
     colorFrame = frameState.colorFrame
     colorToDepthFrame = frameState.colorToDepthFrame
 
-    if workspaceState.detection_area is not None:
-        volumeState.processing = "Finding Depths..."
-        depthState.not_set, depthState.objects_info = MinDepthAPI(depthFrame, workspaceState.detection_area, workspaceState.workspace_depth, depthState.threshold, depthState.not_set, camState.cx_d, camState.cy_d, camState.fx_d, camState.fy_d)
+    if workspaceState.detection_area is None:
+        logger.warning(
+            "Multi bundle volume calculation failed: workspace is not calibrated"
+        )
+
+        volumeState.volume = [0]
+        volumeState.width_meters = [0]
+        volumeState.length_meters = [0]
+        volumeState.height_meters = [0]
+        depthState.minimum_depth = workspaceState.workspace_depth
+
+        volumeState.width_meters = scale_nested(volumeState.width_meters, 100)
+        volumeState.length_meters = scale_nested(volumeState.length_meters, 100)
+        volumeState.height_meters = scale_nested(volumeState.height_meters, 100)
+
+        volumeState.processing = ""
+
+        return {
+            "volume": volumeState.volume,
+            "width": volumeState.width_meters,
+            "length": volumeState.length_meters,
+            "height": volumeState.height_meters,
+            "depth": depthState.minimum_depth / 10,
+            "ws_depth": workspaceState.workspace_depth / 10
+        }
+
+    volumeState.processing = "Finding Depths..."
+    depthState.not_set, depthState.objects_info = MinDepthAPI(depthFrame, workspaceState.detection_area, workspaceState.workspace_depth, depthState.threshold, depthState.not_set, camState.cx_d, camState.cy_d, camState.fx_d, camState.fy_d)
+    
     if depthState.objects_info is not None and len(depthState.objects_info) != 0:
         depthState.minimum_depth = depthState.objects_info[0]["depth"]
         depthState.minimum_value = depthState.minimum_depth
@@ -1296,7 +1501,7 @@ def volume_MultiBundle(current_user: dict = Depends(get_current_user)):
 
     volumeState.processing = ""
 
-    print(f"volume: {volumeState.volume}, width {volumeState.width_meters}, length: {volumeState.length_meters}, height: {volumeState.height_meters}")
+    logger.info("Multi bundle volume calculation completed successfully")
 
     return{
         "volume": volumeState.volume,
@@ -1351,6 +1556,8 @@ def get_Volume_MultiBundle(current_user: dict = Depends(get_current_user)):
          """,
          tags=["Volume"])
 def volume_Real(current_user: dict = Depends(get_current_user)):
+    logger.info("Real volume calculation started")
+
     volumeState.processing = "Processing Frames..."
     if modeState.expositionMode == "HDR":
         while True:
@@ -1363,9 +1570,39 @@ def volume_Real(current_user: dict = Depends(get_current_user)):
     colorFrame = frameState.colorFrame
     colorToDepthFrame = frameState.colorToDepthFrame
 
-    if workspaceState.detection_area is not None:
-        volumeState.processing = "Finding Depths..."
-        depthState.not_set, depthState.objects_info = MinDepthAPI(depthFrame, workspaceState.detection_area, workspaceState.workspace_depth, depthState.threshold, depthState.not_set, camState.cx_d, camState.cy_d, camState.fx_d, camState.fy_d)
+    if workspaceState.detection_area is None:
+        logger.warning(
+            "Real volume calculation failed: workspace is not calibrated"
+        )
+
+        volumeState.volume = [0]
+        volumeState.width_meters = [0]
+        volumeState.length_meters = [0]
+        volumeState.height_meters = [0]
+        volumeState.obj_center = [[]]
+        volumeState.obj_angles = [[]]
+        depthState.minimum_depth = workspaceState.workspace_depth
+
+        volumeState.width_meters = scale_nested(volumeState.width_meters, 100)
+        volumeState.length_meters = scale_nested(volumeState.length_meters, 100)
+        volumeState.height_meters = scale_nested(volumeState.height_meters, 100)
+
+        volumeState.processing = ""
+
+        return {
+            "volume": volumeState.volume,
+            "width": volumeState.width_meters,
+            "length": volumeState.length_meters,
+            "height": volumeState.height_meters,
+            "depth": depthState.minimum_depth / 10,
+            "ws_depth": workspaceState.workspace_depth / 10,
+            "objCenter": volumeState.obj_center,
+            "objAngles": volumeState.obj_angles
+        }
+
+    volumeState.processing = "Finding Depths..."
+    depthState.not_set, depthState.objects_info = MinDepthAPI(depthFrame, workspaceState.detection_area, workspaceState.workspace_depth, depthState.threshold, depthState.not_set, camState.cx_d, camState.cy_d, camState.fx_d, camState.fy_d)
+    
     if depthState.objects_info is not None and len(depthState.objects_info) != 0:
         depthState.minimum_depth = depthState.objects_info[0]["depth"]
         depthState.minimum_value = depthState.minimum_depth
@@ -1408,7 +1645,7 @@ def volume_Real(current_user: dict = Depends(get_current_user)):
 
     volumeState.processing = ""
 
-    print(f"volume: {volumeState.volume}, width {volumeState.width_meters}, length: {volumeState.length_meters}, height: {volumeState.height_meters}")
+    logger.info("Real volume calculation completed successfully")
 
     return{
         "volume": volumeState.volume,
@@ -1589,7 +1826,6 @@ def get_Volume_Real(current_user: dict = Depends(get_current_user)):
          """,
          tags=["Volume"])
 def get_Objects_OutOfLine(current_user: dict = Depends(get_current_user)):
-    print(volumeState.objects_outOfLine)
     return {"objects_outOfLine": volumeState.objects_outOfLine}
 
 #--------------------------------------------------------------------------------------------------------------------------
@@ -1671,6 +1907,8 @@ def update_systemInfo(info: SystemUpdate, current_user: dict = Depends(get_curre
     if info.cropArea is not None:
         volumeState.cropArea = info.cropArea
 
+    logger.info("System information updated successfully")
+
     return {"status": "updated"}
 
 # --------------------------------------- Config Status ---------------------------------------
@@ -1691,7 +1929,8 @@ def get_configuration_status(current_user: dict = Depends(get_current_user)):
 
         return {"configured": True, "expositionMode": data["expositionMode"], "volumeMode": data["volumeMode"], "cropArea": data["cropArea"], "cropWindow": data["cropWindow"]}
 
-    except:
+    except (KeyError, TypeError):
+        logger.warning("Invalid or incomplete configuration data")
         return {"configured": False}
 
 @app.get("/configuration/language", summary="Obtains the selected interface language",
@@ -1713,15 +1952,25 @@ def set_language(info: LanguageIn, current_user: dict = Depends(get_current_user
     try:
         language = config_repo.save_language(info.language)
     except ValueError:
+        logger.warning(
+            "Language change failed: unsupported language '%s'",
+            info.language
+        )
         raise HTTPException(
             status_code=400,
             detail="Unsupported language. Supported: " + ", ".join(config_repo.SUPPORTED_LANGUAGES),
         )
+
+    logger.info("Interface language changed to '%s'", language)
+    
     return {"language": language}
     
 @app.post("/saveInfo")
 def save_state():
     save_configuration()
+
+    logger.info("Current configuration saved successfully")
+
     return {"ok": True}
 
 @app.get("/countdown/value", summary="Retrieves the value of the countdown timer",
@@ -1774,6 +2023,8 @@ def updateCurrentMenu(data: CurrentMenu, current_user: dict = Depends(get_curren
 
     if data.currentMenu == "calibration-menu" and camState.hdrEnabled:
         setHDRInterval(100, 1800)
+
+    logger.info("Current menu changed to '%s'", data.currentMenu)
 
     return{"message:": "Success"}
 
@@ -1868,14 +2119,28 @@ def _owns_measurement(current_user, measurement):
 def get_measurement_image(measurement_id: int, kind: str, current_user: dict = Depends(get_current_user)):
     data = measurements_repo.get_measurement(measurement_id)
     if data is None:
+        logger.warning(
+            "Measurement image request failed: measurement ID '%s' not found",
+            measurement_id
+        )
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Measurement not found.")
 
     if not _owns_measurement(current_user, data["measurement"]):
+        logger.warning(
+            "Measurement image access denied: measurement ID '%s'",
+            measurement_id
+        )
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden.")
 
     for image in data["images"]:
         if image["kind"] == kind and os.path.exists(image["path"]):
             return FileResponse(image["path"], media_type="image/png")
+
+    logger.warning(
+        "Measurement image not found: measurement ID '%s', kind '%s'",
+        measurement_id,
+        kind
+    )
 
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Image not found.")
 
@@ -1919,26 +2184,6 @@ def health():
         "last_frame_age_s": age,
     }
 
-
-def depthToPointCloud(depth, fx, fy, cx, cy):
-    height, width = depth.shape
-
-    y, x = numpy.indices((height, width))
-
-    z = depth.astype(numpy.float32)
-
-    valid = z > 0
-
-    x3d = ((x - cx) * z) / fx
-    y3d = ((y - cy) * z) / fy
-
-    points = numpy.stack(
-        (x3d[valid], y3d[valid], z[valid]),
-        axis=1
-    )
-
-    return points
-
 # ----------------------------------- Server  Status -----------------------------------
 @app.get("/status", summary="Checks the status of the server",
          description="""
@@ -1948,87 +2193,105 @@ def depthToPointCloud(depth, fx, fy, cx, cy):
 def serverStatus():
     return {"status": "ok"}
 
+# from fastapi.responses import HTMLResponse
 
-from fastapi.responses import HTMLResponse
+# def depthToPointCloud(depth, fx, fy, cx, cy):
+#     height, width = depth.shape
 
-@app.get("/hdr/analysis", response_class=HTMLResponse)
-def getHDRAnalysis():
-    if frameState.hdrDepth is None:
-        return HTMLResponse(
-            "<h1>Não existe HDR disponível.</h1>",
-            status_code=404
-        )
+#     y, x = numpy.indices((height, width))
 
-    points = depthToPointCloud(
-        frameState.hdrDepth,
-        camState.fx_d,
-        camState.fy_d,
-        camState.cx_d,
-        camState.cy_d
-    )
+#     z = depth.astype(numpy.float32)
 
-    x = points[:, 0].tolist()
-    y = points[:, 1].tolist()
-    z = points[:, 2].tolist()
+#     valid = z > 0
 
-    html = f"""
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <meta charset="UTF-8">
-        <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
-    </head>
+#     x3d = ((x - cx) * z) / fx
+#     y3d = ((y - cy) * z) / fy
 
-    <body style="margin: 0;">
-        <div id="pointCloud" style="width: 100vw; height: 100vh;"></div>
+#     points = numpy.stack(
+#         (x3d[valid], y3d[valid], z[valid]),
+#         axis=1
+#     )
 
-        <script>
-            const trace = {{
-                x: {x},
-                y: {y},
-                z: {z},
-                mode: 'markers',
-                type: 'scatter3d',
-                marker: {{
-                    size: 2
-                }}
-            }};
+#     return points
 
-            const layout = {{
-                 title: 'HDR Point Cloud',
-                scene: {{
-                    xaxis: {{
-                        title: 'X (mm)'
-                    }},
-                    yaxis: {{
-                        title: 'Y (mm)'
-                    }},
-                    zaxis: {{
-                        title: 'Depth (mm)',
-                        autorange: 'reversed'
-                    }}
-                }}
-            }};
+# @app.get("/hdr/analysis", response_class=HTMLResponse)
+# def getHDRAnalysis():
+#     if frameState.hdrDepth is None:
+#         return HTMLResponse(
+#             "<h1>Não existe HDR disponível.</h1>",
+#             status_code=404
+#         )
 
-            Plotly.newPlot(
-                'pointCloud',
-                [trace],
-                layout
-            );
-        </script>
-    </body>
-    </html>
-    """
+#     points = depthToPointCloud(
+#         frameState.hdrDepth,
+#         camState.fx_d,
+#         camState.fy_d,
+#         camState.cx_d,
+#         camState.cy_d
+#     )
 
-    return HTMLResponse(content=html)
+#     x = points[:, 0].tolist()
+#     y = points[:, 1].tolist()
+#     z = points[:, 2].tolist()
+
+#     html = f"""
+#     <!DOCTYPE html>
+#     <html>
+#     <head>
+#         <meta charset="UTF-8">
+#         <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+#     </head>
+
+#     <body style="margin: 0;">
+#         <div id="pointCloud" style="width: 100vw; height: 100vh;"></div>
+
+#         <script>
+#             const trace = {{
+#                 x: {x},
+#                 y: {y},
+#                 z: {z},
+#                 mode: 'markers',
+#                 type: 'scatter3d',
+#                 marker: {{
+#                     size: 2
+#                 }}
+#             }};
+
+#             const layout = {{
+#                  title: 'HDR Point Cloud',
+#                 scene: {{
+#                     xaxis: {{
+#                         title: 'X (mm)'
+#                     }},
+#                     yaxis: {{
+#                         title: 'Y (mm)'
+#                     }},
+#                     zaxis: {{
+#                         title: 'Depth (mm)',
+#                         autorange: 'reversed'
+#                     }}
+#                 }}
+#             }};
+
+#             Plotly.newPlot(
+#                 'pointCloud',
+#                 [trace],
+#                 layout
+#             );
+#         </script>
+#     </body>
+#     </html>
+#     """
+
+#     return HTMLResponse(content=html)
 
 # ----------------------------------- Frontend Mount -----------------------------------
 
 if os.path.isdir(FRONTEND_DIR):
-    print(f"Frontend found: {FRONTEND_DIR}")
+    logger.info("Frontend found: %s", FRONTEND_DIR)
 else:
-    print(f"WARNING: Frontend directory not found: {FRONTEND_DIR}")
-    print("WARNING: API will start without the frontend.")
+    logger.warning("Frontend directory not found: %s", FRONTEND_DIR)
+    logger.warning("API will start without the frontend.")
 
 app.mount(
     "/",

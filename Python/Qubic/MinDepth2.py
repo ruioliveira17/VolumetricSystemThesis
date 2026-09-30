@@ -1,11 +1,13 @@
-from pickle import FALSE, TRUE
 import cv2
+import logging
 import numpy
 import os
 import sys
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(BASE_DIR, "Python"))
+
+logger = logging.getLogger("qubic.volume")
 
 def project_points(pts_pixels, workspace_depth, object_depth, cx_d, cy_d, fx_d, fy_d):
     pts = numpy.array(pts_pixels, dtype=numpy.float32)
@@ -109,7 +111,8 @@ def MinDepthAPI(depthFrame, detection_area, workspace_depth, threshold, not_set,
             objects_info = sorted(objects_info, key=lambda obj: obj["depth"])
             not_set = 0
 
-    except Exception as e :
-        print(e)
+    except Exception:
+        logger.exception("Error determining minimum object depth")
+        raise
 
     return not_set, objects_info

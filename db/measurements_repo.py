@@ -1,8 +1,11 @@
 import base64
 import json
+import logging
 import mimetypes
 
 from db.connection import get_connection, write_lock, row_to_dict, rows_to_dicts
+
+logger = logging.getLogger("qubic.measurements")
 
 def _scalar(value):
     """Só números vão para colunas escalares; None/listas/dicts/bool -> None.
@@ -59,6 +62,11 @@ def create_measurement(user_id, volume_mode, object_count, total_volume_m, total
 
             conn.commit()
             return measurement_id
+        
+        except Exception:
+            logger.exception("Error creating measurement")
+            raise
+        
         finally:
             conn.close()
 
@@ -72,6 +80,11 @@ def add_images(measurement_id, images):
                     (measurement_id, image["kind"], image["path"]),
                 )
             conn.commit()
+
+        except Exception:
+            logger.exception("Error adding images to measurement '%s'", measurement_id)
+            raise
+
         finally:
             conn.close()
 
@@ -85,6 +98,11 @@ def _list(where, params):
             params,
         ).fetchall()
         return rows_to_dicts(rows)
+
+    except Exception:
+        logger.exception("Error retrieving measurements")
+        raise
+    
     finally:
         conn.close()
 
@@ -114,6 +132,7 @@ def image_to_base64(image_path):
         return f"data:{mime_type};base64,{encoded}"
 
     except FileNotFoundError:
+        logger.warning("Measurement image not found: '%s'", image_path)
         return None
 
 def get_measurement(measurement_id):
@@ -152,6 +171,11 @@ def get_measurement(measurement_id):
             "objects": objects,
             "images": detected_image,
         }
+
+    except Exception:
+        logger.exception("Error retrieving measurement '%s'", measurement_id)
+        raise
+    
     finally:
         conn.close()
 
@@ -165,6 +189,11 @@ def get_owner_id(measurement_id):
             "SELECT user_id FROM measurements WHERE id = ?", (measurement_id,)
         ).fetchone()
         return row["user_id"] if row else None
+
+    except Exception:
+        logger.exception("Error retrieving owner for measurement '%s'", measurement_id)
+        raise
+    
     finally:
         conn.close()
 
@@ -180,6 +209,11 @@ def archive_measurement(measurement_id):
             )
             conn.commit()
             return cursor.rowcount
+
+        except Exception:
+            logger.exception("Error archiving measurement '%s'", measurement_id)
+            raise
+        
         finally:
             conn.close()
 
@@ -202,6 +236,11 @@ def archive_all_measurements(user_id=None):
                 )
             conn.commit()
             return cursor.rowcount
+
+        except Exception:
+            logger.exception("Error archiving all measurements")
+            raise
+        
         finally:
             conn.close()
 
@@ -217,6 +256,11 @@ def restore_measurement(measurement_id):
             )
             conn.commit()
             return cursor.rowcount
+
+        except Exception:
+            logger.exception("Error restoring measurement '%s'", measurement_id)
+            raise
+        
         finally:
             conn.close()
 
@@ -237,6 +281,11 @@ def restore_all_measurements(user_id=None):
                 )
             conn.commit()
             return cursor.rowcount
+
+        except Exception:
+            logger.exception("Error restoring all measurements")
+            raise
+        
         finally:
             conn.close()
 
@@ -251,6 +300,11 @@ def delete_measurement(measurement_id):
             cursor = conn.execute("DELETE FROM measurements WHERE id = ?", (measurement_id,))
             conn.commit()
             return cursor.rowcount
+
+        except Exception:
+            logger.exception("Error deleting measurement '%s'", measurement_id)
+            raise
+        
         finally:
             conn.close()
 
@@ -278,5 +332,10 @@ def delete_all_measurements(user_id=None):
                 cursor = conn.execute("DELETE FROM measurements WHERE user_id = ?", (user_id,))
             conn.commit()
             return cursor.rowcount
+
+        except Exception:
+            logger.exception("Error deleting all measurements")
+            raise
+        
         finally:
             conn.close()
