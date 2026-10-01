@@ -1,4 +1,6 @@
 const en = {
+    yes: "Yes",
+    no: "No",
     systemLoader: {
         initializing: "INITIALIZING",
         waitAMoment: "Please wait a moment..."
@@ -97,8 +99,6 @@ const en = {
     confirmCalibration: {
         title: "Confirm Calibration",
         subtitle: "Do you want to confirm the changes?",
-        confirmText: "Yes",
-        cancelText: "No"
     },
     volumeMenu: {
         title: "Volume",
@@ -175,6 +175,14 @@ const en = {
         revertButton: "Revert",
         confirmButton: "Confirm"
     },
+    update: {
+        title: "Update System",
+        subtitle: "Are you sure you want to update the system?",
+        version: "Version",
+        newUpdateAvailable: "New Update Available",
+        about: "About",
+        update: "Update",
+    },
     power: {
         title: "Power Options",
         subtitle: "What do you want to do?",
@@ -182,8 +190,6 @@ const en = {
         restart: "Restart",
         confirmShutdown: "Are you sure you want to shut down?",
         confirmRestart: "Are you sure you want to restart?",
-        yes: "Yes",
-        no: "No",
     },
     userMenu: {
         user: "User:",

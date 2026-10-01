@@ -1,4 +1,5 @@
 import React from "react";
+import { useEffect, useState } from 'react';
 import { type CSSProperties } from 'react';
 import "./QSettings.css";
 import { QConfirmationModal } from "../QConfirmationModal"
@@ -7,6 +8,7 @@ import { QPowerOptionsModal } from "../QPowerOptionsModal"
 import CloseIcon from '@assets/icons/close.svg?react';
 import PopupConnection from '@assets/icons/popup_connection.svg?react';
 import PowerOff from '@assets/icons/power.svg?react';
+import SystemUpdateIcon from '@assets/icons/systemUpdate.svg?react';
 
 import Qselect from "../Qselect"
 
@@ -45,6 +47,8 @@ interface QSettingsProps {
   supportedLanguages: string[];
   changeLanguage: (newLanguage: string) => Promise<void>;
 
+  newUpdateAvailable: boolean;
+  setUpdating: React.Dispatch<React.SetStateAction<boolean>>;
   // Crop ("Define")
   currentMenu: string;
   setShowCropWindow: React.Dispatch<React.SetStateAction<boolean>>;
@@ -68,6 +72,8 @@ function QSettings({
   language,
   supportedLanguages,
   changeLanguage,
+  newUpdateAvailable,
+  setUpdating,
   currentMenu,
   setShowCropWindow
 }: QSettingsProps) {
@@ -141,6 +147,29 @@ function QSettings({
     }
   };
 
+  const [confirmUpdate, setConfirmUpdate] = React.useState(false);
+
+  const [version, setVersion] = useState<string>('');
+
+  useEffect(() => {
+    const fetchVersion = async () => {
+      try {
+        const response = await apiFetch('/system/version');
+        const data = await response.json();
+
+        setVersion(data.version);
+      } catch (error) {
+        console.error('Failed to get system version:', error);
+      }
+    };
+
+    fetchVersion();
+
+    const interval = setInterval(fetchVersion, 30_000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <>
       {/* Fundo Escuro */}
@@ -162,7 +191,7 @@ function QSettings({
           <span className="text">{t("settings.language")}</span>
           <div className="language-select">
             <Qselect
-              label="Language"
+              label={t("settings.language")}
               value={language}
               options={availableLanguages}
               onChange={(value) => changeLanguage(value)}
@@ -181,23 +210,23 @@ function QSettings({
               <input type="radio" name="abertura" value="false" checked={!expHDR} onChange={handleExpHDR_toggle} disabled={cameraStatus !== "online"} />
               <span className="label">{t("settings.exposureTime")}</span>
             </label>
-
-            {!expHDR && (
-              <div className="exposure-controls">
-                <input
-                  type="number"
-                  className="exposure-input"
-                  value={exposureTime}
-                  onChange={(e) => setExposureTime(e.target.value)}
-                  disabled={cameraStatus !== "online"}
-                />
-
-                <button className="exposure-btn" onClick={exposureSet_click} disabled={cameraStatus !== "online"}>
-                  <span className="text">Set</span>
-                </button>
-              </div>
-            )}
           </div>
+
+          {!expHDR && (
+            <div className="exposure-controls">
+              <input
+                type="number"
+                className="exposure-input"
+                value={exposureTime}
+                onChange={(e) => setExposureTime(e.target.value)}
+                disabled={cameraStatus !== "online"}
+              />
+
+              <button className="exposure-btn" onClick={exposureSet_click} disabled={cameraStatus !== "online"}>
+                <span className="set-text">{t("settings.set")}</span>
+              </button>
+            </div>
+          )}
 
           {/* Volume Mode */}
           <span className="text">{t("settings.volumeMode")}</span>
@@ -243,10 +272,32 @@ function QSettings({
             </button>
           </div>
 
+          <div className="version-update">
+            <span className="version-text">{t("update.version")}: {version}</span>
+            {newUpdateAvailable && (
+              <div className="update-modal">
+                <div className="background"></div>
+                <div className="update-info">
+                  <span className="newUpdate-text">{t("update.newUpdateAvailable")}</span>
+                  <span className="about-update">{t("update.about")}</span>
+                </div>
+                <button
+                  className="update-button"
+                  onClick={() => setConfirmUpdate(true)}
+                >
+                  <span className="update-button-text">
+                    {t("update.update")}
+                  </span>
+                </button>
+              </div>
+            )}
+          </div>
+
           <div className="poweroff-button">
             <div  className="poweroff-icon" onClick={() => setPowerModalOpen(true)}>
               <PowerOff/>
             </div>
+            <span className="poweroff-text">{t("power.title")}</span>
           </div>
         </div>
       </div>
@@ -275,8 +326,27 @@ function QSettings({
               ? t("power.confirmShutdown")
               : t("power.confirmRestart")
           }
-          confirmText={t("power.yes")}
-          cancelText={t("power.no")}
+          icon={<PowerOff />}
+          iconColor="#ff6666"
+          confirmText={t("yes")}
+          cancelText={t("no")}
+        />
+      )}
+
+      {confirmUpdate && (
+        <QConfirmationModal
+          open={confirmUpdate}
+          onClose={() => setConfirmUpdate(false)}
+          onConfirm={() => {
+            setUpdating(true);
+            setConfirmUpdate(false);
+          }}
+          title={t("update.title")}
+          subtitle={t("update.subtitle")}
+          icon={<SystemUpdateIcon />}
+          iconColor="#ffcc00"
+          confirmText={t("yes")}
+          cancelText={t("no")}
         />
       )}
 

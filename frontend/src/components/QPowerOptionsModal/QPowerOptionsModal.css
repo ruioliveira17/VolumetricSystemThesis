@@ -72,14 +72,15 @@
 
 .qpower_options-modal__footer {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 50px;
+  gap: 10px;
   padding-top: 4px;
 }
 
 .qbutton.qpower_options-modal__option {
-  padding: 14px 35px;
+  padding: 14px 55px;
   background: rgba(255, 255, 255, 0.2);
   border-radius: 6px;
   border: none;

@@ -2,7 +2,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import "./styles/global.css";
 import "./styles/common.css";
 
+import NotificationsIcon from '@assets/icons/notifications.svg?react';
 import SettingsIcon from '@assets/icons/settings.svg?react';
+import SettingsUpdateIcon from '@assets/icons/settings_update.svg?react';
 import UserIcon from '@assets/icons/user.svg?react';
 
 // --------------------------------------------------------------------- //
@@ -15,6 +17,7 @@ import { QCalibration } from "./components/QCalibration";
 import { QSettings } from "./components/QSettings";
 import { QSystemLoader } from "./components/QSystemLoader";
 import { QWindowResizer } from "./components/QWindowResizer";
+import { QUpdating } from "./components/QUpdating";
 import { QUserModal, QUserPanel } from "./components/QUser";
 import QTopBar from "./components/QTopBar";
 import { QToaster, notify } from "./components/QToast";
@@ -99,6 +102,8 @@ function App(){
     // -----------------------------
 
     const [appReady, setAppReady] = useState<boolean>(false);
+    const [newUpdateAvailable, setNewUpdateAvailable] = useState<boolean>(false);
+    const [updating, setUpdating] = useState<boolean>(false);
 
     const [message, setMessage] = useState<Message[]>([]);
 
@@ -3807,9 +3812,19 @@ function App(){
 
                             collapsibleActions={[
                                 {
+                                    key: 'notifications',
+                                    label: 'Notifications',
+                                    icon: <NotificationsIcon />,
+                                    onClick: () => {
+                                        setNewUpdateAvailable(true);
+                                    },
+                                },
+                                {
                                     key: 'settings',
                                     label: 'Settings',
-                                    icon: <SettingsIcon />,
+                                    icon: newUpdateAvailable
+                                            ? <SettingsUpdateIcon />
+                                            : <SettingsIcon />,
                                     onClick: (e) => {
                                         const settingsIconRect = e.currentTarget.getBoundingClientRect();
                                         const settingsContainerRect = appContainerRef.current!.getBoundingClientRect();
@@ -4174,6 +4189,9 @@ function App(){
                                     supportedLanguages={supportedLanguages}
                                     changeLanguage={changeLanguage}
 
+                                    newUpdateAvailable={newUpdateAvailable}
+                                    setUpdating={setUpdating}
+
                                     currentMenu={currentMenu}
                                     setShowCropWindow={setShowCropWindow}
                                 />
@@ -4202,12 +4220,23 @@ function App(){
                             )}
                         </>
                     )}
+
+                    {updating && (
+                        <QUpdating
+                            onComplete={() => {
+                                setUpdating(false);
+                                setNewUpdateAvailable(false);
+                            }}
+                        />
+                    )}
                 </div>
             </>
         );
     } else if (isLoaderVisible) {
         return <QSystemLoader t={t} fadingOut={appReady} />;
     }
+
+
 }
 
 export default App;

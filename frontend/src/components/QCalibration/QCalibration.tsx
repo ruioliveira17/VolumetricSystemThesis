@@ -529,8 +529,8 @@ function QCalibration({
           onConfirm={() => confirm_calibration(true)}
           title={t("confirmCalibration.title")}
           subtitle={t("confirmCalibration.subtitle")}
-          confirmText={t("confirmCalibration.confirmText")}
-          cancelText={t("confirmCalibration.cancelText")}
+          confirmText={t("yes")}
+          cancelText={t("no")}
           container={portalContainer}
         />
       )}

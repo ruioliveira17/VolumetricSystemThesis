@@ -1,4 +1,6 @@
 const pt = {
+    yes: "Sim",
+    no: "Não",
     systemLoader: {
         initializing: "A INICIALIZAR",
         waitAMoment: "Por favor, aguarde um momento..."
@@ -97,8 +99,6 @@ const pt = {
     confirmCalibration: {
         title: "Confirmar Calibração",
         subtitle: "Pretende confirmar as alterações?",
-        confirmText: "Sim",
-        cancelText: "Não"
     },
     volumeMenu: {
         title: "Volume",
@@ -175,6 +175,14 @@ const pt = {
         revertButton: "Reverter",
         confirmButton: "Confirmar"
     },
+    update: {
+        title: "Atualizar Sistema",
+        subtitle: "Tem a certeza de que pretende atualizar o sistema?",
+        version: "Versão",
+        newUpdateAvailable: "Nova Atualização Disponível",
+        about: "Sobre",
+        update: "Atualizar",
+    },
     power: {
         title: "Opções de Energia",
         subtitle: "O que pretende fazer?",
@@ -182,8 +190,6 @@ const pt = {
         restart: "Reiniciar",
         confirmShutdown: "Tem a certeza de que pretende encerrar?",
         confirmRestart: "Tem a certeza de que pretende reiniciar?",
-        yes: "Sim",
-        no: "Não",
     },
     userMenu: {
         user: "Utilizador:",

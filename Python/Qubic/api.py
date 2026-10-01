@@ -59,6 +59,7 @@ from WorkspaceState import workspaceState
 
 from api_auth import get_current_user, get_password_change_user, require_admin
 from api_system import router as system_router
+from api_system_info import router as system_info_router
 
 #------------------------------------------------------   Preset    --------------------------------------------------------
 
@@ -200,6 +201,7 @@ app.add_middleware(
 )
 
 app.include_router(system_router)
+app.include_router(system_info_router)
 #-------------------------------------------------------   HTML    --------------------------------------------------------
 
 @app.get("/index")

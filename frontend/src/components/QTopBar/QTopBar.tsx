@@ -135,7 +135,7 @@ function QTopBar({
   const drawerStyle = {
     '--qtopbar-collapsible-actions-width':
       collapsibleActionsWidth ??
-      `${Math.max(collapsibleActions.length, 1) * ACTION_WIDTH}px`,
+      `calc(${Math.max(collapsibleActions.length, 1) * ACTION_WIDTH}px + var(--qtopbar-action-gap))`,
   } as CSSProperties;
 
   return (

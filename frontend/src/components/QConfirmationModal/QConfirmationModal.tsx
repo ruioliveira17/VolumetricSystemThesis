@@ -14,6 +14,12 @@ interface QConfirmationModalProps {
   title?: ReactNode;
   subtitle?: ReactNode;
   /** Optional illustrative icon shown centered above the subtitle. */
+  icon?: ReactNode;
+
+  /** Optional colour applied to the icon. */
+  iconColor?: string;
+
+  /** Confirm text label. Defaults to `shared.confirm`. */
   confirmText?: string;
   /** Cancel button label. Defaults to `shared.cancel`. */
   cancelText?: string;
@@ -36,6 +42,8 @@ function QConfirmationModal({
   onConfirm,
   title,
   subtitle,
+  icon,
+  iconColor,
   confirmText,
   cancelText,
   isConfirming = false,
@@ -71,10 +79,9 @@ function QConfirmationModal({
       container={container}
     >
       <div className="qconfirmation-modal__content">
-        <span className="qconfirmation-modal__icon" aria-hidden="true">
-          <CheckIcon />
+        <span className="qconfirmation-modal__icon" aria-hidden="true" style={iconColor ? { color: iconColor } : undefined}>
+          {icon ?? <CheckIcon />}
         </span>
-        
 
         {subtitle !== undefined && (
           <p className="qconfirmation-modal__subtitle">{subtitle}</p>
