@@ -7,6 +7,7 @@ import sys
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(BASE_DIR, "Python"))
 
+from DepthState import depthState
 from FrameState import frameState
 from WorkspaceState import workspaceState
 
@@ -209,6 +210,31 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
 
         calibrationDepthFrame_copy = calibrationDepthFrame.copy()
 
+        #############
+
+        debug_frame = numpy.zeros_like(depthFrame, dtype=numpy.uint8)
+
+        used_mask = numpy.zeros((480, 640), dtype=numpy.uint8)
+
+        # valid_depth = (depthFrame > 0) & (depthFrame < workspace_depth)
+
+        # if numpy.any(valid_depth):
+        #     depth_valid = depthFrame.copy().astype(numpy.float32)
+
+        #     min_depth = depth_valid[valid_depth].min()
+        #     max_depth = depth_valid[valid_depth].max()
+
+        #     if max_depth > min_depth:
+        #         debug_frame = (
+        #             (depth_valid - min_depth)
+        #             / (max_depth - min_depth)
+        #             * 255
+        #         ).astype(numpy.uint8)
+
+        #         debug_frame[~valid_depth] = 0
+
+        #############
+
         for i in range(len(box_limits)):
             if i in used:
                 continue
@@ -282,6 +308,32 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
                 irregular = False
                 contour, depth, idx = group[j]
 
+                ###########
+
+                contour_int = contour.reshape(-1, 2).astype(numpy.int32)
+
+                contour_mask = numpy.zeros((480, 640), dtype=numpy.uint8)
+
+                cv2.fillPoly(
+                    contour_mask,
+                    [contour_int],
+                    255
+                )
+
+                remaining_mask = contour_mask.copy()
+                remaining_mask[used_mask > 0] = 0
+
+                # Contorno que chegou a esta fase
+                cv2.drawContours(
+                    debug_frame,
+                    [contour_int],
+                    -1,
+                    255,
+                    2
+                )
+
+                ###########
+
                 contour_px = contour.reshape(-1, 2)
 
                 z_contour = depthFrame[contour_px[:, 1], contour_px[:, 0]].astype(numpy.float32)
@@ -294,7 +346,7 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
                 contour_px = contour_px[valid]
                 z_contour = z_contour[valid]
 
-                median_height_mm = contourMedianHeightMM(contour, depthFrame.shape)
+                median_height_mm = contourMedianHeightMMReal(contour, remaining_mask, depthFrame.shape)
 
                 if median_height_mm is None or median_height_mm < MIN_OBJ_HEIGHT_MM:
                     continue
@@ -315,7 +367,8 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
                 fill_img = numpy.zeros((480, 640), dtype=numpy.uint8)
                 cv2.fillPoly(fill_img, [pts_flat.astype(numpy.int32)], 255)
 
-                ys_all, xs_all = numpy.where(fill_img > 0)
+                # ys_all, xs_all = numpy.where(fill_img > 0)
+                ys_all, xs_all = numpy.where(remaining_mask > 0)
                 if len(xs_all) == 0 or len(ys_all) == 0:
                     continue
 
@@ -323,12 +376,29 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
                 valid = (zs_all > 0) & (zs_all < workspace_depth)
                 xs_v, ys_v, zs_v = xs_all[valid], ys_all[valid], zs_all[valid]
 
+                used_mask[contour_mask > 0] = 255
+
                 Z = zs_v / 1000.0
                 X = (xs_v - cx_d) * Z / fx_d
                 Y = (ys_v - cy_d) * Z / fy_d
 
                 Xc = (max(X) + min(X)) / 2
                 Yc = (max(Y) + min(Y)) / 2
+
+                ############
+
+                center_x = int(numpy.mean(xs_v))
+                center_y = int(numpy.mean(ys_v))
+
+                cv2.circle(
+                    debug_frame,
+                    (center_x, center_y),
+                    5,
+                    255,
+                    -1
+                )
+
+                ############
 
                 objCenter.append((Xc * 100, Yc * 100))
                 allObj_contours.append(contour_m)
@@ -417,6 +487,9 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
         width_meters = width_array
         length_meters = length_array
         height_meters = height_array
+
+        print("Height_Array:", height_meters)
+        cv2.imwrite("debug_frame.png", debug_frame)
 
         return volume, width_meters, length_meters, height_meters, allObjCenter, groupAngles
     except Exception:
@@ -679,5 +752,40 @@ def contourMedianHeightMM(contour, shape):
     n = len(sorted_heights)
     cut = int(n * 0.15)
     central_heights = sorted_heights[cut:n - cut] if n - 2 * cut > 0 else sorted_heights
+
+    return float(numpy.median(central_heights))
+
+def contourMedianHeightMMReal(contour, remaining_mask, shape):
+    ys, xs = numpy.where(remaining_mask > 0)
+    if len(xs) == 0:
+        return None
+
+    detection_area = numpy.array(workspaceState.detection_area)
+    xmin, xmax = int(detection_area[:, 0].min()), int(detection_area[:, 0].max())
+    ymin, ymax = int(detection_area[:, 1].min()), int(detection_area[:, 1].max())
+
+    inside = (xs >= xmin) & (xs <= xmax) & (ys >= ymin) & (ys <= ymax)
+    xs, ys = xs[inside], ys[inside]
+    if len(xs) == 0:
+        return None
+
+    z_cal = frameState.calibrationDepthFrame[ys, xs].astype(numpy.float32)
+
+    heights = []
+    for depth_frame in frameState.depthArrayHDR:
+        z_hdr = depth_frame[ys, xs].astype(numpy.float32)
+        ok = (z_hdr > 0) & (z_cal > 0) & (z_cal <= workspaceState.workspace_depth + depthState.threshold)
+        if numpy.any(ok):
+            heights.append(z_cal[ok] - z_hdr[ok])
+
+    if not heights:
+        return None
+
+    sorted_heights = numpy.sort(numpy.concatenate(heights))
+    n = len(sorted_heights)
+    cut = int(n * 0.15)
+    central_heights = sorted_heights[cut:n - cut] if n - 2 * cut > 0 else sorted_heights
+
+    print(float(numpy.median(central_heights)))
 
     return float(numpy.median(central_heights))

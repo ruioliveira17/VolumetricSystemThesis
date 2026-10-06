@@ -37,7 +37,7 @@ def MinDepthAPI(depthFrame, detection_area, workspace_depth, threshold, not_set,
         flag = False
 
         while True:
-            valid_values = depth_copy[(depth_copy > 600 ) & (depth_copy < workspace_depth) & (mask > 0)]
+            valid_values = depth_copy[(depth_copy > 300 ) & (depth_copy < workspace_depth) & (mask > 0)]
             if valid_values.size  == 0:
                 break
 

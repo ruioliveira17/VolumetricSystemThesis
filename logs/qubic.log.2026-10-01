@@ -1,0 +1,1482 @@
+2026-10-01 09:51:41,149 | INFO | qubic | Starting Qubic
+2026-10-01 09:51:43,513 | INFO | qubic.weight | Weight scale connected successfully
+2026-10-01 09:51:43,604 | INFO | qubic.api | Frontend found: /home/marques/Tese/frontend/dist
+2026-10-01 09:51:43,605 | INFO | qubic.api | Starting API
+2026-10-01 09:51:43,688 | INFO | qubic.api | Calibration loaded successfully
+2026-10-01 09:51:43,689 | INFO | qubic.api | Last configuration loaded successfully
+2026-10-01 09:51:43,689 | INFO | qubic.api | Starting camera thread
+2026-10-01 09:51:43,689 | INFO | qubic.api | Starting weight thread
+2026-10-01 09:51:43,689 | INFO | qubic.weight | Weight thread started
+2026-10-01 09:51:47,492 | INFO | qubic.camera | Camera capture loop started
+2026-10-01 09:51:47,492 | INFO | qubic.camera | Camera started successfully
+2026-10-01 09:51:51,489 | INFO | qubic.api | User 'rui' logged in successfully
+2026-10-01 09:51:51,508 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 09:51:51,539 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 09:51:51,591 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 09:51:57,155 | INFO | qubic.api | Shutting down API
+2026-10-01 09:51:57,156 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 09:51:57,258 | INFO | qubic.camera | Camera capture loop stopped
+2026-10-01 09:51:57,259 | INFO | qubic.camera | Stopping camera
+2026-10-01 09:51:57,475 | INFO | qubic.camera | Camera stopped its service
+2026-10-01 09:52:39,620 | INFO | qubic | Starting Qubic
+2026-10-01 09:52:40,188 | INFO | qubic.weight | Weight scale connected successfully
+2026-10-01 09:52:40,252 | INFO | qubic.api | Frontend found: /home/marques/Tese/frontend/dist
+2026-10-01 09:52:40,253 | INFO | qubic.api | Starting API
+2026-10-01 09:52:40,295 | INFO | qubic.api | Calibration loaded successfully
+2026-10-01 09:52:40,296 | INFO | qubic.api | Last configuration loaded successfully
+2026-10-01 09:52:40,296 | INFO | qubic.api | Starting camera thread
+2026-10-01 09:52:40,297 | INFO | qubic.api | Starting weight thread
+2026-10-01 09:52:40,297 | INFO | qubic.weight | Weight thread started
+2026-10-01 09:52:44,020 | INFO | qubic.camera | Camera capture loop started
+2026-10-01 09:52:44,020 | INFO | qubic.camera | Camera started successfully
+2026-10-01 09:52:44,038 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 09:52:44,040 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 09:52:44,053 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 09:53:09,107 | INFO | qubic.api | Shutting down API
+2026-10-01 09:53:09,108 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 09:53:09,109 | INFO | qubic.camera | Camera capture loop stopped
+2026-10-01 09:53:09,109 | INFO | qubic.camera | Stopping camera
+2026-10-01 09:53:09,346 | INFO | qubic.camera | Camera stopped its service
+2026-10-01 09:56:26,693 | INFO | qubic | Starting Qubic
+2026-10-01 09:56:27,252 | INFO | qubic.weight | Weight scale connected successfully
+2026-10-01 09:56:27,314 | INFO | qubic.api | Frontend found: /home/marques/Tese/frontend/dist
+2026-10-01 09:56:27,315 | INFO | qubic.api | Starting API
+2026-10-01 09:56:27,356 | INFO | qubic.api | Calibration loaded successfully
+2026-10-01 09:56:27,357 | INFO | qubic.api | Last configuration loaded successfully
+2026-10-01 09:56:27,357 | INFO | qubic.api | Starting camera thread
+2026-10-01 09:56:27,358 | INFO | qubic.api | Starting weight thread
+2026-10-01 09:56:27,358 | INFO | qubic.weight | Weight thread started
+2026-10-01 09:56:30,475 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 09:56:30,490 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 09:56:30,505 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 09:57:00,557 | WARNING | qubic.api | WebRTC offer failed: camera not ready after 30 seconds. Status: starting
+2026-10-01 09:57:07,433 | ERROR | qubic.camera | Camera startup error
+Traceback (most recent call last):
+  File "/home/marques/Tese/Python/Qubic/CameraOptions.py", line 49, in startCamera
+    camera.start()
+    ~~~~~~~~~~~~^^
+  File "/home/marques/Tese/Python/Qubic/camera/vzense.py", line 41, in start
+    raise RuntimeError("No camera detected")
+RuntimeError: No camera detected
+2026-10-01 09:58:04,990 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 09:58:04,996 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 09:58:05,012 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 09:58:35,128 | WARNING | qubic.api | WebRTC offer failed: camera not ready after 30 seconds. Status: starting
+2026-10-01 10:03:43,554 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 10:03:43,570 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 10:03:43,598 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 10:04:13,682 | WARNING | qubic.api | WebRTC offer failed: camera not ready after 30 seconds. Status: starting
+2026-10-01 10:07:09,468 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 10:07:09,469 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 10:07:09,479 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 10:07:39,585 | WARNING | qubic.api | WebRTC offer failed: camera not ready after 30 seconds. Status: starting
+2026-10-01 10:11:21,323 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 10:11:21,327 | INFO | qubic.api | Current menu changed to 'measurementHistory-menu'
+2026-10-01 10:15:10,756 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 10:15:10,757 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 10:15:10,789 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 10:15:40,807 | WARNING | qubic.api | WebRTC offer failed: camera not ready after 30 seconds. Status: starting
+2026-10-01 10:15:43,701 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 10:15:43,702 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 10:15:43,724 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 10:16:13,822 | WARNING | qubic.api | WebRTC offer failed: camera not ready after 30 seconds. Status: starting
+2026-10-01 10:21:52,082 | WARNING | qubic.auth | Expired access token
+2026-10-01 10:21:52,098 | INFO | qubic.api | Access Token refreshed successfully for user 'rui'
+2026-10-01 10:31:32,685 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 10:31:32,687 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 10:31:32,695 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 10:31:48,349 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 10:31:48,352 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 10:31:48,385 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 10:32:02,724 | WARNING | qubic.api | WebRTC offer failed: camera not ready after 30 seconds. Status: starting
+2026-10-01 10:32:04,974 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 10:32:04,977 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 10:32:05,002 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 10:32:18,408 | WARNING | qubic.api | WebRTC offer failed: camera not ready after 30 seconds. Status: starting
+2026-10-01 10:32:35,019 | WARNING | qubic.api | WebRTC offer failed: camera not ready after 30 seconds. Status: starting
+2026-10-01 10:33:42,928 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 10:33:42,940 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 10:33:42,950 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 10:34:12,987 | WARNING | qubic.api | WebRTC offer failed: camera not ready after 30 seconds. Status: starting
+2026-10-01 10:34:27,310 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 10:34:27,313 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 10:34:27,325 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 10:34:57,360 | WARNING | qubic.api | WebRTC offer failed: camera not ready after 30 seconds. Status: starting
+2026-10-01 10:35:26,773 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 10:35:26,856 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 10:35:26,866 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 10:35:48,526 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 10:35:48,530 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 10:35:48,547 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 10:35:56,934 | WARNING | qubic.api | WebRTC offer failed: camera not ready after 30 seconds. Status: starting
+2026-10-01 10:36:11,506 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 10:36:11,509 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 10:36:11,520 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 10:36:18,564 | WARNING | qubic.api | WebRTC offer failed: camera not ready after 30 seconds. Status: starting
+2026-10-01 10:36:41,630 | WARNING | qubic.api | WebRTC offer failed: camera not ready after 30 seconds. Status: starting
+2026-10-01 10:36:51,140 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 10:36:51,143 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 10:36:51,156 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 10:37:14,811 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 10:37:14,812 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 10:37:14,846 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 10:37:21,194 | WARNING | qubic.api | WebRTC offer failed: camera not ready after 30 seconds. Status: starting
+2026-10-01 10:37:44,861 | WARNING | qubic.api | WebRTC offer failed: camera not ready after 30 seconds. Status: starting
+2026-10-01 10:37:45,946 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 10:37:45,953 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 10:37:45,967 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 10:38:15,999 | WARNING | qubic.api | WebRTC offer failed: camera not ready after 30 seconds. Status: starting
+2026-10-01 10:38:43,219 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 10:38:43,222 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 10:38:43,237 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 10:39:13,285 | WARNING | qubic.api | WebRTC offer failed: camera not ready after 30 seconds. Status: starting
+2026-10-01 10:40:29,105 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 10:40:29,109 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 10:40:29,136 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 10:40:59,177 | WARNING | qubic.api | WebRTC offer failed: camera not ready after 30 seconds. Status: starting
+2026-10-01 10:41:25,593 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 10:41:25,593 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 10:41:25,617 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 10:41:55,724 | WARNING | qubic.api | WebRTC offer failed: camera not ready after 30 seconds. Status: starting
+2026-10-01 10:43:20,782 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 10:43:20,839 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 10:43:20,851 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 10:43:50,923 | WARNING | qubic.api | WebRTC offer failed: camera not ready after 30 seconds. Status: starting
+2026-10-01 10:44:56,531 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 10:44:56,547 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 10:44:56,552 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 10:45:15,877 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 10:45:15,879 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 10:45:15,893 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 10:45:26,597 | WARNING | qubic.api | WebRTC offer failed: camera not ready after 30 seconds. Status: starting
+2026-10-01 10:45:45,939 | WARNING | qubic.api | WebRTC offer failed: camera not ready after 30 seconds. Status: starting
+2026-10-01 10:46:55,141 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 10:46:55,178 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 10:46:55,200 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 10:47:25,297 | WARNING | qubic.api | WebRTC offer failed: camera not ready after 30 seconds. Status: starting
+2026-10-01 10:47:40,454 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 10:47:40,466 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 10:47:40,474 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 10:48:10,500 | WARNING | qubic.api | WebRTC offer failed: camera not ready after 30 seconds. Status: starting
+2026-10-01 10:48:43,282 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 10:48:43,290 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 10:48:43,310 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 10:49:13,348 | WARNING | qubic.api | WebRTC offer failed: camera not ready after 30 seconds. Status: starting
+2026-10-01 10:49:19,197 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 10:49:19,202 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 10:49:19,224 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 10:49:49,242 | WARNING | qubic.api | WebRTC offer failed: camera not ready after 30 seconds. Status: starting
+2026-10-01 10:50:55,746 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 10:50:55,748 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 10:50:55,767 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 10:51:25,780 | WARNING | qubic.api | WebRTC offer failed: camera not ready after 30 seconds. Status: starting
+2026-10-01 10:51:33,422 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 10:51:33,426 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 10:51:33,438 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 10:51:50,294 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 10:51:50,302 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 10:51:50,348 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 10:51:53,301 | WARNING | qubic.auth | Expired access token
+2026-10-01 10:51:53,310 | INFO | qubic.api | Access Token refreshed successfully for user 'rui'
+2026-10-01 10:52:03,477 | WARNING | qubic.api | WebRTC offer failed: camera not ready after 30 seconds. Status: starting
+2026-10-01 10:52:20,360 | WARNING | qubic.api | WebRTC offer failed: camera not ready after 30 seconds. Status: starting
+2026-10-01 10:52:51,269 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 10:52:51,276 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 10:52:51,290 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 10:53:13,514 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 10:53:13,546 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 10:53:13,561 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 10:53:21,328 | WARNING | qubic.api | WebRTC offer failed: camera not ready after 30 seconds. Status: starting
+2026-10-01 10:53:43,663 | WARNING | qubic.api | WebRTC offer failed: camera not ready after 30 seconds. Status: starting
+2026-10-01 10:55:02,221 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 10:55:02,225 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 10:55:02,242 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 10:55:05,481 | INFO | qubic.config | Language 'en' saved successfully
+2026-10-01 10:55:05,481 | INFO | qubic.api | Interface language changed to 'en'
+2026-10-01 10:55:08,261 | INFO | qubic.config | Language 'es' saved successfully
+2026-10-01 10:55:08,261 | INFO | qubic.api | Interface language changed to 'es'
+2026-10-01 10:55:12,829 | INFO | qubic.config | Language 'fr' saved successfully
+2026-10-01 10:55:12,829 | INFO | qubic.api | Interface language changed to 'fr'
+2026-10-01 10:55:16,020 | INFO | qubic.config | Language 'pt' saved successfully
+2026-10-01 10:55:16,020 | INFO | qubic.api | Interface language changed to 'pt'
+2026-10-01 10:55:24,103 | INFO | qubic.config | Language 'en' saved successfully
+2026-10-01 10:55:24,103 | INFO | qubic.api | Interface language changed to 'en'
+2026-10-01 10:55:32,262 | WARNING | qubic.api | WebRTC offer failed: camera not ready after 30 seconds. Status: starting
+2026-10-01 11:09:57,021 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 11:09:57,021 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 11:09:57,031 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 11:10:02,016 | ERROR | qubic.camera | Failed to set HDR interval
+Traceback (most recent call last):
+  File "/home/marques/Tese/Python/Qubic/CameraOptions.py", line 164, in setHDRInterval
+    camState.camera.set_hdr_interval(low, high)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'set_hdr_interval'
+2026-10-01 11:10:02,021 | INFO | qubic.api | Current menu changed to 'calibration-menu'
+2026-10-01 11:10:03,183 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 11:10:03,187 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 11:10:11,297 | INFO | qubic.api | Shutting down API
+2026-10-01 11:10:11,297 | INFO | qubic.camera | No camera instance to stop
+2026-10-01 11:10:12,575 | INFO | qubic | Starting Qubic
+2026-10-01 11:10:18,289 | INFO | qubic.weight | Weight scale connected successfully
+2026-10-01 11:10:18,378 | INFO | qubic.api | Frontend found: /home/marques/Tese/frontend/dist
+2026-10-01 11:10:18,379 | INFO | qubic.api | Starting API
+2026-10-01 11:10:18,421 | INFO | qubic.api | Calibration loaded successfully
+2026-10-01 11:10:18,422 | INFO | qubic.api | Last configuration loaded successfully
+2026-10-01 11:10:18,422 | INFO | qubic.api | Starting camera thread
+2026-10-01 11:10:18,422 | INFO | qubic.api | Starting weight thread
+2026-10-01 11:10:18,422 | INFO | qubic.weight | Weight thread started
+2026-10-01 11:10:19,575 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 11:10:19,575 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 11:10:19,608 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 11:10:22,141 | INFO | qubic.camera | Camera capture loop started
+2026-10-01 11:10:22,141 | INFO | qubic.camera | Camera started successfully
+2026-10-01 11:10:23,839 | INFO | qubic.api | Mask applied successfully
+2026-10-01 11:10:23,847 | INFO | qubic.api | Mask applied successfully
+2026-10-01 11:10:23,896 | INFO | qubic.api | Current menu changed to 'calibration-menu'
+2026-10-01 11:10:23,944 | INFO | qubic.api | Mask applied successfully
+2026-10-01 11:10:24,022 | INFO | qubic.api | Mask applied successfully
+2026-10-01 11:10:24,221 | INFO | qubic.api | Mask applied successfully
+2026-10-01 11:10:24,450 | INFO | qubic.api | Mask applied successfully
+2026-10-01 11:10:24,573 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 11:10:24,579 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 11:10:32,263 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 11:10:32,269 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 11:10:32,270 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 11:10:32,392 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 11:10:32,393 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 11:10:32,401 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 11:11:36,290 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 11:11:36,594 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 11:11:36,598 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 11:11:36,613 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 11:12:38,363 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 11:12:38,763 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 11:12:38,769 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 11:12:38,801 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 11:12:51,764 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 11:12:51,964 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 11:12:51,970 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 11:12:51,986 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 11:15:41,224 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 11:15:41,388 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 11:15:41,391 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 11:15:41,411 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 11:16:08,163 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 11:16:08,363 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 11:16:08,364 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 11:16:08,395 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 11:17:08,220 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 11:17:08,517 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 11:17:08,518 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 11:17:08,544 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 11:17:56,261 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 11:17:56,585 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 11:17:56,586 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 11:17:56,603 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 11:18:23,301 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 11:18:23,569 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 11:18:23,570 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 11:18:23,584 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 11:19:57,750 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 11:19:58,177 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 11:19:58,182 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 11:19:58,208 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 11:20:49,343 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 11:20:49,811 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 11:20:49,827 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 11:20:49,852 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 11:21:54,094 | WARNING | qubic.auth | Expired access token
+2026-10-01 11:21:54,105 | INFO | qubic.api | Access Token refreshed successfully for user 'rui'
+2026-10-01 11:23:03,260 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 11:23:03,652 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 11:23:03,655 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 11:23:03,670 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 11:23:05,893 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 11:23:06,189 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 11:23:06,195 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 11:23:06,217 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 11:23:07,053 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 11:23:07,303 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 11:23:07,314 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 11:23:07,345 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 11:23:07,948 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 11:23:08,143 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 11:23:08,143 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 11:23:08,157 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 11:23:47,316 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 11:23:47,609 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 11:23:47,612 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 11:23:47,626 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 11:24:13,847 | INFO | qubic.api | Mask applied successfully
+2026-10-01 11:24:13,854 | INFO | qubic.api | Mask applied successfully
+2026-10-01 11:24:13,884 | INFO | qubic.api | Current menu changed to 'calibration-menu'
+2026-10-01 11:24:14,054 | INFO | qubic.api | Mask applied successfully
+2026-10-01 11:24:14,227 | INFO | qubic.api | Mask applied successfully
+2026-10-01 11:24:14,294 | INFO | qubic.api | Mask applied successfully
+2026-10-01 11:24:14,502 | INFO | qubic.api | Mask applied successfully
+2026-10-01 11:24:14,694 | INFO | qubic.api | Mask applied successfully
+2026-10-01 11:24:14,895 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 11:24:14,903 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 11:24:14,962 | INFO | qubic.api | Mask applied successfully
+2026-10-01 11:31:17,103 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 11:31:17,119 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 11:31:17,124 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 11:31:17,393 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 11:31:17,397 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 11:31:17,412 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 11:32:01,600 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 11:32:01,908 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 11:32:01,912 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 11:32:01,931 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 11:37:07,408 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 11:38:28,033 | INFO | qubic | Starting Qubic
+2026-10-01 11:38:28,633 | INFO | qubic.weight | Weight scale connected successfully
+2026-10-01 11:38:28,701 | INFO | qubic.api | Frontend found: /home/marques/Tese/frontend/dist
+2026-10-01 11:38:28,702 | INFO | qubic.api | Starting API
+2026-10-01 11:38:28,745 | INFO | qubic.api | Calibration loaded successfully
+2026-10-01 11:38:28,746 | INFO | qubic.api | Last configuration loaded successfully
+2026-10-01 11:38:28,746 | INFO | qubic.api | Starting camera thread
+2026-10-01 11:38:28,747 | INFO | qubic.api | Starting weight thread
+2026-10-01 11:38:28,749 | INFO | qubic.weight | Weight thread started
+2026-10-01 11:38:28,750 | INFO | qubic.api | Shutting down API
+2026-10-01 11:38:28,750 | INFO | qubic.camera | No camera instance to stop
+2026-10-01 11:38:33,679 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 11:38:33,718 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 11:38:42,774 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 11:38:43,203 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 11:38:43,325 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 11:38:43,932 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 11:38:52,754 | INFO | qubic.api | Mask applied successfully
+2026-10-01 11:38:52,758 | INFO | qubic.api | Mask applied successfully
+2026-10-01 11:38:52,880 | INFO | qubic.api | Current menu changed to 'calibration-menu'
+2026-10-01 11:38:52,963 | INFO | qubic.api | Mask applied successfully
+2026-10-01 11:38:53,164 | INFO | qubic.api | Mask applied successfully
+2026-10-01 11:38:53,205 | INFO | qubic.api | Mask applied successfully
+2026-10-01 11:38:53,274 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 11:38:53,280 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 11:47:49,873 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 11:47:49,880 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 11:47:49,880 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 11:47:49,955 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 11:47:49,955 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 11:47:49,960 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 11:51:55,473 | WARNING | qubic.auth | Expired access token
+2026-10-01 11:51:55,487 | INFO | qubic.api | Access Token refreshed successfully for user 'rui'
+2026-10-01 11:52:05,196 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 11:52:05,316 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 11:52:05,318 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 11:52:05,325 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 11:52:33,869 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 11:52:34,007 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 11:52:34,009 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 11:52:34,026 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 11:54:32,614 | INFO | qubic | Starting Qubic
+2026-10-01 11:54:33,192 | INFO | qubic.weight | Weight scale connected successfully
+2026-10-01 11:54:33,254 | INFO | qubic.api | Frontend found: /home/marques/Tese/frontend/dist
+2026-10-01 11:54:33,255 | INFO | qubic.api | Starting API
+2026-10-01 11:54:33,297 | INFO | qubic.api | Calibration loaded successfully
+2026-10-01 11:54:33,298 | INFO | qubic.api | Last configuration loaded successfully
+2026-10-01 11:54:33,298 | INFO | qubic.api | Starting camera thread
+2026-10-01 11:54:33,298 | INFO | qubic.api | Starting weight thread
+2026-10-01 11:54:33,298 | INFO | qubic.weight | Weight thread started
+2026-10-01 11:54:37,068 | INFO | qubic.camera | Camera capture loop started
+2026-10-01 11:54:37,068 | INFO | qubic.camera | Camera started successfully
+2026-10-01 11:54:38,015 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 11:54:38,015 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 11:54:38,023 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 11:55:30,431 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 11:55:30,581 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 11:55:30,582 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 11:55:30,589 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 11:56:06,736 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 11:56:06,928 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 11:56:06,929 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 11:56:06,939 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 11:56:59,016 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 11:56:59,422 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 11:56:59,470 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 11:56:59,477 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 11:57:12,263 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 11:57:12,446 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 11:57:12,446 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 11:57:12,455 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 11:58:31,915 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 11:58:32,078 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 11:58:32,079 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 11:58:32,087 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 11:59:03,798 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 11:59:03,976 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 11:59:03,979 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 11:59:03,991 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 11:59:24,979 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 11:59:25,135 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 11:59:25,138 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 11:59:25,150 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 12:02:09,789 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 12:02:09,951 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 12:02:09,952 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 12:02:09,963 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 12:02:30,467 | INFO | qubic.config | Language 'pt' saved successfully
+2026-10-01 12:02:30,467 | INFO | qubic.api | Interface language changed to 'pt'
+2026-10-01 12:06:17,069 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 12:06:17,264 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 12:06:17,266 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 12:06:17,287 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 12:06:43,793 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 12:06:43,980 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 12:06:43,983 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 12:06:43,993 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 12:08:44,524 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 12:08:44,776 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 12:08:44,782 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 12:08:44,794 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 12:21:56,339 | WARNING | qubic.auth | Expired access token
+2026-10-01 12:21:56,349 | INFO | qubic.api | Access Token refreshed successfully for user 'rui'
+2026-10-01 12:28:39,842 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 12:28:40,022 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 12:28:40,024 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 12:28:40,038 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 12:29:20,400 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 12:29:20,527 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 12:29:20,529 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 12:29:20,537 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 12:29:36,665 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 12:29:36,803 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 12:29:36,808 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 12:29:36,811 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 12:32:13,755 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 12:32:13,963 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 12:32:13,965 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 12:32:13,974 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 12:33:18,768 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 12:33:18,981 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 12:33:18,983 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 12:33:18,994 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 12:34:28,467 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 12:34:28,664 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 12:34:28,667 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 12:34:28,676 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 12:35:59,834 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 12:36:00,080 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 12:36:00,080 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 12:36:00,094 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 12:36:31,814 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 12:36:32,033 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 12:36:32,035 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 12:36:32,045 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 12:37:05,548 | INFO | qubic.api | Exposition mode changed to Fixed Exposition
+2026-10-01 12:37:05,572 | INFO | qubic.config | Configuration saved successfully
+2026-10-01 12:37:05,572 | INFO | qubic.api | Current configuration saved successfully
+2026-10-01 12:37:07,377 | INFO | qubic.api | Exposition mode changed to HDR
+2026-10-01 12:37:07,407 | INFO | qubic.config | Configuration saved successfully
+2026-10-01 12:37:07,407 | INFO | qubic.api | Current configuration saved successfully
+2026-10-01 12:37:10,631 | INFO | qubic.api | Exposition mode changed to Fixed Exposition
+2026-10-01 12:37:10,659 | INFO | qubic.config | Configuration saved successfully
+2026-10-01 12:37:10,659 | INFO | qubic.api | Current configuration saved successfully
+2026-10-01 12:37:11,934 | INFO | qubic.api | Exposition mode changed to HDR
+2026-10-01 12:37:11,953 | INFO | qubic.config | Configuration saved successfully
+2026-10-01 12:37:11,953 | INFO | qubic.api | Current configuration saved successfully
+2026-10-01 12:41:01,276 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 12:41:01,608 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 12:41:01,612 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 12:41:01,625 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 12:47:03,430 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 12:47:03,633 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 12:47:03,636 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 12:47:03,654 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 12:47:37,236 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 12:47:37,592 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 12:47:37,644 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 12:47:37,652 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 12:50:32,407 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 12:50:32,617 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 12:50:32,622 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 12:50:32,640 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 12:50:59,488 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 12:50:59,702 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 12:50:59,705 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 12:50:59,721 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 12:51:39,033 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 12:51:39,227 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 12:51:39,227 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 12:51:39,250 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 12:51:57,227 | WARNING | qubic.auth | Expired access token
+2026-10-01 12:51:57,238 | INFO | qubic.api | Access Token refreshed successfully for user 'rui'
+2026-10-01 12:52:10,897 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 12:52:11,107 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 12:52:11,109 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 12:52:11,120 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 13:21:58,548 | WARNING | qubic.auth | Expired access token
+2026-10-01 13:21:58,565 | INFO | qubic.api | Access Token refreshed successfully for user 'rui'
+2026-10-01 13:47:27,512 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 13:47:27,662 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 13:47:27,663 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 13:47:27,672 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 13:48:49,995 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 13:48:50,159 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 13:48:50,169 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 13:48:50,178 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 13:49:55,358 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 13:49:55,509 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 13:49:55,511 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 13:49:55,518 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 13:50:22,446 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 13:50:22,585 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 13:50:22,587 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 13:50:22,593 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 13:51:59,097 | WARNING | qubic.auth | Expired access token
+2026-10-01 13:51:59,110 | INFO | qubic.api | Access Token refreshed successfully for user 'rui'
+2026-10-01 13:52:09,691 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 13:52:09,835 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 13:52:09,835 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 13:52:09,843 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 13:52:15,645 | INFO | qubic.api | Exposition mode changed to Fixed Exposition
+2026-10-01 13:52:15,664 | INFO | qubic.config | Configuration saved successfully
+2026-10-01 13:52:15,665 | INFO | qubic.api | Current configuration saved successfully
+2026-10-01 13:52:18,558 | INFO | qubic.api | Exposition mode changed to HDR
+2026-10-01 13:52:18,581 | INFO | qubic.config | Configuration saved successfully
+2026-10-01 13:52:18,582 | INFO | qubic.api | Current configuration saved successfully
+2026-10-01 13:52:18,668 | ERROR | qubic.camera | Failed to set HDR interval
+Traceback (most recent call last):
+  File "/home/marques/Tese/Python/Qubic/CameraOptions.py", line 164, in setHDRInterval
+    camState.camera.set_hdr_interval(low, high)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/home/marques/Tese/Python/Qubic/camera/vzense.py", line 327, in set_hdr_interval
+    raise RuntimeError(
+        f"scSetExposureTimeOfHDR frame 1 failed: {ret}"
+    )
+RuntimeError: scSetExposureTimeOfHDR frame 1 failed: -105
+2026-10-01 13:52:19,268 | INFO | qubic.api | Exposition mode changed to Fixed Exposition
+2026-10-01 13:52:19,286 | INFO | qubic.config | Configuration saved successfully
+2026-10-01 13:52:19,286 | INFO | qubic.api | Current configuration saved successfully
+2026-10-01 13:52:19,322 | ERROR | qubic.camera | Failed to set HDR interval
+Traceback (most recent call last):
+  File "/home/marques/Tese/Python/Qubic/CameraOptions.py", line 164, in setHDRInterval
+    camState.camera.set_hdr_interval(low, high)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/home/marques/Tese/Python/Qubic/camera/vzense.py", line 327, in set_hdr_interval
+    raise RuntimeError(
+        f"scSetExposureTimeOfHDR frame 1 failed: {ret}"
+    )
+RuntimeError: scSetExposureTimeOfHDR frame 1 failed: -105
+2026-10-01 13:52:30,784 | INFO | qubic.api | Exposition mode changed to HDR
+2026-10-01 13:52:30,812 | INFO | qubic.config | Configuration saved successfully
+2026-10-01 13:52:30,812 | INFO | qubic.api | Current configuration saved successfully
+2026-10-01 13:52:31,257 | INFO | qubic.api | Exposition mode changed to Fixed Exposition
+2026-10-01 13:52:31,279 | INFO | qubic.config | Configuration saved successfully
+2026-10-01 13:52:31,279 | INFO | qubic.api | Current configuration saved successfully
+2026-10-01 13:52:31,312 | ERROR | qubic.camera | Failed to set HDR interval
+Traceback (most recent call last):
+  File "/home/marques/Tese/Python/Qubic/CameraOptions.py", line 164, in setHDRInterval
+    camState.camera.set_hdr_interval(low, high)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/home/marques/Tese/Python/Qubic/camera/vzense.py", line 327, in set_hdr_interval
+    raise RuntimeError(
+        f"scSetExposureTimeOfHDR frame 1 failed: {ret}"
+    )
+RuntimeError: scSetExposureTimeOfHDR frame 1 failed: -105
+2026-10-01 13:52:32,249 | INFO | qubic.api | Exposition mode changed to HDR
+2026-10-01 13:52:32,276 | INFO | qubic.config | Configuration saved successfully
+2026-10-01 13:52:32,277 | INFO | qubic.api | Current configuration saved successfully
+2026-10-01 13:52:32,593 | INFO | qubic.api | Exposition mode changed to Fixed Exposition
+2026-10-01 13:52:32,617 | INFO | qubic.config | Configuration saved successfully
+2026-10-01 13:52:32,618 | INFO | qubic.api | Current configuration saved successfully
+2026-10-01 13:52:35,119 | INFO | qubic.api | Exposition mode changed to HDR
+2026-10-01 13:52:35,143 | INFO | qubic.config | Configuration saved successfully
+2026-10-01 13:52:35,144 | INFO | qubic.api | Current configuration saved successfully
+2026-10-01 13:52:35,633 | INFO | qubic.api | Exposition mode changed to Fixed Exposition
+2026-10-01 13:52:35,663 | INFO | qubic.config | Configuration saved successfully
+2026-10-01 13:52:35,664 | INFO | qubic.api | Current configuration saved successfully
+2026-10-01 13:52:36,463 | INFO | qubic.api | Exposition mode changed to HDR
+2026-10-01 13:52:36,482 | INFO | qubic.config | Configuration saved successfully
+2026-10-01 13:52:36,482 | INFO | qubic.api | Current configuration saved successfully
+2026-10-01 13:52:36,780 | INFO | qubic.api | Exposition mode changed to Fixed Exposition
+2026-10-01 13:52:36,792 | INFO | qubic.config | Configuration saved successfully
+2026-10-01 13:52:36,792 | INFO | qubic.api | Current configuration saved successfully
+2026-10-01 13:52:37,159 | INFO | qubic.api | Exposition mode changed to HDR
+2026-10-01 13:52:37,175 | ERROR | qubic.camera | Failed to set HDR interval
+Traceback (most recent call last):
+  File "/home/marques/Tese/Python/Qubic/CameraOptions.py", line 164, in setHDRInterval
+    camState.camera.set_hdr_interval(low, high)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/home/marques/Tese/Python/Qubic/camera/vzense.py", line 327, in set_hdr_interval
+    raise RuntimeError(
+        f"scSetExposureTimeOfHDR frame 1 failed: {ret}"
+    )
+RuntimeError: scSetExposureTimeOfHDR frame 1 failed: -105
+2026-10-01 13:52:37,192 | INFO | qubic.config | Configuration saved successfully
+2026-10-01 13:52:37,193 | INFO | qubic.api | Current configuration saved successfully
+2026-10-01 13:52:37,776 | INFO | qubic.api | Exposition mode changed to Fixed Exposition
+2026-10-01 13:52:37,805 | INFO | qubic.config | Configuration saved successfully
+2026-10-01 13:52:37,806 | INFO | qubic.api | Current configuration saved successfully
+2026-10-01 13:52:37,831 | ERROR | qubic.camera | Failed to set HDR interval
+Traceback (most recent call last):
+  File "/home/marques/Tese/Python/Qubic/CameraOptions.py", line 164, in setHDRInterval
+    camState.camera.set_hdr_interval(low, high)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/home/marques/Tese/Python/Qubic/camera/vzense.py", line 327, in set_hdr_interval
+    raise RuntimeError(
+        f"scSetExposureTimeOfHDR frame 1 failed: {ret}"
+    )
+RuntimeError: scSetExposureTimeOfHDR frame 1 failed: -105
+2026-10-01 13:52:39,325 | INFO | qubic.api | Exposition mode changed to HDR
+2026-10-01 13:52:39,351 | INFO | qubic.config | Configuration saved successfully
+2026-10-01 13:52:39,351 | INFO | qubic.api | Current configuration saved successfully
+2026-10-01 13:52:39,596 | INFO | qubic.api | Exposition mode changed to Fixed Exposition
+2026-10-01 13:52:39,620 | INFO | qubic.config | Configuration saved successfully
+2026-10-01 13:52:39,624 | INFO | qubic.api | Current configuration saved successfully
+2026-10-01 13:52:39,663 | ERROR | qubic.camera | Failed to set HDR interval
+Traceback (most recent call last):
+  File "/home/marques/Tese/Python/Qubic/CameraOptions.py", line 164, in setHDRInterval
+    camState.camera.set_hdr_interval(low, high)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/home/marques/Tese/Python/Qubic/camera/vzense.py", line 327, in set_hdr_interval
+    raise RuntimeError(
+        f"scSetExposureTimeOfHDR frame 1 failed: {ret}"
+    )
+RuntimeError: scSetExposureTimeOfHDR frame 1 failed: -105
+2026-10-01 13:52:40,158 | INFO | qubic.api | Exposition mode changed to HDR
+2026-10-01 13:52:40,183 | INFO | qubic.config | Configuration saved successfully
+2026-10-01 13:52:40,183 | INFO | qubic.api | Current configuration saved successfully
+2026-10-01 13:52:41,110 | INFO | qubic.api | Exposition mode changed to Fixed Exposition
+2026-10-01 13:52:41,141 | INFO | qubic.config | Configuration saved successfully
+2026-10-01 13:52:41,141 | INFO | qubic.api | Current configuration saved successfully
+2026-10-01 13:53:49,537 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 13:53:49,724 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 13:53:49,725 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 13:53:49,737 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 13:54:36,797 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 13:54:36,960 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 13:54:36,962 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 13:54:36,969 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 13:54:40,150 | INFO | qubic.api | Exposition mode changed to HDR
+2026-10-01 13:54:40,226 | INFO | qubic.config | Configuration saved successfully
+2026-10-01 13:54:40,226 | INFO | qubic.api | Current configuration saved successfully
+2026-10-01 13:54:40,371 | INFO | qubic.api | Exposition mode changed to Fixed Exposition
+2026-10-01 13:54:40,379 | INFO | qubic.config | Configuration saved successfully
+2026-10-01 13:54:40,379 | INFO | qubic.api | Current configuration saved successfully
+2026-10-01 13:54:41,641 | INFO | qubic.api | Exposition mode changed to HDR
+2026-10-01 13:54:41,719 | INFO | qubic.config | Configuration saved successfully
+2026-10-01 13:54:41,719 | INFO | qubic.api | Current configuration saved successfully
+2026-10-01 13:54:41,877 | INFO | qubic.api | Exposition mode changed to Fixed Exposition
+2026-10-01 13:54:41,887 | INFO | qubic.config | Configuration saved successfully
+2026-10-01 13:54:41,888 | INFO | qubic.api | Current configuration saved successfully
+2026-10-01 13:54:41,945 | ERROR | qubic.camera | Failed to set HDR interval
+Traceback (most recent call last):
+  File "/home/marques/Tese/Python/Qubic/CameraOptions.py", line 164, in setHDRInterval
+    camState.camera.set_hdr_interval(low, high)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/home/marques/Tese/Python/Qubic/camera/vzense.py", line 327, in set_hdr_interval
+    raise RuntimeError(
+        f"scSetExposureTimeOfHDR frame 1 failed: {ret}"
+    )
+RuntimeError: scSetExposureTimeOfHDR frame 1 failed: -105
+2026-10-01 14:00:06,301 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 14:00:06,485 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 14:00:06,485 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 14:00:06,509 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 14:00:09,674 | INFO | qubic.api | Exposition mode changed to HDR
+2026-10-01 14:00:09,698 | INFO | qubic.config | Configuration saved successfully
+2026-10-01 14:00:09,699 | INFO | qubic.api | Current configuration saved successfully
+2026-10-01 14:00:09,948 | INFO | qubic.api | Exposition mode changed to Fixed Exposition
+2026-10-01 14:00:09,954 | INFO | qubic.config | Configuration saved successfully
+2026-10-01 14:00:09,954 | INFO | qubic.api | Current configuration saved successfully
+2026-10-01 14:00:10,009 | ERROR | qubic.camera | Failed to set HDR interval
+Traceback (most recent call last):
+  File "/home/marques/Tese/Python/Qubic/CameraOptions.py", line 164, in setHDRInterval
+    camState.camera.set_hdr_interval(low, high)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/home/marques/Tese/Python/Qubic/camera/vzense.py", line 327, in set_hdr_interval
+    raise RuntimeError(
+        f"scSetExposureTimeOfHDR frame 1 failed: {ret}"
+    )
+RuntimeError: scSetExposureTimeOfHDR frame 1 failed: -105
+2026-10-01 14:01:04,792 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 14:01:05,101 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 14:01:05,125 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 14:01:05,136 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 14:01:09,229 | INFO | qubic.config | Language 'en' saved successfully
+2026-10-01 14:01:09,229 | INFO | qubic.api | Interface language changed to 'en'
+2026-10-01 14:01:20,276 | INFO | qubic.config | Language 'es' saved successfully
+2026-10-01 14:01:20,277 | INFO | qubic.api | Interface language changed to 'es'
+2026-10-01 14:01:22,050 | INFO | qubic.config | Language 'fr' saved successfully
+2026-10-01 14:01:22,051 | INFO | qubic.api | Interface language changed to 'fr'
+2026-10-01 14:01:23,759 | INFO | qubic.config | Language 'en' saved successfully
+2026-10-01 14:01:23,759 | INFO | qubic.api | Interface language changed to 'en'
+2026-10-01 14:01:32,058 | INFO | qubic.api | Exposition mode changed to HDR
+2026-10-01 14:01:32,083 | INFO | qubic.config | Configuration saved successfully
+2026-10-01 14:01:32,083 | INFO | qubic.api | Current configuration saved successfully
+2026-10-01 14:01:32,748 | INFO | qubic.api | Exposition mode changed to Fixed Exposition
+2026-10-01 14:01:32,769 | INFO | qubic.config | Configuration saved successfully
+2026-10-01 14:01:32,770 | INFO | qubic.api | Current configuration saved successfully
+2026-10-01 14:01:33,682 | INFO | qubic.api | Exposition mode changed to HDR
+2026-10-01 14:01:33,710 | INFO | qubic.config | Configuration saved successfully
+2026-10-01 14:01:33,714 | INFO | qubic.api | Current configuration saved successfully
+2026-10-01 14:01:34,077 | INFO | qubic.api | Exposition mode changed to Fixed Exposition
+2026-10-01 14:01:34,098 | INFO | qubic.config | Configuration saved successfully
+2026-10-01 14:01:34,099 | INFO | qubic.api | Current configuration saved successfully
+2026-10-01 14:01:36,927 | INFO | qubic.api | Exposition mode changed to HDR
+2026-10-01 14:01:36,951 | INFO | qubic.config | Configuration saved successfully
+2026-10-01 14:01:36,952 | INFO | qubic.api | Current configuration saved successfully
+2026-10-01 14:02:11,436 | INFO | qubic.config | Language 'pt' saved successfully
+2026-10-01 14:02:11,436 | INFO | qubic.api | Interface language changed to 'pt'
+2026-10-01 14:02:12,865 | INFO | qubic.config | Language 'es' saved successfully
+2026-10-01 14:02:12,865 | INFO | qubic.api | Interface language changed to 'es'
+2026-10-01 14:02:14,451 | INFO | qubic.config | Language 'fr' saved successfully
+2026-10-01 14:02:14,451 | INFO | qubic.api | Interface language changed to 'fr'
+2026-10-01 14:02:16,372 | INFO | qubic.config | Language 'pt' saved successfully
+2026-10-01 14:02:16,372 | INFO | qubic.api | Interface language changed to 'pt'
+2026-10-01 14:02:18,175 | INFO | qubic.config | Language 'en' saved successfully
+2026-10-01 14:02:18,175 | INFO | qubic.api | Interface language changed to 'en'
+2026-10-01 14:02:20,331 | INFO | qubic.api | Exposition mode changed to Fixed Exposition
+2026-10-01 14:02:20,351 | INFO | qubic.config | Configuration saved successfully
+2026-10-01 14:02:20,351 | INFO | qubic.api | Current configuration saved successfully
+2026-10-01 14:02:21,298 | INFO | qubic.api | Exposition mode changed to HDR
+2026-10-01 14:02:21,329 | INFO | qubic.config | Configuration saved successfully
+2026-10-01 14:02:21,330 | INFO | qubic.api | Current configuration saved successfully
+2026-10-01 14:06:24,504 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 14:06:24,669 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 14:06:24,671 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 14:06:24,683 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 14:07:56,365 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 14:07:56,564 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 14:07:56,565 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 14:07:56,580 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 14:08:46,187 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 14:08:46,381 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 14:08:46,383 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 14:08:46,392 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 14:09:14,194 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 14:09:14,647 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 14:09:14,648 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 14:09:14,660 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 14:16:12,875 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 14:16:13,195 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 14:16:13,201 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 14:16:13,221 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 14:22:00,764 | WARNING | qubic.auth | Expired access token
+2026-10-01 14:22:00,776 | INFO | qubic.api | Access Token refreshed successfully for user 'rui'
+2026-10-01 14:27:11,038 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 14:27:11,191 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 14:27:11,201 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 14:27:11,211 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 14:27:57,925 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 14:27:58,119 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 14:27:58,120 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 14:27:58,130 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 14:28:04,619 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 14:28:04,749 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 14:28:04,754 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 14:28:04,763 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 14:28:26,288 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 14:28:26,442 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 14:28:26,446 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 14:28:26,467 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 14:29:37,960 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 14:29:38,186 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 14:29:38,195 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 14:29:38,206 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 14:30:28,442 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 14:30:28,632 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 14:30:28,635 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 14:30:28,662 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 14:30:58,093 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 14:30:58,293 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 14:30:58,295 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 14:30:58,309 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 14:31:33,691 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 14:31:33,987 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 14:31:33,988 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 14:31:33,998 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 14:32:15,648 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 14:32:15,848 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 14:32:15,856 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 14:32:15,874 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 14:32:48,221 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 14:32:48,389 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 14:32:48,391 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 14:32:48,402 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 14:33:49,031 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 14:33:49,032 | INFO | qubic.api | Current menu changed to 'measurementHistory-menu'
+2026-10-01 14:33:49,033 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 14:33:57,685 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 14:33:57,691 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 14:33:57,703 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 14:34:35,126 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 14:34:35,322 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 14:34:35,322 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 14:34:35,350 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 14:35:17,676 | INFO | qubic.config | Language 'pt' saved successfully
+2026-10-01 14:35:17,676 | INFO | qubic.api | Interface language changed to 'pt'
+2026-10-01 14:35:20,488 | INFO | qubic.config | Language 'en' saved successfully
+2026-10-01 14:35:20,488 | INFO | qubic.api | Interface language changed to 'en'
+2026-10-01 14:35:33,887 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 14:35:34,056 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 14:35:34,058 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 14:35:34,068 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 14:39:22,824 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 14:39:23,019 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 14:39:23,022 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 14:39:23,034 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 14:40:15,044 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 14:40:15,242 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 14:40:15,242 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 14:40:15,263 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 14:41:00,504 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 14:41:00,704 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 14:41:00,706 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 14:41:00,720 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 14:43:24,110 | INFO | qubic.config | Language 'es' saved successfully
+2026-10-01 14:43:24,111 | INFO | qubic.api | Interface language changed to 'es'
+2026-10-01 14:43:27,053 | INFO | qubic.config | Language 'pt' saved successfully
+2026-10-01 14:43:27,053 | INFO | qubic.api | Interface language changed to 'pt'
+2026-10-01 14:43:28,235 | INFO | qubic.config | Language 'en' saved successfully
+2026-10-01 14:43:28,236 | INFO | qubic.api | Interface language changed to 'en'
+2026-10-01 14:43:34,323 | INFO | qubic.config | Language 'pt' saved successfully
+2026-10-01 14:43:34,323 | INFO | qubic.api | Interface language changed to 'pt'
+2026-10-01 14:43:42,860 | INFO | qubic.config | Language 'en' saved successfully
+2026-10-01 14:43:42,861 | INFO | qubic.api | Interface language changed to 'en'
+2026-10-01 14:46:59,297 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 14:46:59,403 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 14:46:59,404 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 14:46:59,414 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 14:52:01,855 | WARNING | qubic.auth | Expired access token
+2026-10-01 14:52:01,865 | INFO | qubic.api | Access Token refreshed successfully for user 'rui'
+2026-10-01 14:59:03,081 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 14:59:03,212 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 14:59:03,214 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 14:59:03,229 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 15:01:53,734 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 15:01:53,939 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 15:01:53,940 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 15:01:53,954 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 15:02:41,623 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 15:02:41,816 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 15:02:41,818 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 15:02:41,830 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 15:02:48,787 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 15:02:48,873 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 15:02:48,874 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 15:02:48,883 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 15:03:47,857 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 15:03:47,963 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 15:03:47,965 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 15:03:47,977 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 15:04:19,492 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 15:04:19,632 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 15:04:19,634 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 15:04:19,647 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 15:05:08,661 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 15:05:08,792 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 15:05:08,794 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 15:05:08,805 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 15:10:31,160 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 15:10:31,279 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 15:10:31,280 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 15:10:31,292 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 15:12:27,853 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 15:12:28,056 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 15:12:28,060 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 15:12:28,083 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 15:15:25,245 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 15:15:25,413 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 15:15:25,415 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 15:15:25,428 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 15:16:36,041 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 15:16:36,155 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 15:16:36,157 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 15:16:36,165 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 15:20:25,419 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 15:20:25,556 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 15:20:25,557 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 15:20:25,566 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 15:20:34,418 | INFO | qubic.config | Language 'pt' saved successfully
+2026-10-01 15:20:34,419 | INFO | qubic.api | Interface language changed to 'pt'
+2026-10-01 15:22:02,070 | WARNING | qubic.auth | Expired access token
+2026-10-01 15:22:02,078 | INFO | qubic.api | Access Token refreshed successfully for user 'rui'
+2026-10-01 15:25:51,336 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 15:25:51,445 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 15:25:51,446 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 15:25:51,456 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 15:26:57,949 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 15:26:58,029 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 15:26:58,029 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 15:26:58,035 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 15:28:13,564 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 15:28:13,653 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 15:28:13,654 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 15:28:13,656 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 15:28:33,281 | INFO | qubic.config | Language 'es' saved successfully
+2026-10-01 15:28:33,281 | INFO | qubic.api | Interface language changed to 'es'
+2026-10-01 15:28:38,857 | INFO | qubic.api | System information updated successfully
+2026-10-01 15:28:38,888 | INFO | qubic.config | Configuration saved successfully
+2026-10-01 15:28:38,889 | INFO | qubic.api | Current configuration saved successfully
+2026-10-01 15:28:52,778 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 15:28:52,897 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 15:28:52,898 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 15:28:52,910 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 15:28:53,817 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 15:28:53,817 | INFO | qubic.api | Current menu changed to 'measurementHistory-menu'
+2026-10-01 15:28:53,817 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 15:29:27,694 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 15:29:27,702 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 15:29:30,087 | INFO | qubic.config | Language 'pt' saved successfully
+2026-10-01 15:29:30,087 | INFO | qubic.api | Interface language changed to 'pt'
+2026-10-01 15:29:31,326 | INFO | qubic.config | Language 'en' saved successfully
+2026-10-01 15:29:31,327 | INFO | qubic.api | Interface language changed to 'en'
+2026-10-01 15:30:55,435 | INFO | qubic.config | Language 'pt' saved successfully
+2026-10-01 15:30:55,436 | INFO | qubic.api | Interface language changed to 'pt'
+2026-10-01 15:30:57,330 | INFO | qubic.config | Language 'es' saved successfully
+2026-10-01 15:30:57,330 | INFO | qubic.api | Interface language changed to 'es'
+2026-10-01 15:30:59,549 | INFO | qubic.config | Language 'fr' saved successfully
+2026-10-01 15:30:59,550 | INFO | qubic.api | Interface language changed to 'fr'
+2026-10-01 15:31:39,878 | INFO | qubic.api | Exposition mode changed to Fixed Exposition
+2026-10-01 15:31:39,899 | INFO | qubic.config | Configuration saved successfully
+2026-10-01 15:31:39,899 | INFO | qubic.api | Current configuration saved successfully
+2026-10-01 15:31:41,412 | INFO | qubic.api | Exposition mode changed to HDR
+2026-10-01 15:31:41,448 | INFO | qubic.config | Configuration saved successfully
+2026-10-01 15:31:41,450 | INFO | qubic.api | Current configuration saved successfully
+2026-10-01 15:31:43,371 | INFO | qubic.api | Exposition mode changed to Fixed Exposition
+2026-10-01 15:31:43,393 | INFO | qubic.config | Configuration saved successfully
+2026-10-01 15:31:43,394 | INFO | qubic.api | Current configuration saved successfully
+2026-10-01 15:31:46,640 | INFO | qubic.api | Exposition mode changed to HDR
+2026-10-01 15:31:46,663 | INFO | qubic.config | Configuration saved successfully
+2026-10-01 15:31:46,663 | INFO | qubic.api | Current configuration saved successfully
+2026-10-01 15:31:47,049 | INFO | qubic.api | Exposition mode changed to Fixed Exposition
+2026-10-01 15:31:47,070 | INFO | qubic.config | Configuration saved successfully
+2026-10-01 15:31:47,071 | INFO | qubic.api | Current configuration saved successfully
+2026-10-01 15:31:48,389 | INFO | qubic.api | Exposition mode changed to HDR
+2026-10-01 15:31:48,410 | INFO | qubic.config | Configuration saved successfully
+2026-10-01 15:31:48,410 | INFO | qubic.api | Current configuration saved successfully
+2026-10-01 15:31:49,391 | INFO | qubic.api | Exposition mode changed to Fixed Exposition
+2026-10-01 15:31:49,413 | INFO | qubic.config | Configuration saved successfully
+2026-10-01 15:31:49,414 | INFO | qubic.api | Current configuration saved successfully
+2026-10-01 15:31:50,645 | INFO | qubic.api | Exposition mode changed to HDR
+2026-10-01 15:31:50,667 | INFO | qubic.config | Configuration saved successfully
+2026-10-01 15:31:50,667 | INFO | qubic.api | Current configuration saved successfully
+2026-10-01 15:31:50,709 | ERROR | qubic.camera | Failed to set HDR interval
+Traceback (most recent call last):
+  File "/home/marques/Tese/Python/Qubic/CameraOptions.py", line 164, in setHDRInterval
+    camState.camera.set_hdr_interval(low, high)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/home/marques/Tese/Python/Qubic/camera/vzense.py", line 321, in set_hdr_interval
+    raise RuntimeError(
+        f"scSetExposureTimeOfHDR frame 0 failed: {ret}"
+    )
+RuntimeError: scSetExposureTimeOfHDR frame 0 failed: -105
+2026-10-01 15:31:59,908 | INFO | qubic.config | Language 'en' saved successfully
+2026-10-01 15:31:59,908 | INFO | qubic.api | Interface language changed to 'en'
+2026-10-01 15:32:03,303 | INFO | qubic.config | Language 'es' saved successfully
+2026-10-01 15:32:03,304 | INFO | qubic.api | Interface language changed to 'es'
+2026-10-01 15:32:06,231 | INFO | qubic.config | Language 'fr' saved successfully
+2026-10-01 15:32:06,231 | INFO | qubic.api | Interface language changed to 'fr'
+2026-10-01 15:32:09,281 | INFO | qubic.config | Language 'pt' saved successfully
+2026-10-01 15:32:09,283 | INFO | qubic.api | Interface language changed to 'pt'
+2026-10-01 15:32:15,799 | INFO | qubic.config | Language 'en' saved successfully
+2026-10-01 15:32:15,799 | INFO | qubic.api | Interface language changed to 'en'
+2026-10-01 15:32:20,524 | INFO | qubic.config | Language 'fr' saved successfully
+2026-10-01 15:32:20,525 | INFO | qubic.api | Interface language changed to 'fr'
+2026-10-01 15:32:47,990 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 15:32:48,117 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 15:32:48,118 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 15:32:48,126 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 15:32:59,217 | INFO | qubic.config | Language 'en' saved successfully
+2026-10-01 15:32:59,217 | INFO | qubic.api | Interface language changed to 'en'
+2026-10-01 15:33:00,956 | INFO | qubic.config | Language 'pt' saved successfully
+2026-10-01 15:33:00,956 | INFO | qubic.api | Interface language changed to 'pt'
+2026-10-01 15:33:02,657 | INFO | qubic.config | Language 'es' saved successfully
+2026-10-01 15:33:02,657 | INFO | qubic.api | Interface language changed to 'es'
+2026-10-01 15:33:04,393 | INFO | qubic.config | Language 'fr' saved successfully
+2026-10-01 15:33:04,393 | INFO | qubic.api | Interface language changed to 'fr'
+2026-10-01 15:33:51,948 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 15:33:52,080 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 15:33:52,083 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 15:33:52,092 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 15:33:58,292 | INFO | qubic.config | Language 'pt' saved successfully
+2026-10-01 15:33:58,292 | INFO | qubic.api | Interface language changed to 'pt'
+2026-10-01 15:34:00,184 | INFO | qubic.config | Language 'en' saved successfully
+2026-10-01 15:34:00,184 | INFO | qubic.api | Interface language changed to 'en'
+2026-10-01 15:34:01,798 | INFO | qubic.config | Language 'es' saved successfully
+2026-10-01 15:34:01,799 | INFO | qubic.api | Interface language changed to 'es'
+2026-10-01 15:34:03,516 | INFO | qubic.config | Language 'fr' saved successfully
+2026-10-01 15:34:03,516 | INFO | qubic.api | Interface language changed to 'fr'
+2026-10-01 15:34:05,520 | INFO | qubic.config | Language 'es' saved successfully
+2026-10-01 15:34:05,520 | INFO | qubic.api | Interface language changed to 'es'
+2026-10-01 15:34:07,732 | INFO | qubic.config | Language 'en' saved successfully
+2026-10-01 15:34:07,732 | INFO | qubic.api | Interface language changed to 'en'
+2026-10-01 15:34:09,016 | INFO | qubic.config | Language 'es' saved successfully
+2026-10-01 15:34:09,016 | INFO | qubic.api | Interface language changed to 'es'
+2026-10-01 15:34:12,428 | INFO | qubic.config | Language 'pt' saved successfully
+2026-10-01 15:34:12,429 | INFO | qubic.api | Interface language changed to 'pt'
+2026-10-01 15:34:13,611 | INFO | qubic.config | Language 'fr' saved successfully
+2026-10-01 15:34:13,611 | INFO | qubic.api | Interface language changed to 'fr'
+2026-10-01 15:34:17,498 | INFO | qubic.config | Language 'es' saved successfully
+2026-10-01 15:34:17,499 | INFO | qubic.api | Interface language changed to 'es'
+2026-10-01 15:34:19,075 | INFO | qubic.config | Language 'pt' saved successfully
+2026-10-01 15:34:19,076 | INFO | qubic.api | Interface language changed to 'pt'
+2026-10-01 15:34:22,940 | INFO | qubic.config | Language 'en' saved successfully
+2026-10-01 15:34:22,940 | INFO | qubic.api | Interface language changed to 'en'
+2026-10-01 15:35:13,139 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 15:35:13,341 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 15:35:13,344 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 15:35:13,350 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 15:35:17,544 | INFO | qubic.config | Language 'pt' saved successfully
+2026-10-01 15:35:17,544 | INFO | qubic.api | Interface language changed to 'pt'
+2026-10-01 15:35:19,940 | INFO | qubic.config | Language 'en' saved successfully
+2026-10-01 15:35:19,940 | INFO | qubic.api | Interface language changed to 'en'
+2026-10-01 15:35:21,323 | INFO | qubic.config | Language 'es' saved successfully
+2026-10-01 15:35:21,323 | INFO | qubic.api | Interface language changed to 'es'
+2026-10-01 15:35:22,879 | INFO | qubic.config | Language 'fr' saved successfully
+2026-10-01 15:35:22,880 | INFO | qubic.api | Interface language changed to 'fr'
+2026-10-01 15:35:45,367 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 15:35:45,560 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 15:35:45,563 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 15:35:45,574 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 15:35:50,832 | INFO | qubic.config | Language 'pt' saved successfully
+2026-10-01 15:35:50,832 | INFO | qubic.api | Interface language changed to 'pt'
+2026-10-01 15:36:18,843 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 15:36:19,023 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 15:36:19,030 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 15:36:19,043 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 15:36:23,586 | INFO | qubic.config | Language 'fr' saved successfully
+2026-10-01 15:36:23,587 | INFO | qubic.api | Interface language changed to 'fr'
+2026-10-01 15:36:27,558 | INFO | qubic.config | Language 'es' saved successfully
+2026-10-01 15:36:27,558 | INFO | qubic.api | Interface language changed to 'es'
+2026-10-01 15:36:28,762 | INFO | qubic.config | Language 'pt' saved successfully
+2026-10-01 15:36:28,762 | INFO | qubic.api | Interface language changed to 'pt'
+2026-10-01 15:37:19,225 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 15:37:19,399 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 15:37:19,403 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 15:37:19,415 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 15:38:24,071 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 15:38:24,258 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 15:38:24,258 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 15:38:24,284 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 15:40:36,613 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 15:40:36,806 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 15:40:36,818 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 15:40:36,834 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 15:40:42,560 | INFO | qubic.config | Language 'en' saved successfully
+2026-10-01 15:40:42,564 | INFO | qubic.api | Interface language changed to 'en'
+2026-10-01 15:40:43,940 | INFO | qubic.config | Language 'es' saved successfully
+2026-10-01 15:40:43,940 | INFO | qubic.api | Interface language changed to 'es'
+2026-10-01 15:40:46,231 | INFO | qubic.config | Language 'fr' saved successfully
+2026-10-01 15:40:46,232 | INFO | qubic.api | Interface language changed to 'fr'
+2026-10-01 15:40:47,968 | INFO | qubic.config | Language 'es' saved successfully
+2026-10-01 15:40:47,968 | INFO | qubic.api | Interface language changed to 'es'
+2026-10-01 15:40:49,468 | INFO | qubic.config | Language 'en' saved successfully
+2026-10-01 15:40:49,468 | INFO | qubic.api | Interface language changed to 'en'
+2026-10-01 15:40:50,830 | INFO | qubic.config | Language 'pt' saved successfully
+2026-10-01 15:40:50,831 | INFO | qubic.api | Interface language changed to 'pt'
+2026-10-01 15:41:17,142 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 15:41:17,332 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 15:41:17,335 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 15:41:17,355 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 15:41:21,485 | INFO | qubic.config | Language 'en' saved successfully
+2026-10-01 15:41:21,485 | INFO | qubic.api | Interface language changed to 'en'
+2026-10-01 15:41:22,446 | INFO | qubic.config | Language 'es' saved successfully
+2026-10-01 15:41:22,446 | INFO | qubic.api | Interface language changed to 'es'
+2026-10-01 15:41:23,537 | INFO | qubic.config | Language 'fr' saved successfully
+2026-10-01 15:41:23,537 | INFO | qubic.api | Interface language changed to 'fr'
+2026-10-01 15:41:58,308 | INFO | qubic.config | Language 'en' saved successfully
+2026-10-01 15:41:58,308 | INFO | qubic.api | Interface language changed to 'en'
+2026-10-01 15:50:47,018 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 15:50:47,242 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 15:50:47,244 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 15:50:47,264 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 15:52:03,044 | WARNING | qubic.auth | Expired access token
+2026-10-01 15:52:03,057 | INFO | qubic.api | Access Token refreshed successfully for user 'rui'
+2026-10-01 15:52:37,772 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 15:52:37,934 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 15:52:37,935 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 15:52:37,947 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 15:54:15,448 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 15:54:15,596 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 15:54:15,597 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 15:54:15,613 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 15:56:44,392 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 15:56:44,576 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 15:56:44,594 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 15:56:44,595 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 15:57:46,677 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 15:57:46,961 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 15:57:47,004 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 15:57:47,014 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 15:59:07,048 | INFO | qubic.api | Mask applied successfully
+2026-10-01 15:59:07,056 | INFO | qubic.api | Mask applied successfully
+2026-10-01 15:59:07,110 | INFO | qubic.api | Current menu changed to 'calibration-menu'
+2026-10-01 15:59:07,257 | INFO | qubic.api | Mask applied successfully
+2026-10-01 15:59:07,354 | INFO | qubic.api | Mask applied successfully
+2026-10-01 15:59:07,469 | INFO | qubic.api | Mask applied successfully
+2026-10-01 15:59:07,679 | INFO | qubic.api | Mask applied successfully
+2026-10-01 15:59:07,895 | INFO | qubic.api | Mask applied successfully
+2026-10-01 15:59:08,082 | INFO | qubic.api | Mask applied successfully
+2026-10-01 15:59:08,311 | INFO | qubic.api | Mask applied successfully
+2026-10-01 15:59:08,544 | INFO | qubic.api | Mask applied successfully
+2026-10-01 15:59:08,748 | INFO | qubic.api | Mask applied successfully
+2026-10-01 15:59:08,956 | INFO | qubic.api | Mask applied successfully
+2026-10-01 15:59:09,161 | INFO | qubic.api | Mask applied successfully
+2026-10-01 15:59:09,361 | INFO | qubic.api | Mask applied successfully
+2026-10-01 15:59:09,586 | INFO | qubic.api | Mask applied successfully
+2026-10-01 15:59:09,791 | INFO | qubic.api | Mask applied successfully
+2026-10-01 15:59:10,010 | INFO | qubic.api | Mask applied successfully
+2026-10-01 15:59:10,230 | INFO | qubic.api | Mask applied successfully
+2026-10-01 15:59:10,413 | INFO | qubic.api | Mask applied successfully
+2026-10-01 15:59:10,648 | INFO | qubic.api | Mask applied successfully
+2026-10-01 15:59:10,860 | INFO | qubic.api | Mask applied successfully
+2026-10-01 15:59:11,070 | INFO | qubic.api | Mask applied successfully
+2026-10-01 15:59:11,282 | INFO | qubic.api | Mask applied successfully
+2026-10-01 15:59:11,415 | INFO | qubic.api | Selected mask color: 'White'
+2026-10-01 15:59:11,499 | INFO | qubic.api | Mask applied successfully
+2026-10-01 15:59:11,710 | INFO | qubic.api | Mask applied successfully
+2026-10-01 15:59:11,928 | INFO | qubic.api | Mask applied successfully
+2026-10-01 15:59:11,967 | INFO | qubic.api | Calibration mode changed to Manual
+2026-10-01 15:59:23,524 | INFO | qubic.api | Manual workspace applied successfully
+2026-10-01 15:59:23,567 | INFO | qubic.api | Workspace calibration completed successfully
+2026-10-01 15:59:30,399 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 15:59:30,411 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 16:13:15,394 | INFO | qubic.api | Shutting down API
+2026-10-01 16:13:15,415 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 16:13:15,415 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 16:13:15,415 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 16:13:15,435 | INFO | qubic.camera | Camera capture loop stopped
+2026-10-01 16:13:15,436 | INFO | qubic.camera | Stopping camera
+2026-10-01 16:13:15,694 | INFO | qubic.camera | Camera stopped its service
+2026-10-01 16:13:17,027 | INFO | qubic | Starting Qubic
+2026-10-01 16:13:18,336 | INFO | qubic.weight | Weight scale connected successfully
+2026-10-01 16:13:18,399 | INFO | qubic.api | Frontend found: /home/marques/Tese/frontend/dist
+2026-10-01 16:13:18,399 | INFO | qubic.api | Starting API
+2026-10-01 16:13:18,441 | INFO | qubic.api | Calibration loaded successfully
+2026-10-01 16:13:18,442 | INFO | qubic.api | Last configuration loaded successfully
+2026-10-01 16:13:18,442 | INFO | qubic.api | Starting camera thread
+2026-10-01 16:13:18,443 | INFO | qubic.api | Starting weight thread
+2026-10-01 16:13:18,443 | INFO | qubic.weight | Weight thread started
+2026-10-01 16:13:22,151 | INFO | qubic.camera | Camera capture loop started
+2026-10-01 16:13:22,151 | INFO | qubic.camera | Camera started successfully
+2026-10-01 16:13:24,828 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 16:13:24,828 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 16:13:24,846 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 16:13:30,571 | INFO | qubic.api | Shutting down API
+2026-10-01 16:13:30,572 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 16:13:30,623 | INFO | qubic.camera | Camera capture loop stopped
+2026-10-01 16:13:30,624 | INFO | qubic.camera | Stopping camera
+2026-10-01 16:13:30,920 | INFO | qubic.camera | Camera stopped its service
+2026-10-01 16:13:40,240 | INFO | qubic | Starting Qubic
+2026-10-01 16:13:40,799 | INFO | qubic.weight | Weight scale connected successfully
+2026-10-01 16:13:40,861 | INFO | qubic.api | Frontend found: /home/marques/Tese/frontend/dist
+2026-10-01 16:13:40,862 | INFO | qubic.api | Starting API
+2026-10-01 16:13:40,904 | INFO | qubic.api | Calibration loaded successfully
+2026-10-01 16:13:40,905 | INFO | qubic.api | Last configuration loaded successfully
+2026-10-01 16:13:40,905 | INFO | qubic.api | Starting camera thread
+2026-10-01 16:13:40,905 | INFO | qubic.api | Starting weight thread
+2026-10-01 16:13:40,906 | INFO | qubic.weight | Weight thread started
+2026-10-01 16:13:42,446 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 16:13:42,446 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 16:13:42,455 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 16:13:44,628 | INFO | qubic.camera | Camera capture loop started
+2026-10-01 16:13:44,628 | INFO | qubic.camera | Camera started successfully
+2026-10-01 16:14:45,473 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 16:14:45,670 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 16:14:45,671 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 16:14:45,683 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 16:22:04,152 | WARNING | qubic.auth | Expired access token
+2026-10-01 16:22:04,170 | INFO | qubic.api | Access Token refreshed successfully for user 'rui'
+2026-10-01 16:36:25,615 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 16:36:25,727 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 16:36:25,729 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 16:36:25,734 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 16:36:27,889 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 16:36:27,969 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 16:36:27,970 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 16:36:27,976 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 16:36:29,131 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 16:36:29,206 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 16:36:29,206 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 16:36:29,212 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 16:36:30,174 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 16:36:30,247 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 16:36:30,249 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 16:36:30,253 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 16:36:30,794 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 16:36:30,887 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 16:36:30,887 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 16:36:30,892 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 16:36:34,779 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 16:36:34,847 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 16:36:34,848 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 16:36:34,853 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 16:36:36,103 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 16:36:36,178 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 16:36:36,179 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 16:36:36,183 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 16:43:48,352 | INFO | qubic.config | Language 'pt' saved successfully
+2026-10-01 16:43:48,352 | INFO | qubic.api | Interface language changed to 'pt'
+2026-10-01 16:43:49,885 | INFO | qubic.config | Language 'es' saved successfully
+2026-10-01 16:43:49,887 | INFO | qubic.api | Interface language changed to 'es'
+2026-10-01 16:43:51,451 | INFO | qubic.config | Language 'fr' saved successfully
+2026-10-01 16:43:51,452 | INFO | qubic.api | Interface language changed to 'fr'
+2026-10-01 16:43:52,549 | INFO | qubic.config | Language 'en' saved successfully
+2026-10-01 16:43:52,549 | INFO | qubic.api | Interface language changed to 'en'
+2026-10-01 16:52:05,251 | WARNING | qubic.auth | Expired access token
+2026-10-01 16:52:05,263 | INFO | qubic.api | Access Token refreshed successfully for user 'rui'
+2026-10-01 17:04:47,747 | INFO | qubic.api | Volume mode changed to Real
+2026-10-01 17:04:47,773 | INFO | qubic.config | Configuration saved successfully
+2026-10-01 17:04:47,777 | INFO | qubic.api | Current configuration saved successfully
+2026-10-01 17:04:49,076 | INFO | qubic.api | Real volume calculation started
+2026-10-01 17:04:50,206 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-01 17:04:51,045 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-01 17:04:51,454 | INFO | qubic.api | Measurement '2144' saved successfully by 'rui'
+2026-10-01 17:04:53,801 | INFO | qubic.api | Real volume calculation started
+2026-10-01 17:04:54,761 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-01 17:04:55,502 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-01 17:04:55,859 | INFO | qubic.api | Measurement '2145' saved successfully by 'rui'
+2026-10-01 17:04:56,315 | INFO | qubic.api | Real volume calculation started
+2026-10-01 17:04:57,184 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-01 17:04:57,966 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-01 17:04:58,316 | INFO | qubic.api | Measurement '2146' saved successfully by 'rui'
+2026-10-01 17:04:58,804 | INFO | qubic.api | Real volume calculation started
+2026-10-01 17:04:59,770 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-01 17:05:00,682 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-01 17:05:01,090 | INFO | qubic.api | Measurement '2147' saved successfully by 'rui'
+2026-10-01 17:05:01,794 | INFO | qubic.api | Real volume calculation started
+2026-10-01 17:05:02,860 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-01 17:05:03,657 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-01 17:05:04,001 | INFO | qubic.api | Measurement '2148' saved successfully by 'rui'
+2026-10-01 17:05:12,345 | INFO | qubic.api | Real volume calculation started
+2026-10-01 17:05:13,267 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-01 17:05:13,846 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-01 17:05:14,215 | INFO | qubic.api | Measurement '2149' saved successfully by 'rui'
+2026-10-01 17:05:15,260 | INFO | qubic.api | Real volume calculation started
+2026-10-01 17:05:16,141 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-01 17:05:16,733 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-01 17:05:17,109 | INFO | qubic.api | Measurement '2150' saved successfully by 'rui'
+2026-10-01 17:05:23,426 | INFO | qubic.api | Real volume calculation started
+2026-10-01 17:05:24,500 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-01 17:05:25,241 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-01 17:05:25,599 | INFO | qubic.api | Measurement '2151' saved successfully by 'rui'
+2026-10-01 17:05:39,714 | INFO | qubic.api | Real volume calculation started
+2026-10-01 17:05:40,745 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-01 17:05:41,955 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-01 17:05:42,984 | INFO | qubic.api | Real volume calculation started
+2026-10-01 17:05:43,792 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-01 17:05:44,412 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-01 17:05:53,842 | INFO | qubic.api | Real volume calculation started
+2026-10-01 17:05:54,680 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-01 17:05:56,438 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-01 17:05:56,780 | INFO | qubic.api | Measurement '2152' saved successfully by 'rui'
+2026-10-01 17:06:01,902 | INFO | qubic.api | Real volume calculation started
+2026-10-01 17:06:02,967 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-01 17:06:04,057 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-01 17:06:04,429 | INFO | qubic.api | Measurement '2153' saved successfully by 'rui'
+2026-10-01 17:06:14,015 | INFO | qubic.api | Real volume calculation started
+2026-10-01 17:06:14,962 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-01 17:06:15,539 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-01 17:06:17,642 | INFO | qubic.api | Real volume calculation started
+2026-10-01 17:06:18,676 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-01 17:06:19,715 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-01 17:06:35,432 | INFO | qubic.api | Real volume calculation started
+2026-10-01 17:06:36,431 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-01 17:06:36,974 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-01 17:06:37,315 | INFO | qubic.api | Measurement '2154' saved successfully by 'rui'
+2026-10-01 17:06:39,117 | INFO | qubic.api | Real volume calculation started
+2026-10-01 17:06:40,084 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-01 17:06:41,173 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-01 17:06:41,507 | INFO | qubic.api | Measurement '2155' saved successfully by 'rui'
+2026-10-01 17:06:52,631 | INFO | qubic.api | Real volume calculation started
+2026-10-01 17:06:53,632 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-01 17:06:54,006 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-01 17:06:55,676 | INFO | qubic.api | Real volume calculation started
+2026-10-01 17:06:56,617 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-01 17:06:57,088 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-01 17:06:57,438 | INFO | qubic.api | Measurement '2156' saved successfully by 'rui'
+2026-10-01 17:07:06,066 | INFO | qubic.api | Real volume calculation started
+2026-10-01 17:07:06,866 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-01 17:07:07,423 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-01 17:07:08,893 | INFO | qubic.api | Real volume calculation started
+2026-10-01 17:07:09,877 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-01 17:07:10,321 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-01 17:07:14,315 | INFO | qubic.api | Real volume calculation started
+2026-10-01 17:07:15,380 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-01 17:07:15,733 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-01 17:07:17,759 | INFO | qubic.api | Real volume calculation started
+2026-10-01 17:07:18,817 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-01 17:07:19,178 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-01 17:07:26,502 | INFO | qubic.api | Real volume calculation started
+2026-10-01 17:07:27,585 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-01 17:07:27,985 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-01 17:07:30,729 | INFO | qubic.api | Real volume calculation started
+2026-10-01 17:07:31,745 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-01 17:07:32,106 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-01 17:07:39,159 | INFO | qubic.api | Real volume calculation started
+2026-10-01 17:07:40,057 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-01 17:07:42,035 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-01 17:07:42,402 | INFO | qubic.api | Measurement '2157' saved successfully by 'rui'
+2026-10-01 17:07:56,890 | INFO | qubic.api | Real volume calculation started
+2026-10-01 17:07:57,918 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-01 17:07:58,485 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-01 17:07:58,872 | INFO | qubic.api | Measurement '2158' saved successfully by 'rui'
+2026-10-01 17:08:05,219 | INFO | qubic.api | Real volume calculation started
+2026-10-01 17:08:06,200 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-01 17:08:06,743 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-01 17:08:07,081 | INFO | qubic.api | Measurement '2159' saved successfully by 'rui'
+2026-10-01 17:08:09,101 | INFO | qubic.api | Real volume calculation started
+2026-10-01 17:08:10,153 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-01 17:08:10,704 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-01 17:08:11,043 | INFO | qubic.api | Measurement '2160' saved successfully by 'rui'
+2026-10-01 17:08:14,775 | INFO | qubic.api | Real volume calculation started
+2026-10-01 17:08:15,672 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-01 17:08:16,173 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-01 17:08:16,568 | INFO | qubic.api | Measurement '2161' saved successfully by 'rui'
+2026-10-01 17:08:21,760 | INFO | qubic.api | Real volume calculation started
+2026-10-01 17:08:22,667 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-01 17:08:23,113 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-01 17:08:23,499 | INFO | qubic.api | Measurement '2162' saved successfully by 'rui'
+2026-10-01 17:08:34,548 | INFO | qubic.api | Real volume calculation started
+2026-10-01 17:08:35,617 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-01 17:08:36,393 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-01 17:08:36,755 | INFO | qubic.api | Measurement '2163' saved successfully by 'rui'
+2026-10-01 17:08:38,986 | INFO | qubic.api | Real volume calculation started
+2026-10-01 17:08:39,938 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-01 17:08:40,662 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-01 17:08:41,009 | INFO | qubic.api | Measurement '2164' saved successfully by 'rui'
+2026-10-01 17:08:43,034 | INFO | qubic.api | Real volume calculation started
+2026-10-01 17:08:44,178 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-01 17:08:44,864 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-01 17:08:45,227 | INFO | qubic.api | Measurement '2165' saved successfully by 'rui'
+2026-10-01 17:08:54,304 | INFO | qubic.api | Real volume calculation started
+2026-10-01 17:08:55,272 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-01 17:08:56,089 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-01 17:08:56,451 | INFO | qubic.api | Measurement '2166' saved successfully by 'rui'
+2026-10-01 17:09:01,456 | INFO | qubic.api | Real volume calculation started
+2026-10-01 17:09:02,387 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-01 17:09:03,112 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-01 17:09:03,468 | INFO | qubic.api | Measurement '2167' saved successfully by 'rui'
+2026-10-01 17:09:05,624 | INFO | qubic.api | Real volume calculation started
+2026-10-01 17:09:06,535 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-01 17:09:07,314 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-01 17:09:07,692 | INFO | qubic.api | Measurement '2168' saved successfully by 'rui'
+2026-10-01 17:09:09,639 | INFO | qubic.api | Real volume calculation started
+2026-10-01 17:09:10,669 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-01 17:09:11,367 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-01 17:09:11,726 | INFO | qubic.api | Measurement '2169' saved successfully by 'rui'
+2026-10-01 17:09:19,162 | INFO | qubic.api | Real volume calculation started
+2026-10-01 17:09:20,176 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-01 17:09:20,948 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-01 17:09:21,298 | INFO | qubic.api | Measurement '2170' saved successfully by 'rui'
+2026-10-01 17:09:26,962 | INFO | qubic.api | Mask applied successfully
+2026-10-01 17:09:26,965 | INFO | qubic.api | Mask applied successfully
+2026-10-01 17:09:27,099 | INFO | qubic.api | Current menu changed to 'calibration-menu'
+2026-10-01 17:09:27,162 | INFO | qubic.api | Mask applied successfully
+2026-10-01 17:09:27,394 | INFO | qubic.api | Mask applied successfully
+2026-10-01 17:09:27,429 | INFO | qubic.api | Mask applied successfully
+2026-10-01 17:09:27,594 | INFO | qubic.api | Mask applied successfully
+2026-10-01 17:09:27,805 | INFO | qubic.api | Mask applied successfully
+2026-10-01 17:09:28,016 | INFO | qubic.api | Mask applied successfully
+2026-10-01 17:09:28,227 | INFO | qubic.api | Mask applied successfully
+2026-10-01 17:09:28,429 | INFO | qubic.api | Mask applied successfully
+2026-10-01 17:09:28,655 | INFO | qubic.api | Mask applied successfully
+2026-10-01 17:09:28,870 | INFO | qubic.api | Mask applied successfully
+2026-10-01 17:09:29,090 | INFO | qubic.api | Mask applied successfully
+2026-10-01 17:09:29,285 | INFO | qubic.api | Mask applied successfully
+2026-10-01 17:09:29,494 | INFO | qubic.api | Mask applied successfully
+2026-10-01 17:09:29,597 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 17:09:29,602 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 17:09:38,019 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 17:09:38,033 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 17:09:38,034 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 17:09:38,187 | INFO | qubic.api | Current menu changed to 'login-menu'
+2026-10-01 17:09:38,191 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-01 17:09:38,203 | INFO | qubic.api | Current menu changed to 'volume-menu'
+2026-10-01 17:10:52,213 | INFO | qubic.api | Real volume calculation started
+2026-10-01 17:10:53,286 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-01 17:10:53,988 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-01 17:10:54,328 | INFO | qubic.api | Measurement '2171' saved successfully by 'rui'
+2026-10-01 17:10:59,781 | INFO | qubic.api | Real volume calculation started
+2026-10-01 17:11:00,774 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-01 17:11:01,422 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-01 17:11:02,362 | INFO | qubic.api | Real volume calculation started
+2026-10-01 17:11:03,292 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-01 17:11:03,992 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-01 17:11:04,331 | INFO | qubic.api | Measurement '2172' saved successfully by 'rui'
+2026-10-01 17:11:06,727 | INFO | qubic.api | Real volume calculation started
+2026-10-01 17:11:07,614 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-01 17:11:08,304 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-01 17:11:08,706 | INFO | qubic.api | Measurement '2173' saved successfully by 'rui'
+2026-10-01 17:11:19,113 | INFO | qubic.api | Real volume calculation started
+2026-10-01 17:11:20,113 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-01 17:11:20,901 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-01 17:11:21,229 | INFO | qubic.api | Measurement '2174' saved successfully by 'rui'
+2026-10-01 17:11:24,438 | INFO | qubic.api | Real volume calculation started
+2026-10-01 17:11:25,397 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-01 17:11:26,008 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-01 17:11:28,628 | INFO | qubic.api | Real volume calculation started
+2026-10-01 17:11:29,592 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-01 17:11:30,288 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-01 17:11:30,657 | INFO | qubic.api | Measurement '2175' saved successfully by 'rui'
+2026-10-01 17:14:05,058 | INFO | qubic.api | Real volume calculation started
+2026-10-01 17:14:06,051 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-01 17:14:06,768 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-01 17:14:07,106 | INFO | qubic.api | Measurement '2176' saved successfully by 'rui'
+2026-10-01 17:14:09,625 | INFO | qubic.api | Real volume calculation started
+2026-10-01 17:14:10,432 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-01 17:14:11,149 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-01 17:14:11,484 | INFO | qubic.api | Measurement '2177' saved successfully by 'rui'
+2026-10-01 17:14:12,784 | INFO | qubic.api | Real volume calculation started
+2026-10-01 17:14:13,706 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-01 17:14:14,436 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-01 17:14:14,853 | INFO | qubic.api | Measurement '2178' saved successfully by 'rui'
+2026-10-01 17:14:18,569 | INFO | qubic.config | Language 'pt' saved successfully
+2026-10-01 17:14:18,570 | INFO | qubic.api | Interface language changed to 'pt'
+2026-10-01 17:14:20,854 | INFO | qubic.api | Real volume calculation started
+2026-10-01 17:14:21,871 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-01 17:14:22,595 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-01 17:14:22,924 | INFO | qubic.api | Measurement '2179' saved successfully by 'rui'
+2026-10-01 17:14:27,375 | INFO | qubic.api | Real volume calculation started
+2026-10-01 17:14:28,339 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-01 17:14:29,042 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-01 17:14:29,390 | INFO | qubic.api | Measurement '2180' saved successfully by 'rui'
+2026-10-01 17:14:36,459 | INFO | qubic.config | Language 'en' saved successfully
+2026-10-01 17:14:36,460 | INFO | qubic.api | Interface language changed to 'en'
+2026-10-01 17:14:59,181 | INFO | qubic.api | Real volume calculation started
+2026-10-01 17:15:00,054 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-01 17:15:00,822 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-01 17:15:01,182 | INFO | qubic.api | Measurement '2181' saved successfully by 'rui'
+2026-10-01 17:15:14,119 | INFO | qubic.api | Real volume calculation started
+2026-10-01 17:15:15,054 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-01 17:15:15,763 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-01 17:15:16,127 | INFO | qubic.api | Measurement '2182' saved successfully by 'rui'
+2026-10-01 17:15:22,650 | INFO | qubic.api | Real volume calculation started
+2026-10-01 17:15:23,552 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-01 17:15:24,204 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-01 17:15:24,541 | INFO | qubic.api | Measurement '2183' saved successfully by 'rui'
+2026-10-01 17:16:03,643 | INFO | qubic.api | Real volume calculation started
+2026-10-01 17:16:04,543 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-01 17:16:05,394 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-01 17:16:05,742 | INFO | qubic.api | Measurement '2184' saved successfully by 'rui'
+2026-10-01 17:16:12,428 | INFO | qubic.api | Real volume calculation started
+2026-10-01 17:16:13,426 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-01 17:16:14,142 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-01 17:16:14,486 | INFO | qubic.api | Measurement '2185' saved successfully by 'rui'
+2026-10-01 17:16:25,684 | INFO | qubic.api | Real volume calculation started
+2026-10-01 17:16:26,739 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-01 17:16:27,438 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-01 17:16:27,796 | INFO | qubic.api | Measurement '2186' saved successfully by 'rui'
+2026-10-01 17:16:30,057 | INFO | qubic.api | Real volume calculation started
+2026-10-01 17:16:30,921 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-01 17:16:31,514 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-01 17:16:31,858 | INFO | qubic.api | Measurement '2187' saved successfully by 'rui'
+2026-10-01 17:16:33,164 | INFO | qubic.api | Real volume calculation started
+2026-10-01 17:16:34,224 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-01 17:16:34,824 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-01 17:16:35,189 | INFO | qubic.api | Measurement '2188' saved successfully by 'rui'
+2026-10-01 17:16:39,572 | INFO | qubic.api | Real volume calculation started
+2026-10-01 17:16:40,453 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-01 17:16:41,098 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-01 17:16:41,455 | INFO | qubic.api | Measurement '2189' saved successfully by 'rui'
+2026-10-01 17:22:06,235 | WARNING | qubic.auth | Expired access token
+2026-10-01 17:22:06,248 | INFO | qubic.api | Access Token refreshed successfully for user 'rui'
+2026-10-01 17:23:08,491 | INFO | qubic.api | Shutting down API
+2026-10-01 17:23:08,492 | WARNING | qubic.api | WebRTC connection closed
+2026-10-01 17:23:08,531 | INFO | qubic.camera | Camera capture loop stopped
+2026-10-01 17:23:08,531 | INFO | qubic.camera | Stopping camera
+2026-10-01 17:23:08,771 | INFO | qubic.camera | Camera stopped its service

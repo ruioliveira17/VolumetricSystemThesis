@@ -1,5 +1,5 @@
 .crop-popup {
-  position: fixed;
+  position: absolute;
   inset: 0;
   background: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(2px);
@@ -13,14 +13,10 @@
 
 .crop-window {
   position: absolute;
-  top: 50cqh;
-  left: 50cqw;
-  transform: translate(-50%, -50%);
   width: 50cqw;
 
   background: #3E3E3E;
-  border-radius: 10px;
-  border: 1px solid #99999939;
+  border-radius: clamp(10px, 0.8cqw, 20px);
 
   display:flex;
   flex-direction:column;

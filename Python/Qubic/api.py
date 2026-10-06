@@ -1358,7 +1358,7 @@ def volume_SingleBundle(current_user: dict = Depends(get_current_user)):
 
     if depthState.objects_info is not None:
         volumeState.processing = "Identifying Objects..."
-        depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine, volumeState.united_contours = objIdentifier(colorFrame, colorToDepthFrame, depthFrame, frameState.calibrationColorFrame, frameState.calibrationDepthFrame, modeState.volumeMode, depthState.objects_info, workspaceState.workspace_depth, depthState.threshold, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb, camState.fx_d, camState.fy_d, camState.fx_rgb, camState.fy_rgb)
+        depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine, volumeState.united_contours, volumeState.contourGroups = objIdentifier(colorFrame, colorToDepthFrame, depthFrame, frameState.calibrationColorFrame, frameState.calibrationDepthFrame, modeState.volumeMode, depthState.objects_info, workspaceState.workspace_depth, depthState.threshold, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb, camState.fx_d, camState.fy_d, camState.fx_rgb, camState.fy_rgb)
         if volumeState.depths and not any(volumeState.objects_outOfLine):
             depthState.minimum_depth = min(volumeState.depths)
             if volumeState.box_limits is not None and len(volumeState.box_limits) > 0:
@@ -1473,7 +1473,7 @@ def volume_MultiBundle(current_user: dict = Depends(get_current_user)):
 
     if depthState.objects_info is not None:
         volumeState.processing = "Identifying Objects..."
-        depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine, volumeState.united_contours = objIdentifier(colorFrame, colorToDepthFrame, depthFrame, frameState.calibrationColorFrame, frameState.calibrationDepthFrame, modeState.volumeMode, depthState.objects_info, workspaceState.workspace_depth, depthState.threshold, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb, camState.fx_d, camState.fy_d, camState.fx_rgb, camState.fy_rgb)
+        depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine, volumeState.united_contours, volumeState.contourGroups = objIdentifier(colorFrame, colorToDepthFrame, depthFrame, frameState.calibrationColorFrame, frameState.calibrationDepthFrame, modeState.volumeMode, depthState.objects_info, workspaceState.workspace_depth, depthState.threshold, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb, camState.fx_d, camState.fy_d, camState.fx_rgb, camState.fy_rgb)
         if volumeState.depths and not any(volumeState.objects_outOfLine):       
             if volumeState.box_limits is not None and len(volumeState.box_limits) > 0:
                 volumeState.processing = "Calculating Volumes..."
@@ -1611,7 +1611,7 @@ def volume_Real(current_user: dict = Depends(get_current_user)):
 
     if depthState.objects_info is not None:
         volumeState.processing = "Identifying Objects..."
-        depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine, volumeState.united_contours = objIdentifier(colorFrame, colorToDepthFrame, depthFrame, frameState.calibrationColorFrame, frameState.calibrationDepthFrame, modeState.volumeMode, depthState.objects_info, workspaceState.workspace_depth, depthState.threshold, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb, camState.fx_d, camState.fy_d, camState.fx_rgb, camState.fy_rgb)
+        depthState.minimum_value, depthState.not_set, volumeState.box_ws, volumeState.box_limits, volumeState.depths, volumeState.objects_outOfLine, volumeState.united_contours, volumeState.contourGroups = objIdentifier(colorFrame, colorToDepthFrame, depthFrame, frameState.calibrationColorFrame, frameState.calibrationDepthFrame, modeState.volumeMode, depthState.objects_info, workspaceState.workspace_depth, depthState.threshold, camState.colorSlope, camState.cx_d, camState.cy_d, camState.cx_rgb, camState.cy_rgb, camState.fx_d, camState.fy_d, camState.fx_rgb, camState.fy_rgb)
         if volumeState.depths and not any(volumeState.objects_outOfLine):
             if volumeState.box_limits is not None and len(volumeState.box_limits) > 0:
                 volumeState.processing = "Calculating Volumes..."
@@ -1658,6 +1658,14 @@ def volume_Real(current_user: dict = Depends(get_current_user)):
         "ws_depth": workspaceState.workspace_depth / 10,
         "objCenter": volumeState.obj_center,
         "objAngles": volumeState.obj_angles,
+        "contour": [
+                        [
+                            contour.reshape(-1, 2).tolist()
+                            for contour in group
+                            if contour.size > 0
+                        ]
+                        for group in volumeState.contourGroups
+                    ],
     }
 
 def buildVolumeRealResponse():
@@ -1669,6 +1677,14 @@ def buildVolumeRealResponse():
     heights = volumeState.height_meters if isinstance(volumeState.height_meters, list) else [volumeState.height_meters]
     obj_center = volumeState.obj_center if isinstance(volumeState.obj_center, list) else [volumeState.obj_center]
     obj_angles = volumeState.obj_angles if isinstance(volumeState.obj_angles, list) else [volumeState.obj_angles]
+    contour = [
+                    [
+                        c.reshape(-1, 2).tolist()
+                        for c in group
+                        if c.size > 0
+                    ]
+                    for group in volumeState.contourGroups
+                ]
 
     num_objects = min(
         len(volumes),
@@ -1689,6 +1705,7 @@ def buildVolumeRealResponse():
             "z": [round(float(h), 1) for h in heights[i]],
             "obj_center": [[round(float(x), 3), round(float(y), 3)] for (x, y) in (obj_center[i] if obj_center[i] else [])],
             "obj_angles":  [round(float(a), 1) for a in (obj_angles[i] if obj_angles[i] else [])],
+            "contour": contour[i] if i < len(contour) else [],
         }
 
     response["Total"] = {

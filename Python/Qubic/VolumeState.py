@@ -32,6 +32,7 @@ class VolumeState:
         self.click_timestamp = None
         self.hdrFinished = False
         self.united_contours = None
+        self.contourGroups = None
         self.processing = ""
 
 volumeState = VolumeState()

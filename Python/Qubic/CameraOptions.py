@@ -23,6 +23,8 @@ hdrExposures = [
 depthArray = [None] * 6
 timestampArray = [0] * 6
 
+bufferIndex = 0
+
 def statusCamera():
     if camState.camera is not None and camState.cameraStatus == "online":
         return{"status": "Camera is already opened!"}
@@ -59,6 +61,9 @@ def startCamera():
         setSpatialFilter(filterState.spatialFilter)
             
         setConfidenceFilter(filterState.confidenceFilter)
+
+        if modeState.expositionMode == "HDR":
+            setEnableHDR(True)
 
         depth_intrinsics = camera.get_depth_intrinsic_parameters()
         rgb_intrinsics = camera.get_rgb_intrinsic_parameters()
@@ -218,25 +223,12 @@ def setConfidenceFilter(value: bool):
         return False
 
 def captureLoop():
-    global depthArray, timestampArray, hdrExposures
+    global depthArray, timestampArray, hdrExposures, bufferIndex
 
     logger.info("Camera capture loop started")
 
-    bufferIndex = 0
-
     try:
         while camState._running:
-            if camState.hdrEnabled and modeState.currentMenu == "volume-menu":
-                if bufferIndex in (0, 2, 4):
-                    if bufferIndex == 0:
-                        low, high = hdrExposures[0]
-                    elif bufferIndex == 2:
-                        low, high = hdrExposures[1]
-                    elif bufferIndex == 4:
-                        low, high = hdrExposures[2]
-
-                    setHDRInterval(low, high)
-
             frames = camState.camera.get_frames()
 
             if frames is None:
@@ -315,7 +307,7 @@ def buildHDRDepth(depthFrames):
     ).astype(numpy.uint16)
 
 def processHDR(click_timestamp):
-    global depthArray, timestampArray
+    global depthArray, timestampArray, bufferIndex
     finished = False
     finalHDRDepth = None
 
@@ -323,6 +315,17 @@ def processHDR(click_timestamp):
         click_timestamp = 0
 
     if any(frame is None for frame in depthArray) or any(ts <= click_timestamp for ts in timestampArray):
+        if camState.hdrEnabled and modeState.currentMenu == "volume-menu":
+            if bufferIndex in (0, 2, 4):
+                if bufferIndex == 0:
+                    low, high = hdrExposures[0]
+                elif bufferIndex == 2:
+                    low, high = hdrExposures[1]
+                elif bufferIndex == 4:
+                    low, high = hdrExposures[2]
+
+                setHDRInterval(low, high)
+
         finished = False
     else:
         finalHDRDepth = buildHDRDepth(depthArray)
@@ -336,5 +339,7 @@ def processHDR(click_timestamp):
         )
 
         finished = True
+
+        setHDRInterval(100, 1800)
 
     return finished, finalHDRDepth

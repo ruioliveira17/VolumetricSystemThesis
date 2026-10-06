@@ -87,13 +87,38 @@ def overlap_ratio(b1, b2):
 
     return inter / min(a1, a2)
 
-def is_valid_area(c, min_area = 320):
+def is_valid_area(c, min_area = 400):
     a = cv2.contourArea(c)
+
+    print("Area:", a)
 
     if a < min_area:
         return False
 
     return True
+
+def is_plausible_shape(c, min_solidity=0.60, min_extent=0.50, min_thickness=12, debug=False):
+    area = cv2.contourArea(c)
+    perimeter = cv2.arcLength(c, True)
+    if area <= 0 or perimeter <= 0:
+        return False
+
+    hull_area = cv2.contourArea(cv2.convexHull(c))
+    if hull_area <= 0:
+        return False
+
+    (_, _), (w, h), _ = cv2.minAreaRect(c)
+    if w * h <= 0:
+        return False
+
+    solidity = area / hull_area
+    extent = area / (w * h)
+    thickness = 2.0 * area / perimeter
+
+    if debug:
+        print(f"shape: solidity={solidity:.2f} extent={extent:.2f} thickness={thickness:.1f}")
+
+    return solidity >= min_solidity and extent >= min_extent and thickness >= min_thickness
 
 def comparisonCaliImageCurrImage(colorFrame, calibrationColorFrame, depthFrame, calibrationDepthFrame, box_scaled, contour):
     mask = numpy.zeros(colorFrame.shape[:2], dtype=numpy.uint8)
@@ -202,6 +227,8 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
         binaryImgs = []
         curr_index = 0
 
+        contourGroups = []
+
         colorToDepth_copy2 = colorFrame.copy()
         colorToDepth_copy3 = colorToDepthFrame.copy()
         depth_copy = depthFrame.copy()
@@ -215,6 +242,8 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
                 mask = numpy.ones(depth_copy.shape, dtype = numpy.uint8)
 
                 workspace_area2 = cv2.bitwise_and(depth_copy, depth_copy, mask=mask)
+
+                print("Depth:", obj["depth"])
 
                 if i == 0:
                     mask2 = (workspace_area2 >= (obj["depth"] - threshold)) & (workspace_area2 <= (obj["depth"] + threshold))
@@ -261,14 +290,18 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
                     if not is_valid_area(c):
                         continue
 
+                    if not is_plausible_shape(c, debug=True):
+                        print("\033[1;91mForma implausível\033[0m")
+                        continue
+
                     bbox_c = get_bbox(c)
+                    c_original = c
 
                     for i_prev_obj, prev_list in enumerate(contours):
                         for prev_c in prev_list:
                             bbox_prev = get_bbox(prev_c)
                             if contours_overlap_by_points(c, prev_c):
                                 if obj['depth'] - 5 <= depths[i_prev_obj] + threshold:
-                                    
                                     pending_merges.append({
                                         "current_index": curr_index,
                                         "prev_index": i_prev_obj
@@ -314,14 +347,17 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
                             dtype=numpy.int32
                         )
 
-                        margin = 5
+                        margin_cm = 2
+                        # fx = focal length (px) dos intrínsecos da câmara de profundidade
+                        # obj["depth"] = profundidade do plano do workspace (mm)
+                        margin = int(round(fx_d * (margin_cm * 10) / float(obj["depth"])))
 
                         ws_poly = expand_polygon(ws_poly, margin)
 
                         inside_points = 0
                         outside_points = 0
 
-                        for point in c:
+                        for point in c_original:
                             x, y = point[0]
 
                             result = cv2.pointPolygonTest(
@@ -339,6 +375,23 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
                             continue
 
                         value = outside_points > 0
+
+                        print("Contorno adicionado com o indice:", curr_index)
+
+                        colorToDepth_copy4 = colorToDepthFrame.copy()
+
+                        cv2.drawContours(
+                            colorToDepth_copy4,
+                            [c],
+                            -1,
+                            (0, 255, 0),
+                            2
+                        )
+
+                        cv2.polylines(colorToDepth_copy4, [numpy.array(workspace_warning, dtype=numpy.int32).reshape(-1, 1, 2)], True, (255, 0, 0), 2)
+                        cv2.polylines(colorToDepth_copy4, [ws_poly.reshape(-1, 1, 2).astype(numpy.int32)], True, (0, 0, 255), 2)
+
+                        cv2.imwrite(f"debug_contour_{i}_{curr_index}.png", colorToDepth_copy4)
 
                         belongs_to_previous = False
                         all_shifted_contours = numpy.vstack([c])
@@ -514,7 +567,9 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
                 x, y = box_scaled[idx_x]
 
                 cv2.putText(colorToDepth_copy2, str(obj_id), (x + 15, y + 40), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 0), 14, cv2.LINE_AA)
-                cv2.putText(colorToDepth_copy2, str(obj_id), (x + 15, y + 40), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (255, 255, 255), 7, cv2.LINE_AA)    
+                cv2.putText(colorToDepth_copy2, str(obj_id), (x + 15, y + 40), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (255, 255, 255), 7, cv2.LINE_AA)
+
+            contourGroups = groups
 
         # elif volumeMode == "Individual":
         #     for obj_id, contour_list in enumerate(contours, start=1):
@@ -547,7 +602,7 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
         not_set = 1
         minimum_value = 6000
                         
-        return minimum_value, not_set, box_ws, box_limits, depths, object_outOfLine, contours_united
+        return minimum_value, not_set, box_ws, box_limits, depths, object_outOfLine, contours_united, contourGroups
 
     except Exception:
         logger.exception("Error identifying objects")

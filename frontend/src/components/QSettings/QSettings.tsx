@@ -52,6 +52,8 @@ interface QSettingsProps {
   // Crop ("Define")
   currentMenu: string;
   setShowCropWindow: React.Dispatch<React.SetStateAction<boolean>>;
+
+  portalContainer?: Element | null;
 }
 
 function QSettings({
@@ -75,7 +77,8 @@ function QSettings({
   newUpdateAvailable,
   setUpdating,
   currentMenu,
-  setShowCropWindow
+  setShowCropWindow,
+  portalContainer,
 }: QSettingsProps) {
   const popupStyle: CSSProperties = settingsAnchorRect
     ? {
@@ -312,6 +315,7 @@ function QSettings({
           option2Text={t('power.shutdown')}
           onOption1={() => handlePowerAction("restart")}
           onOption2={() =>  handlePowerAction("shutdown")}
+          container={portalContainer}
         />
       )}
 
@@ -330,6 +334,7 @@ function QSettings({
           iconColor="#ff6666"
           confirmText={t("yes")}
           cancelText={t("no")}
+          container={portalContainer}
         />
       )}
 
@@ -347,6 +352,7 @@ function QSettings({
           iconColor="#ffcc00"
           confirmText={t("yes")}
           cancelText={t("no")}
+          container={portalContainer}
         />
       )}
 

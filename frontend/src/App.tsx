@@ -866,7 +866,8 @@ function App(){
             volume_cm: objData.volume_cm,
             width: objData.x,
             length: objData.y,
-            height: objData.z
+            height: objData.z,
+            contour: objData.contour ?? [],
         });
 
         setObjCenters(objData.obj_center ?? []);
@@ -1263,7 +1264,7 @@ function App(){
         ];
 
         corners.forEach((corner) => {
-            const radius = selectedCorner.current === corner.name ? 18 : 15;
+            const radius = selectedCorner.current === corner.name ? 28 : 25;
 
             ctx.beginPath();
             ctx.arc(corner.x, corner.y, radius, 0, Math.PI * 2);
@@ -1277,7 +1278,7 @@ function App(){
 
             ctx.globalCompositeOperation = "destination-out";
             ctx.beginPath();
-            ctx.arc(corner.x, corner.y, radius - 8, 0, Math.PI * 2);
+            ctx.arc(corner.x, corner.y, radius - 12, 0, Math.PI * 2);
             ctx.fill();
             ctx.globalCompositeOperation = "source-over";
         });
@@ -1666,9 +1667,28 @@ function App(){
             const cx = W / 2;
             const cy = H / 2;
 
-            const rotCenter = centers[0] ?? [0, 0];
-            const pivot_cx = rotCenter[0] / maxDim;
-            const pivot_cy = rotCenter[1] / maxDim;
+            let pivot_cx = 0;
+            let pivot_cy = 0;
+
+            if (volumeMode == "real" || measurementMode === "Real"){
+                const totalCenter = centers.reduce(
+                    (acc, [x, y]) => ({
+                        x: acc.x + x,
+                        y: acc.y + y,
+                    }),
+                    { x: 0, y: 0 }
+                );
+
+                totalCenter.x /= centers.length;
+                totalCenter.y /= centers.length;
+
+                pivot_cx = totalCenter.x / maxDim;
+                pivot_cy = totalCenter.y / maxDim;
+            } else {
+                const rotCenter = centers[0] ?? [0, 0];
+                pivot_cx = rotCenter[0] / maxDim;
+                pivot_cy = rotCenter[1] / maxDim;
+            }
 
             let baseHeight = 0;
 
@@ -1679,6 +1699,112 @@ function App(){
             }
 
             let prevTop = 0;
+
+            const isFullySupported = (
+                topBox: any,
+                topCenter: [number, number],
+                topAngle: number,
+                bottomBox: any,
+                bottomCenter: [number, number],
+                bottomAngle: number
+            ) => {
+                const getCorners = (
+                    box: any,
+                    center: [number, number],
+                    angle: number
+                ) => {
+                    const hw = box.width / 2;
+                    const hd = box.length / 2;
+
+                    const ca = Math.cos(angle);
+                    const sa = Math.sin(angle);
+
+                    const rotate = (x: number, y: number) => ({
+                        x: center[0] + x * ca - y * sa,
+                        y: center[1] + x * sa + y * ca,
+                    });
+
+                    return [
+                        rotate(-hw, -hd),
+                        rotate(hw, -hd),
+                        rotate(hw, hd),
+                        rotate(-hw, hd),
+                    ];
+                };
+
+                const topCorners = getCorners(
+                    topBox,
+                    topCenter,
+                    topAngle
+                );
+
+                const bottomCorners = getCorners(
+                    bottomBox,
+                    bottomCenter,
+                    bottomAngle
+                );
+
+                const bottomPolygon = new Path2D();
+
+                bottomPolygon.moveTo(
+                    bottomCorners[0].x,
+                    bottomCorners[0].y
+                );
+
+                for (let i = 1; i < bottomCorners.length; i++) {
+                    bottomPolygon.lineTo(
+                        bottomCorners[i].x,
+                        bottomCorners[i].y
+                    );
+                }
+
+                bottomPolygon.closePath();
+
+                const ca = Math.cos(topAngle);
+                const sa = Math.sin(topAngle);
+
+                const hw = topBox.width / 2;
+                const hd = topBox.length / 2;
+
+                const samples = 10;
+                let totalPoints = 0;
+                let supportedPoints = 0;
+
+                for (let ix = 0; ix <= samples; ix++) {
+                    for (let iy = 0; iy <= samples; iy++) {
+
+                        const localX = -hw + (2 * hw * ix / samples);
+                        const localY = -hd + (2 * hd * iy / samples);
+
+                        const x =
+                            topCenter[0] +
+                            localX * ca -
+                            localY * sa;
+
+                        const y =
+                            topCenter[1] +
+                            localX * sa +
+                            localY * ca;
+
+                        totalPoints++;
+
+                        if (
+                            ctx.isPointInPath(
+                                bottomPolygon,
+                                x,
+                                y
+                            )
+                        ) {
+                            supportedPoints++;
+                        }
+                    }
+                }
+
+                const supportPercentage =
+                    supportedPoints / totalPoints;
+
+                return supportPercentage >= 0.75;
+            };
 
             boxes.forEach((box: any, i: number) => {
                 let bottom, top;
@@ -1704,7 +1830,24 @@ function App(){
                     y: x * sa + y * ca,
                 });
 
-                const clipBottom = i === 0 ? 0 : prevTop;
+                let isSupported = false;
+
+                if (i > 0) {
+                    const prevAngle = (angles[i - 1] ?? 0) * Math.PI / 180;
+
+                    isSupported = isFullySupported(
+                        box,
+                        [center_x, center_y],
+                        angle,
+                        boxes[i - 1],
+                        centers[i - 1],
+                        prevAngle
+                    );
+                }
+
+                const clipBottom = i === 0 || !isSupported
+                    ? 0
+                    : prevTop;
 
                 bottom = (baseHeight + clipBottom) / maxDim;
                 top = (baseHeight + h) / maxDim;
@@ -1827,7 +1970,7 @@ function App(){
         };
     }, [volInfo, measureVolumeInfo, currentMenu]);
 
-      // Updates Current Menu on Backend
+    // Updates Current Menu on Backend
     useEffect(() => {
         async function updateMenu() {
             if (currentMenu === "config-menu"){
@@ -3105,7 +3248,8 @@ function App(){
                             volume_cm: objData.volume_cm,
                             width: objData.x,
                             length: objData.y,
-                            height: objData.z
+                            height: objData.z,
+                            contour: objData.contour
                         });
                     } else if (objIdentified.length > 1) {
                         setObjectList(objIdentified);
@@ -4194,6 +4338,7 @@ function App(){
 
                                     currentMenu={currentMenu}
                                     setShowCropWindow={setShowCropWindow}
+                                    portalContainer={appContainerRef.current}
                                 />
                             )}
 

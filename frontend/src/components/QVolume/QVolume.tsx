@@ -132,7 +132,7 @@ function QVolume({
                                 {(() => {
                                     const value = String(weightInfo?.weight ?? "").trim();
 
-                                    if (/^-+$/.test(value)) return value;
+                                    if (/^-+$/.test(value)) return value.slice(0,5);
 
                                     const number = Number(value);
 
