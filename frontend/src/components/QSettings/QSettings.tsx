@@ -173,6 +173,21 @@ function QSettings({
     return () => clearInterval(interval);
   }, []);
 
+  const weightZero = async () => {
+    try {
+      const response = await apiFetch("/weight/zero", {
+        method: "POST",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to zero the weight scale");
+      }
+
+    } catch (error) {
+      console.error("Weight zero error:", error);
+    }
+  };
+
   return (
     <>
       {/* Fundo Escuro */}
@@ -271,6 +286,14 @@ function QSettings({
           <div className="image-crop-preference">
             <span className="video-size">{t("settings.videoSize")}</span>
             <button onClick={() => setShowCropWindow(true)} disabled={currentMenu !== "volume-menu" || cameraStatus !== "online"} className="define-button">
+              <span className="define_text">{t("settings.set")}</span>
+            </button>
+          </div>
+
+          <span className="text">Weight Settings</span>
+          <div className="image-crop-preference">
+            <span className="video-size">Weight Zero</span>
+            <button onClick={weightZero} className="define-button">
               <span className="define_text">{t("settings.set")}</span>
             </button>
           </div>

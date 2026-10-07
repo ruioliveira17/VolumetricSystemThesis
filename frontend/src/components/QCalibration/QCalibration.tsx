@@ -5,6 +5,8 @@ import WarningIcon from '@assets/icons/warning.svg?react';
 
 import QBackgroundBranding from "../QBackgroundBranding";
 
+import {apiFetch} from "../../api/client"
+
 interface Message {
   type: string;
   text: string;
@@ -406,6 +408,22 @@ function QCalibration({
       cameraVideo,
       calibrationRender
   ]);
+
+  const restartCamera = async () => {
+        try {
+            const response = await apiFetch("/camera/restart", {
+                method: "POST",
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to restart camera");
+            }
+
+        } catch (error) {
+            console.error("Failed to restart camera:", error);
+        }
+  };
+
   return (
     <div>
       <QBackgroundBranding />
@@ -491,31 +509,61 @@ function QCalibration({
           <div className="calibration-colorToDepthimg-container">
             <div className="background"></div>
 
-            <div className="calibration-colorToDepthimg-wrapper">
-              <video
-                ref={cameraVideo}
-                className="calibration-colorToDepthimg"
-                data-manual={calibrationMode === "manual"}
-                autoPlay
-                playsInline
-                muted
-                onClick={handleColorClick}
-                draggable={false}
-              />
+            {cameraStatus === "starting" && (
+              <div className="loadingCalibrationCamera">
+                  <img src="/loading.svg" alt="loading"/>
+                  <span> Wait a moment... </span>
+              </div>
+            )}
 
-              {calibrationMode === "manual" &&
-                selectedPoint !== null &&
-                selectedPointPosition && (
-                    <canvas
-                        ref={magnifierCanvas}
-                        className={`calibration-magnifier ${magnifierSide}`}
+            {cameraStatus === "online" && (
+              <>
+                <div className="calibration-colorToDepthimg-wrapper">
+                    <video
+                      ref={cameraVideo}
+                      className="calibration-colorToDepthimg"
+                      data-manual={calibrationMode === "manual"}
+                      autoPlay
+                      playsInline
+                      muted
+                      onClick={handleColorClick}
+                      draggable={false}
                     />
-              )}
 
-              {calibrationMode === "manual" && (
-                <canvas ref={workspaceCanvas} className="workspace-overlay" />
-              )}
-            </div>
+                    {calibrationMode === "manual" &&
+                      selectedPoint !== null &&
+                      selectedPointPosition && (
+                          <canvas
+                              ref={magnifierCanvas}
+                              className={`calibration-magnifier ${magnifierSide}`}
+                          />
+                    )}
+
+                    {calibrationMode === "manual" && (
+                      <canvas ref={workspaceCanvas} className="workspace-overlay" />
+                    )}
+                  
+                </div>
+              </>
+            )}
+
+            {cameraStatus === "error" && (
+              <div className="error-modal-camera-calibration">
+                  <div className="background"></div>
+                  <div className="icon">
+                      <WarningIcon />
+                  </div>
+
+                  <div className="text">
+                      <span>Não foi possível iniciar a câmara.</span>
+                  </div>
+
+                  <button onClick={restartCamera}>
+                      <span className="retry_text">Retry</span>
+                  </button>
+              </div>
+            )}
+
           </div>
 
         </div>

@@ -7,6 +7,8 @@ import StableIcon from '@assets/icons/stableIcon.svg?react';
 
 import QBackgroundBranding from "../QBackgroundBranding";
 
+import {apiFetch} from "../../api/client"
+
 interface Message {
   type: string;
   text: string;
@@ -103,7 +105,20 @@ function QVolume({
   objectsOutOfLine
 
 }: QVolumeProps) {
+  const restartCamera = async () => {
+        try {
+            const response = await apiFetch("/camera/restart", {
+                method: "POST",
+            });
 
+            if (!response.ok) {
+                throw new Error("Failed to restart camera");
+            }
+
+        } catch (error) {
+            console.error("Failed to restart camera:", error);
+        }
+  };
   return (
     <div>
         <QBackgroundBranding />
@@ -189,22 +204,51 @@ function QVolume({
                 <div className="camera-container">
                     <div className="background"></div>
 
-                    <div className="camera-video-wrapper">
-                        <video
-                            ref={cameraVideo}
-                            autoPlay
-                            playsInline
-                            className="camera-video"
-                            onLoadedMetadata={() => {
-                                setCropVideoReady(true);
-                            }}
-                            style={cropTransform}
-                        />
-                        
-                        {objectImage && (
-                            <img className={`object-img ${showCamera ? "hidden" : "visible"}`} src={objectImage} onLoad={() => {setCropVideoReady(true);}} style={cropTransform} alt="objects"/>
-                        )}
-                    </div>
+                    {cameraStatus === "starting" && (
+                        <div className="loadingCamera">
+                            <img src="/loading.svg" alt="loading"/>
+                            <span> Wait a moment... </span>
+                        </div>
+                    )}
+
+                    {cameraStatus === "online" && (
+                        <>
+                            <div className="camera-video-wrapper">
+                                        <video
+                                            ref={cameraVideo}
+                                            autoPlay
+                                            playsInline
+                                            className="camera-video"
+                                            onLoadedMetadata={() => {
+                                                setCropVideoReady(true);
+                                            }}
+                                            style={cropTransform}
+                                        />
+                                        
+                                        {objectImage && (
+                                            <img className={`object-img ${showCamera ? "hidden" : "visible"}`} src={objectImage} onLoad={() => {setCropVideoReady(true);}} style={cropTransform} alt="objects"/>
+                                        )}
+                            </div>
+                        </>
+                    )}
+
+                    {cameraStatus === "error" && (
+                        <div className="error-modal-camera">
+                            <div className="background"></div>
+                            <div className="icon">
+                                <WarningIcon />
+                            </div>
+
+                            <div className="text">
+                                <span>Não foi possível iniciar a câmara.</span>
+                            </div>
+
+                            <button onClick={restartCamera}>
+                                <span className="retry_text">Retry</span>
+                            </button>
+                        </div>
+                    )}
+
                 </div>
 
                 {/* Info Objects */}

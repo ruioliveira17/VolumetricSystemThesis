@@ -1,9 +1,12 @@
 import ctypes
+import logging
 import numpy
 import time
 
 from .camera import Camera
 from ScepterSDK import *
+
+logger = logging.getLogger("qubic.frames")
 
 class VzenseCamera(Camera):
 
@@ -18,7 +21,7 @@ class VzenseCamera(Camera):
             raise RuntimeError("Failed to initialize Scepter SDK!")
 
         camera_count = ctypes.c_uint32(0)
-        retry_count = 20
+        retry_count = 5
 
         while camera_count.value==0 and retry_count > 0:
             ret = lib.scGetDeviceCount(ctypes.byref(camera_count), 1000)
@@ -169,7 +172,7 @@ class VzenseCamera(Camera):
 
         ret = lib.scGetFrameReady(
             self._handle,
-            ctypes.c_uint16(33),
+            ctypes.c_uint16(150),
             ctypes.byref(frameReady)
         )
 
@@ -261,6 +264,13 @@ class VzenseCamera(Camera):
                 "depth": depthFrame,
                 "color": colorFrame
             }
+
+        logger.warning(
+            "Incomplete frame | transformedColor=%s depth=%s color=%s",
+            colorToDepthFrame is not None,
+            depthFrame is not None,
+            colorFrame is not None,
+        )
 
         return None
 

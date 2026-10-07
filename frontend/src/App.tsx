@@ -76,24 +76,6 @@ function App(){
     // Messages variables
     // -----------------------------
 
-    // const TextServerConnection: Message = {text: "Server connection error", type: "error"};
-    // const TextError: Message = {text: "Error", type: "error"};
-    // const TextClear: Message = {text: "", type: "info"};
-
-    // const TextLoginWelcome: Message = {text: "Welcome!", type: "info"};
-    // const TextLoginCredentials: Message = {text: "Please insert your login credentials.", type: "info"};
-    // const TextFillAllFields: Message = {text: "Please fill all fields", type: "error"};
-
-    // const TextRegistrationError: Message = {text: "Registration failed", type: "error"};
-
-    // const TextResetTokenExpired: Message = {text: "Reset Token expired. Please generate another.", type: "error"};
-    // const TextChangePasswordError: Message = {text: "Changing Password failed", type: "error"}
-    
-    // const TextNotCalibrated: Message = { text: "System was not Calibrated.", type: "error" };
-    // const TextCenterNotAligned: Message = { text: "Center Point isn't Aligned.", type: "error" };
-    // const TextWsNotEmpty: Message = { text: "Workspace isn't Empty.", type: "error" };
-    // const TextWsNotEmptyAndCenterNotAligned: Message = { text: "Center Point isn't Aligned and Workspace isn't Empty.", type: "error" };
-
     const ORIGINAL_CROP = { x: 0, y: 0, width: 1600, height: 1200 };
     const DEFAULT_CROP = { x: 15, y: 15, width: 1570, height: 1170 };
 
@@ -375,6 +357,10 @@ function App(){
     const cameraStream = useRef<MediaStream | null>(null);
 
     const cameraVideo = useRef<HTMLVideoElement | null>(null);
+
+    const streamTypeRef = useRef<string | null>(null);
+
+    const webRTCGeneration = useRef(0);
 
     // -----------------------------
     // Volume variables
@@ -729,7 +715,7 @@ function App(){
         }
 
         check();
-        const id = setInterval(check, 2000);
+        const id = setInterval(check, 1000);
 
         return () => {
             cancelled = true;
@@ -750,10 +736,6 @@ function App(){
         }
 
         setMessage([TextClear()]);
-
-        if (currentMenu === "calibration-menu") {
-            workspaceDrawing();
-        }
 
         if (currentMenu === "volume-menu"){
             setObjectsOutOfLine(false);
@@ -819,19 +801,20 @@ function App(){
 
     useEffect(() => {
         const handleMenu = async (): Promise<void> => {
+            stopWebRTC();
 
             if (currentMenu === "volume-menu") {
-                startWebRTC("volume");
+                await startWebRTC("volume");
 
             } else if (currentMenu === "calibration-menu") {
-                startWebRTC("calibration");
+                await startWebRTC("calibration");
 
-            } else {
-                stopWebRTC();
             }
         };
 
-        handleMenu();
+        handleMenu().catch((error) => {
+            console.error("Failed to handle WebRTC menu change:", error);
+        });
 
     }, [currentMenu]);
 
@@ -1191,7 +1174,7 @@ function App(){
     }, [currentMenu, calibrationMode]);
 
     useEffect(() => {
-        if (currentMenu === "volume-menu" && savedCropArea !== null) {
+        if (currentMenu === "volume-menu" && savedCropArea !== null && cameraVideo.current) {
             setVideoCrop({
                 ...savedCropArea,
                 videoWidth: cameraVideo.current.videoWidth,
@@ -1530,7 +1513,7 @@ function App(){
         return () => {
             active = false;
         };
-    }, [currentMenu]);
+    }, [currentMenu, cameraStatus]);
 
     // Drawing the Boxes (3D wireframe of the measured objects)
     useEffect(() => {
@@ -2611,38 +2594,85 @@ function App(){
         return () => setOnAuthFailure(null);
     }, []);
 
+    useEffect(() => {
+        if (cameraStatus !== "stale") {
+            return;
+        }
+
+        const streamType = streamTypeRef.current;
+
+        if (!streamType) {
+            return;
+        }
+
+        console.log("Camera became stale. Restarting WebRTC...");
+
+        stopWebRTC();
+
+        startWebRTC(streamType).catch((error) => {
+            console.error("Failed to restart WebRTC:", error);
+        });
+    }, [cameraStatus]);
 
     // Start Video Connection Algorithm
     async function startWebRTC(streamType: string): Promise<void> {
+        const generation = ++webRTCGeneration.current;
+
+        streamTypeRef.current = streamType;
+
         const access_token = localStorage.getItem("access_token");
 
         if (!access_token) {
             throw new Error("No access token");
         }
 
-        pc.current = new RTCPeerConnection();
+        if (pc.current) {
+            pc.current.ontrack = null;
+            pc.current.close();
+            pc.current = null;
+        }
 
-        pc.current.addTransceiver('video', { direction: 'recvonly' });
+        const connection = new RTCPeerConnection();
+        pc.current = connection;
 
-        pc.current.ontrack = async (event) => {
+        connection.addTransceiver("video", {
+            direction: "recvonly"
+        });
+
+        connection.ontrack = async (event) => {
+            if (generation !== webRTCGeneration.current) {
+                return;
+            }
+
             cameraStream.current = event.streams[0];
 
             let attempts = 0;
             const maxAttempts = 10;
 
             const tryAttachVideo = async (): Promise<void> => {
-                if (cameraVideo.current) {
+                if (generation !== webRTCGeneration.current) {
+                    return;
+                }
 
+                if (cameraVideo.current) {
                     cameraVideo.current.srcObject = cameraStream.current;
                     cameraVideo.current.muted = true;
 
                     try {
                         await cameraVideo.current.play();
 
+                        if (generation !== webRTCGeneration.current) {
+                            return;
+                        }
+
                         if (streamType === "calibration") {
                             await workspaceDrawing();
                         }
                     } catch (e) {
+                        console.error(
+                            "Failed to play camera video:",
+                            e
+                        );
                     }
 
                     return;
@@ -2650,7 +2680,10 @@ function App(){
 
                 attempts++;
 
-                if (attempts < maxAttempts) {
+                if (
+                    attempts < maxAttempts &&
+                    generation === webRTCGeneration.current
+                ) {
                     setTimeout(tryAttachVideo, 100);
                 }
             };
@@ -2658,13 +2691,19 @@ function App(){
             await tryAttachVideo();
         };
 
-        const offer = await pc.current.createOffer();
-        await pc.current.setLocalDescription(offer);
+        const offer = await connection.createOffer();
+        await connection.setLocalDescription(offer);
 
-        const localDescription = pc.current.localDescription;
+        const localDescription = connection.localDescription;
 
         if (!localDescription) {
             throw new Error("Local description not available");
+        }
+
+        // A mudança de menu aconteceu enquanto estávamos a criar o offer.
+        if (generation !== webRTCGeneration.current) {
+            connection.close();
+            return;
         }
 
         const response = await apiFetch("/offer", {
@@ -2689,26 +2728,50 @@ function App(){
 
         const answer = await response.json();
 
-        await pc.current.setRemoteDescription(answer);
+        // O menu mudou enquanto esperávamos pela resposta.
+        if (generation !== webRTCGeneration.current) {
+            connection.close();
+            return;
+        }
+
+        // Esta conexão ainda é a atual?
+        if (pc.current !== connection) {
+            connection.close();
+            return;
+        }
+
+        await connection.setRemoteDescription(answer);
     }
 
     // Stop Video Connection Algorithm
     function stopWebRTC(): void {
-        const video = cameraVideo.current;
-
-        if (video && video.srcObject) {
-            const stream = video.srcObject as MediaStream;
-
-            stream.getTracks().forEach((track: MediaStreamTrack) => {
-                track.stop();
-            });
-            video.srcObject = null;
-        }
+        webRTCGeneration.current++;
 
         if (pc.current) {
             pc.current.ontrack = null;
             pc.current.close();
             pc.current = null;
+        }
+
+        const video = cameraVideo.current;
+
+        if (video && video.srcObject) {
+            const stream = video.srcObject as MediaStream;
+
+            stream.getTracks().forEach((track) => {
+                track.stop();
+            });
+
+            video.pause();
+            video.srcObject = null;
+        }
+
+        if (cameraStream.current) {
+            cameraStream.current.getTracks().forEach((track) => {
+                track.stop();
+            });
+
+            cameraStream.current = null;
         }
     }
 
@@ -3368,12 +3431,12 @@ function App(){
     // Draw the detected workspace (auto applies mask, manual draws the polygon)
     async function workspaceDrawing(): Promise<void> {
         try {
-            const access_token = localStorage.getItem("access_token");
             const r = await apiFetch("/calibrate/mode");
             const calibData = await r.json();
+            if (currentMenu !== "calibration-menu") return;
+
             if (calibData["Calibrate Mode"] === "Automatic" && cameraStatus === "online") {
-                if (currentMenu !== "calibration-menu") return;
-                applyMask(access_token!);
+                applyMask();
             } else if (calibData["Calibrate Mode"] === "Manual" && cameraStatus === "online") {
                 applyManualWorkspace();
             }
@@ -3382,7 +3445,7 @@ function App(){
         }
     }
 
-    async function applyMask(access_token: string): Promise<void> {
+    async function applyMask(): Promise<void> {
         try {
             const r = await apiFetch("/mask");
             const maskValues = await r.json();

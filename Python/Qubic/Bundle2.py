@@ -97,7 +97,7 @@ def is_valid_area(c, min_area = 400):
 
     return True
 
-def is_plausible_shape(c, min_solidity=0.60, min_extent=0.50, min_thickness=12, debug=False):
+def is_plausible_shape(c, min_solidity=0.40, min_extent=0.25, min_thickness=12, debug=False):
     area = cv2.contourArea(c)
     perimeter = cv2.arcLength(c, True)
     if area <= 0 or perimeter <= 0:

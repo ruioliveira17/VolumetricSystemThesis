@@ -1,15 +1,28 @@
 import logging
 import serial
+import subprocess
 import threading
 import time
 
 from WeightState import weightState
 
 weight_lock = threading.Lock()
+serial_lock = threading.Lock()
 
 logger = logging.getLogger("qubic.weight")
 
+original_tty_settings = None
+
 try:
+    result = subprocess.run(
+        ["stty", "-F", "/dev/ttyUSB0", "-g"],
+        capture_output=True,
+        text=True,
+        check=True
+    )
+
+    original_tty_settings = result.stdout.strip()
+
     ser = serial.Serial("/dev/ttyUSB0", 9600, timeout=3)
     logger.info("Weight scale connected successfully")
 except Exception:
@@ -33,7 +46,8 @@ def weight_loop():
         time.sleep(0.05)
 
 def getWeightSerial():
-    value = ser.readline()
+    with serial_lock:
+        value = ser.readline()
 
     if value:
         value = value.rstrip(b"\r\n")
@@ -60,3 +74,42 @@ def getWeightSerial():
                     "weight": digits,
                     "flags": flags
                 }
+
+def zeroWeight():
+    if ser is None:
+        logger.error("Cannot zero weight: scale is not connected")
+        return False
+
+    try:
+        with serial_lock:
+            ser.write(b"<T20!>\r\n")
+            ser.flush()
+
+        logger.info("Weight zero command sent successfully")
+
+        return True
+
+    except Exception:
+        logger.exception("Failed to send weight zero command")
+        return False
+
+def closeWeightSerial():
+    global ser
+
+    if ser is None:
+        return
+
+    try:
+        with serial_lock:
+            if ser.is_open:
+                ser.close()
+
+            if original_tty_settings:
+                subprocess.run(
+                    ["stty", "-F", "/dev/ttyUSB0", original_tty_settings],
+                    check=True
+                )
+                
+            logger.info("Weight scale serial port closed")
+    except Exception:
+        logger.exception("Failed to close weight scale serial port")

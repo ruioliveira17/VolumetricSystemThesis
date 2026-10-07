@@ -73,7 +73,7 @@ from CalibrationDefTkinter import calibrateAPI, maskAPI
 from CameraOptions import startCamera, stopCamera, setFPS, setExposureTime, setEnableHDR, setHDRInterval, setFlyingPixelFilter, setFillHoleFilter, setSpatialFilter, setConfidenceFilter, processHDR
 from MinDepth2 import MinDepthAPI
 from VolumeTkinter import volumeSingleBundleAPI, volumeMultiBundleAPI, volumeRealAPI #, volumeIndividualAPI
-from Weight import weight_loop, weight_lock
+from Weight import weight_loop, weight_lock, zeroWeight, closeWeightSerial
 
 #------------------------------------------------------   Services    ------------------------------------------------------
 
@@ -183,6 +183,7 @@ async def lifespan(app: FastAPI):
         pcs.clear()
 
         stopCamera()
+        closeWeightSerial()
 
 #----------------------------------------------------   Criar App   -------------------------------------------------------
 
@@ -604,6 +605,26 @@ def restore_measurements(current_user: dict = Depends(get_current_user)):
 
 #-------------------------------------------------------   Stream   -------------------------------------------------------
 
+@app.post("/camera/restart")
+def restart_camera(current_user: dict = Depends(get_current_user)):
+    if camState.cameraStatus == "starting":
+        return {"message": "Camera is already starting"}
+
+    if camState.cameraStatus == "online":
+        return {"message": "Camera is already online"}
+
+    if camState.cameraStatus == "shutting_down":
+        return {"message": "Camera is shutting down"}
+
+    threading.Thread(
+        target=startCamera,
+        daemon=True
+    ).start()
+
+    return {
+        "message": "Camera restart requested"
+    }
+
 @app.post("/offer", summary="Offer Stream",
           description="""
           Makes the offer to start streaming.
@@ -630,6 +651,8 @@ async def offer(request: Request, current_user: dict = Depends(get_current_user)
     params = await request.json() 
     streamType = params.get("stream", "volume")
 
+    logger.info("Starting WebRTC offer with stream type: %s", streamType)
+
     if streamType not in ["volume", "calibration"]:
         logger.warning(
             "WebRTC offer failed: unsupported stream type '%s'",
@@ -647,13 +670,13 @@ async def offer(request: Request, current_user: dict = Depends(get_current_user)
 
     @pc.on("connectionstatechange")
     async def on_connectionstatechange():
-        if pc.connectionState in ["failed", "closed", "disconnected"]:
-            logger.warning(
-                "WebRTC connection %s",
-                pc.connectionState
-            )
-            await pc.close()
-            pcs.discard(pc)
+        if pc.connectionState == "closed":
+            logger.info("WebRTC connection closed")
+
+        elif pc.connectionState in ["failed", "disconnected"]:
+            logger.warning("WebRTC connection %s", pc.connectionState)
+
+        pcs.discard(pc)
     try:
         await pc.setRemoteDescription(offer)
         if streamType == "volume":
@@ -1985,7 +2008,7 @@ def set_language(info: LanguageIn, current_user: dict = Depends(get_current_user
     return {"language": language}
     
 @app.post("/saveInfo")
-def save_state():
+def save_state(current_user: dict = Depends(get_current_user)):
     save_configuration()
 
     logger.info("Current configuration saved successfully")
@@ -2030,6 +2053,26 @@ def get_weight(current_user: dict = Depends(get_current_user)):
     with weight_lock:
         return weightState.weight.copy()
 
+@app.post("/weight/zero", summary="Sets the current weight as zero",
+         description="""
+         Sends the zero command to the weight scale, setting the current
+         weight reading as zero.
+         """,
+         tags=["Weight"])
+def weight_zero(current_user: dict = Depends(get_current_user)):
+    success = zeroWeight()
+
+    if not success:
+        raise HTTPException(
+            status_code=503,
+            detail="Unable to zero the weight scale"
+        )
+
+    return {
+        "success": True,
+        "message": "Weight scale zero command sent successfully"
+    }
+
 # --------------------------------------  Menu  ----------------------------------------
 
 @app.post("/currentMenu", summary="Changes the currentMenu",
@@ -2040,10 +2083,9 @@ def get_weight(current_user: dict = Depends(get_current_user)):
 def updateCurrentMenu(data: CurrentMenu, current_user: dict = Depends(get_current_user)):
     modeState.currentMenu = data.currentMenu
 
-    if data.currentMenu == "calibration-menu" and camState.hdrEnabled:
+    if data.currentMenu == "calibration-menu" and camState.hdrEnabled and camState.cameraStatus == "online":
         setHDRInterval(100, 1800)
-
-    logger.info("Current menu changed to '%s'", data.currentMenu)
+        logger.info("Current menu changed to '%s'", data.currentMenu)
 
     return{"message:": "Success"}
 
@@ -2164,14 +2206,6 @@ def get_measurement_image(measurement_id: int, kind: str, current_user: dict = D
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Image not found.")
 
 # ----------------------------------- Camera  Status -----------------------------------
-# @app.get("/camera/status", summary="Checks the status of the camera",
-#          description="""
-#          Checks the status of the camera. It returns the current state of the camera.
-#          """,
-#          tags=["Camera"])
-# def cameraStatus():
-#     return {"status": camState.cameraStatus}
-
 
 @app.get("/health", summary="Estado do servidor e da câmara",
          description="""
@@ -2190,12 +2224,11 @@ def health():
     ts = frameState.lastFrameAt
     age = None
     
-    if ts is None:
-        camState.cameraStatus = "starting"
-    elif camState.camera is not None and ts is not None:
-        
+    if ts is not None:
         age = round(now - ts, 2)
-        camState.cameraStatus = "online" if age < 2.0 else "stale"
+
+    if camState.cameraStatus == "online" and age is not None and age >= 2.0:
+        camState.cameraStatus = "stale"
 
     return {
         "api": "ok",

@@ -583,3 +583,239 @@
   justify-content: center;
   gap: 10px;
 }
+
+.loadingCalibrationCamera {
+  position: absolute;
+  inset: 0;
+
+  width: 100%;
+  height: 100%;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  gap: 10px;
+
+  z-index: 10;
+}
+
+.loadingCalibrationCamera img{
+  width: 40px;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+}
+
+@media (min-height: 1080px) and (max-height: 1172px){
+  .loadingCalibrationCamera img{
+    width: 50px;
+  }
+}
+
+@media (min-height: 1173px){
+  .loadingCalibrationCamera img{
+    width: 60px;
+  }
+}
+
+.loadingCalibrationCamera span{
+  color: white;
+  font-size: 14px;
+}
+
+@media (min-height: 1080px) and (max-height: 1172px){
+  .loadingCalibrationCamera span{
+    font-size: 15px;
+  }
+}
+
+@media (min-height: 1173px){
+  .loadingCalibrationCamera span{
+    font-size: 18px;
+  }
+}
+
+.error-modal-camera-calibration{
+  position: relative;
+
+  width: clamp(250px, 50%, 400px);
+  min-height: 180px;
+  max-height: 200px;
+
+  margin-top: auto;
+  margin-bottom: auto;
+
+  display: flex;
+  flex-direction: column;
+
+  box-sizing: border-box;
+
+  border-radius: 8px;
+  border: 1px solid #FF666666;
+
+  justify-content: center;
+  align-items: center;
+
+  gap: 10px;
+
+  overflow: hidden;
+}
+
+@media (min-width: 426px) and (max-width: 768px){
+  .error-modal-camera-calibration{
+    width: clamp(200px, 72.8%, 250px);
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px){
+  .error-modal-camera-calibration{
+    width: clamp(250px, 68.5%, 320px);
+  }
+}
+
+@media (min-width: 1025px) and (max-width: 1440px){
+  .error-modal-camera-calibration{
+    width: clamp(320px, 52.3%, 350px);
+  }
+}
+
+@media (min-width: 1441px){
+  .error-modal-camera-calibration{
+    width: clamp(350px, 41.3%, 500px);
+  }
+}
+
+@media (max-height: 1079px){
+  .error-modal-camera-calibration{
+    font-size: 13px;
+  }
+}
+
+@media (min-height: 1080px) and (max-height: 1172px){
+  .error-modal-camera-calibration{
+    font-size: 15px;
+  }
+}
+
+@media (min-height: 1173px){
+  .error-modal-camera-calibration{
+    font-size: 18px;
+  }
+}
+
+.error-modal-camera-calibration .background{
+  position: absolute;
+  inset: 0;
+  background: #FF00001A;
+  opacity: 1;
+}
+
+.error-modal-camera-calibration .icon{
+  position: relative;
+  z-index: 1;
+
+  width: 100%;
+  height: 58px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  color: #FF6666;
+}
+
+.error-modal-camera-calibration .icon svg {
+  height: 100%;
+}
+
+.error-modal-camera-calibration .text{
+  position: relative;
+  z-index: 1;
+
+  width:90%;
+  height:30%;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+
+  color: #FF6666;
+  margin-left: 5%;
+  margin-right: 5%;
+}
+
+.error-modal-camera-calibration button {
+  width: 30%;
+  cursor: pointer;
+  border-radius: 4px;
+  border: none;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  z-index: 1;
+
+  background: rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+}
+
+@media (max-height: 1079px){
+  .error-modal-camera-calibration button {
+    height: clamp(13px, 2.68cqh, 22px);
+  }
+}
+
+@media (min-height: 1080px) and (max-height: 1172px){
+  .error-modal-camera-calibration button {
+    height: clamp(20px, 2.23cqh, 24px);
+  }
+}
+
+@media (min-height: 1173px){
+  .error-modal-camera-calibration button {
+    height: clamp(24px, 2.4cqh, 28px);
+  }
+}
+
+.error-modal-camera-calibration button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.error-modal-camera-calibration button .retry_text {
+  color: white;
+  text-align: center;
+  text-transform: uppercase;
+  font-family: "Inter Regular", sans-serif;
+  transition: color 0.3s ease;
+}
+
+@media (max-height: 1079px){
+  .error-modal-camera-calibration button .retry_text {
+    font-size: clamp(11px, 1.59cqh, 13px);
+  }
+}
+
+@media (min-height: 1080px) and (max-height: 1172px){
+  .error-modal-camera-calibration button .retry_text {
+    font-size: clamp(13px, 1.39cqh, 15px);
+  }
+}
+
+@media (min-height: 1173px){
+  .error-modal-camera-calibration button .retry_text {
+    font-size: clamp(15px, 1.54cqh, 16.2px);
+  }
+}
+
+.error-modal-camera-calibration button:hover:not(:disabled) {
+  background: white;
+}
+
+.error-modal-camera-calibration button:hover:not(:disabled) .retry_text {
+  color: black;
+}

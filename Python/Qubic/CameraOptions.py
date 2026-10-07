@@ -248,6 +248,13 @@ def captureLoop():
 
                 continue
 
+            logger.debug(
+                "Frame received: depth=%s color=%s colorToDepth=%s",
+                frames["depth"] is not None,
+                frames["color"] is not None,
+                frames["colorToDepth"] is not None,
+            )
+
             now = time.monotonic()
 
             frameState.colorToDepthFrame = frames["colorToDepth"]

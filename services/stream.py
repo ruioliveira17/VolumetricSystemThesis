@@ -42,6 +42,9 @@ class CameraTrack(VideoStreamTrack):
     async def recv(self):
         frame = await _wait_for_frame(lambda: frameState.colorFrame)
 
+        if frame is None:
+            raise MediaStreamError("colorFrame is None")
+
         if frame.dtype != numpy.uint8:
             frame = (numpy.clip(frame, 0, 1) * 255).astype(numpy.uint8)
 
@@ -50,10 +53,25 @@ class CameraTrack(VideoStreamTrack):
 class CTDTrack(VideoStreamTrack):
     async def recv(self):
         if modeState.calibrationMode == "Automatic":
-            frame = await _wait_for_frame(lambda: frameState.workspaceDetectedFrame)
+            # frame = await _wait_for_frame(lambda: frameState.workspaceDetectedFrame)
+            frame = frameState.workspaceDetectedFrame
+
+            if frame is None:
+                frame = frameState.colorToDepthFrame
+
+                if frame is None:
+                    raise MediaStreamError("colorToDepthFrame is None")
+
+                if frame.dtype != numpy.uint8:
+                    frame = (numpy.clip(frame, 0, 1) * 255).astype(numpy.uint8)
+
+                logger.debug("workspaceDetectedFrame is None")
 
         elif modeState.calibrationMode == "Manual":
             frame = await _wait_for_frame(lambda: frameState.colorToDepthFrame)
+
+            if frame is None:
+                raise MediaStreamError("colorToDepthFrame is None")
             
             if frame.dtype != numpy.uint8:
                 frame = (numpy.clip(frame, 0, 1) * 255).astype(numpy.uint8)
