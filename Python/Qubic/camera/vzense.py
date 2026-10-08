@@ -167,12 +167,12 @@ class VzenseCamera(Camera):
         else:
             return False
 
-    def get_frames(self):
+    def get_frames(self, fps):
         frameReady = ScFrameReady()
 
         ret = lib.scGetFrameReady(
             self._handle,
-            ctypes.c_uint16(150),
+            ctypes.c_uint16(self.getFrameReadyWaitTime(fps)),
             ctypes.byref(frameReady)
         )
 
@@ -274,7 +274,13 @@ class VzenseCamera(Camera):
 
         return None
 
+    def getFrameReadyWaitTime(self, fps):
+        return int((2* 1000) / fps)
+
     def set_fps(self, fps):
+        if fps <= 0 or fps > 10:
+            raise ValueError("FPS must be between 1 and 10.")
+
         ret = lib.scSetFrameRate(
             self._handle,
             ctypes.c_int32(fps)
@@ -300,7 +306,25 @@ class VzenseCamera(Camera):
                 f"scGetFrameRate failed: {ret}"
             )
 
-        return frameRate.value
+        maxExposureTime = self.get_max_exposure_time()
+
+        frameCount = self.get_frame_count_of_hdr_mode()
+
+        hdrMaxExposureTimes = [
+            self.get_max_exposure_time_hdr(frameIndex)
+            for frameIndex in range(frameCount)
+        ]
+
+        logger.info(
+            "Frame rate set to %d FPS | "
+            "max exposure=%d us | "
+            "HDR max exposures=%s",
+            frameRate.value,
+            maxExposureTime,
+            hdrMaxExposureTimes,
+        )
+
+        return frameRate.value, maxExposureTime, hdrMaxExposureTimes
 
     def set_exposure_time(self, value):
         ret = lib.scSetExposureTime(
@@ -314,6 +338,22 @@ class VzenseCamera(Camera):
                 f"scSetExposureTime failed: {ret}"
             )
 
+    def get_max_exposure_time(self):
+        maxExposureTime = ctypes.c_int32()
+
+        ret = lib.scGetMaxExposureTime(
+            self._handle,
+            0x01,  # SC_TOF_SENSOR
+            ctypes.byref(maxExposureTime)
+        )
+
+        if ret != 0:
+            raise RuntimeError(
+                f"scGetMaxExposureTime failed: {ret}"
+            )
+
+        return maxExposureTime.value
+
     def set_enable_hdr(self, value):
         ret = lib.scSetHDRModeEnabled(
             self._handle,
@@ -324,6 +364,39 @@ class VzenseCamera(Camera):
             raise RuntimeError(
                 f"scSetHDRModeEnabled failed: {ret}"
             )
+
+    def get_frame_count_of_hdr_mode(self):
+        frameCount = ctypes.c_int32()
+
+        ret = lib.scGetFrameCountOfHDRMode(
+            self._handle,
+            ctypes.byref(frameCount)
+        )
+
+        if ret != 0:
+            raise RuntimeError(
+                f"scGetFrameCountOfHDRMode failed: {ret}"
+            )
+
+        return frameCount.value
+
+
+    def get_max_exposure_time_hdr(self, frameIndex):
+        maxExposureTime = ctypes.c_int32()
+
+        ret = lib.scGetMaxExposureTimeOfHDR(
+            self._handle,
+            ctypes.c_uint8(frameIndex),
+            ctypes.byref(maxExposureTime)
+        )
+
+        if ret != 0:
+            raise RuntimeError(
+                f"scGetMaxExposureTimeOfHDR failed for "
+                f"frame {frameIndex}: {ret}"
+            )
+
+        return maxExposureTime.value
 
     def set_hdr_interval(self, low, high):
         ret = lib.scSetExposureTimeOfHDR(self._handle, 0, low)

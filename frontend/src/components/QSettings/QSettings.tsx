@@ -4,6 +4,7 @@ import { type CSSProperties } from 'react';
 import "./QSettings.css";
 import { QConfirmationModal } from "../QConfirmationModal"
 import { QPowerOptionsModal } from "../QPowerOptionsModal"
+import { notify } from "../QToast";
 
 import CloseIcon from '@assets/icons/close.svg?react';
 import PopupConnection from '@assets/icons/popup_connection.svg?react';
@@ -122,6 +123,83 @@ function QSettings({
     ...languageOptions[code],
   }));
 
+  const [fps, setFps] = useState("");
+
+  async function fpsSet_click(): Promise<void> {
+    if (fps.trim() === "") {
+        notify.error("Only integer values are allowed for the frame rate.");
+        return;
+    }
+
+    const value = Number(fps);
+
+    if (!Number.isInteger(value)) {
+        notify.error("Only integer values are allowed for the frame rate.");
+        return;
+    }
+
+    if (value < 1 || value > 10) {
+      notify.error("Frame Rate values must be between 1 and 10.");
+      return;
+    }
+
+    try {
+        await apiFetch("/update_systemInfo", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ fps: value })
+        });
+
+        await apiFetch("/saveInfo", {
+            method: "POST"
+        });
+
+        notify.success("Frame Rate updated successfully.");
+
+    } catch (error) {
+        console.error("FPS set error:", error);
+    }
+  }
+
+  const weightZero = async () => {
+    try {
+      const response = await apiFetch("/weight/zero", {
+        method: "POST",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to zero the weight scale");
+      }
+
+    } catch (error) {
+      console.error("Weight zero error:", error);
+    }
+  };
+
+  const [confirmUpdate, setConfirmUpdate] = React.useState(false);
+  const [version, setVersion] = useState<string>('');
+
+  useEffect(() => {
+    const fetchVersion = async () => {
+      try {
+        const response = await apiFetch('/system/version');
+        const data = await response.json();
+
+        setVersion(data.version);
+      } catch (error) {
+        console.error('Failed to get system version:', error);
+      }
+    };
+
+    fetchVersion();
+
+    const interval = setInterval(fetchVersion, 30_000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   const [powerModalOpen, setPowerModalOpen] = React.useState(false);
   const [confirmModalOpen, setConfirmModalOpen] = React.useState(false);
   const [powerAction, setPowerAction] = React.useState<"shutdown" | "restart" | null>(null);
@@ -147,44 +225,6 @@ function QSettings({
       }
     } catch (error) {
       console.error(`Failed to ${action} system:`, error);
-    }
-  };
-
-  const [confirmUpdate, setConfirmUpdate] = React.useState(false);
-
-  const [version, setVersion] = useState<string>('');
-
-  useEffect(() => {
-    const fetchVersion = async () => {
-      try {
-        const response = await apiFetch('/system/version');
-        const data = await response.json();
-
-        setVersion(data.version);
-      } catch (error) {
-        console.error('Failed to get system version:', error);
-      }
-    };
-
-    fetchVersion();
-
-    const interval = setInterval(fetchVersion, 30_000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  const weightZero = async () => {
-    try {
-      const response = await apiFetch("/weight/zero", {
-        method: "POST",
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to zero the weight scale");
-      }
-
-    } catch (error) {
-      console.error("Weight zero error:", error);
     }
   };
 
@@ -216,6 +256,21 @@ function QSettings({
             />
           </div>
           
+          {/* FPS */}
+          <span className="text">Frame Rate</span>
+          <div className="input-controls">
+            <input
+              type="number"
+              className="box-input"
+              value={fps}
+              onChange={(e) => setFps(e.target.value)}
+            />
+
+            <button className="define-button" onClick={fpsSet_click}>
+              <span className="define_text">{t("settings.set")}</span>
+            </button>
+          </div>
+
           {/* Exposition */}
           <span className="text">{t("settings.exposureType")}</span>
           <div className="radio-group">
@@ -231,17 +286,17 @@ function QSettings({
           </div>
 
           {!expHDR && (
-            <div className="exposure-controls">
+            <div className="input-controls">
               <input
                 type="number"
-                className="exposure-input"
+                className="box-input"
                 value={exposureTime}
                 onChange={(e) => setExposureTime(e.target.value)}
                 disabled={cameraStatus !== "online"}
               />
 
-              <button className="exposure-btn" onClick={exposureSet_click} disabled={cameraStatus !== "online"}>
-                <span className="set-text">{t("settings.set")}</span>
+              <button className="define-button" onClick={exposureSet_click} disabled={cameraStatus !== "online"}>
+                <span className="define_text">{t("settings.set")}</span>
               </button>
             </div>
           )}
@@ -269,31 +324,31 @@ function QSettings({
 
           {/* Countdown Value */}
           <span className="text">{t("settings.countdownTimer")}</span>
-          <div className="countdown-controls">
+          <div className="input-controls">
             <input
               type="number"
-              className="countdown-input"
+              className="box-input"
               value={countdownTimer}
               onChange={(e) => setCountdownTimer(e.target.value)}
             />
 
-            <button className="countdown-btn" onClick={countdownTimerSet_click}>
-              <span className="set-text">{t("settings.set")}</span>
-            </button>
-          </div>
-
-          <span className="text">{t("settings.preferences")}</span>
-          <div className="image-crop-preference">
-            <span className="video-size">{t("settings.videoSize")}</span>
-            <button onClick={() => setShowCropWindow(true)} disabled={currentMenu !== "volume-menu" || cameraStatus !== "online"} className="define-button">
+            <button className="define-button" onClick={countdownTimerSet_click}>
               <span className="define_text">{t("settings.set")}</span>
             </button>
           </div>
 
           <span className="text">Weight Settings</span>
-          <div className="image-crop-preference">
-            <span className="video-size">Weight Zero</span>
+          <div className="preference">
+            <span className="preference-text">Weight Zero</span>
             <button onClick={weightZero} className="define-button">
+              <span className="define_text">{t("settings.set")}</span>
+            </button>
+          </div>
+
+          <span className="text">{t("settings.preferences")}</span>
+          <div className="preference">
+            <span className="preference-text">{t("settings.videoSize")}</span>
+            <button onClick={() => setShowCropWindow(true)} disabled={currentMenu !== "volume-menu" || cameraStatus !== "online"} className="define-button">
               <span className="define_text">{t("settings.set")}</span>
             </button>
           </div>

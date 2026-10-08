@@ -23,6 +23,7 @@ def save_configuration():
             "fillHoleFilter":    bool(filterState.fillHoleFilter)    if filterState.fillHoleFilter    is not None else True,
             "spatialFilter":     bool(filterState.spatialFilter)     if filterState.spatialFilter     is not None else True,
             "confidenceFilter":  bool(filterState.confidenceFilter)  if filterState.confidenceFilter  is not None else False,
+            "currentMenu":       modeState.currentMenu,
             "cropWindow":        volumeState.cropWindow.model_dump(),
             "cropArea":          volumeState.cropArea.model_dump(),
             "countdown":         volumeState.countdown,

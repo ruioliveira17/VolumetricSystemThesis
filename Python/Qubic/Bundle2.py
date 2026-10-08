@@ -90,8 +90,6 @@ def overlap_ratio(b1, b2):
 def is_valid_area(c, min_area = 400):
     a = cv2.contourArea(c)
 
-    print("Area:", a)
-
     if a < min_area:
         return False
 
@@ -243,8 +241,6 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
 
                 workspace_area2 = cv2.bitwise_and(depth_copy, depth_copy, mask=mask)
 
-                print("Depth:", obj["depth"])
-
                 if i == 0:
                     mask2 = (workspace_area2 >= (obj["depth"] - threshold)) & (workspace_area2 <= (obj["depth"] + threshold))
                 else:
@@ -290,7 +286,7 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
                     if not is_valid_area(c):
                         continue
 
-                    if not is_plausible_shape(c, debug=True):
+                    if not is_plausible_shape(c, debug=False):
                         print("\033[1;91mForma implausível\033[0m")
                         continue
 
@@ -375,8 +371,6 @@ def objIdentifier(colorFrame, colorToDepthFrame, depthFrame, calibrationColorFra
                             continue
 
                         value = outside_points > 0
-
-                        print("Contorno adicionado com o indice:", curr_index)
 
                         colorToDepth_copy4 = colorToDepthFrame.copy()
 

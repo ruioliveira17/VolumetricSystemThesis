@@ -49,7 +49,7 @@ const fr = {
         userNotFound: "Utilisateur introuvable.",
 
         exposureTimeValuesType: "Seules les valeurs entières sont autorisées pour le temps d'exposition.",
-        exposureTimeValuesRange: "Les valeurs du Temps d'exposition doivent être comprises entre 100 et 2000.",
+        exposureTimeValuesRange: "Les valeurs du Temps d'exposition doivent être comprises entre {{min}} et {{max}}.",
         exposureTimeSuccess: "Temps d'exposition mis à jour avec succès.",
 
         countdownTimerValuesType: "Seules les valeurs entières sont autorisées pour le compte à rebours.",

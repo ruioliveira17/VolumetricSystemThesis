@@ -73,7 +73,7 @@ from CalibrationDefTkinter import calibrateAPI, maskAPI
 from CameraOptions import startCamera, stopCamera, setFPS, setExposureTime, setEnableHDR, setHDRInterval, setFlyingPixelFilter, setFillHoleFilter, setSpatialFilter, setConfidenceFilter, processHDR
 from MinDepth2 import MinDepthAPI
 from VolumeTkinter import volumeSingleBundleAPI, volumeMultiBundleAPI, volumeRealAPI #, volumeIndividualAPI
-from Weight import weight_loop, weight_lock, zeroWeight, closeWeightSerial
+from Weight import weight_loop, weight_lock, weight_stop_event, zeroWeight, closeWeightSerial
 
 #------------------------------------------------------   Services    ------------------------------------------------------
 
@@ -143,6 +143,7 @@ async def lifespan(app: FastAPI):
             filterState.fillHoleFilter = config["fillHoleFilter"]
             filterState.spatialFilter = config["spatialFilter"]
             filterState.confidenceFilter = config["confidenceFilter"]
+            modeState.currentMenu = config["currentMenu"]
             volumeState.countdown = config["countdown"]
             volumeState.cropArea = CropWindow(**config["cropArea"])
             volumeState.cropWindow = CropWindow(**config["cropWindow"])
@@ -175,6 +176,11 @@ async def lifespan(app: FastAPI):
     finally:
         #SHUTDOWN
         logger.info("Shutting down API")
+
+        weight_stop_event.set()
+        weight_thread.join(timeout=4)
+
+        closeWeightSerial()
         
         await asyncio.gather(
             *(pc.close() for pc in pcs),
@@ -183,7 +189,6 @@ async def lifespan(app: FastAPI):
         pcs.clear()
 
         stopCamera()
-        closeWeightSerial()
 
 #----------------------------------------------------   Criar App   -------------------------------------------------------
 
@@ -1224,7 +1229,7 @@ def hdrExp(current_user: dict = Depends(get_current_user)):
     setEnableHDR(camState.hdrEnabled)
     setExposureTime(camState.exposureTime)
 
-    setHDRInterval(100, 1800)
+    setHDRInterval(100, camState.hdrMaxExposureTime[1] - 200)
 
     logger.info("Exposition mode changed to HDR")
 
@@ -1938,7 +1943,7 @@ def update_systemInfo(info: SystemUpdate, current_user: dict = Depends(get_curre
 
     if info.fps is not None:
         camState.fps = info.fps
-        setFPS()
+        setFPS(info.fps)
 
     if info.countdown is not None:
         volumeState.countdown = info.countdown
@@ -1952,6 +1957,12 @@ def update_systemInfo(info: SystemUpdate, current_user: dict = Depends(get_curre
     logger.info("System information updated successfully")
 
     return {"status": "updated"}
+
+@app.get("/exposure/max")
+def get_max_exposure(current_user: dict = Depends(get_current_user)):
+    return {
+        "maxExposureTime": camState.maxExposureTime
+    }
 
 # --------------------------------------- Config Status ---------------------------------------
 @app.get("/configuration/status", summary="Obtains the information about the configurations",
@@ -2084,7 +2095,7 @@ def updateCurrentMenu(data: CurrentMenu, current_user: dict = Depends(get_curren
     modeState.currentMenu = data.currentMenu
 
     if data.currentMenu == "calibration-menu" and camState.hdrEnabled and camState.cameraStatus == "online":
-        setHDRInterval(100, 1800)
+        setHDRInterval(100, camState.hdrMaxExposureTime[1] - 200)
         logger.info("Current menu changed to '%s'", data.currentMenu)
 
     return{"message:": "Success"}

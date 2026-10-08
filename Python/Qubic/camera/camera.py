@@ -24,7 +24,19 @@ class Camera(ABC):
         pass
 
     @abstractmethod
+    def get_max_exposure_time(self):
+        pass
+
+    @abstractmethod
     def set_enable_hdr(self, value):
+        pass
+
+    @abstractmethod
+    def get_frame_count_of_hdr_mode(self):
+        pass
+
+    @abstractmethod
+    def get_max_exposure_time_hdr(self):
         pass
 
     @abstractmethod

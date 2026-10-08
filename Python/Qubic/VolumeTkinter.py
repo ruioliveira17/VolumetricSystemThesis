@@ -488,7 +488,6 @@ def volumeRealAPI(depthFrame, calibrationDepthFrame, workspace_depth, box_limits
         length_meters = length_array
         height_meters = height_array
 
-        print("Height_Array:", height_meters)
         cv2.imwrite("debug_frame.png", debug_frame)
 
         return volume, width_meters, length_meters, height_meters, allObjCenter, groupAngles
@@ -785,7 +784,5 @@ def contourMedianHeightMMReal(contour, remaining_mask, shape):
     n = len(sorted_heights)
     cut = int(n * 0.15)
     central_heights = sorted_heights[cut:n - cut] if n - 2 * cut > 0 else sorted_heights
-
-    print(float(numpy.median(central_heights)))
 
     return float(numpy.median(central_heights))

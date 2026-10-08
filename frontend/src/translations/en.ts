@@ -49,7 +49,7 @@ const en = {
         userNotFound: "User not found.",
 
         exposureTimeValuesType: "Only integer values are allowed for the exposure time.",
-        exposureTimeValuesRange: "Exposure Time values must be between 100 and 2000.",
+        exposureTimeValuesRange: "Exposure Time values must be between {{min}} and {{max}}.",
         exposureTimeSuccess: "Exposure Time updated successfully.",
 
         countdownTimerValuesType: "Only integer values are allowed for the countdown timer.",

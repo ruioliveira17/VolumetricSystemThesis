@@ -9,6 +9,8 @@ from WeightState import weightState
 weight_lock = threading.Lock()
 serial_lock = threading.Lock()
 
+weight_stop_event = threading.Event()
+
 logger = logging.getLogger("qubic.weight")
 
 original_tty_settings = None
@@ -32,7 +34,7 @@ except Exception:
 def weight_loop():
     logger.info("Weight thread started")
 
-    while True:
+    while not weight_stop_event.is_set():
         try: 
             weight = getWeightSerial()
 
@@ -44,6 +46,8 @@ def weight_loop():
             logger.exception("Weight reading error")
 
         time.sleep(0.05)
+
+    logger.info("Weight thread stopped")
 
 def getWeightSerial():
     with serial_lock:
@@ -82,7 +86,9 @@ def zeroWeight():
 
     try:
         with serial_lock:
-            ser.write(b"<T20!>\r\n")
+            command = b"<T20" + b"\x01" + b">"
+            ser.write(command)
+            time.sleep(0.1)
             ser.flush()
 
         logger.info("Weight zero command sent successfully")

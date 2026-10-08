@@ -7,8 +7,10 @@ class CameraState:
         self._thread = None
 
         self.colorSlope = 4100
-        self.exposureTime = 100
         self.fps = 10
+        self.exposureTime = 100
+        self.maxExposureTime = None
+        self.hdrMaxExposureTime = None
         self.cx_d = 0
         self.cy_d = 0
         self.fx_d = 0

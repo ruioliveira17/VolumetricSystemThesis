@@ -220,7 +220,10 @@ function App(){
         fr,
     };
 
-    const t = (key: string) => {
+    const t = (
+        key: string,
+        params?: Record<string, string | number>
+    ) => {
         const keys = key.split(".");
 
         let value: any = translations[language];
@@ -229,7 +232,20 @@ function App(){
             value = value?.[k];
         }
 
-        return value ?? key;
+        if (typeof value !== "string") {
+            return value ?? key;
+        }
+
+        if (params) {
+            for (const [param, replacement] of Object.entries(params)) {
+                value = value.replace(
+                    new RegExp(`{{${param}}}`, "g"),
+                    String(replacement)
+                );
+            }
+        }
+
+        return value;
     };
 
     // -----------------------------
@@ -803,6 +819,10 @@ function App(){
         const handleMenu = async (): Promise<void> => {
             stopWebRTC();
 
+            if (cameraStatus !== "online") {
+                return;
+            }
+
             if (currentMenu === "volume-menu") {
                 await startWebRTC("volume");
 
@@ -816,7 +836,7 @@ function App(){
             console.error("Failed to handle WebRTC menu change:", error);
         });
 
-    }, [currentMenu]);
+    }, [currentMenu, cameraStatus]);
 
     useEffect(() => {
         if (!loadingVolume) return;
@@ -3772,6 +3792,11 @@ function App(){
 
     // Change Exposure Time (only for Fixed Exposition)
     async function exposureSet_click(): Promise<void> {
+        if (exposureTime.trim() === "") {
+            notify.error(t("error_and_info_messages.exposureTimeValuesType"));
+            return;
+        }
+        
         const value = Number(exposureTime);
 
         if (!Number.isInteger(value)) {
@@ -3779,12 +3804,15 @@ function App(){
             return;
         }
 
-        if (value < 100 || value > 2000) {
-            notify.error(t("error_and_info_messages.exposureTimeValuesRange"));
-            return;
-        }
-
         try {
+
+            const response = await apiFetch("/exposure/max");
+            const data = await response.json();
+
+            if (value < 30 || value > data.maxExposureTime) {
+                notify.error(t("error_and_info_messages.exposureTimeValuesRange", {min: 30, max: data.maxExposureTime}));
+                return;
+            }
 
             await apiFetch("/update_systemInfo", { method: "POST", headers: { "Content-Type": "application/json"}, body: JSON.stringify({ exposureTime: value }) });
 
@@ -3798,6 +3826,11 @@ function App(){
 
     // Change Countdown Timer
     async function countdownTimerSet_click(): Promise<void> {
+        if (countdownTimer.trim() === "") {
+            notify.error(t("error_and_info_messages.countdownTimerValuesType"));
+            return;
+        }
+
         const value = Number(countdownTimer);
 
         if (!Number.isInteger(value)) {

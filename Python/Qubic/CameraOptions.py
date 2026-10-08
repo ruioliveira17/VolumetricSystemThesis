@@ -14,12 +14,6 @@ from ScepterSDK import *
 
 logger = logging.getLogger("qubic.camera")
 
-hdrExposures = [
-    (30, 500),      # 0-1: low
-    (500, 1200),     # 2-3: medium
-    (1200, 2000),    # 4-5: high
-]
-
 depthArray = [None] * 6
 timestampArray = [0] * 6
 
@@ -139,7 +133,7 @@ def stopCamera():
     
 def setFPS(fps):
     try:
-        camState.fps = camState.camera.set_fps(fps)
+        camState.fps, camState.maxExposureTime, camState.hdrMaxExposureTime = camState.camera.set_fps(fps)
         return {"message": "Success"}
 
     except Exception:
@@ -147,13 +141,14 @@ def setFPS(fps):
         return {"message": "Failed"}
     
 def setExposureTime(value: int):
-    try:
-        camState.camera.set_exposure_time(value)
-        return True
+    if value < camState.maxExposureTime:
+        try:
+            camState.camera.set_exposure_time(value)
+            return True
 
-    except Exception:
-        logger.exception("Failed to set exposure time")
-        return False
+        except Exception:
+            logger.exception("Failed to set exposure time")
+            return False
 
 def setEnableHDR(value: bool):
     try:
@@ -223,13 +218,13 @@ def setConfidenceFilter(value: bool):
         return False
 
 def captureLoop():
-    global depthArray, timestampArray, hdrExposures, bufferIndex
+    global depthArray, timestampArray, bufferIndex
 
     logger.info("Camera capture loop started")
 
     try:
         while camState._running:
-            frames = camState.camera.get_frames()
+            frames = camState.camera.get_frames(camState.fps)
 
             if frames is None:
                 now = time.monotonic()
@@ -280,31 +275,34 @@ def buildHDRDepth(depthFrames):
     mask_d = (stacked_d > 150) & (stacked_d <= 5000)
     stacked_d[~mask_d] = numpy.nan
 
-    sorted_d = numpy.sort(stacked_d, axis=0)
+    # sorted_d = numpy.sort(stacked_d, axis=0)
 
-    valid_count = numpy.sum(~numpy.isnan(sorted_d), axis=0)
+    # valid_count = numpy.sum(~numpy.isnan(sorted_d), axis=0)
 
-    trimmed_d = sorted_d.copy()
+    # trimmed_d = sorted_d.copy()
 
-    trimmed_d[0] = numpy.where(
-        valid_count > 3,
-        numpy.nan,
-        trimmed_d[0]
-    )
+    # trimmed_d[0] = numpy.where(
+    #     valid_count > 3,
+    #     numpy.nan,
+    #     trimmed_d[0]
+    # )
 
-    trimmed_d[-1] = numpy.where(
-        valid_count > 3,
-        numpy.nan,
-        trimmed_d[-1]
-    )
+    # trimmed_d[-1] = numpy.where(
+    #     valid_count > 3,
+    #     numpy.nan,
+    #     trimmed_d[-1]
+    # )
 
-    median_d = numpy.nanmedian(trimmed_d, axis=0)
+    # median_d = numpy.nanmedian(trimmed_d, axis=0)
+    median_d = numpy.nanmedian(stacked_d, axis=0)
 
-    deviation = numpy.abs(trimmed_d - median_d)
+    # deviation = numpy.abs(trimmed_d - median_d)
+    deviation = numpy.abs(stacked_d - median_d)
 
     valid_d = deviation <= 5
 
-    filtered_d = numpy.where(valid_d, trimmed_d, numpy.nan)
+    # filtered_d = numpy.where(valid_d, trimmed_d, numpy.nan)
+    filtered_d = numpy.where(valid_d, stacked_d, numpy.nan)
 
     hdrDepth = numpy.rint(numpy.nanmean(filtered_d, axis=0))
 
@@ -324,12 +322,16 @@ def processHDR(click_timestamp):
     if any(frame is None for frame in depthArray) or any(ts <= click_timestamp for ts in timestampArray):
         if camState.hdrEnabled and modeState.currentMenu == "volume-menu":
             if bufferIndex in (0, 2, 4):
-                if bufferIndex == 0:
-                    low, high = hdrExposures[0]
-                elif bufferIndex == 2:
-                    low, high = hdrExposures[1]
-                elif bufferIndex == 4:
-                    low, high = hdrExposures[2]
+                maxExposureTimeLow = camState.hdrMaxExposureTime[0]
+                maxExposureTimeHigh = camState.hdrMaxExposureTime[1]
+                minExposureTime = 30
+
+                ratioLow = (maxExposureTimeLow / minExposureTime) ** (1 / 3)
+                ratioHigh = (maxExposureTimeHigh / minExposureTime) ** (1 / 3)
+                k = bufferIndex // 2  # 0, 1, 2
+
+                low = round(minExposureTime * ratioLow ** k)
+                high = round(minExposureTime * ratioHigh ** (k + 1))
 
                 setHDRInterval(low, high)
 
@@ -347,6 +349,6 @@ def processHDR(click_timestamp):
 
         finished = True
 
-        setHDRInterval(100, 1800)
+        setHDRInterval(100, camState.hdrMaxExposureTime[1] - 200)
 
     return finished, finalHDRDepth

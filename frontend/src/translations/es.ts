@@ -49,7 +49,7 @@ const es = {
         userNotFound: "Usuario no encontrado.",
 
         exposureTimeValuesType: "Solo se permiten valores enteros para el tiempo de exposición.",
-        exposureTimeValuesRange: "Los valores del Tiempo de Exposición deben estar entre 100 y 2000.",
+        exposureTimeValuesRange: "Los valores del Tiempo de Exposición deben estar entre {{min}} y {{max}}.",
         exposureTimeSuccess: "Tiempo de Exposición actualizado correctamente.",
 
         countdownTimerValuesType: "Solo se permiten valores enteros para la cuenta atrás.",
