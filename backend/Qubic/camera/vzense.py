@@ -4,7 +4,7 @@ import numpy
 import time
 
 from .camera import Camera
-from ScepterSDK import *
+from .ScepterSDK import *
 
 logger = logging.getLogger("qubic.frames")
 

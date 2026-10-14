@@ -8,15 +8,15 @@ from CameraState import camState
 from WorkspaceState import workspaceState
 from MaskState import maskState
 
-from db.calibration_repo import save_calibration
+from backend.data.db.calibration_repo import save_calibration
 
 logger = logging.getLogger("qubic.calibration")
 
 def save_WS_calibration():
     try: 
-        os.makedirs("config", exist_ok=True)
-        cv2.imwrite("config/calibrationColorFrame.png", frameState.calibrationColorFrame)
-        numpy.save("config/calibrationDepthFrame.npy", frameState.calibrationDepthFrame)
+        os.makedirs("backend/calib_data", exist_ok=True)
+        cv2.imwrite("backend/calib_data/calibrationColorFrame.png", frameState.calibrationColorFrame)
+        numpy.save("backend/calib_data/calibrationDepthFrame.npy", frameState.calibrationDepthFrame)
 
         data = {
             "detection_area": workspaceState.detection_area.tolist() if isinstance(workspaceState.detection_area, numpy.ndarray) else workspaceState.detection_area,
@@ -30,8 +30,8 @@ def save_WS_calibration():
             "color": maskState.color,
             "colorRGB": maskState.colorRGB,
             "colorSlope": int(camState.colorSlope),
-            "calibrationColorFrame_path": "config/calibrationColorFrame.png",
-            "calibrationDepthFrame_path": "config/calibrationDepthFrame.npy",
+            "calibrationColorFrame_path": "backend/calib_data/calibrationColorFrame.png",
+            "calibrationDepthFrame_path": "backend/calib_data/calibrationDepthFrame.npy",
         }
 
         save_calibration(data)

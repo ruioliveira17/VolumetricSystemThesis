@@ -109,7 +109,7 @@ if [ ! -d "$SDK_DRIVERS_DIR" ]; then
     exit 1
 fi
 
-mkdir -p "$PROJECT_DIR/Python/data"
+mkdir -p "$PROJECT_DIR/backend/data"
 
 echo "[8/8] Configuring automatic startup..."
 

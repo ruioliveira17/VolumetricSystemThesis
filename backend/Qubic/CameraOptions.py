@@ -10,7 +10,7 @@ from CameraState import camState
 from FilterState import filterState
 from FrameState import frameState
 from ModeState import modeState
-from ScepterSDK import *
+from camera.ScepterSDK import *
 
 logger = logging.getLogger("qubic.camera")
 

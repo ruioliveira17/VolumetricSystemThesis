@@ -5,7 +5,7 @@ from FilterState import filterState
 from ModeState import modeState
 from VolumeState import volumeState
 
-from db.config_repo import save_last_configuration
+from backend.data.db.config_repo import save_last_configuration
 
 logger = logging.getLogger("qubic.config")
 

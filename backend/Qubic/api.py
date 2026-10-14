@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
-from jose import jwt # Not needed?
+from jose import jwt
 from jose.exceptions import JWTError, ExpiredSignatureError
 from PIL import Image
 from typing import Optional
@@ -41,9 +41,9 @@ FRONTEND_DIR = os.path.join(os.path.dirname(PROJECT), "frontend", "dist")
 
 #------------------------------------------------------   Classes    -------------------------------------------------------
 
-from db.migrate import run_migrations
-from db import measurements_repo, config_repo, calibration_repo
-from db.users_repo import get_by_login, get_by_username, get_by_email, get_by_id, change_password, create_user, list_users, set_role, delete_user
+from backend.data.db.migrate import run_migrations
+from backend.data.db import measurements_repo, config_repo, calibration_repo
+from backend.data.db.users_repo import get_by_login, get_by_username, get_by_email, get_by_id, change_password, create_user, list_users, set_role, delete_user
 
 from BaseModels import CamValues, ChangePasswordData, ColorCoords, CropWindow, CurrentMenu, HSVValue, LanguageIn, LoginData, ManualWorkspace, MeasurementIn, ObjectIn, RefreshData, RegisterData, RoleUpdate, SystemUpdate
 from CameraState import camState
@@ -52,7 +52,7 @@ from FilterState import filterState
 from FrameState import frameState
 from MaskState import maskState
 from ModeState import modeState
-from ScepterSDK import *
+from camera.ScepterSDK import *
 from VolumeState import volumeState
 from WeightState import weightState
 from WorkspaceState import workspaceState
@@ -77,10 +77,10 @@ from Weight import weight_loop, weight_lock, weight_stop_event, zeroWeight, clos
 
 #------------------------------------------------------   Services    ------------------------------------------------------
 
-from services.saveCalibration import save_WS_calibration
-from services.saveConfiguration import save_configuration
-from services.stream import generateRGB_Stream, generateCalibrationCTD_Stream, generateCalibrationMask_Stream, CameraTrack, CTDTrack
-from services.utils import rgb_to_hsv
+from backend.services.saveCalibration import save_WS_calibration
+from backend.services.saveConfiguration import save_configuration
+from backend.services.stream import generateRGB_Stream, generateCalibrationCTD_Stream, generateCalibrationMask_Stream, CameraTrack, CTDTrack
+from backend.services.utils import rgb_to_hsv
 
 #----------------------------------------------------   DB Migration   ----------------------------------------------------
 
@@ -2163,7 +2163,7 @@ def _save_png(frame, path):
     return True
 
 def _snapshot_measurement_frames(measurement_id):
-    folder = os.path.join("data", "measurements", str(measurement_id))
+    folder = os.path.join("backend", "data", "measurements", str(measurement_id))
     os.makedirs(folder, exist_ok=True)
 
     frames = {

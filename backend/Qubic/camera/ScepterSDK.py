@@ -1,12 +1,46 @@
-from pathlib import Path
 import ctypes
 import os
+import platform
 
-PROJECT_DIR = Path(__file__).resolve().parents[2]
+from pathlib import Path
 
-SDK_PATH = PROJECT_DIR / "AArch64" / "ScepterSDK" / "Lib" / "libScepter_api.so"
+PROJECT_DIR = Path(__file__).resolve().parents[3]
 
-lib = ctypes.CDLL(os.fspath(SDK_PATH))
+system = platform.system()
+machine = platform.machine().lower()
+
+if system == "Windows":
+    if machine in ("amd64", "x86_64"):
+        lib_path = PROJECT_DIR / "vendor" / "Windows" / "ScepterSDK" / "Bin" / "x64" / "Scepter_api.dll"
+    # elif machine in ("x86", "i386", "i686"):
+    #     lib_path = PROJECT_DIR / "vendor" / "Windows" / "x86" / "Scepter_api.dll"
+    else:
+        raise RuntimeError(
+            f"Arquitetura Windows não suportada: {machine}"
+        )
+
+    lib = ctypes.WinDLL(os.fspath(lib_path))
+
+elif system == "Linux":
+    if machine in ("aarch64", "arm64"):
+        lib_path = (PROJECT_DIR / "vendor" / "AArch64" / "ScepterSDK" / "Lib" / "libScepter_api.so")
+    # elif machine in ("x86_64", "amd64"):
+    #     lib_path = (PROJECT_DIR / "vendor" / "Ubuntu18.04" / "Lib" / "libScepter_api.so")
+    else:
+        raise RuntimeError(
+            f"Arquitetura Linux não suportada: {machine}"
+        )
+
+    lib = ctypes.CDLL(os.fspath(lib_path))
+
+else:
+    raise RuntimeError(
+        f"Sistema operativo não suportado: {system}"
+    )
+
+# SDK_PATH = PROJECT_DIR / "vendor" / "AArch64" / "ScepterSDK" / "Lib" / "libScepter_api.so"
+
+# lib = ctypes.CDLL(os.fspath(SDK_PATH))
 
 # ============================================================
 # Tipos
