@@ -4041,6 +4041,32 @@ function App(){
         };
     }, [showSettingsPopup, settingsAnchorEl]);
 
+    const validateUpdate = async () => {
+        try {
+            const response = await apiFetch('/updates/validate', {
+                method: 'POST',
+            });
+
+            const result = await response.json();
+
+            if (response.ok && result.success && result.valid && result.update_available) {
+                setNewUpdateAvailable(true);
+            } else {
+                setNewUpdateAvailable(false);
+                
+                if (!response.ok || !result.success || !result.valid) {
+                    console.error(
+                        'Update validation failed:',
+                        result.detail ?? 'Invalid update package'
+                    );
+                }
+            }
+        } catch (error) {
+            setNewUpdateAvailable(false);
+            console.error('Error validating update:', error);
+        }
+    };
+
     if (!isLoaderVisible){
         return (
             <>
@@ -4055,9 +4081,7 @@ function App(){
                                     key: 'notifications',
                                     label: 'Notifications',
                                     icon: <NotificationsIcon />,
-                                    onClick: () => {
-                                        setNewUpdateAvailable(true);
-                                    },
+                                    onClick: validateUpdate,
                                 },
                                 {
                                     key: 'settings',
