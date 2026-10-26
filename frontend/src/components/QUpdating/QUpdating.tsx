@@ -1,95 +1,99 @@
-import React from "react";
-import { useEffect, useState } from "react";
+
+import React, { useEffect, useRef, useState } from "react";
 import "./QUpdating.css";
-import QubicLoader from '@assets/icons/qubic-loader.svg?react';
-import {apiFetch} from "../../api/client"
+import QubicLoader from "@assets/icons/qubic-loader.svg?react";
+import { apiFetch } from "../../api/client";
 
 interface QUpdatingProps {
     onComplete: () => void;
 }
 
+const POLL_INTERVAL_MS = 1000;
+const RESTART_TIMEOUT_MS = 120_000;
+
+const delay = (ms: number) =>
+    new Promise<void>((resolve) => setTimeout(resolve, ms));
+
 function QUpdating({ onComplete }: QUpdatingProps) {
-    // const [progress, setProgress] = useState(0);
-
-    // useEffect(() => {
-    //     const interval = setInterval(() => {
-    //         setProgress((current) => {
-    //             if (current >= 100) {
-    //                 clearInterval(interval);
-
-    //                 setTimeout(() => {
-    //                     onComplete();
-    //                 }, 500);
-
-    //                 return 100;
-    //             }
-
-    //             return current + 5;
-    //         });
-    //     }, 1000);
-
-    //     return () => clearInterval(interval);
-    // }, []);
-
-    // const getUpdateMessage = () => {
-    //     if (progress < 30) {
-    //         return "Downloading update...";
-    //     }
-
-    //     if (progress < 70) {
-    //         return "Extracting files...";
-    //     }
-
-    //     if (progress < 80) {
-    //         return "Backing up current version...";
-    //     }
-
-    //     if (progress < 95) {
-    //         return "Installing update...";
-    //     }
-
-    //     return "The system is about to restart...";
-    // };
-
     const [error, setError] = useState<string | null>(null);
+    const installStarted = useRef(false);
+    const onCompleteRef = useRef(onComplete);
 
     useEffect(() => {
+        onCompleteRef.current = onComplete;
+    }, [onComplete]);
+
+    useEffect(() => {
+        if (installStarted.current) return;
+        installStarted.current = true;
+
         let cancelled = false;
 
-        const installUpdate = async () => {
+        const runUpdate = async () => {
             try {
-                const response = await apiFetch("/updates/install-test", {
+                const installResponse = await apiFetch("/updates/install", {
                     method: "POST",
                 });
 
-                if (!response.ok) {
-                    const data = await response.json().catch(() => null);
-
+                if (!installResponse.ok) {
+                    const data = await installResponse.json().catch(() => null);
                     throw new Error(
-                        data?.detail || "Failed to install the update."
+                        data?.detail || "Falha ao instalar a atualização."
                     );
                 }
 
+                const deadline = Date.now() + RESTART_TIMEOUT_MS;
+
+                while (!cancelled && Date.now() < deadline) {
+                    try {
+                        const response = await apiFetch("/health", {
+                            method: "GET",
+                        });
+
+                        if (response.status === 200) {
+                            await delay(1000);
+
+                            if (cancelled) return;
+
+                            const confirmation = await apiFetch("/health", {
+                                method: "GET",
+                            });
+
+                            if (confirmation.status === 200) {
+                                onCompleteRef.current();
+                                return;
+                            }
+                        }
+                    } catch {
+                        // A API pode estar temporariamente indisponível
+                        // enquanto reinicia.
+                    }
+
+                    await delay(POLL_INTERVAL_MS);
+                }
+
                 if (!cancelled) {
-                    onComplete();
+                    throw new Error(
+                        "Não foi possível confirmar o reinício da API."
+                    );
                 }
             } catch (err) {
-                if (cancelled) return;
-
-                setError(
-                    err instanceof Error
-                        ? err.message
-                        : "An unexpected error occurred."
-                );
+                if (!cancelled) {
+                    setError(
+                        err instanceof Error
+                            ? err.message
+                            : "Ocorreu um erro inesperado."
+                    );
+                }
             }
         };
 
-        void installUpdate();
+        void runUpdate();
 
         return () => {
             cancelled = true;
         };
-    }, [onComplete]);
+    }, []);
 
     return (
         <div className="updating-overlay">

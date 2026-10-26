@@ -7,9 +7,9 @@ from fastapi import Body, Depends, FastAPI, HTTPException, Request, Response, st
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
-
 from jose import jwt
 from jose.exceptions import JWTError, ExpiredSignatureError
+from pathlib import Path
 from PIL import Image
 from typing import Optional
 
@@ -38,6 +38,8 @@ sys.path.insert(0, PROJECT)
 os.environ.setdefault("DATABASE_PATH", os.path.join(PROJECT, "data", "dev_app.db"))
 
 FRONTEND_DIR = os.path.join(os.path.dirname(PROJECT), "frontend", "dist")
+
+VERSION_FILE = Path(__file__).resolve().parent.parent.parent / "version.txt"
 
 #------------------------------------------------------   Classes    -------------------------------------------------------
 
@@ -2247,6 +2249,7 @@ def health():
         "api": "ok",
         "cameraStatus": camState.cameraStatus,
         "last_frame_age_s": age,
+        "version": VERSION_FILE.read_text(encoding="utf-8").strip(),
     }
 
 # ----------------------------------- Server  Status -----------------------------------

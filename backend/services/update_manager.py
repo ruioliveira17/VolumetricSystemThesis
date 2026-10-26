@@ -1,21 +1,20 @@
 import hashlib
 import json
 import logging
+import os
 import re
-import shutil
 import zipfile
 
 from pathlib import Path, PurePosixPath
 
-
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("qubic.update")
 
 # Localização do pacote recebido pela Raspberry Pi.
 UPDATE_DIR = Path("/home/marques/UpdateQubic")
 DEFAULT_PACKAGE = UPDATE_DIR / "qubic-update.zip"
 
 # Destino exclusivo do primeiro teste.
-TEST_INSTALL_DIR = Path("/home/marques/Tese/updated")
+INSTALL_DIR = Path("/home/marques/Tese")
 
 SHA256_PATTERN = re.compile(r"^[a-fA-F0-9]{64}$")
 MAX_MANIFEST_SIZE = 1024 * 1024  # 1 MiB
@@ -166,11 +165,13 @@ def validate_update_package(
                     )
 
                 # A primeira versão só permite destinos de teste.
-                if destination.parts[0] != "update-test":
-                    raise UpdateValidationError(
-                        "Destino não permitido nesta fase de teste: "
-                        f"{destination}"
-                    )
+                # if destination.parts[0] != "update-test":
+                #     raise UpdateValidationError(
+                #         "Destino não permitido nesta fase de teste: "
+                #         f"{destination}"
+                #     )
+
+                # Nesta fase, aceita caminhos relativos declarados no payload.
 
                 content = archive.read(info)
                 actual_hash = _sha256(content)
@@ -201,55 +202,312 @@ def validate_update_package(
             f"ZIP ou manifesto inválido: {exc}"
         ) from exc
 
+def _create_backup(
+    install_root: Path,
+    backup_path: Path,
+) -> Path:
+    """
+    Cria e valida um backup ZIP antes de substituir o destino final.
 
-def install_test_update(
-    package_path: Path = DEFAULT_PACKAGE,
-    install_root: Path = TEST_INSTALL_DIR,
-) -> dict:
+    - Não comprime os ficheiros (ZIP_STORED).
+    - Exclui pastas geradas e ligações simbólicas.
+    - Preserva o backup anterior caso a criação falhe.
+    - Remove o ficheiro temporário se a operação for interrompida.
     """
-    Instala apenas ficheiros declarados sob update-test/,
-    dentro do diretório isolado de teste.
-    """
-    result = validate_update_package(package_path)
+    import tempfile
+
     install_root = Path(install_root).resolve()
-    install_root.mkdir(parents=True, exist_ok=True)
+    backup_path = Path(backup_path).resolve()
 
-    with zipfile.ZipFile(package_path, "r") as archive:
-        for item in result["files"]:
-            relative = PurePosixPath(item["destination"]).relative_to(
-                "update-test"
+    if not install_root.is_dir():
+        raise UpdateValidationError(
+            f"A pasta de instalação não existe: {install_root}"
+        )
+
+    if backup_path.is_relative_to(install_root):
+        raise UpdateValidationError(
+            "O backup não pode ficar dentro da pasta de instalação."
+        )
+
+    backup_path.parent.mkdir(parents=True, exist_ok=True)
+
+    excluded_dirs = {
+        ".git",
+        "__pycache__",
+        "logs",
+        "node_modules",
+        "venv",
+        ".venv",
+    }
+
+    excluded_files = {
+        ".env",
+        ".gitignore",
+    }
+
+    temp_path = None
+
+    try:
+        # Criar o temporário no mesmo sistema de ficheiros
+        # para permitir a substituição atómica no final.
+        fd, temp_name = tempfile.mkstemp(
+            prefix=f"{backup_path.name}.",
+            suffix=".tmp",
+            dir=backup_path.parent,
+        )
+        os.close(fd)
+        temp_path = Path(temp_name)
+
+        logger.info("A iniciar backup de %s", install_root)
+        logger.info("Destino temporário: %s", temp_path)
+
+        # ZIP_STORED evita a compressão DEFLATE.
+        with zipfile.ZipFile(
+            temp_path,
+            mode="w",
+            compression=zipfile.ZIP_STORED,
+        ) as archive:
+
+            for root, dirs, files in os.walk(
+                install_root,
+                followlinks=False,
+            ):
+                root_path = Path(root)
+
+                # Não entrar em pastas excluídas ou symlinks.
+                dirs[:] = [
+                    name
+                    for name in dirs
+                    if name not in excluded_dirs
+                    and not (root_path / name).is_symlink()
+                ]
+
+                # Excluir ficheiros configurados e symlinks.
+                files = [
+                    name
+                    for name in files
+                    if name not in excluded_files
+                    and not (root_path / name).is_symlink()
+                ]
+
+                # Preservar diretórios vazios.
+                if (
+                    not dirs
+                    and not files
+                    and root_path != install_root
+                ):
+                    archive.write(
+                        root_path,
+                        arcname=(
+                            root_path.relative_to(
+                                install_root
+                            ).as_posix() + "/"
+                        ),
+                    )
+
+                for name in files:
+                    path = root_path / name
+
+                    if path.is_file() and not path.is_symlink():
+                        archive.write(
+                            path,
+                            arcname=path.relative_to(
+                                install_root
+                            ).as_posix(),
+                            compress_type=zipfile.ZIP_STORED,
+                        )
+
+        # O ZIP já está fechado. Agora validar a cópia temporária.
+        if not temp_path.is_file() or temp_path.stat().st_size == 0:
+            raise UpdateValidationError(
+                "O ficheiro temporário do backup está vazio ou não existe."
             )
 
-            target = (install_root / Path(*relative.parts)).resolve()
-
-            if not target.is_relative_to(install_root):
+        with zipfile.ZipFile(temp_path, mode="r") as archive:
+            if not archive.namelist():
                 raise UpdateValidationError(
-                    f"O destino sai da pasta de teste: {target}"
+                    "O backup ZIP ficou vazio."
                 )
+
+            corrupted_file = archive.testzip()
+
+            if corrupted_file is not None:
+                raise UpdateValidationError(
+                    f"Entrada inválida no backup: {corrupted_file}"
+                )
+
+        # Só publicar o backup depois da validação.
+        # O backup anterior permanece intacto se algo falhar antes daqui.
+        os.replace(temp_path, backup_path)
+        temp_path = None
+
+        logger.info(
+            "Backup criado e validado: %s (%.2f MB)",
+            backup_path,
+            backup_path.stat().st_size / (1024 * 1024),
+        )
+
+        return backup_path
+
+    except Exception:
+        logger.exception(
+            "Falha ao criar o backup: %s",
+            backup_path,
+        )
+        raise
+
+    finally:
+        # Também é executado quando a operação é interrompida
+        # por KeyboardInterrupt (Ctrl+C).
+        if temp_path is not None:
+            try:
+                temp_path.unlink(missing_ok=True)
+            except OSError:
+                logger.exception(
+                    "Não foi possível remover o temporário: %s",
+                    temp_path,
+                )
+
+def install_update(
+    package_path: Path = DEFAULT_PACKAGE,
+    install_root: Path = INSTALL_DIR,
+    backup_path: Path = Path("/home/marques/BackupTese.zip"),
+) -> dict:
+    """
+    Valida o pacote, cria um backup da instalação e instala
+    os ficheiros declarados no manifesto.
+
+    O backup é criado antes de qualquer ficheiro ser alterado.
+    Ainda não executa rollback automático em caso de falha
+    durante a instalação.
+    """
+    logger.info("[UPDATE DEBUG] A iniciar install_update")
+
+    result = validate_update_package(package_path)
+    logger.info("Pacote validado: %s", package_path)
+
+    install_root = Path(install_root).resolve()
+
+    if not install_root.is_dir():
+        raise UpdateValidationError(
+            f"A pasta de instalação não existe: {install_root}"
+        )
+
+    logger.info("Raiz de instalação confirmada: %s", install_root)
+
+    install_root = Path(install_root).resolve()
+
+    if not install_root.is_dir():
+        raise UpdateValidationError(
+            f"A pasta de instalação não existe: {install_root}"
+        )
+
+    # 2. Validar previamente todos os destinos.
+    destinations = []
+
+    for item in result["files"]:
+        logger.info(
+            "[UPDATE DEBUG] A validar destino: %s",
+            item["destination"],
+        )
+
+        relative = PurePosixPath(item["destination"])
+
+        target = (
+            install_root / Path(*relative.parts)
+        ).resolve()
+
+        if not target.is_relative_to(install_root):
+            raise UpdateValidationError(
+                f"O destino sai da pasta de instalação: {target}"
+            )
+
+        current = install_root
+
+        for part in relative.parts:
+            current = current / part
+
+            if current.is_symlink():
+                raise UpdateValidationError(
+                    "O destino atravessa uma ligação simbólica: "
+                    f"{current}"
+                )
+
+        destinations.append((item, target))
+
+        logger.info("Destino validado: %s", target)
+
+    # 3. Criar e verificar o backup antes de instalar.
+    logger.info("A iniciar criação do backup: %s", backup_path)
+
+    try:
+        backup_created = _create_backup(
+            install_root=install_root,
+            backup_path=backup_path,
+        )
+    except Exception:
+        logger.exception("Erro durante a criação do backup.")
+        raise
+
+    logger.info("Backup criado com sucesso: %s", backup_created)
+
+    # 4. Instalar os ficheiros.
+    installed_files = []
+
+    with zipfile.ZipFile(package_path, "r") as archive:
+        for item, target in destinations:
+            content = archive.read(item["source"])
+
+            # Revalidar o conteúdo imediatamente antes da escrita.
+            if _sha256(content).lower() != item["sha256"].lower():
+                raise UpdateValidationError(
+                    f"SHA-256 não corresponde: {item['source']}"
+                )
+
+            logger.info(
+                "[UPDATE DEBUG] A escrever: %s",
+                target,
+            )
 
             target.parent.mkdir(parents=True, exist_ok=True)
 
-            # Revalida o conteúdo imediatamente antes de o escrever.
-            content = archive.read(item["source"])
-            if _sha256(content).lower() != item["sha256"].lower():
-                raise UpdateValidationError(
-                    f"O ficheiro mudou após a validação: {item['source']}"
-                )
+            logger.info("A instalar ficheiro: %s", target)
 
             target.write_bytes(content)
-            logger.info("Ficheiro de teste instalado: %s", target)
+
+            logger.info(
+                "[UPDATE DEBUG] Escrita concluída: %s",
+                target,
+            )
+
+            installed_files.append(str(target))
+            logger.info("Ficheiro instalado: %s", target)
+
+    version = result["manifest"].get("version")
+
+    if not isinstance(version, str) or not version.strip():
+        raise UpdateValidationError(
+            "O manifesto não contém uma versão válida."
+        )
+
+    version_file = install_root / "version.txt"
+    version_file.write_text(version.strip() + "\n", encoding="utf-8")
+
+    logger.info(
+        "Versão instalada atualizada para %s em %s",
+        version.strip(),
+        version_file,
+    )
+
+    logger.info(
+        "Instalação concluída. Ficheiros instalados: %d",
+        len(installed_files),
+    )
 
     return {
         "success": True,
-        "installed_files": [
-            str(
-                (install_root / Path(
-                    *PurePosixPath(item["destination"])
-                    .relative_to("update-test").parts
-                )).resolve()
-            )
-            for item in result["files"]
-        ],
+        "backup": str(backup_created),
+        "installed_files": installed_files,
         "update_id": result["manifest"].get("update_id"),
         "version": result["manifest"].get("version"),
     }
