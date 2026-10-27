@@ -72,6 +72,12 @@ function App(){
     const authScreens = ["login-menu", "register", "changePassword-menu"]
     const [isLoaderVisible, setIsLoaderVisible] = useState(true);
 
+    const [releaseInfo, setReleaseInfo] = useState<{
+        version: string | null;
+        mandatory: boolean;
+        patchNotes: Record<string, unknown>;
+    } | null>(null);
+
     // -----------------------------
     // Messages variables
     // -----------------------------
@@ -4067,6 +4073,46 @@ function App(){
         }
     };
 
+    const checkRelease = async (): Promise<number | null> => {
+        try {
+            const response = await apiFetch('/updates/check/release');
+            const result = await response.json();
+
+            if (response.ok && result.success) {
+                setNewUpdateAvailable(Boolean(result.update_available));
+                setReleaseInfo(
+                    result.update_available
+                        ? {
+                              version: result.version ?? null,
+                              mandatory: Boolean(result.mandatory),
+                              patchNotes: result.patch_notes ?? {},
+                          }
+                        : null
+                );
+            } else {
+                setNewUpdateAvailable(false);
+                setReleaseInfo(null);
+                console.error(
+                    'Update check failed:',
+                    result.detail ?? 'Unknown error'
+                );
+            }
+
+           return result.poll_after ?? null;
+        } catch (error) {
+            setNewUpdateAvailable(false);
+            setReleaseInfo(null);
+            console.error('Error checking release:', error);
+            return null;
+        }
+    };
+
+    useEffect(() => {
+        checkRelease();
+        const interval = setInterval(checkRelease, 30_000);
+        return () => clearInterval(interval);
+    }, []);
+
     if (!isLoaderVisible){
         return (
             <>
@@ -4454,6 +4500,7 @@ function App(){
                                     changeLanguage={changeLanguage}
 
                                     newUpdateAvailable={newUpdateAvailable}
+                                    releaseInfo={releaseInfo}
                                     setUpdating={setUpdating}
 
                                     currentMenu={currentMenu}

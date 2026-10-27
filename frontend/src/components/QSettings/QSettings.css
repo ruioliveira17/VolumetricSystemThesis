@@ -859,3 +859,27 @@
     font-size: clamp(15px, 1.54cqh, 16.2px);
   }
 }
+
+.patch-notes-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.patch-notes-modal {
+  background: #1e1e1e;
+  color: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  width: min(480px, 90vw);
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.patch-notes-body p {
+  margin: 8px 0 0;
+}

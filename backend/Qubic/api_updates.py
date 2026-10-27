@@ -10,10 +10,11 @@ import urllib.request
 import subprocess
 import sys
 from pathlib import Path
-from threading import Lock
+from threading import Event, Lock, Thread
 
 from api_auth import get_current_user
 from backend.services.update_manager import (
+    DEFAULT_PACKAGE,
     UpdateValidationError,
     validate_update_package,
     install_update,
@@ -31,7 +32,21 @@ router = APIRouter(
 VERSION_FILE = Path("/home/marques/Tese/version.txt")
 RESTART_CONFIG = Path("/home/marques/Tese/restart_config.json")
 
-UPDATE_URL = os.environ.get("QUBIC_UPDATE_URL", "https://update.balancasmarques.com/v1/check")
+UPDATE_URL_CHECK = os.environ.get("QUBIC_UPDATE_URL_CHECK", "https://update.balancasmarques.com/v1/check")
+UPDATE_URL_DOWNLOAD = os.environ.get("QUBIC_UPDATE_URL_DOWNLOAD", "https://update.balancasmarques.com/v1/download")
+UPDATE_URL_REPORT = os.environ.get("QUBIC_UPDATE_URL_REPORT", "https://update.balancasmarques.com/v1/report")
+UPDATE_URL_HEARTBEAT = os.environ.get("QUBIC_UPDATE_URL_HEARTBEAT", "https://update.balancasmarques.com/v1/heartbeat")
+
+UPDATE_PRODUCT = "qubic"
+
+DEFAULT_POLL_SECONDS = 6 * 60 * 60
+
+_stop_event = Event()
+_poll_lock = Lock()
+_poll_after = DEFAULT_POLL_SECONDS
+
+_latest_lock = Lock()
+_latest = {"checked": False, "update_available": False, "release": None}
 
 def parse_version(version: str) -> tuple[int, ...]:
     """
@@ -146,17 +161,17 @@ def get_install_id() -> str:
 
     raise UpdateValidationError("Não foi possível obter o ID da máquina.")
 
-def fetch_remote_release() -> dict | None:
+def fetch_remote_release() -> tuple[bool, dict | None, int | None]:
     """
     Pergunta ao servidor se existe uma versão mais recente.
     Devolve o objeto "release", ou None se não houver atualização.
    """
     params = urllib.parse.urlencode({
-        "produto": "qubic",
+        "produto": UPDATE_PRODUCT,
         "installId": get_install_id(),
-        "version": get_installed_version)(),
+        "version": get_installed_version(),
     })
-    url = f"{UPDATE_URL}?{params}"
+    url = f"{UPDATE_URL_CHECK}?{params}"
 
     try:
         with urllib.request.urlopen(url, timeout=10) as resp:
@@ -167,7 +182,7 @@ def fetch_remote_release() -> dict | None:
         ) from exc
 
     if not body.strip():
-        return None
+        return False, None, None
 
     try:
         data = json.loads(body)
@@ -181,8 +196,17 @@ def fetch_remote_release() -> dict | None:
             "Resposta inválida do servidor de updates."
         )
 
-    if not data.get("update"):
-        return None
+    poll_after = data.get("pollAfter")
+
+    if isinstance(poll_after, int) and poll_after > 0:
+        global _poll_after
+        with _poll_lock:
+            _poll_after = poll_after
+
+    update_available = data.get("update")
+
+    if not update_available:
+        return False, None, poll_after
 
     release = data.get("release")
 
@@ -191,10 +215,9 @@ def fetch_remote_release() -> dict | None:
             "Resposta inválida do servidor de updates."
         )
 
-    return release
+    return update_available, release, poll_after
 
-
-@router.post("/check/release")
+@router.get("/check/release")
 def check_release(
     current_user=Depends(get_current_user),
 ):
@@ -203,56 +226,26 @@ def check_release(
     à versão atualmente instalada.
     """
     try:
-        installed_version = get_installed_version()
-        release = fetch_remote_release()
+        with _latest_lock:
+            latest = dict(_latest)
 
-        if release is None:
+        release = latest["release"]
+
+        if not latest["update_available"] or release is None:
             return {
                 "success": True,
-                "valid": True,
                 "update_available": False,
-                "installed_version": installed_version,
+                "checked": latest["checked"],
             }
-
-        remote_version = release.get("version")
-
-        if not remote_version:
-            raise UpdateValidationError(
-                "O servidor não devolveu uma versão válida."
-            )
-
-        try:
-            remote_version_tuple = parse_version(remote_version)
-            installed_version_tuple = parse_version(installed_version)
-        except ValueError as exc:
-            raise UpdateValidationError(str(exc)) from exc
-
-        # Igualar o número de componentes para comparar, por exemplo,
-        # 1.0 com 1.0.0 como versões equivalentes.
-        max_length = max(
-            len(remote_version_tuple),
-            len(installed_version_tuple),
-        )
-
-        remote_version_tuple += (0,) * (
-            max_length - len(remote_version_tuple)
-        )
-        installed_version_tuple += (0,) * (
-            max_length - len(installed_version_tuple)
-        )
-
-        update_available = (
-            remote_version_tuple > installed_version_tuple
-        )
 
         return {
             "success": True,
-            "valid": True,
-            "update_available": update_available,
-            "installed_version": installed_version,
-            "update_id": release.get("artifact", {}).get("id"),
-            "version": remote_version,
+            "update_available": True,
+            "checked": True,
+            "version": release.get("version"),
             "mandatory": release.get("mandatory", False),
+            "update_id": release.get("artifact", {}).get("id"),
+            "patch_notes": release.get("notes", {}),
         }
 
     except UpdateValidationError as exc:
@@ -268,6 +261,186 @@ def check_release(
             status_code=500,
             detail="Erro interno ao validar o pacote de atualização.",
         ) from exc
+
+def fetch_download_info() -> dict:
+    """
+    Pede ao servidor o link assinado do pacote (válido 10 minutos).
+    """
+    payload = json.dumps({
+        "produto": UPDATE_PRODUCT,
+        "installId": get_install_id(),
+    }).encode("utf-8")
+
+    request = urllib.request.Request(
+        UPDATE_URL_DOWNLOAD,
+        data=payload,
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+
+    try:
+        with urllib.request.urlopen(request, timeout=10) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+    except (urllib.error.URLError, TimeoutError) as exc:
+        raise UpdateValidationError(
+            "Não foi possível contactar o servidor de updates."
+        ) from exc
+    except (json.JSONDecodeError, UnicodeDecodeError) as exc:
+        raise UpdateValidationError(
+            "Resposta inválida do servidor de updates."
+        ) from exc
+
+    if not isinstance(data, dict) or not data.get("update"):
+        raise UpdateValidationError(
+            "O servidor não tem nenhuma atualização para descarregar."
+        )
+
+    if not data.get("url") or not data.get("sha256"):
+        raise UpdateValidationError(
+            "Resposta inválida do servidor de updates."
+        )
+
+    return data
+
+@router.post("/download/release")
+def download_release(
+    current_user=Depends(get_current_user),
+):
+    """
+    Descarrega o pacote para o disco e verifica o SHA-256.
+    Só deve ser chamado quando o utilizador confirma a atualização.
+    """
+    if not _update_lock.acquire(blocking=False):
+        raise HTTPException(
+            status_code=409,
+            detail="Já existe uma atualização em curso.",
+        )
+
+    temp_package = DEFAULT_PACKAGE.with_suffix(".tmp")
+
+    try:
+        info = fetch_download_info()
+        expected_hash = info["sha256"].lower()
+
+        DEFAULT_PACKAGE.parent.mkdir(parents=True, exist_ok=True)
+        digest = hashlib.sha256()
+
+        try:
+            with urllib.request.urlopen(info["url"], timeout=30) as resp, \
+                    temp_package.open("wb") as out:
+                while chunk := resp.read(1024 * 1024):
+                    digest.update(chunk)
+                    out.write(chunk)
+        except (urllib.error.URLError, TimeoutError, OSError) as exc:
+            raise UpdateValidationError(
+                "Falha ao descarregar o pacote de atualização."
+            ) from exc
+
+        if digest.hexdigest() != expected_hash:
+            raise UpdateValidationError(
+                "O SHA-256 do pacote descarregado não corresponde."
+            )
+
+        temp_package.replace(DEFAULT_PACKAGE)
+
+        return {
+            "success": True,
+            "version": info.get("version"),
+            "sha256": expected_hash,
+            "package": str(DEFAULT_PACKAGE),
+        }
+
+    except UpdateValidationError as exc:
+        raise HTTPException(
+            status_code=400,
+            detail=str(exc),
+        ) from exc
+
+    except Exception as exc:
+        logger.exception("Erro inesperado ao descarregar a atualização.")
+
+        raise HTTPException(
+            status_code=500,
+            detail="Erro interno ao descarregar a atualização.",
+        ) from exc
+
+    finally:
+        temp_package.unlink(missing_ok=True)
+        _update_lock.release()
+
+def send_heartbeat() -> None:
+    """
+    Indica ao servidor que a instalação está viva (resposta 204).
+    """
+    payload = json.dumps({
+        "produto": UPDATE_PRODUCT,
+        "installId": get_install_id(),
+        "version": get_installed_version(),
+    }).encode("utf-8")
+
+    request = urllib.request.Request(
+        UPDATE_URL_HEARTBEAT,
+        data=payload,
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+
+    try:
+        with urllib.request.urlopen(request, timeout=10):
+            pass
+    except (urllib.error.URLError, TimeoutError) as exc:
+        raise UpdateValidationError(
+            "Não foi possível contactar o servidor de updates."
+        ) from exc
+
+
+@router.post("/heartbeat")
+def heartbeat(
+    current_user=Depends(get_current_user),
+):
+    try:
+        send_heartbeat()
+        return {"success": True}
+    except UpdateValidationError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        logger.exception("Erro inesperado ao enviar o heartbeat.")
+        raise HTTPException(
+            status_code=500,
+            detail="Erro interno ao enviar o heartbeat.",
+        ) from exc
+
+def _update_loop() -> None:
+    """
+    Heartbeat e Check Release no arranque e depois a cada pollAfter.
+    """
+    while not _stop_event.is_set():
+        try:
+            update_available, release, _ = fetch_remote_release()
+            with _latest_lock:
+                _latest.update({
+                    "checked": True,
+                    "update_available": bool(update_available),
+                    "release": release,
+                })
+        except Exception:
+            logger.exception("Falha no check de updates.")
+
+        try:
+            send_heartbeat()
+        except Exception:
+            logger.exception("Falha ao enviar o heartbeat.")
+
+        with _poll_lock:
+            wait = _poll_after
+
+        _stop_event.wait(wait)
+
+def start_update_scheduler() -> None:
+    Thread(target=_update_loop, name="update-heartbeat", daemon=True).start()
+
+def stop_update_scheduler() -> None:
+    _stop_event.set()
 
 def start_update_restart_service():
     logger.info("A solicitar arranque do qubic-update-restart.service.")

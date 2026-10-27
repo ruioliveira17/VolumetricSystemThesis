@@ -20,6 +20,12 @@ interface LanguageOption {
     flag: string;
 }
 
+interface ReleaseInfo {
+  version: string | null;
+  mandatory: boolean;
+  patchNotes: Record<string, unknown>;
+}
+
 interface QSettingsProps {
   t: (key: string) => string;
 
@@ -49,6 +55,7 @@ interface QSettingsProps {
   changeLanguage: (newLanguage: string) => Promise<void>;
 
   newUpdateAvailable: boolean;
+  releaseInfo: ReleaseInfo | null;
   setUpdating: React.Dispatch<React.SetStateAction<boolean>>;
   // Crop ("Define")
   currentMenu: string;
@@ -76,6 +83,7 @@ function QSettings({
   supportedLanguages,
   changeLanguage,
   newUpdateAvailable,
+  releaseInfo,
   setUpdating,
   currentMenu,
   setShowCropWindow,
@@ -201,6 +209,7 @@ function QSettings({
   }, []);
 
   const [powerModalOpen, setPowerModalOpen] = React.useState(false);
+  const [patchNotesOpen, setPatchNotesOpen] = React.useState(false);
   const [confirmModalOpen, setConfirmModalOpen] = React.useState(false);
   const [powerAction, setPowerAction] = React.useState<"shutdown" | "restart" | null>(null);
 
@@ -226,6 +235,17 @@ function QSettings({
     } catch (error) {
       console.error(`Failed to ${action} system:`, error);
     }
+  };
+
+  const getPatchNotes = (): string[] => {
+    const notes =
+      releaseInfo?.patchNotes?.[language] ??
+      releaseInfo?.patchNotes?.en ??
+      releaseInfo?.patchNotes;
+
+    if (Array.isArray(notes)) return notes.map(String);
+    if (typeof notes === "string" && notes.trim()) return [notes];
+    return [];
   };
 
   return (
@@ -359,8 +379,8 @@ function QSettings({
               <div className="update-modal">
                 <div className="background"></div>
                 <div className="update-info">
-                  <span className="newUpdate-text">{t("update.newUpdateAvailable")}</span>
-                  <span className="about-update">{t("update.about")}</span>
+                  <span className="newUpdate-text">{t("update.newUpdateAvailable")}{releaseInfo?.version ? ` (${releaseInfo.version})` : ""}</span>
+                  <span className="about-update" onClick={() => setPatchNotesOpen(true)}>{t("update.about")}</span>
                 </div>
                 <button
                   className="update-button"
@@ -414,6 +434,33 @@ function QSettings({
           cancelText={t("no")}
           container={portalContainer}
         />
+      )}
+
+      {patchNotesOpen && (
+        <div
+          className="patch-notes-overlay"
+          onClick={() => setPatchNotesOpen(false)}
+        >
+          <div
+            className="patch-notes-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <span className="patch-notes-title">
+              {t("update.about")}
+              {releaseInfo?.version ? ` (${releaseInfo.version})` : ""}
+            </span>
+
+            <div className="patch-notes-body">
+              {getPatchNotes().length > 0 ? (
+                getPatchNotes().map((note, i) => (
+                  <p key={i}>{note}</p>
+                ))
+              ) : (
+                <p>-</p>
+              )}
+            </div>
+          </div>
+        </div>
       )}
 
       {confirmUpdate && (
