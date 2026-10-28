@@ -40,15 +40,29 @@ async def _wait_for_frame(get_frame):
 
 class CameraTrack(VideoStreamTrack):
     async def recv(self):
-        frame = await _wait_for_frame(lambda: frameState.colorFrame)
+        pts, time_base = await self.next_timestamp()
+
+        frame = await _wait_for_frame(
+            lambda: frameState.colorFrame
+        )
 
         if frame is None:
             raise MediaStreamError("colorFrame is None")
 
         if frame.dtype != numpy.uint8:
-            frame = (numpy.clip(frame, 0, 1) * 255).astype(numpy.uint8)
+            frame = (
+                numpy.clip(frame, 0, 1) * 255
+            ).astype(numpy.uint8)
 
-        return VideoFrame.from_ndarray(frame, format='bgr24')
+        video_frame = VideoFrame.from_ndarray(
+            frame,
+            format="bgr24"
+        )
+
+        video_frame.pts = pts
+        video_frame.time_base = time_base
+
+        return video_frame
     
 class CTDTrack(VideoStreamTrack):
     async def recv(self):
