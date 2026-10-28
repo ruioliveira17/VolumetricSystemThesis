@@ -372,6 +372,7 @@ def install_update(
     package_path: Path = DEFAULT_PACKAGE,
     install_root: Path = INSTALL_DIR,
     backup_path: Path = Path("/home/marques/BackupTese.zip"),
+    update_version: bool = True,
 ) -> dict:
     """
     Valida o pacote, cria um backup da instalação e instala
@@ -489,15 +490,6 @@ def install_update(
         raise UpdateValidationError(
             "O manifesto não contém uma versão válida."
         )
-
-    version_file = install_root / "version.txt"
-    version_file.write_text(version.strip() + "\n", encoding="utf-8")
-
-    logger.info(
-        "Versão instalada atualizada para %s em %s",
-        version.strip(),
-        version_file,
-    )
 
     logger.info(
         "Instalação concluída. Ficheiros instalados: %d",

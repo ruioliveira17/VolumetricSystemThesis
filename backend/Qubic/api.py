@@ -472,7 +472,7 @@ def changePassword(changePassword_data: ChangePasswordData, current_user: dict =
 #----------------------------------------------------   Measurements   ----------------------------------------------------
 
 @app.post("/saveMeasurements")
-def save_measurement(data: Optional[MeasurementIn] = Body(default=None), current_user: dict = Depends(get_current_user)):
+async def save_measurement(data: Optional[MeasurementIn] = Body(default=None), current_user: dict = Depends(get_current_user)):
     owner = get_by_username(current_user["username"])
     if owner is None:
         logger.warning("Save measurement failed: user '%s' not found", owner["username"])
@@ -503,6 +503,11 @@ def save_measurement(data: Optional[MeasurementIn] = Body(default=None), current
         measurements_repo.add_images(mid, images)
 
     logger.info("Measurement '%s' saved successfully by '%s'", mid, owner["username"])
+
+    await measurement_ws_manager.broadcast({
+        "type": "MEASUREMENT_CREATED",
+        "measurement_id": mid,
+    })
 
     return {"id": mid, "object_count": len(objects), "total_volume_cm": total_cm}
 
@@ -1137,6 +1142,41 @@ def getCalibrationFlags(current_user: dict = Depends(get_current_user)):
         "Workspace Clear": workspaceState.workspace_clear,
     }
 
+#--------------------------------------------------- Modes WebSocket --------------------------------------------------
+
+class ConfigurationWebSocketManager:
+    def __init__(self):
+        self.active_connections: list[WebSocket] = []
+
+    async def connect(self, websocket: WebSocket):
+        await websocket.accept()
+        self.active_connections.append(websocket)
+
+    def disconnect(self, websocket: WebSocket):
+        if websocket in self.active_connections:
+            self.active_connections.remove(websocket)
+
+    async def broadcast(self, message: dict):
+        for connection in self.active_connections.copy():
+            try:
+                await connection.send_json(message)
+            except Exception:
+                self.disconnect(connection)
+
+
+configuration_ws_manager = ConfigurationWebSocketManager()
+
+@app.websocket("/configuration/configuration_ws")
+async def configuration_websocket(websocket: WebSocket):
+    await configuration_ws_manager.connect(websocket)
+
+    try:
+        while True:
+            await websocket.receive_text()
+    except WebSocketDisconnect:
+        configuration_ws_manager.disconnect(websocket)
+
+
 #--------------------------------------------------- Calibration Mode --------------------------------------------------
 
 @app.get("/calibrate/mode", summary="Gets the Calibration Mode",
@@ -1218,11 +1258,16 @@ def get_expMode(current_user: dict = Depends(get_current_user)):
          Sets the exposition mode to "Fixed Exposition".
          """,
          tags=["Using Modes"])
-def fixedExp(current_user: dict = Depends(get_current_user)):
+async def fixedExp(current_user: dict = Depends(get_current_user)):
     modeState.expositionMode = "Fixed Exposition"
     camState.hdrEnabled = False
     setEnableHDR(camState.hdrEnabled)
     setExposureTime(camState.exposureTime)
+
+    await configuration_ws_manager.broadcast({
+        "event": "exposition_mode_changed",
+        "value": modeState.expositionMode,
+    })
 
     logger.info("Exposition mode changed to Fixed Exposition")
     
@@ -1233,7 +1278,7 @@ def fixedExp(current_user: dict = Depends(get_current_user)):
          Sets the exposition mode to "HDR".
          """,
          tags=["Using Modes"])
-def hdrExp(current_user: dict = Depends(get_current_user)):
+async def hdrExp(current_user: dict = Depends(get_current_user)):
     modeState.expositionMode = "HDR"
     
     camState.hdrEnabled = True
@@ -1241,6 +1286,11 @@ def hdrExp(current_user: dict = Depends(get_current_user)):
     setExposureTime(camState.exposureTime)
 
     setHDRInterval(100, camState.hdrMaxExposureTime[1] - 200)
+
+    await configuration_ws_manager.broadcast({
+        "event": "exposition_mode_changed",
+        "value": modeState.expositionMode,
+    })
 
     logger.info("Exposition mode changed to HDR")
 
@@ -1263,8 +1313,13 @@ def get_mode(current_user: dict = Depends(get_current_user)):
          Sets the volume mode to "Single Bundle".
          """,
          tags=["Using Modes"])
-def single_bundle(current_user: dict = Depends(get_current_user)):
+async def single_bundle(current_user: dict = Depends(get_current_user)):
     modeState.volumeMode = "Single Bundle"
+
+    await configuration_ws_manager.broadcast({
+        "event": "volume_mode_changed",
+        "value": modeState.volumeMode,
+    })
 
     logger.info("Volume mode changed to Single Bundle")
 
@@ -1275,8 +1330,13 @@ def single_bundle(current_user: dict = Depends(get_current_user)):
          Sets the volume mode to "Multi Bundle".
          """,
          tags=["Using Modes"])
-def multi_bundle(current_user: dict = Depends(get_current_user)):
+async def multi_bundle(current_user: dict = Depends(get_current_user)):
     modeState.volumeMode = "Multi Bundle"
+
+    await configuration_ws_manager.broadcast({
+        "event": "volume_mode_changed",
+        "value": modeState.volumeMode,
+    })
 
     logger.info("Volume mode changed to Multi Bundle")
 
@@ -1287,8 +1347,13 @@ def multi_bundle(current_user: dict = Depends(get_current_user)):
          Sets the volume mode to "Real".
          """,
          tags=["Using Modes"])
-def real(current_user: dict = Depends(get_current_user)):
+async def real(current_user: dict = Depends(get_current_user)):
     modeState.volumeMode = "Real"
+
+    await configuration_ws_manager.broadcast({
+        "event": "volume_mode_changed",
+        "value": modeState.volumeMode,
+    })
 
     logger.info("Volume mode changed to Real")
 
@@ -2012,7 +2077,7 @@ def get_language():
          Accepts one of the supported codes ('pt', 'en', 'es', 'fr'), otherwise returns 400.
          """,
          tags=["Configuration"])
-def set_language(info: LanguageIn, current_user: dict = Depends(get_current_user)):
+async def set_language(info: LanguageIn, current_user: dict = Depends(get_current_user)):
     try:
         language = config_repo.save_language(info.language)
     except ValueError:
@@ -2026,6 +2091,11 @@ def set_language(info: LanguageIn, current_user: dict = Depends(get_current_user
         )
 
     logger.info("Interface language changed to '%s'", language)
+
+    await configuration_ws_manager.broadcast({
+        "event": "language_changed",
+        "value": language,
+    })
     
     return {"language": language}
     
@@ -2075,7 +2145,7 @@ def depth_status(current_user : dict = Depends(get_current_user)):
 #     with weight_lock:
 #         return weightState.weight.copy()
 
-@app.websocket("/weight/ws")
+@app.websocket("/weight/weight_ws")
 async def weight_websocket(websocket: WebSocket):
     await websocket.accept()
 
@@ -2125,6 +2195,76 @@ def updateCurrentMenu(data: CurrentMenu, current_user: dict = Depends(get_curren
         logger.info("Current menu changed to '%s'", data.currentMenu)
 
     return{"message:": "Success"}
+
+# --------------------------------------- Measurements Web Socket ---------------------------------------
+
+class MeasurementWebSocketManager:
+    def __init__(self):
+        self.active_connections: list[WebSocket] = []
+
+    async def connect(self, websocket: WebSocket):
+        await websocket.accept()
+        self.active_connections.append(websocket)
+
+    def connect_accepted(self, websocket: WebSocket):
+        self.active_connections.append(websocket)
+
+    def disconnect(self, websocket: WebSocket):
+        if websocket in self.active_connections:
+            self.active_connections.remove(websocket)
+
+    async def broadcast(self, message: dict):
+        for connection in self.active_connections.copy():
+            try:
+                await connection.send_json(message)
+            except Exception:
+                self.disconnect(connection)
+
+measurement_ws_manager = MeasurementWebSocketManager()
+
+@app.websocket("/measurements/measurements_ws")
+async def measurement_websocket(websocket: WebSocket):
+    await websocket.accept()
+
+    try:
+        # Wait for the access token
+        auth_message = await websocket.receive_json()
+
+        if not isinstance(auth_message, dict):
+            await websocket.close(code=1008)
+            return
+
+        if auth_message.get("type") != "AUTH":
+            await websocket.close(code=1008)
+            return
+
+        token = auth_message.get("token")
+
+        if not isinstance(token, str) or not token:
+            await websocket.close(code=1008)
+            return
+
+        try:
+            current_user = get_current_user(token)
+        except HTTPException:
+            await websocket.close(code=1008)
+            return
+
+        # Register the connection only after authentication
+        measurement_ws_manager.connect_accepted(websocket)
+
+        logger.info(
+            "Measurement WebSocket connected by '%s'",
+            current_user["username"],
+        )
+
+        while True:
+            await websocket.receive_text()
+
+    except WebSocketDisconnect:
+        pass
+    finally:
+        measurement_ws_manager.disconnect(websocket)
 
 # --------------------------------------- Measurements ---------------------------------------
 

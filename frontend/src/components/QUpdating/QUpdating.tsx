@@ -6,6 +6,8 @@ import { apiFetch } from "../../api/client";
 
 interface QUpdatingProps {
     onComplete: () => void;
+    onLogout: () => void;
+    isInitiator: boolean;
 }
 
 const POLL_INTERVAL_MS = 1000;
@@ -14,7 +16,10 @@ const RESTART_TIMEOUT_MS = 120_000;
 const delay = (ms: number) =>
     new Promise<void>((resolve) => setTimeout(resolve, ms));
 
-function QUpdating({ onComplete }: QUpdatingProps) {
+function QUpdating({ 
+    onComplete, 
+    isInitiator,
+}: QUpdatingProps) {
     const [error, setError] = useState<string | null>(null);
     const installStarted = useRef(false);
     const onCompleteRef = useRef(onComplete);
@@ -22,46 +27,68 @@ function QUpdating({ onComplete }: QUpdatingProps) {
     useEffect(() => {
         onCompleteRef.current = onComplete;
     }, [onComplete]);
-
+    
+    
     useEffect(() => {
-        if (installStarted.current) return;
-        installStarted.current = true;
+        if (isInitiator && installStarted.current) return;
+
+        if (isInitiator) {
+            installStarted.current = true;
+        }
 
         let cancelled = false;
 
         const runUpdate = async () => {
             try {
-                // 1. Descarregar e validar o pacote de atualização
-                const downloadResponse = await apiFetch(
-                    "/updates/download/release",
-                    {
-                        method: "POST",
-                    }
-                );
-
-                if (!downloadResponse.ok) {
-                    const data = await downloadResponse.json().catch(() => null);
-                    throw new Error(
-                        data?.detail || "Falha ao descarregar a atualização."
+                if (isInitiator) {
+                    // Apenas o iniciador executa a atualização.
+                    const updateResponse = await apiFetch(
+                        "/updates/start_update",
+                        { method: "POST" }
                     );
+
+                    if (!updateResponse.ok) {
+                        const data = await updateResponse.json().catch(() => null);
+
+                        throw new Error(
+                            data?.detail || "Falha ao executar a atualização."
+                        );
+                    }
+                } else {
+                    // Os restantes clientes aguardam que a API fique indisponível.
+                    const stopDeadline = Date.now() + RESTART_TIMEOUT_MS;
+                    let apiStopped = false;
+
+                    while (!cancelled && Date.now() < stopDeadline) {
+                        try {
+                            const response = await apiFetch("/health", {
+                                method: "GET",
+                            });
+
+                            if (!response.ok) {
+                                apiStopped = true;
+                                break;
+                            }
+                        } catch {
+                            apiStopped = true;
+                            break;
+                        }
+
+                        await delay(POLL_INTERVAL_MS);
+                    }
+
+                    if (cancelled) return;
+
+                    if (!apiStopped) {
+                        throw new Error(
+                            "A API não ficou indisponível durante a atualização."
+                        );
+                    }
                 }
 
-                // Não avançar se o componente já tiver sido desmontado
                 if (cancelled) return;
 
-                // 2. Instalar apenas depois de o download terminar com sucesso
-                const installResponse = await apiFetch("/updates/install", {
-                    method: "POST",
-                });
-
-                if (!installResponse.ok) {
-                    const data = await installResponse.json().catch(() => null);
-                    throw new Error(
-                        data?.detail || "Falha ao instalar a atualização."
-                    );
-                }
-
-                // 3. Aguardar que a API reinicie e volte a responder
+                // Ambos aguardam que a API volte a responder.
                 const deadline = Date.now() + RESTART_TIMEOUT_MS;
 
                 while (!cancelled && Date.now() < deadline) {
@@ -80,13 +107,13 @@ function QUpdating({ onComplete }: QUpdatingProps) {
                             });
 
                             if (confirmation.status === 200) {
-                                onCompleteRef.current();
+                                window.location.reload();
+                                // onCompleteRef.current();
                                 return;
                             }
                         }
                     } catch {
-                        // A API pode estar temporariamente indisponível
-                        // enquanto reinicia.
+                        // A API pode estar temporariamente indisponível.
                     }
 
                     await delay(POLL_INTERVAL_MS);
@@ -97,6 +124,7 @@ function QUpdating({ onComplete }: QUpdatingProps) {
                         "Não foi possível confirmar o reinício da API."
                     );
                 }
+
             } catch (err) {
                 if (!cancelled) {
                     setError(
@@ -113,7 +141,7 @@ function QUpdating({ onComplete }: QUpdatingProps) {
         return () => {
             cancelled = true;
         };
-    }, []);
+    }, [isInitiator]);
 
     return (
         <div className="updating-overlay">

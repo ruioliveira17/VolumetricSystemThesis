@@ -73,6 +73,8 @@ function App(){
     const authScreens = ["login-menu", "register", "changePassword-menu"]
     const [isLoaderVisible, setIsLoaderVisible] = useState(true);
 
+    const [version, setVersion] = useState<string>('');
+
     const [releaseInfo, setReleaseInfo] = useState<{
         version: string | null;
         mandatory: boolean;
@@ -93,6 +95,7 @@ function App(){
     const [appReady, setAppReady] = useState<boolean>(false);
     const [newUpdateAvailable, setNewUpdateAvailable] = useState<boolean>(false);
     const [updating, setUpdating] = useState<boolean>(false);
+    const [isUpdateInitiator, setIsUpdateInitiator] = useState(false);
 
     const [message, setMessage] = useState<Message[]>([]);
 
@@ -703,8 +706,10 @@ function App(){
             const storedUser = localStorage.getItem("current_user");
 
             if (!storedUser) {
+                setCurrentMenu("login-menu");
+                setSavedUser(null);
                 setAppReady(true);
-                logout();
+                // logout();
                 return;
             } else {
                 const user = JSON.parse(storedUser);
@@ -766,15 +771,8 @@ function App(){
         }
 
         if (currentMenu === "measurementHistory-menu") {
-            loadMeasurements();
+            void loadMeasurements();
         }
-
-        // if (
-        //     currentMenu === "config-menu" ||
-        //     currentMenu === "calibration-menu"
-        // ) {
-        //     refreshToggles();
-        // }
 
         return () => {
             if (cameraLoopInterval.current) {
@@ -786,36 +784,8 @@ function App(){
     }, [currentMenu]);
 
     useEffect(() => {
-        if (currentMenu === "config-menu" || currentMenu === "calibration-menu") {
-
-            // const interval = setInterval(async () => {
-            //     refreshToggles();
-            // }, 500);
-
-            // return () => {
-            // clearInterval(interval);
-            // };
-
-        } else if (currentMenu === "volume-menu") {
+        if (currentMenu === "volume-menu") {
             handleCalibrationModeChange(false);
-            // const interval = setInterval(async () => {
-            // try {
-            //     const dataResponse = await apiFetch("/weight");
-            //     const weightData = await dataResponse.json();
-
-            //     setWeightInfo(weightData);
-            //     setWeightStable(weightData.flags["stable"]);
-            //     setWeightZero(weightData.flags["zero"]);
-
-            // } catch (error) {
-            //     console.error("Weight info error:", error);
-            // }
-
-            // }, 500);
-
-            // return () => {
-            // clearInterval(interval);
-            // };
         } else if (currentMenu === "measurementHistory-menu"){
             handleCalibrationModeChange(false);
         }
@@ -827,7 +797,7 @@ function App(){
             window.location.protocol === "https:" ? "wss:" : "ws:";
 
         const socket = new WebSocket(
-            `${protocol}//${window.location.host}/weight/ws`
+            `${protocol}//${window.location.host}/weight/weight_ws`
         );
 
         socket.onmessage = (event) => {
@@ -2307,7 +2277,6 @@ function App(){
                     errorMessage = t("error_and_info_messages.loginFailed");
                 }
 
-                
                 setMessage([
                     {
                     text: errorText(errorMessage, TextServerConnection().text),
@@ -2639,7 +2608,7 @@ function App(){
         setChangeCurrentPasswordFormError(false);
         setChangePasswordFormError(false);
         setChangeConfirmPasswordFormError(false);
-        }
+    }
 
     useEffect(() => {
         setOnAuthFailure(() => {
@@ -2940,7 +2909,7 @@ function App(){
     }
 
     // Load the measurement history (and the users list for the "User" column)
-    async function loadMeasurements(): Promise<void> {
+    const loadMeasurements = useCallback(async (): Promise<void> => {
         try {
             const res = await apiFetch("/measurements");
             if (res.ok) {
@@ -2962,7 +2931,68 @@ function App(){
         } catch (e) {
             setMessage([TextServerConnection()]);
         }
-    }
+    }, []);
+
+    useEffect(() => {
+        let ws: WebSocket | null = null;
+        let retry: ReturnType<typeof setTimeout>;
+        let closed = false;
+
+        const connect = () => {
+            if (closed) return;
+
+            const token = localStorage.getItem("access_token");
+
+            if (!token) {
+                console.error("Measurement WebSocket: token não encontrado.");
+                return;
+            }
+
+            ws = new WebSocket(
+                `${WS_BASE_URL}/measurements/measurements_ws`
+            );
+
+            ws.onopen = () => {
+                ws?.send(JSON.stringify({
+                    type: "AUTH",
+                    token,
+                }));
+            };
+
+            ws.onmessage = (event: MessageEvent) => {
+                try {
+                    const msg = JSON.parse(event.data);
+
+                    if (msg.type === "MEASUREMENT_CREATED") {
+                        void loadMeasurements();
+                    }
+                } catch {
+                    console.error(
+                        "Mensagem Measurement WebSocket inválida:",
+                        event.data
+                    );
+                }
+            };
+
+            ws.onclose = () => {
+                if (!closed) {
+                    retry = setTimeout(connect, 5000);
+                }
+            };
+
+            ws.onerror = () => {
+                ws?.close();
+            };
+        };
+
+        connect();
+
+        return () => {
+            closed = true;
+            clearTimeout(retry);
+            ws?.close();
+        };
+    }, [currentMenu, loadMeasurements]);
 
     // Delete a single measurement by id
     async function deleteMeasurement(measurementID: number | null): Promise<void> {
@@ -3172,7 +3202,8 @@ function App(){
 
                         const measurementData = {
                             volume_mode: "Single Bundle",
-                            weight: Number(measurementWeight.weight),
+                            weight: Number(measurementWeight.weight) *
+                                (measurementWeight.flags.negative ? -1 : 1),
                             objects: [
                                 {
                                     idx: 1,
@@ -3295,7 +3326,8 @@ function App(){
 
                         const measurementData: MeasurementData = {
                             volume_mode: "Multi Bundle",
-                            weight: Number(measurementWeight.weight),
+                            weight: Number(measurementWeight.weight) *
+                                (measurementWeight.flags.negative ? -1 : 1),
                             objects
                         };
 
@@ -3394,7 +3426,8 @@ function App(){
 
                         const measurementData: MeasurementData = {
                             volume_mode: "Real",
-                            weight: Number(measurementWeight.weight),
+                            weight: Number(measurementWeight.weight) *
+                                (measurementWeight.flags.negative ? -1 : 1),
                             objects
                         };
 
@@ -4077,32 +4110,6 @@ function App(){
         };
     }, [showSettingsPopup, settingsAnchorEl]);
 
-    const validateUpdate = async () => {
-        try {
-            const response = await apiFetch('/updates/validate', {
-                method: 'POST',
-            });
-
-            const result = await response.json();
-
-            if (response.ok && result.success && result.valid && result.update_available) {
-                setNewUpdateAvailable(true);
-            } else {
-                setNewUpdateAvailable(false);
-                
-                if (!response.ok || !result.success || !result.valid) {
-                    console.error(
-                        'Update validation failed:',
-                        result.detail ?? 'Invalid update package'
-                    );
-                }
-            }
-        } catch (error) {
-            setNewUpdateAvailable(false);
-            console.error('Error validating update:', error);
-        }
-    };
-
     const applyStatus = (status: any) => {
         setNewUpdateAvailable(Boolean(status.update_available));
         setReleaseInfo(
@@ -4139,17 +4146,43 @@ function App(){
         let closed = false;
 
         const connect = () => {
+            if (closed) return;
+
             ws = new WebSocket(`${WS_BASE_URL}/updates/updates_ws`);
 
             ws.onopen = () => { checkRelease(); };
 
             ws.onmessage = (e) => {
-                const msg = JSON.parse(e.data);
-                if (msg.event === 'UPDATE_AVAILABLE') applyStatus(msg.data);
+                let msg;
+
+                try {
+                    msg = JSON.parse(e.data);
+                } catch {
+                    console.error('Mensagem WebSocket inválida:', e.data);
+                    return;
+                }
+
+                switch (msg.event) {
+                    case 'UPDATE_AVAILABLE':
+                        applyStatus(msg.data);
+                        break;
+
+                    case 'UPDATE_STARTED':
+                        setUpdating(true);
+                        break;
+
+                    case 'FORCE_LOGOUT':
+                        logout();
+                        break;
+                }
             };
 
             ws.onclose = () => {
                 if (!closed) retry = setTimeout(connect, 5000);
+            };
+
+            ws.onerror = () => {
+                ws?.close();
             };
         };
 
@@ -4162,6 +4195,91 @@ function App(){
         };
     }, []);
 
+    useEffect(() => {
+        if (!savedUser || authScreens.includes(currentMenu)) {
+            return;
+        }
+
+        const fetchVersion = async () => {
+            try {
+                const response = await apiFetch('/system/version');
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                const data = await response.json();
+                setVersion(data.version);
+            } catch (error) {
+                console.error('Failed to get system version:', error);
+            }
+        };
+
+        fetchVersion();
+    }, [savedUser, currentMenu]);
+
+    useEffect(() => {
+        const ws = new WebSocket(`${WS_BASE_URL}/configuration/configuration_ws`);
+
+        ws.onmessage = (event) => {
+            try {
+                const message = JSON.parse(event.data);
+
+                switch (message.event) {
+                    case "language_changed":
+                        if (typeof message.value === "string") {
+                            setLanguage(message.value);
+                        }
+                        break;
+
+                    case "exposition_mode_changed":
+                        if (typeof message.value === "string") {
+                            if (message.value === "HDR") {
+                                setExpHDR(true);
+                            } else if (message.value === "Fixed Exposition") {
+                                setExpHDR(false);
+                            }
+                        }
+                        break;
+
+                    case "volume_mode_changed":
+                        if (typeof message.value === "string") {
+                            const modeMap: Record<string, string> = {
+                                "Single Bundle": "single_bundle",
+                                "Multi Bundle": "multi_bundle",
+                                "Real": "real",
+                            };
+
+                            const mode = modeMap[message.value];
+
+                            if (mode) {
+                                setVolumeMode(mode);
+                            }
+                        }
+                        break;
+                }
+            } catch (error) {
+                console.error(
+                    "Não foi possível processar a mensagem WebSocket:",
+                    error
+                );
+            }
+        };
+
+        ws.onerror = (error) => {
+            console.error(
+                "Erro na ligação WebSocket de configuração:",
+                error
+            );
+        };
+
+        return () => {
+            ws.close();
+        };
+    }, []);
+
+
+
     if (!isLoaderVisible){
         return (
             <>
@@ -4172,12 +4290,12 @@ function App(){
                             collapsibleNav={collapsibleNav}
 
                             collapsibleActions={[
-                                {
-                                    key: 'notifications',
-                                    label: 'Notifications',
-                                    icon: <NotificationsIcon />,
-                                    onClick: validateUpdate,
-                                },
+                                // {
+                                //     key: 'notifications',
+                                //     label: 'Notifications',
+                                //     icon: <NotificationsIcon />,
+                                //     onClick: validateUpdate,
+                                // },
                                 {
                                     key: 'settings',
                                     label: 'Settings',
@@ -4548,9 +4666,11 @@ function App(){
                                     supportedLanguages={supportedLanguages}
                                     changeLanguage={changeLanguage}
 
+                                    version={version}
                                     newUpdateAvailable={newUpdateAvailable}
                                     releaseInfo={releaseInfo}
                                     setUpdating={setUpdating}
+                                    setIsUpdateInitiator={setIsUpdateInitiator}
 
                                     currentMenu={currentMenu}
                                     setShowCropWindow={setShowCropWindow}
@@ -4584,9 +4704,11 @@ function App(){
 
                     {updating && (
                         <QUpdating
+                            isInitiator={isUpdateInitiator}
                             onComplete={() => {
                                 setUpdating(false);
                                 setNewUpdateAvailable(false);
+                                setIsUpdateInitiator(false);
                             }}
                         />
                     )}

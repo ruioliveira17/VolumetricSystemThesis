@@ -17,19 +17,18 @@ from api_auth import get_current_user
 from backend.services.update_manager import (
     DEFAULT_PACKAGE,
     UpdateValidationError,
-    validate_update_package,
     install_update,
 )
-
 _update_lock = Lock()
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("qubic.update")
 
 router = APIRouter(
     prefix="/updates",
     tags=["Updates"],
 )
 
+FRONTEND_DIR = Path("/home/marques/Tese/frontend")
 VERSION_FILE = Path("/home/marques/Tese/version.txt")
 RESTART_CONFIG = Path("/home/marques/Tese/restart_config.json")
 
@@ -51,6 +50,14 @@ _latest = {"checked": False, "update_available": False, "release": None}
 
 _loop: asyncio.AbstractEventLoop | None = None
 _clients: set[WebSocket] = set()  # só é mexido dentro do event loop
+
+_update_state_lock = Lock()
+
+_update_state = {
+    "status": "idle",
+    "version": None,
+    "error": None,
+}
 
 def parse_version(version: str) -> tuple[int, ...]:
     """
@@ -79,74 +86,6 @@ def get_installed_version() -> str:
     parse_version(version)
 
     return version
-
-@router.post("/validate")
-def validate_update(
-    current_user=Depends(get_current_user),
-):
-    """
-    Valida o pacote e verifica se contém uma versão superior
-    à versão atualmente instalada.
-    """
-    try:
-        result = validate_update_package()
-
-        remote_version = result["manifest"].get("version")
-        installed_version = get_installed_version()
-
-        if not remote_version:
-            raise UpdateValidationError(
-                "O manifesto não contém uma versão válida."
-            )
-
-        try:
-            remote_version_tuple = parse_version(remote_version)
-            installed_version_tuple = parse_version(installed_version)
-        except ValueError as exc:
-            raise UpdateValidationError(str(exc)) from exc
-
-        # Igualar o número de componentes para comparar, por exemplo,
-        # 1.0 com 1.0.0 como versões equivalentes.
-        max_length = max(
-            len(remote_version_tuple),
-            len(installed_version_tuple),
-        )
-
-        remote_version_tuple += (0,) * (
-            max_length - len(remote_version_tuple)
-        )
-        installed_version_tuple += (0,) * (
-            max_length - len(installed_version_tuple)
-        )
-
-        update_available = (
-            remote_version_tuple > installed_version_tuple
-        )
-
-        return {
-            "success": True,
-            "valid": result["valid"],
-            "update_available": update_available,
-            "installed_version": installed_version,
-            "update_id": result["manifest"].get("update_id"),
-            "version": remote_version,
-            "files_count": len(result["files"]),
-            "files": result["files"],
-        }
-
-    except UpdateValidationError as exc:
-        raise HTTPException(
-            status_code=400,
-            detail=str(exc),
-        ) from exc
-
-    except Exception as exc:
-        logger.exception("Erro inesperado ao validar a atualização.")
-
-        raise HTTPException(
-            status_code=500,
-            detail="Erro interno ao validar o pacote de atualização.",
-        ) from exc
 
 def get_install_id() -> str:
     """
@@ -233,127 +172,6 @@ def build_status(update_available: bool, release: dict | None) -> dict:
         "patch_notes": release.get("notes", {}),
     }
 
-@router.get("/check/release")
-def check_release():
-    """
-    Devolve o último estado conhecido (sem token).
-    Quem faz o pedido ao servidor de updates é o ciclo em segundo plano.
-    """
-    with _latest_lock:
-        latest = dict(_latest)
-
-    return {
-        "success": True,
-        "checked": latest["checked"],
-        **build_status(latest["update_available"], latest["release"]),
-    }
-
-def fetch_download_info() -> dict:
-    """
-    Pede ao servidor o link assinado do pacote (válido 10 minutos).
-    """
-    payload = json.dumps({
-        "produto": UPDATE_PRODUCT,
-        "installId": get_install_id(),
-    }).encode("utf-8")
-
-    request = urllib.request.Request(
-        UPDATE_URL_DOWNLOAD,
-        data=payload,
-        headers={"Content-Type": "application/json"},
-        method="POST",
-    )
-
-    try:
-        with urllib.request.urlopen(request, timeout=10) as resp:
-            data = json.loads(resp.read().decode("utf-8"))
-    except (urllib.error.URLError, TimeoutError) as exc:
-        raise UpdateValidationError(
-            "Não foi possível contactar o servidor de updates."
-        ) from exc
-    except (json.JSONDecodeError, UnicodeDecodeError) as exc:
-        raise UpdateValidationError(
-            "Resposta inválida do servidor de updates."
-        ) from exc
-
-    if not isinstance(data, dict) or not data.get("update"):
-        raise UpdateValidationError(
-            "O servidor não tem nenhuma atualização para descarregar."
-        )
-
-    if not data.get("url") or not data.get("sha256"):
-        raise UpdateValidationError(
-            "Resposta inválida do servidor de updates."
-        )
-
-    return data
-
-@router.post("/download/release")
-def download_release(
-    current_user=Depends(get_current_user),
-):
-    """
-    Descarrega o pacote para o disco e verifica o SHA-256.
-    Só deve ser chamado quando o utilizador confirma a atualização.
-    """
-    if not _update_lock.acquire(blocking=False):
-        raise HTTPException(
-            status_code=409,
-            detail="Já existe uma atualização em curso.",
-        )
-
-    temp_package = DEFAULT_PACKAGE.with_suffix(".tmp")
-
-    try:
-        info = fetch_download_info()
-        expected_hash = info["sha256"].lower()
-
-        DEFAULT_PACKAGE.parent.mkdir(parents=True, exist_ok=True)
-        digest = hashlib.sha256()
-
-        try:
-            with urllib.request.urlopen(info["url"], timeout=30) as resp, \
-                    temp_package.open("wb") as out:
-                while chunk := resp.read(1024 * 1024):
-                    digest.update(chunk)
-                    out.write(chunk)
-        except (urllib.error.URLError, TimeoutError, OSError) as exc:
-            raise UpdateValidationError(
-                "Falha ao descarregar o pacote de atualização."
-            ) from exc
-
-        if digest.hexdigest() != expected_hash:
-            raise UpdateValidationError(
-                "O SHA-256 do pacote descarregado não corresponde."
-            )
-
-        temp_package.replace(DEFAULT_PACKAGE)
-
-        return {
-            "success": True,
-            "version": info.get("version"),
-            "sha256": expected_hash,
-            "package": str(DEFAULT_PACKAGE),
-        }
-
-    except UpdateValidationError as exc:
-        raise HTTPException(
-            status_code=400,
-            detail=str(exc),
-        ) from exc
-
-    except Exception as exc:
-        logger.exception("Erro inesperado ao descarregar a atualização.")
-
-        raise HTTPException(
-            status_code=500,
-            detail="Erro interno ao descarregar a atualização.",
-        ) from exc
-
-    finally:
-        temp_package.unlink(missing_ok=True)
-        _update_lock.release()
-
 def send_heartbeat() -> None:
     """
     Indica ao servidor que a instalação está viva (resposta 204).
@@ -395,33 +213,106 @@ def heartbeat(
             detail="Erro interno ao enviar o heartbeat.",
         ) from exc
 
-async def _broadcast(status: dict) -> None:
-    message = {"event": "UPDATE_AVAILABLE", "data": status}
+async def _broadcast(event: str, data: dict) -> None:
+    message = {"event": event, "data": data}
     for ws in list(_clients):
         try:
             await ws.send_json(message)
         except Exception:
             _clients.discard(ws)
 
-
-def _emit(status: dict) -> None:
+def _emit(event: str, data: dict) -> None:
     if _loop is not None:
-        asyncio.run_coroutine_threadsafe(_broadcast(status), _loop)
+        asyncio.run_coroutine_threadsafe(
+            _broadcast(event, data),
+            _loop,
+        )
 
+def _set_update_state(
+    status: str,
+    version: str | None = None,
+    error: str | None = None,
+) -> None:
+    with _update_state_lock:
+        _update_state.update({
+            "status": status,
+            "version": version,
+            "error": error,
+        })
+
+        state = dict(_update_state)
+
+    _emit("UPDATE_STATE", state)
+
+def send_update_report(
+    event: str,
+    version_from: str | None = None,
+    version_to: str | None = None,
+    error_code: str | None = None,
+    error_message: str | None = None,
+) -> None:
+    payload = {
+        "produto": UPDATE_PRODUCT,
+        "installId": get_install_id(),
+        "event": event,
+    }
+
+    if version_from:
+        payload["versionFrom"] = version_from
+
+    if version_to:
+        payload["versionTo"] = version_to
+
+    if error_code:
+        payload["errorCode"] = error_code
+
+    if error_message:
+        payload["errorMessage"] = error_message[:1000]
+
+    request = urllib.request.Request(
+        UPDATE_URL_REPORT,
+        data=json.dumps(payload).encode("utf-8"),
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+
+    try:
+        with urllib.request.urlopen(request, timeout=10) as response:
+            logger.info(
+                "Report de atualização enviado: %s (HTTP %s).",
+                event,
+                response.status,
+            )
+
+    except Exception:
+        logger.exception(
+            "Não foi possível enviar o report %s ao servidor de updates.",
+            event,
+        )
 
 @router.websocket("/updates_ws")
 async def updates_ws(websocket: WebSocket):
-    # Sem token: só expõe se existe update, a versão e as notas.
     await websocket.accept()
     _clients.add(websocket)
+
     try:
+        with _update_state_lock:
+            state = dict(_update_state)
+
+        await websocket.send_json({
+            "event": "UPDATE_STATE",
+            "data": state,
+        })
+
         while True:
-            await websocket.receive_text()  # mantém a ligação aberta
+            await websocket.receive_text()
+
     except WebSocketDisconnect:
         pass
+
     finally:
         _clients.discard(websocket)
-
+        
 def _offered_version() -> str | None:
     with _latest_lock:
         if _latest["update_available"] and _latest["release"]:
@@ -447,7 +338,13 @@ def _update_loop() -> None:
 
             # Só quando muda: um check que repete o mesmo resultado não é notícia.
             if offered_before != _offered_version():
-                _emit(build_status(bool(update_available), release))
+                _emit(
+                    "UPDATE_AVAILABLE",
+                    build_status(
+                        bool(update_available),
+                        release,
+                    ),
+                )
 
         except Exception:
             logger.exception("Falha no check de updates.")
@@ -521,51 +418,283 @@ def write_restart_config(old_pid: int, python_executable: str):
 
     logger.info("Configuração de reinício criada.")
 
-@router.post("/install")
-def installUpdate(
+@router.get("/check/release")
+def check_release():
+    """
+    Devolve o último estado conhecido (sem token).
+    Quem faz o pedido ao servidor de updates é o ciclo em segundo plano.
+    """
+    with _latest_lock:
+        latest = dict(_latest)
+
+    return {
+        "success": True,
+        "checked": latest["checked"],
+        **build_status(latest["update_available"], latest["release"]),
+    }
+
+def fetch_download_info() -> dict:
+    """
+    Pede ao servidor o link assinado do pacote (válido 10 minutos).
+    """
+    payload = json.dumps({
+        "produto": UPDATE_PRODUCT,
+        "installId": get_install_id(),
+    }).encode("utf-8")
+
+    request = urllib.request.Request(
+        UPDATE_URL_DOWNLOAD,
+        data=payload,
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+
+    try:
+        with urllib.request.urlopen(request, timeout=10) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+    except (urllib.error.URLError, TimeoutError) as exc:
+        raise UpdateValidationError(
+            "Não foi possível contactar o servidor de updates."
+        ) from exc
+    except (json.JSONDecodeError, UnicodeDecodeError) as exc:
+        raise UpdateValidationError(
+            "Resposta inválida do servidor de updates."
+        ) from exc
+
+    if not isinstance(data, dict) or not data.get("update"):
+        raise UpdateValidationError(
+            "O servidor não tem nenhuma atualização para descarregar."
+        )
+
+    if not data.get("url") or not data.get("sha256"):
+        raise UpdateValidationError(
+            "Resposta inválida do servidor de updates."
+        )
+
+    return data
+
+def _download_release_package() -> dict:
+    """
+    Descarrega o pacote de atualização e verifica o SHA-256.
+    O lock deve estar adquirido pelo endpoint que chama esta função.
+    """
+    temp_package = DEFAULT_PACKAGE.with_suffix(".tmp")
+
+    try:
+        info = fetch_download_info()
+        expected_hash = info["sha256"].lower()
+
+        DEFAULT_PACKAGE.parent.mkdir(parents=True, exist_ok=True)
+        digest = hashlib.sha256()
+
+        try:
+            with urllib.request.urlopen(info["url"], timeout=30) as resp, \
+                    temp_package.open("wb") as out:
+                while chunk := resp.read(1024 * 1024):
+                    digest.update(chunk)
+                    out.write(chunk)
+
+        except (urllib.error.URLError, TimeoutError, OSError) as exc:
+            raise UpdateValidationError(
+                "Falha ao descarregar o pacote de atualização."
+            ) from exc
+
+        if digest.hexdigest() != expected_hash:
+            raise UpdateValidationError(
+                "O SHA-256 do pacote descarregado não corresponde."
+            )
+
+        temp_package.replace(DEFAULT_PACKAGE)
+
+        return {
+            "success": True,
+            "version": info.get("version"),
+            "sha256": expected_hash,
+            "package": str(DEFAULT_PACKAGE),
+        }
+
+    finally:
+        temp_package.unlink(missing_ok=True)
+
+def _start_restart_and_release_lock() -> None:
+    """
+    Executa o pedido de reinício depois de a resposta HTTP ser enviada.
+    O lock permanece adquirido até esta tarefa começar e terminar.
+    """
+    try:
+        start_update_restart_service()
+    finally:
+        _update_lock.release()
+
+@router.post("/start_update")
+def start_update(
     background_tasks: BackgroundTasks,
     current_user=Depends(get_current_user),
 ):
     """
-    Valida o pacote e instala os ficheiros no diretório de teste.
+    Coordena o download, a instalação, a compilação e a preparação
+    do reinício do serviço.
     """
     if not _update_lock.acquire(blocking=False):
         raise HTTPException(
             status_code=409,
-            detail="Já existe uma atualização em curso."
+            detail="Já existe uma atualização em curso.",
         )
 
+    lock_transferred = False
+
+    report_event = "install_fail"
+    report_error_code = None
+    report_error_message = None
+    version_from = None
+    version_to = None
+    stage = "DOWNLOAD"
+
     try:
-        # Guardar os dados do processo atual antes da instalação.
+        # 1. Guardar os dados do processo atual.
         old_pid = os.getpid()
         python_executable = sys.executable
 
-        result = install_update()
+        version_from = get_installed_version()
+        
+        _set_update_state("downloading")
+        stage = "DOWNLOAD"
+        _emit("UPDATE_STARTED", {})
 
-        # Preparar a configuração para o supervisor.
+        # 2. Descarregar o pacote e verificar o SHA-256.
+        download_result = _download_release_package()
+
+        # 3. Validar, criar backup e instalar sem atualizar
+        #    ainda o ficheiro da versão.
+        _set_update_state("installing")
+        stage = "INSTALL"
+
+        install_result = install_update(update_version=False)
+
+        # 4. Compilar o frontend com a nova versão do código.
+        _set_update_state("building")
+        stage = "BUILD"
+
+        try:
+            build_result = subprocess.run(
+                ["npm", "run", "build"],
+                cwd=FRONTEND_DIR,
+                capture_output=True,
+                text=True,
+                timeout=300,
+                check=False,
+            )
+        except subprocess.TimeoutExpired as exc:
+            logger.exception("Timeout durante a compilação do frontend.")
+            raise HTTPException(
+                status_code=500,
+                detail="A compilação do frontend excedeu o tempo limite.",
+            ) from exc
+        except OSError as exc:
+            logger.exception("Não foi possível executar o build do frontend.")
+            raise HTTPException(
+                status_code=500,
+                detail="Não foi possível executar npm run build.",
+            ) from exc
+
+        if build_result.returncode != 0:
+            logger.error(
+                "Falha no build do frontend. Código: %s\nSTDOUT:\n%s\nSTDERR:\n%s",
+                build_result.returncode,
+                build_result.stdout[-4000:],
+                build_result.stderr[-4000:],
+            )
+            raise HTTPException(
+                status_code=500,
+                detail="A compilação do frontend falhou. Consulte os logs.",
+            )
+
+        # 5. Só depois de um build bem-sucedido atualizar a versão.
+        version = install_result["version"]
+
+        if not isinstance(version, str) or not version.strip():
+            raise UpdateValidationError(
+                "O manifesto não contém uma versão válida."
+            )
+
+        VERSION_FILE.write_text(
+            version.strip() + "\n",
+            encoding="utf-8",
+        )
+
+        version_to = version.strip()
+
+        report_event = "install_ok"
+        report_error_code = None
+        report_error_message = None
+
+        # 6. Preparar o reinício.
         write_restart_config(
             old_pid=old_pid,
             python_executable=python_executable,
         )
 
-        background_tasks.add_task(start_update_restart_service)
+        _emit("FORCE_LOGOUT", {})
 
-        return result
+        # O BackgroundTask corre depois de a resposta ser enviada.
+        # Transfere-lhe a responsabilidade de libertar o lock.
+        background_tasks.add_task(_start_restart_and_release_lock)
+        lock_transferred = True
+
+        return {
+            "success": True,
+            "download": download_result,
+            "installation": install_result,
+            "build": "success",
+            "version": version,
+            "restart_scheduled": True,
+        }
+
+    except HTTPException as exc:
+        report_event = "install_fail"
+        report_error_code = stage
+        report_error_message = str(exc.detail)
+        _set_update_state(
+            "failed",
+            version=version_to or version_from,
+            error=report_error_message,
+        )
+        raise
 
     except UpdateValidationError as exc:
-        raise HTTPException(
-            status_code=400,
-            detail=str(exc),
-        ) from exc
+        report_event = "install_fail"
+        report_error_code = "CHECKSUM" if "SHA-256" in str(exc) else stage
+        report_error_message = str(exc)
+        _set_update_state(
+            "failed",
+            version=version_to or version_from,
+            error=report_error_message,
+        )
+        raise HTTPException(400, detail=str(exc)) from exc
 
     except Exception as exc:
-        logger.exception(
-            "Erro inesperado ao instalar a atualização de teste."
+        report_event = "install_fail"
+        report_error_code = stage
+        report_error_message = str(exc)
+        logger.exception("Erro inesperado durante a atualização.")
+        _set_update_state(
+            "failed",
+            version=version_to or version_from,
+            error=report_error_message,
         )
+        raise HTTPException(500, detail="Erro interno durante a atualização.") from exc
 
-        raise HTTPException(
-            status_code=500,
-            detail="Erro interno ao instalar a atualização de teste.",
-        ) from exc
     finally:
-        _update_lock.release()
+        try:
+            send_update_report(
+                event=report_event,
+                version_from=version_from,
+                version_to=version_to,
+                error_code=report_error_code,
+                error_message=report_error_message,
+            )
+        except Exception:
+            logger.exception("Erro ao preparar o report da atualização.")
+
+        if not lock_transferred:
+            _update_lock.release()

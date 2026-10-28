@@ -149,9 +149,15 @@ function QVolume({
 
                                     if (/^-+$/.test(value)) return value.slice(0,5);
 
-                                    const number = Number(value);
+                                    let number = Number(value);
 
-                                    return Number.isFinite(number) ? number.toFixed(2) : "0.00";
+                                    if (!Number.isFinite(number)) return "0.00";
+
+                                    if (weightInfo?.flags?.negative && number > 0) {
+                                        number = -number;
+                                    }
+
+                                    return number.toFixed(2);
                                 })()}
                             </span>
                             <span className="units">kg</span>
@@ -289,7 +295,7 @@ function QVolume({
 
                                         <div style={{ color: "#FFFFFF" }} className="boxBundleInfo-text">
                                             <span className="label">{t("volumeMenu.weight")}</span> 
-                                            <span className="value">{measurementWeightInfo?.weight != null ? Number(measurementWeightInfo.weight).toFixed(2) : "0.00"} </span> 
+                                            <span className="value">{measurementWeightInfo?.weight != null ? (Number(measurementWeightInfo.weight) * (measurementWeightInfo.flags?.negative && Number(measurementWeightInfo.weight) > 0 ? -1 : 1)).toFixed(2) : "0.00"} </span> 
                                         </div>
 
                                     </div>
@@ -355,7 +361,13 @@ function QVolume({
                                     <div className="total-row">
                                         <span className="total-label">{t("volumeMenu.totalWeight")}</span>
                                         <span className="total-value">
-                                            {measurementWeightInfo?.weight != null ? Number(measurementWeightInfo.weight).toFixed(2) : "0.00"} kg
+                                            {measurementWeightInfo?.weight != null
+                                                ? (
+                                                    Number(measurementWeightInfo.weight) *
+                                                    (measurementWeightInfo.flags?.negative &&
+                                                    Number(measurementWeightInfo.weight) > 0 ? -1 : 1)
+                                                ).toFixed(2)
+                                                : "0.00"} kg
                                         </span>
                                     </div>
                                     <div className="total-row">

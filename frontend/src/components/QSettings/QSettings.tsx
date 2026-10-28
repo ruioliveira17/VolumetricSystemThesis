@@ -54,9 +54,11 @@ interface QSettingsProps {
   supportedLanguages: string[];
   changeLanguage: (newLanguage: string) => Promise<void>;
 
+  version: string;
   newUpdateAvailable: boolean;
   releaseInfo: ReleaseInfo | null;
   setUpdating: React.Dispatch<React.SetStateAction<boolean>>;
+  setIsUpdateInitiator: React.Dispatch<React.SetStateAction<boolean>>;
   // Crop ("Define")
   currentMenu: string;
   setShowCropWindow: React.Dispatch<React.SetStateAction<boolean>>;
@@ -82,9 +84,11 @@ function QSettings({
   language,
   supportedLanguages,
   changeLanguage,
+  version,
   newUpdateAvailable,
   releaseInfo,
   setUpdating,
+  setIsUpdateInitiator,
   currentMenu,
   setShowCropWindow,
   portalContainer,
@@ -187,26 +191,6 @@ function QSettings({
   };
 
   const [confirmUpdate, setConfirmUpdate] = React.useState(false);
-  const [version, setVersion] = useState<string>('');
-
-  useEffect(() => {
-    const fetchVersion = async () => {
-      try {
-        const response = await apiFetch('/system/version');
-        const data = await response.json();
-
-        setVersion(data.version);
-      } catch (error) {
-        console.error('Failed to get system version:', error);
-      }
-    };
-
-    fetchVersion();
-
-    const interval = setInterval(fetchVersion, 30_000);
-
-    return () => clearInterval(interval);
-  }, []);
 
   const [powerModalOpen, setPowerModalOpen] = React.useState(false);
   const [patchNotesOpen, setPatchNotesOpen] = React.useState(false);
@@ -469,6 +453,7 @@ function QSettings({
           onClose={() => setConfirmUpdate(false)}
           onConfirm={() => {
             setUpdating(true);
+            setIsUpdateInitiator(true);
             setConfirmUpdate(false);
           }}
           title={t("update.title")}
