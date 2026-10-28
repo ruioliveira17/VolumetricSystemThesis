@@ -3,7 +3,7 @@ from aiortc import RTCPeerConnection, RTCSessionDescription
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta, timezone
 from dotenv import load_dotenv
-from fastapi import Body, Depends, FastAPI, HTTPException, Request, Response, status
+from fastapi import Body, Depends, FastAPI, HTTPException, Request, Response, status, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
@@ -60,6 +60,8 @@ from WeightState import weightState
 from WorkspaceState import workspaceState
 
 from api_auth import get_current_user, get_password_change_user, require_admin
+from api_updates import start_update_scheduler, stop_update_scheduler
+
 from api_system import router as system_router
 from api_system_info import router as system_info_router
 from api_updates import router as updates_router
@@ -174,11 +176,16 @@ async def lifespan(app: FastAPI):
     )
     weight_thread.start()
 
+    logger.info("Starting update scheduler")
+    start_update_scheduler(asyncio.get_running_loop())
+
     try:
         yield
     finally:
         #SHUTDOWN
         logger.info("Shutting down API")
+
+        stop_update_scheduler()
 
         weight_stop_event.set()
         weight_thread.join(timeout=4)
@@ -2059,15 +2066,30 @@ def depth_status(current_user : dict = Depends(get_current_user)):
 
 # --------------------------------------- Weight ---------------------------------------
 
-@app.get("/weight", summary="Retrieves the current weight from the scale",
-         description="""
-         Obtains the current weight reading from the scale.
-         """,
-         tags=["Weight"])
-def get_weight(current_user: dict = Depends(get_current_user)):
-    with weight_lock:
-        return weightState.weight.copy()
+# @app.get("/weight", summary="Retrieves the current weight from the scale",
+#          description="""
+#          Obtains the current weight reading from the scale.
+#          """,
+#          tags=["Weight"])
+# def get_weight(current_user: dict = Depends(get_current_user)):
+#     with weight_lock:
+#         return weightState.weight.copy()
 
+@app.websocket("/weight/ws")
+async def weight_websocket(websocket: WebSocket):
+    await websocket.accept()
+
+    try:
+        while True:
+            with weight_lock:
+                data = weightState.weight.copy()
+
+            await websocket.send_json(data)
+            await asyncio.sleep(0.5)
+
+    except WebSocketDisconnect:
+        pass
+    
 @app.post("/weight/zero", summary="Sets the current weight as zero",
          description="""
          Sends the zero command to the weight scale, setting the current

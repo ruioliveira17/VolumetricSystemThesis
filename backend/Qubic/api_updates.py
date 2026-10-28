@@ -1,4 +1,5 @@
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
+import asyncio
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, WebSocket, WebSocketDisconnect
 import hashlib
 import json
 import logging
@@ -47,6 +48,9 @@ _poll_after = DEFAULT_POLL_SECONDS
 
 _latest_lock = Lock()
 _latest = {"checked": False, "update_available": False, "release": None}
+
+_loop: asyncio.AbstractEventLoop | None = None
+_clients: set[WebSocket] = set()  # só é mexido dentro do event loop
 
 def parse_version(version: str) -> tuple[int, ...]:
     """
@@ -217,50 +221,32 @@ def fetch_remote_release() -> tuple[bool, dict | None, int | None]:
 
     return update_available, release, poll_after
 
+def build_status(update_available: bool, release: dict | None) -> dict:
+    if not update_available or release is None:
+        return {"update_available": False}
+
+    return {
+        "update_available": True,
+        "version": release.get("version"),
+        "mandatory": release.get("mandatory", False),
+        "update_id": release.get("artifact", {}).get("id"),
+        "patch_notes": release.get("notes", {}),
+    }
+
 @router.get("/check/release")
-def check_release(
-    current_user=Depends(get_current_user),
-):
+def check_release():
     """
-    Pergunta ao servidor se existe uma versão superior
-    à versão atualmente instalada.
+    Devolve o último estado conhecido (sem token).
+    Quem faz o pedido ao servidor de updates é o ciclo em segundo plano.
     """
-    try:
-        with _latest_lock:
-            latest = dict(_latest)
+    with _latest_lock:
+        latest = dict(_latest)
 
-        release = latest["release"]
-
-        if not latest["update_available"] or release is None:
-            return {
-                "success": True,
-                "update_available": False,
-                "checked": latest["checked"],
-            }
-
-        return {
-            "success": True,
-            "update_available": True,
-            "checked": True,
-            "version": release.get("version"),
-            "mandatory": release.get("mandatory", False),
-            "update_id": release.get("artifact", {}).get("id"),
-            "patch_notes": release.get("notes", {}),
-        }
-
-    except UpdateValidationError as exc:
-        raise HTTPException(
-            status_code=400,
-            detail=str(exc),
-        ) from exc
-
-    except Exception as exc:
-        logger.exception("Erro inesperado ao validar a atualização.")
-
-        raise HTTPException(
-            status_code=500,
-            detail="Erro interno ao validar o pacote de atualização.",
-        ) from exc
+    return {
+        "success": True,
+        "checked": latest["checked"],
+        **build_status(latest["update_available"], latest["release"]),
+    }
 
 def fetch_download_info() -> dict:
     """
@@ -393,7 +379,6 @@ def send_heartbeat() -> None:
             "Não foi possível contactar o servidor de updates."
         ) from exc
 
-
 @router.post("/heartbeat")
 def heartbeat(
     current_user=Depends(get_current_user),
@@ -410,6 +395,39 @@ def heartbeat(
             detail="Erro interno ao enviar o heartbeat.",
         ) from exc
 
+async def _broadcast(status: dict) -> None:
+    message = {"event": "UPDATE_AVAILABLE", "data": status}
+    for ws in list(_clients):
+        try:
+            await ws.send_json(message)
+        except Exception:
+            _clients.discard(ws)
+
+
+def _emit(status: dict) -> None:
+    if _loop is not None:
+        asyncio.run_coroutine_threadsafe(_broadcast(status), _loop)
+
+
+@router.websocket("/updates_ws")
+async def updates_ws(websocket: WebSocket):
+    # Sem token: só expõe se existe update, a versão e as notas.
+    await websocket.accept()
+    _clients.add(websocket)
+    try:
+        while True:
+            await websocket.receive_text()  # mantém a ligação aberta
+    except WebSocketDisconnect:
+        pass
+    finally:
+        _clients.discard(websocket)
+
+def _offered_version() -> str | None:
+    with _latest_lock:
+        if _latest["update_available"] and _latest["release"]:
+            return _latest["release"].get("version")
+    return None
+
 def _update_loop() -> None:
     """
     Heartbeat e Check Release no arranque e depois a cada pollAfter.
@@ -417,12 +435,20 @@ def _update_loop() -> None:
     while not _stop_event.is_set():
         try:
             update_available, release, _ = fetch_remote_release()
+
+            offered_before = _offered_version()
+
             with _latest_lock:
                 _latest.update({
                     "checked": True,
                     "update_available": bool(update_available),
                     "release": release,
                 })
+
+            # Só quando muda: um check que repete o mesmo resultado não é notícia.
+            if offered_before != _offered_version():
+                _emit(build_status(bool(update_available), release))
+
         except Exception:
             logger.exception("Falha no check de updates.")
 
@@ -436,8 +462,10 @@ def _update_loop() -> None:
 
         _stop_event.wait(wait)
 
-def start_update_scheduler() -> None:
-    Thread(target=_update_loop, name="update-heartbeat", daemon=True).start()
+def start_update_scheduler(loop: asyncio.AbstractEventLoop) -> None:
+    global _loop
+    _loop = loop
+    Thread(target=_update_loop, name="update-loop", daemon=True).start()
 
 def stop_update_scheduler() -> None:
     _stop_event.set()

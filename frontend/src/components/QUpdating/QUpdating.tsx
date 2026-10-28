@@ -31,6 +31,25 @@ function QUpdating({ onComplete }: QUpdatingProps) {
 
         const runUpdate = async () => {
             try {
+                // 1. Descarregar e validar o pacote de atualização
+                const downloadResponse = await apiFetch(
+                    "/updates/download/release",
+                    {
+                        method: "POST",
+                    }
+                );
+
+                if (!downloadResponse.ok) {
+                    const data = await downloadResponse.json().catch(() => null);
+                    throw new Error(
+                        data?.detail || "Falha ao descarregar a atualização."
+                    );
+                }
+
+                // Não avançar se o componente já tiver sido desmontado
+                if (cancelled) return;
+
+                // 2. Instalar apenas depois de o download terminar com sucesso
                 const installResponse = await apiFetch("/updates/install", {
                     method: "POST",
                 });
@@ -42,6 +61,7 @@ function QUpdating({ onComplete }: QUpdatingProps) {
                     );
                 }
 
+                // 3. Aguardar que a API reinicie e volte a responder
                 const deadline = Date.now() + RESTART_TIMEOUT_MS;
 
                 while (!cancelled && Date.now() < deadline) {

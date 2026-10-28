@@ -22,7 +22,7 @@ import { QUserModal, QUserPanel } from "./components/QUser";
 import QTopBar from "./components/QTopBar";
 import { QToaster, notify } from "./components/QToast";
 
-import {apiFetch, apiJson, setOnAuthFailure, storeTokens} from "./api/client"
+import {apiFetch, apiJson, API_URL, setOnAuthFailure, storeTokens} from "./api/client"
 
 // --------------------------------------------------------------------- //
 // |                      Available Languages                          | //
@@ -66,8 +66,9 @@ interface MeasurementData {
 // |                           Variables                               | //
 // --------------------------------------------------------------------- //
 function App(){
-    // const API_URL: string = import.meta.env.VITE_API_URL;
-    const API_URL: string = "";
+    const WS_BASE_URL = API_URL
+        ? API_URL.replace(/^http/, 'ws')
+        : `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}`;
 
     const authScreens = ["login-menu", "register", "changePassword-menu"]
     const [isLoaderVisible, setIsLoaderVisible] = useState(true);
@@ -797,29 +798,58 @@ function App(){
 
         } else if (currentMenu === "volume-menu") {
             handleCalibrationModeChange(false);
-            const interval = setInterval(async () => {
-            try {
-                const dataResponse = await apiFetch("/weight");
-                const weightData = await dataResponse.json();
+            // const interval = setInterval(async () => {
+            // try {
+            //     const dataResponse = await apiFetch("/weight");
+            //     const weightData = await dataResponse.json();
 
-                setWeightInfo(weightData);
-                setWeightStable(weightData.flags["stable"]);
-                setWeightZero(weightData.flags["zero"]);
+            //     setWeightInfo(weightData);
+            //     setWeightStable(weightData.flags["stable"]);
+            //     setWeightZero(weightData.flags["zero"]);
 
-            } catch (error) {
-                console.error("Weight info error:", error);
-            }
+            // } catch (error) {
+            //     console.error("Weight info error:", error);
+            // }
 
-            }, 500);
+            // }, 500);
 
-            return () => {
-            clearInterval(interval);
-            };
+            // return () => {
+            // clearInterval(interval);
+            // };
         } else if (currentMenu === "measurementHistory-menu"){
             handleCalibrationModeChange(false);
         }
 
     }, [currentMenu]);
+
+    useEffect(() => {
+        const protocol =
+            window.location.protocol === "https:" ? "wss:" : "ws:";
+
+        const socket = new WebSocket(
+            `${protocol}//${window.location.host}/weight/ws`
+        );
+
+        socket.onmessage = (event) => {
+            try {
+                const weightData = JSON.parse(event.data);
+
+                setWeightInfo(weightData);
+                setWeightStable(weightData.flags.stable);
+                setWeightZero(weightData.flags.zero);
+            } catch (error) {
+                console.error("Weight WebSocket data error:", error);
+            }
+        };
+
+        socket.onerror = (error) => {
+            console.error("Weight WebSocket error:", error);
+        };
+
+        return () => {
+            socket.close();
+        };
+    }, []);
 
     useEffect(() => {
         const handleMenu = async (): Promise<void> => {
@@ -4073,44 +4103,63 @@ function App(){
         }
     };
 
-    const checkRelease = async (): Promise<number | null> => {
+    const applyStatus = (status: any) => {
+        setNewUpdateAvailable(Boolean(status.update_available));
+        setReleaseInfo(
+            status.update_available
+                ? {
+                    version: status.version ?? null,
+                    mandatory: Boolean(status.mandatory),
+                    patchNotes: status.patch_notes ?? {},
+                }
+                : null
+        );
+    };
+
+    const checkRelease = async () => {
         try {
             const response = await apiFetch('/updates/check/release');
             const result = await response.json();
 
             if (response.ok && result.success) {
-                setNewUpdateAvailable(Boolean(result.update_available));
-                setReleaseInfo(
-                    result.update_available
-                        ? {
-                              version: result.version ?? null,
-                              mandatory: Boolean(result.mandatory),
-                              patchNotes: result.patch_notes ?? {},
-                          }
-                        : null
-                );
+                applyStatus(result);
             } else {
-                setNewUpdateAvailable(false);
-                setReleaseInfo(null);
-                console.error(
-                    'Update check failed:',
-                    result.detail ?? 'Unknown error'
-                );
+                applyStatus({ update_available: false });
+                console.error('Update check failed:', result.detail ?? 'Unknown error');
             }
-
-           return result.poll_after ?? null;
         } catch (error) {
-            setNewUpdateAvailable(false);
-            setReleaseInfo(null);
+            applyStatus({ update_available: false });
             console.error('Error checking release:', error);
-            return null;
         }
     };
 
     useEffect(() => {
-        checkRelease();
-        const interval = setInterval(checkRelease, 30_000);
-        return () => clearInterval(interval);
+        let ws: WebSocket | null = null;
+        let retry: ReturnType<typeof setTimeout>;
+        let closed = false;
+
+        const connect = () => {
+            ws = new WebSocket(`${WS_BASE_URL}/updates/updates_ws`);
+
+            ws.onopen = () => { checkRelease(); };
+
+            ws.onmessage = (e) => {
+                const msg = JSON.parse(e.data);
+                if (msg.event === 'UPDATE_AVAILABLE') applyStatus(msg.data);
+            };
+
+            ws.onclose = () => {
+                if (!closed) retry = setTimeout(connect, 5000);
+            };
+        };
+
+        connect();
+
+        return () => {
+            closed = true;
+            clearTimeout(retry);
+            ws?.close();
+        };
     }, []);
 
     if (!isLoaderVisible){
