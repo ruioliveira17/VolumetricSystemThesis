@@ -184,6 +184,81 @@ cat > "$HOME/.config/lxsession/rpd-x/autostart" <<EOF
 @$HOME/start_qubic.sh
 EOF
 
+# Disable the internal WiFi chip (the metal enclosure blocks the signal).
+# External USB WiFi adapters keep working.
+BOOT_CONFIG="/boot/firmware/config.txt"
+
+if ! grep -q "^dtoverlay=disable-wifi" "$BOOT_CONFIG"; then
+    echo "dtoverlay=disable-wifi" | sudo tee -a "$BOOT_CONFIG" > /dev/null
+    echo "Internal WiFi disabled (takes effect after reboot)."
+else
+    echo "Internal WiFi already disabled."
+fi
+
+# Network failover: wired (eth0) preferred while it has internet,
+# otherwise fall back to WiFi (the wired link can stay up through the
+# internal switch even with no uplink, so NetworkManager can't detect it).
+
+# Default route metrics for any WiFi profile (wired uses 100 in the script)
+sudo tee /etc/NetworkManager/conf.d/30-metrics.conf > /dev/null <<'NM_EOF'
+[connection-wifi]
+match-device=type:wifi
+ipv4.route-metric=200
+NM_EOF
+
+sudo tee /usr/local/bin/netfailover.sh > /dev/null <<'NETFAILOVER_EOF'
+#!/bin/bash
+# Cabo (eth0) preferido quando tem internet; WiFi quando o cabo falha.
+
+IFACE=eth0
+TEST_URL=http://1.1.1.1
+GOOD=100     # cabo com internet (preferido)
+BAD=700      # cabo sem internet (WiFi, com 200, passa a ganhar)
+
+while true; do
+  GW=$(nmcli -g IP4.GATEWAY device show "$IFACE" 2>/dev/null)
+
+  if [ -n "$GW" ]; then
+    if curl -s --interface "$IFACE" --connect-timeout 1 --max-time 2 -o /dev/null "$TEST_URL"; then
+      WANT=$GOOD
+    else
+      WANT=$BAD
+    fi
+
+    CURRENT=$(ip route show default dev "$IFACE" | grep -o 'metric [0-9]*' | head -n1 | cut -d' ' -f2)
+
+    if [ "$CURRENT" != "$WANT" ]; then
+      ip route del default dev "$IFACE" 2>/dev/null
+      ip route add default via "$GW" dev "$IFACE" metric "$WANT"
+      echo "$(date +%T) $IFACE metric -> $WANT"
+    fi
+  fi
+
+  sleep 1
+done
+NETFAILOVER_EOF
+
+sudo chmod +x /usr/local/bin/netfailover.sh
+
+sudo tee /etc/systemd/system/netfailover.service > /dev/null <<'SERVICE_EOF'
+[Unit]
+Description=Qubic network failover (eth0 -> WiFi)
+After=NetworkManager.service
+Wants=NetworkManager.service
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/netfailover.sh
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target
+SERVICE_EOF
+
+sudo systemctl daemon-reload
+sudo systemctl enable --now netfailover
+
 echo "Automatic startup configured."
 
 echo ""

@@ -1,0 +1,2083 @@
+2026-10-28 09:28:52,709 | INFO | qubic | Starting Qubic
+2026-10-28 09:28:53,280 | INFO | qubic.weight | Weight scale connected successfully
+2026-10-28 09:28:53,345 | INFO | qubic.api | Frontend found: /home/marques/Tese/frontend/dist
+2026-10-28 09:28:53,345 | INFO | qubic.api | Starting API
+2026-10-28 09:28:53,386 | INFO | qubic.api | Calibration loaded successfully
+2026-10-28 09:28:53,387 | INFO | qubic.api | Last configuration loaded successfully
+2026-10-28 09:28:53,387 | INFO | qubic.api | Starting camera thread
+2026-10-28 09:28:53,387 | INFO | qubic.api | Starting weight thread
+2026-10-28 09:28:53,387 | INFO | qubic.weight | Weight thread started
+2026-10-28 09:28:53,388 | INFO | qubic.api | Starting update scheduler
+2026-10-28 09:28:56,707 | WARNING | qubic.auth | Expired access token
+2026-10-28 09:28:56,716 | INFO | qubic.api | Access Token refreshed successfully for user 'rui'
+2026-10-28 09:28:56,731 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 09:28:57,084 | INFO | qubic.frames | Frame rate set to 5 FPS | max exposure=4000 us | HDR max exposures=[4000, 4000]
+2026-10-28 09:28:57,182 | INFO | qubic.camera | Camera capture loop started
+2026-10-28 09:28:57,182 | INFO | qubic.camera | Camera started successfully
+2026-10-28 09:28:57,786 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 09:29:15,142 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 09:29:15,293 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 09:29:15,320 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 09:30:24,018 | INFO | qubic.api | Shutting down API
+2026-10-28 09:30:24,035 | INFO | qubic.weight | Weight thread stopped
+2026-10-28 09:30:24,046 | INFO | qubic.weight | Weight scale serial port closed
+2026-10-28 09:30:24,055 | INFO | qubic.camera | Camera capture loop stopped
+2026-10-28 09:30:24,056 | INFO | qubic.camera | Stopping camera
+2026-10-28 09:30:24,301 | INFO | qubic.camera | Camera stopped its service
+2026-10-28 09:30:24,306 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 09:30:27,226 | INFO | qubic | Starting Qubic
+2026-10-28 09:30:27,832 | INFO | qubic.weight | Weight scale connected successfully
+2026-10-28 09:30:27,899 | INFO | qubic.api | Frontend found: /home/marques/Tese/frontend/dist
+2026-10-28 09:30:27,900 | INFO | qubic.api | Starting API
+2026-10-28 09:30:27,941 | INFO | qubic.api | Calibration loaded successfully
+2026-10-28 09:30:27,942 | INFO | qubic.api | Last configuration loaded successfully
+2026-10-28 09:30:27,942 | INFO | qubic.api | Starting camera thread
+2026-10-28 09:30:27,943 | INFO | qubic.api | Starting weight thread
+2026-10-28 09:30:27,943 | INFO | qubic.weight | Weight thread started
+2026-10-28 09:30:27,943 | INFO | qubic.api | Starting update scheduler
+2026-10-28 09:30:29,122 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 09:30:31,609 | INFO | qubic.frames | Frame rate set to 5 FPS | max exposure=4000 us | HDR max exposures=[4000, 4000]
+2026-10-28 09:30:31,705 | INFO | qubic.camera | Camera capture loop started
+2026-10-28 09:30:31,705 | INFO | qubic.camera | Camera started successfully
+2026-10-28 09:30:32,114 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 09:30:38,480 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 09:30:38,631 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 09:30:38,658 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 09:31:14,834 | INFO | qubic.api | Real volume calculation started
+2026-10-28 09:31:16,291 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-28 09:31:17,920 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-28 09:31:18,505 | INFO | qubic.api | Measurement '2710' saved successfully by 'rui'
+2026-10-28 09:32:31,833 | INFO | qubic.api | Real volume calculation started
+2026-10-28 09:32:33,267 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-28 09:32:34,942 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-28 09:32:35,507 | INFO | qubic.api | Measurement '2711' saved successfully by 'rui'
+2026-10-28 09:32:43,866 | INFO | qubic.api | Real volume calculation started
+2026-10-28 09:32:45,252 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-28 09:32:46,886 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-28 09:32:47,440 | INFO | qubic.api | Measurement '2712' saved successfully by 'rui'
+2026-10-28 09:32:58,034 | INFO | qubic.api | Real volume calculation started
+2026-10-28 09:32:59,472 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-28 09:33:01,096 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-28 09:33:01,640 | INFO | qubic.api | Measurement '2713' saved successfully by 'rui'
+2026-10-28 09:33:09,548 | INFO | qubic.api | Real volume calculation started
+2026-10-28 09:33:10,836 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-28 09:33:12,295 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-28 09:33:12,850 | INFO | qubic.api | Measurement '2714' saved successfully by 'rui'
+2026-10-28 09:33:18,392 | INFO | qubic.api | Real volume calculation started
+2026-10-28 09:33:19,673 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-28 09:33:21,184 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-28 09:33:27,563 | INFO | qubic.api | Real volume calculation started
+2026-10-28 09:33:28,869 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-28 09:33:30,347 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-28 09:33:30,887 | INFO | qubic.api | Measurement '2715' saved successfully by 'rui'
+2026-10-28 09:33:41,476 | INFO | qubic.api | Real volume calculation started
+2026-10-28 09:33:42,868 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-28 09:33:44,484 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-28 09:33:45,020 | INFO | qubic.api | Measurement '2716' saved successfully by 'rui'
+2026-10-28 09:33:58,593 | INFO | qubic.api | Real volume calculation started
+2026-10-28 09:33:59,968 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-28 09:34:01,551 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-28 09:34:02,131 | INFO | qubic.api | Measurement '2717' saved successfully by 'rui'
+2026-10-28 09:34:32,662 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 09:34:32,685 | INFO | qubic.api | Starting WebRTC offer with stream type: calibration
+2026-10-28 09:34:32,699 | INFO | qubic.api | Mask applied successfully
+2026-10-28 09:34:32,780 | INFO | qubic.api | Current menu changed to 'calibration-menu'
+2026-10-28 09:34:32,787 | INFO | qubic.api | Mask applied successfully
+2026-10-28 09:34:32,901 | INFO | qubic.api | Mask applied successfully
+2026-10-28 09:34:33,111 | INFO | qubic.api | Mask applied successfully
+2026-10-28 09:34:33,314 | INFO | qubic.api | Mask applied successfully
+2026-10-28 09:34:33,519 | INFO | qubic.api | Mask applied successfully
+2026-10-28 09:34:33,724 | INFO | qubic.api | Mask applied successfully
+2026-10-28 09:34:33,931 | INFO | qubic.api | Mask applied successfully
+2026-10-28 09:34:34,135 | INFO | qubic.api | Mask applied successfully
+2026-10-28 09:34:34,344 | INFO | qubic.api | Mask applied successfully
+2026-10-28 09:34:34,552 | INFO | qubic.api | Mask applied successfully
+2026-10-28 09:34:34,735 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 09:34:34,736 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 09:34:34,755 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 09:37:14,046 | INFO | qubic.api | User 'rui' logged in successfully
+2026-10-28 09:37:14,131 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 09:37:14,169 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 09:37:23,833 | INFO | qubic.api | System information updated successfully
+2026-10-28 09:37:23,861 | INFO | qubic.config | Configuration saved successfully
+2026-10-28 09:37:23,861 | INFO | qubic.api | Current configuration saved successfully
+2026-10-28 09:37:33,811 | INFO | qubic.api | System information updated successfully
+2026-10-28 09:37:33,834 | INFO | qubic.config | Configuration saved successfully
+2026-10-28 09:37:33,834 | INFO | qubic.api | Current configuration saved successfully
+2026-10-28 09:37:36,632 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 09:37:36,905 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 09:37:36,927 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 09:38:24,833 | INFO | qubic.weight | Weight zero command sent successfully
+2026-10-28 09:38:30,645 | INFO | qubic.weight | Weight zero command sent successfully
+2026-10-28 09:38:35,056 | INFO | qubic.weight | Weight zero command sent successfully
+2026-10-28 09:49:01,295 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 09:49:01,438 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 09:49:01,454 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 09:49:24,336 | INFO | qubic.weight | Weight zero command sent successfully
+2026-10-28 09:49:30,166 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 09:49:30,525 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 09:49:30,575 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 09:49:44,193 | INFO | qubic.weight | Weight zero command sent successfully
+2026-10-28 09:50:00,806 | INFO | qubic.weight | Weight zero command sent successfully
+2026-10-28 09:50:03,418 | INFO | qubic.api | Real volume calculation started
+2026-10-28 09:50:04,853 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-28 09:50:06,853 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-28 09:50:07,724 | INFO | qubic.api | Measurement '2718' saved successfully by 'rui'
+2026-10-28 09:50:11,691 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 09:50:11,691 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 09:50:24,728 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 09:50:24,746 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 09:59:38,652 | WARNING | qubic.auth | Expired access token
+2026-10-28 09:59:38,670 | INFO | qubic.api | Access Token refreshed successfully for user 'rui'
+2026-10-28 10:00:13,417 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 10:00:13,447 | INFO | qubic.api | Starting WebRTC offer with stream type: calibration
+2026-10-28 10:00:13,477 | INFO | qubic.api | Mask applied successfully
+2026-10-28 10:00:13,548 | INFO | qubic.api | Current menu changed to 'calibration-menu'
+2026-10-28 10:00:13,603 | INFO | qubic.api | Mask applied successfully
+2026-10-28 10:00:13,712 | INFO | qubic.api | Mask applied successfully
+2026-10-28 10:00:13,930 | INFO | qubic.api | Mask applied successfully
+2026-10-28 10:00:14,125 | INFO | qubic.api | Mask applied successfully
+2026-10-28 10:00:14,193 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 10:00:14,193 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 10:00:14,210 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 10:00:15,140 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 10:00:15,250 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 10:00:15,268 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 10:01:07,646 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 10:01:07,776 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 10:01:07,785 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 10:01:15,566 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 10:01:15,566 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 10:29:43,546 | WARNING | qubic.auth | Expired access token
+2026-10-28 10:29:43,568 | INFO | qubic.api | Access Token refreshed successfully for user 'rui'
+2026-10-28 10:29:47,187 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 10:29:47,198 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 10:35:06,691 | WARNING | qubic.auth | Expired access token
+2026-10-28 10:35:06,728 | INFO | qubic.api | Access Token refreshed successfully for user 'rui'
+2026-10-28 10:35:07,803 | INFO | qubic.api | Volume mode changed to Single Bundle
+2026-10-28 10:35:07,851 | INFO | qubic.config | Configuration saved successfully
+2026-10-28 10:35:07,851 | INFO | qubic.api | Current configuration saved successfully
+2026-10-28 10:35:14,273 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 10:35:14,406 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 10:35:14,414 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 10:35:16,976 | INFO | qubic.api | Volume mode changed to Real
+2026-10-28 10:35:17,011 | INFO | qubic.config | Configuration saved successfully
+2026-10-28 10:35:17,012 | INFO | qubic.api | Current configuration saved successfully
+2026-10-28 10:35:18,916 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 10:35:19,291 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 10:35:19,322 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 10:35:53,324 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 10:35:53,423 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 10:35:53,432 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 10:41:03,512 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 10:41:07,058 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 10:41:07,339 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 10:41:07,394 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 10:41:12,960 | INFO | qubic.api | User 'rui' logged in successfully
+2026-10-28 10:41:13,059 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 10:41:13,060 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 10:42:31,614 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 10:42:31,615 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 10:42:34,314 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 10:42:34,325 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 10:42:35,371 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 10:42:35,389 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 10:42:50,113 | INFO | qubic.api | Real volume calculation started
+2026-10-28 10:42:51,546 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-28 10:42:54,669 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-28 10:42:55,450 | INFO | qubic.api | Measurement '2719' saved successfully by 'rui'
+2026-10-28 10:43:00,394 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 10:43:00,395 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 10:43:02,047 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 10:43:02,063 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 11:10:19,016 | INFO | qubic.api | Shutting down API
+2026-10-28 11:10:19,090 | INFO | qubic.weight | Weight thread stopped
+2026-10-28 11:10:19,098 | INFO | qubic.weight | Weight scale serial port closed
+2026-10-28 11:10:19,233 | INFO | qubic.camera | Camera capture loop stopped
+2026-10-28 11:10:19,233 | INFO | qubic.camera | Stopping camera
+2026-10-28 11:10:19,505 | INFO | qubic.camera | Camera stopped its service
+2026-10-28 11:10:19,516 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 11:10:20,693 | INFO | qubic | Starting Qubic
+2026-10-28 11:10:21,291 | INFO | qubic.weight | Weight scale connected successfully
+2026-10-28 11:10:21,362 | INFO | qubic.api | Frontend found: /home/marques/Tese/frontend/dist
+2026-10-28 11:10:21,363 | INFO | qubic.api | Starting API
+2026-10-28 11:10:21,404 | INFO | qubic.api | Calibration loaded successfully
+2026-10-28 11:10:21,405 | INFO | qubic.api | Last configuration loaded successfully
+2026-10-28 11:10:21,405 | INFO | qubic.api | Starting camera thread
+2026-10-28 11:10:21,405 | INFO | qubic.api | Starting weight thread
+2026-10-28 11:10:21,406 | INFO | qubic.weight | Weight thread started
+2026-10-28 11:10:21,406 | INFO | qubic.api | Starting update scheduler
+2026-10-28 11:10:25,091 | INFO | qubic.frames | Frame rate set to 5 FPS | max exposure=4000 us | HDR max exposures=[4000, 4000]
+2026-10-28 11:10:25,188 | INFO | qubic.camera | Camera capture loop started
+2026-10-28 11:10:25,188 | INFO | qubic.camera | Camera started successfully
+2026-10-28 11:10:25,542 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 11:10:25,567 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 11:10:31,768 | WARNING | qubic.auth | Expired access token
+2026-10-28 11:10:31,782 | INFO | qubic.api | Access Token refreshed successfully for user 'rui'
+2026-10-28 11:10:35,867 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 11:10:35,871 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 11:10:40,651 | INFO | qubic.config | Language 'en' saved successfully
+2026-10-28 11:10:40,651 | INFO | qubic.api | Interface language changed to 'en'
+2026-10-28 11:10:44,937 | INFO | qubic.config | Language 'es' saved successfully
+2026-10-28 11:10:44,937 | INFO | qubic.api | Interface language changed to 'es'
+2026-10-28 11:10:47,289 | INFO | qubic.api | Exposition mode changed to Fixed Exposition
+2026-10-28 11:10:47,321 | INFO | qubic.config | Configuration saved successfully
+2026-10-28 11:10:47,321 | INFO | qubic.api | Current configuration saved successfully
+2026-10-28 11:10:48,683 | INFO | qubic.api | Exposition mode changed to HDR
+2026-10-28 11:10:48,719 | INFO | qubic.config | Configuration saved successfully
+2026-10-28 11:10:48,720 | INFO | qubic.api | Current configuration saved successfully
+2026-10-28 11:10:50,811 | INFO | qubic.config | Language 'pt' saved successfully
+2026-10-28 11:10:50,811 | INFO | qubic.api | Interface language changed to 'pt'
+2026-10-28 11:20:20,431 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 11:20:24,173 | INFO | qubic.api | User 'rui' logged in successfully
+2026-10-28 11:20:24,217 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 11:20:24,221 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 11:20:29,073 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 11:20:29,311 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 11:20:29,337 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 11:31:00,189 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 11:31:00,350 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 11:31:00,354 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 11:31:13,204 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 11:31:13,404 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 11:31:13,423 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 11:31:30,817 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 11:32:57,008 | INFO | qubic.api | User 'rui' logged in successfully
+2026-10-28 11:32:57,088 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 11:32:57,099 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 11:33:16,610 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 11:33:16,794 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 11:33:16,812 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 11:33:49,232 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 11:36:19,706 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 11:36:19,805 | INFO | qubic.api | Shutting down API
+2026-10-28 11:36:19,824 | INFO | qubic.weight | Weight thread stopped
+2026-10-28 11:36:19,833 | INFO | qubic.weight | Weight scale serial port closed
+2026-10-28 11:36:20,014 | INFO | qubic.camera | Camera capture loop stopped
+2026-10-28 11:36:20,015 | INFO | qubic.camera | Stopping camera
+2026-10-28 11:36:20,283 | INFO | qubic.camera | Camera stopped its service
+2026-10-28 11:36:24,852 | INFO | qubic | Starting Qubic
+2026-10-28 11:36:25,425 | INFO | qubic.weight | Weight scale connected successfully
+2026-10-28 11:36:25,490 | INFO | qubic.api | Frontend found: /home/marques/Tese/frontend/dist
+2026-10-28 11:36:25,491 | INFO | qubic.api | Starting API
+2026-10-28 11:36:25,532 | INFO | qubic.api | Calibration loaded successfully
+2026-10-28 11:36:25,533 | INFO | qubic.api | Last configuration loaded successfully
+2026-10-28 11:36:25,533 | INFO | qubic.api | Starting camera thread
+2026-10-28 11:36:25,533 | INFO | qubic.api | Starting weight thread
+2026-10-28 11:36:25,534 | INFO | qubic.weight | Weight thread started
+2026-10-28 11:36:25,534 | INFO | qubic.api | Starting update scheduler
+2026-10-28 11:36:29,225 | INFO | qubic.frames | Frame rate set to 5 FPS | max exposure=4000 us | HDR max exposures=[4000, 4000]
+2026-10-28 11:36:29,327 | INFO | qubic.camera | Camera capture loop started
+2026-10-28 11:36:29,327 | INFO | qubic.camera | Camera started successfully
+2026-10-28 11:36:29,720 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 11:38:23,704 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 11:38:23,957 | INFO | qubic.api | Shutting down API
+2026-10-28 11:38:23,987 | INFO | qubic.weight | Weight thread stopped
+2026-10-28 11:38:23,995 | INFO | qubic.weight | Weight scale serial port closed
+2026-10-28 11:38:24,019 | INFO | qubic.camera | Camera capture loop stopped
+2026-10-28 11:38:24,020 | INFO | qubic.camera | Stopping camera
+2026-10-28 11:38:24,219 | INFO | qubic.camera | Camera stopped its service
+2026-10-28 11:42:04,805 | INFO | qubic | Starting Qubic
+2026-10-28 11:42:05,377 | INFO | qubic.weight | Weight scale connected successfully
+2026-10-28 11:42:05,442 | INFO | qubic.api | Frontend found: /home/marques/Tese/frontend/dist
+2026-10-28 11:42:05,443 | INFO | qubic.api | Starting API
+2026-10-28 11:42:05,483 | INFO | qubic.api | Calibration loaded successfully
+2026-10-28 11:42:05,484 | INFO | qubic.api | Last configuration loaded successfully
+2026-10-28 11:42:05,484 | INFO | qubic.api | Starting camera thread
+2026-10-28 11:42:05,485 | INFO | qubic.api | Starting weight thread
+2026-10-28 11:42:05,485 | INFO | qubic.weight | Weight thread started
+2026-10-28 11:42:05,485 | INFO | qubic.api | Starting update scheduler
+2026-10-28 11:42:09,167 | INFO | qubic.frames | Frame rate set to 5 FPS | max exposure=4000 us | HDR max exposures=[4000, 4000]
+2026-10-28 11:42:09,264 | INFO | qubic.camera | Camera capture loop started
+2026-10-28 11:42:09,264 | INFO | qubic.camera | Camera started successfully
+2026-10-28 11:42:09,744 | WARNING | qubic.auth | Expired access token
+2026-10-28 11:42:09,754 | INFO | qubic.api | Access Token refreshed successfully for user 'rui'
+2026-10-28 11:42:09,765 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 11:42:12,548 | INFO | qubic.api | User 'rui' logged in successfully
+2026-10-28 11:42:12,637 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 11:42:12,646 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 11:42:39,224 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 11:42:44,074 | INFO | qubic.api | User 'rui' logged in successfully
+2026-10-28 11:42:44,116 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 11:42:44,121 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 11:59:09,735 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 11:59:09,980 | INFO | qubic.api | Shutting down API
+2026-10-28 11:59:10,025 | INFO | qubic.weight | Weight thread stopped
+2026-10-28 11:59:10,034 | INFO | qubic.weight | Weight scale serial port closed
+2026-10-28 11:59:10,060 | INFO | qubic.camera | Camera capture loop stopped
+2026-10-28 11:59:10,060 | INFO | qubic.camera | Stopping camera
+2026-10-28 11:59:10,331 | INFO | qubic.camera | Camera stopped its service
+2026-10-28 11:59:10,337 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 11:59:13,001 | INFO | qubic | Starting Qubic
+2026-10-28 11:59:13,593 | INFO | qubic.weight | Weight scale connected successfully
+2026-10-28 11:59:13,659 | INFO | qubic.api | Frontend found: /home/marques/Tese/frontend/dist
+2026-10-28 11:59:13,660 | INFO | qubic.api | Starting API
+2026-10-28 11:59:13,700 | INFO | qubic.api | Calibration loaded successfully
+2026-10-28 11:59:13,701 | INFO | qubic.api | Last configuration loaded successfully
+2026-10-28 11:59:13,702 | INFO | qubic.api | Starting camera thread
+2026-10-28 11:59:13,702 | INFO | qubic.api | Starting weight thread
+2026-10-28 11:59:13,702 | INFO | qubic.weight | Weight thread started
+2026-10-28 11:59:13,702 | INFO | qubic.api | Starting update scheduler
+2026-10-28 11:59:14,804 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 11:59:17,387 | INFO | qubic.frames | Frame rate set to 5 FPS | max exposure=4000 us | HDR max exposures=[4000, 4000]
+2026-10-28 11:59:17,485 | INFO | qubic.camera | Camera capture loop started
+2026-10-28 11:59:17,485 | INFO | qubic.camera | Camera started successfully
+2026-10-28 11:59:17,716 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 11:59:17,769 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 11:59:20,731 | INFO | qubic.api | Exposition mode changed to Fixed Exposition
+2026-10-28 11:59:20,777 | INFO | qubic.config | Configuration saved successfully
+2026-10-28 11:59:20,778 | INFO | qubic.api | Current configuration saved successfully
+2026-10-28 11:59:22,699 | INFO | qubic.api | Exposition mode changed to HDR
+2026-10-28 11:59:22,751 | INFO | qubic.config | Configuration saved successfully
+2026-10-28 11:59:22,751 | INFO | qubic.api | Current configuration saved successfully
+2026-10-28 11:59:24,002 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 11:59:24,363 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 11:59:24,417 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 11:59:29,670 | INFO | qubic.api | Exposition mode changed to Fixed Exposition
+2026-10-28 11:59:29,715 | INFO | qubic.config | Configuration saved successfully
+2026-10-28 11:59:29,716 | INFO | qubic.api | Current configuration saved successfully
+2026-10-28 11:59:32,490 | INFO | qubic.api | Exposition mode changed to HDR
+2026-10-28 11:59:32,542 | INFO | qubic.config | Configuration saved successfully
+2026-10-28 11:59:32,544 | INFO | qubic.api | Current configuration saved successfully
+2026-10-28 11:59:34,234 | INFO | qubic.api | Exposition mode changed to Fixed Exposition
+2026-10-28 11:59:34,291 | INFO | qubic.config | Configuration saved successfully
+2026-10-28 11:59:34,292 | INFO | qubic.api | Current configuration saved successfully
+2026-10-28 11:59:37,740 | INFO | qubic.api | Exposition mode changed to HDR
+2026-10-28 11:59:37,800 | INFO | qubic.config | Configuration saved successfully
+2026-10-28 11:59:37,807 | INFO | qubic.api | Current configuration saved successfully
+2026-10-28 11:59:38,589 | INFO | qubic.api | Volume mode changed to Multi Bundle
+2026-10-28 11:59:38,619 | INFO | qubic.config | Configuration saved successfully
+2026-10-28 11:59:38,620 | INFO | qubic.api | Current configuration saved successfully
+2026-10-28 11:59:40,240 | INFO | qubic.api | Volume mode changed to Single Bundle
+2026-10-28 11:59:40,289 | INFO | qubic.config | Configuration saved successfully
+2026-10-28 11:59:40,290 | INFO | qubic.api | Current configuration saved successfully
+2026-10-28 11:59:44,680 | INFO | qubic.config | Language 'en' saved successfully
+2026-10-28 11:59:44,680 | INFO | qubic.api | Interface language changed to 'en'
+2026-10-28 11:59:46,721 | INFO | qubic.config | Language 'pt' saved successfully
+2026-10-28 11:59:46,721 | INFO | qubic.api | Interface language changed to 'pt'
+2026-10-28 12:36:47,654 | INFO | qubic.api | Shutting down API
+2026-10-28 12:36:47,663 | INFO | qubic.weight | Weight thread stopped
+2026-10-28 12:36:47,678 | INFO | qubic.weight | Weight scale serial port closed
+2026-10-28 12:36:47,813 | INFO | qubic.camera | Camera capture loop stopped
+2026-10-28 12:36:47,813 | INFO | qubic.camera | Stopping camera
+2026-10-28 12:36:48,075 | INFO | qubic.camera | Camera stopped its service
+2026-10-28 12:36:48,103 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 12:36:48,104 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 12:36:49,741 | INFO | qubic | Starting Qubic
+2026-10-28 12:36:50,339 | INFO | qubic.weight | Weight scale connected successfully
+2026-10-28 12:36:50,404 | INFO | qubic.api | Frontend found: /home/marques/Tese/frontend/dist
+2026-10-28 12:36:50,405 | INFO | qubic.api | Starting API
+2026-10-28 12:36:50,445 | INFO | qubic.api | Calibration loaded successfully
+2026-10-28 12:36:50,446 | INFO | qubic.api | Last configuration loaded successfully
+2026-10-28 12:36:50,447 | INFO | qubic.api | Starting camera thread
+2026-10-28 12:36:50,447 | INFO | qubic.api | Starting weight thread
+2026-10-28 12:36:50,447 | INFO | qubic.weight | Weight thread started
+2026-10-28 12:36:50,448 | INFO | qubic.api | Starting update scheduler
+2026-10-28 12:36:54,126 | INFO | qubic.frames | Frame rate set to 5 FPS | max exposure=4000 us | HDR max exposures=[4000, 4000]
+2026-10-28 12:36:54,221 | INFO | qubic.camera | Camera capture loop started
+2026-10-28 12:36:54,221 | INFO | qubic.camera | Camera started successfully
+2026-10-28 12:36:54,269 | WARNING | qubic.auth | Expired access token
+2026-10-28 12:36:54,279 | INFO | qubic.api | Access Token refreshed successfully for user 'rui'
+2026-10-28 12:36:54,294 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 12:37:20,300 | WARNING | qubic.auth | Expired access token
+2026-10-28 12:37:20,314 | INFO | qubic.api | Access Token refreshed successfully for user 'rui'
+2026-10-28 12:37:20,337 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 12:37:21,803 | INFO | qubic.api | Shutting down API
+2026-10-28 12:37:21,811 | INFO | qubic.weight | Weight thread stopped
+2026-10-28 12:37:21,821 | INFO | qubic.weight | Weight scale serial port closed
+2026-10-28 12:37:21,904 | INFO | qubic.camera | Camera capture loop stopped
+2026-10-28 12:37:21,905 | INFO | qubic.camera | Stopping camera
+2026-10-28 12:37:22,159 | INFO | qubic.camera | Camera stopped its service
+2026-10-28 12:37:22,177 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 12:37:22,181 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 12:37:23,132 | INFO | qubic | Starting Qubic
+2026-10-28 12:37:23,706 | INFO | qubic.weight | Weight scale connected successfully
+2026-10-28 12:37:23,771 | INFO | qubic.api | Frontend found: /home/marques/Tese/frontend/dist
+2026-10-28 12:37:23,771 | INFO | qubic.api | Starting API
+2026-10-28 12:37:23,812 | INFO | qubic.api | Calibration loaded successfully
+2026-10-28 12:37:23,813 | INFO | qubic.api | Last configuration loaded successfully
+2026-10-28 12:37:23,813 | INFO | qubic.api | Starting camera thread
+2026-10-28 12:37:23,814 | INFO | qubic.api | Starting weight thread
+2026-10-28 12:37:23,814 | INFO | qubic.weight | Weight thread started
+2026-10-28 12:37:23,814 | INFO | qubic.api | Starting update scheduler
+2026-10-28 12:37:25,505 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 12:37:27,507 | INFO | qubic.frames | Frame rate set to 5 FPS | max exposure=4000 us | HDR max exposures=[4000, 4000]
+2026-10-28 12:37:27,604 | INFO | qubic.camera | Camera capture loop started
+2026-10-28 12:37:27,604 | INFO | qubic.camera | Camera started successfully
+2026-10-28 12:37:28,284 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 12:37:28,488 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 12:37:39,168 | INFO | qubic.api | Shutting down API
+2026-10-28 12:37:39,238 | INFO | qubic.weight | Weight thread stopped
+2026-10-28 12:37:39,250 | INFO | qubic.weight | Weight scale serial port closed
+2026-10-28 12:37:39,283 | INFO | qubic.camera | Camera capture loop stopped
+2026-10-28 12:37:39,283 | INFO | qubic.camera | Stopping camera
+2026-10-28 12:37:39,550 | INFO | qubic.camera | Camera stopped its service
+2026-10-28 12:37:39,566 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 12:38:15,910 | INFO | qubic | Starting Qubic
+2026-10-28 12:38:16,485 | INFO | qubic.weight | Weight scale connected successfully
+2026-10-28 12:38:16,549 | INFO | qubic.api | Frontend found: /home/marques/Tese/frontend/dist
+2026-10-28 12:38:16,550 | INFO | qubic.api | Starting API
+2026-10-28 12:38:16,591 | INFO | qubic.api | Calibration loaded successfully
+2026-10-28 12:38:16,592 | INFO | qubic.api | Last configuration loaded successfully
+2026-10-28 12:38:16,592 | INFO | qubic.api | Starting camera thread
+2026-10-28 12:38:16,592 | INFO | qubic.api | Starting weight thread
+2026-10-28 12:38:16,592 | INFO | qubic.weight | Weight thread started
+2026-10-28 12:38:16,593 | INFO | qubic.api | Starting update scheduler
+2026-10-28 12:38:17,560 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 12:38:20,279 | INFO | qubic.frames | Frame rate set to 5 FPS | max exposure=4000 us | HDR max exposures=[4000, 4000]
+2026-10-28 12:38:20,378 | INFO | qubic.camera | Camera capture loop started
+2026-10-28 12:38:20,378 | INFO | qubic.camera | Camera started successfully
+2026-10-28 12:38:20,522 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 12:38:21,300 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 12:38:23,135 | INFO | qubic.update | [UPDATE DEBUG] A iniciar install_update
+2026-10-28 12:38:23,136 | INFO | qubic.update | Pacote validado: /home/marques/UpdateQubic/qubic-update.zip
+2026-10-28 12:38:23,139 | INFO | qubic.update | Raiz de instalação confirmada: /home/marques/Tese
+2026-10-28 12:38:23,140 | INFO | qubic.update | [UPDATE DEBUG] A validar destino: update/test.txt
+2026-10-28 12:38:23,140 | INFO | qubic.update | Destino validado: /home/marques/Tese/update/test.txt
+2026-10-28 12:38:23,140 | INFO | qubic.update | A iniciar criação do backup: /home/marques/BackupTese.zip
+2026-10-28 12:38:23,140 | INFO | qubic.update | A iniciar backup de /home/marques/Tese
+2026-10-28 12:38:23,143 | INFO | qubic.update | Destino temporário: /home/marques/BackupTese.zip.3kmym4rb.tmp
+2026-10-28 12:38:31,358 | INFO | qubic.update | Backup criado e validado: /home/marques/BackupTese.zip (123.79 MB)
+2026-10-28 12:38:31,363 | INFO | qubic.update | Backup criado com sucesso: /home/marques/BackupTese.zip
+2026-10-28 12:38:31,364 | INFO | qubic.update | [UPDATE DEBUG] A escrever: /home/marques/Tese/update/test.txt
+2026-10-28 12:38:31,364 | INFO | qubic.update | A instalar ficheiro: /home/marques/Tese/update/test.txt
+2026-10-28 12:38:31,364 | INFO | qubic.update | [UPDATE DEBUG] Escrita concluída: /home/marques/Tese/update/test.txt
+2026-10-28 12:38:31,364 | INFO | qubic.update | Ficheiro instalado: /home/marques/Tese/update/test.txt
+2026-10-28 12:38:31,364 | INFO | qubic.update | Instalação concluída. Ficheiros instalados: 1
+2026-10-28 12:38:34,411 | INFO | qubic.update | Configuração de reinício criada.
+2026-10-28 12:38:34,415 | INFO | qubic.update | A solicitar arranque do qubic-update-restart.service.
+2026-10-28 12:38:34,673 | INFO | qubic | [Update Supervisor] Supervisor chamado.
+2026-10-28 12:38:34,673 | INFO | qubic | A terminar a API antiga (PID 83916).
+2026-10-28 12:38:35,276 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 12:38:37,713 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 12:38:44,677 | INFO | qubic | A iniciar a API atualizada.
+2026-10-28 12:38:44,800 | INFO | qubic | Starting Qubic
+2026-10-28 12:38:45,373 | INFO | qubic.weight | Weight scale connected successfully
+2026-10-28 12:38:45,437 | INFO | qubic.api | Frontend found: /home/marques/Tese/frontend/dist
+2026-10-28 12:38:45,438 | INFO | qubic.api | Starting API
+2026-10-28 12:38:45,479 | INFO | qubic.api | Calibration loaded successfully
+2026-10-28 12:38:45,480 | INFO | qubic.api | Last configuration loaded successfully
+2026-10-28 12:38:45,480 | INFO | qubic.api | Starting camera thread
+2026-10-28 12:38:45,480 | INFO | qubic.api | Starting weight thread
+2026-10-28 12:38:45,481 | INFO | qubic.weight | Weight thread started
+2026-10-28 12:38:45,481 | INFO | qubic.api | Starting update scheduler
+2026-10-28 12:38:45,702 | INFO | qubic | API atualizada responde corretamente.
+2026-10-28 12:38:55,564 | ERROR | qubic.camera | Camera startup error
+Traceback (most recent call last):
+  File "/home/marques/Tese/backend/Qubic/CameraOptions.py", line 45, in startCamera
+    camera.start()
+    ~~~~~~~~~~~~^^
+  File "/home/marques/Tese/backend/Qubic/camera/vzense.py", line 44, in start
+    raise RuntimeError("No camera detected")
+RuntimeError: No camera detected
+2026-10-28 12:39:16,209 | ERROR | qubic.camera | Camera startup error
+Traceback (most recent call last):
+  File "/home/marques/Tese/backend/Qubic/CameraOptions.py", line 45, in startCamera
+    camera.start()
+    ~~~~~~~~~~~~^^
+  File "/home/marques/Tese/backend/Qubic/camera/vzense.py", line 44, in start
+    raise RuntimeError("No camera detected")
+RuntimeError: No camera detected
+2026-10-28 12:39:52,100 | INFO | qubic.frames | Frame rate set to 5 FPS | max exposure=4000 us | HDR max exposures=[4000, 4000]
+2026-10-28 12:39:52,197 | INFO | qubic.camera | Camera capture loop started
+2026-10-28 12:39:52,198 | INFO | qubic.camera | Camera started successfully
+2026-10-28 12:39:52,272 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 12:39:52,483 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 12:40:52,239 | INFO | qubic | Starting Qubic
+2026-10-28 12:40:53,497 | INFO | qubic.weight | Weight scale connected successfully
+2026-10-28 12:40:53,643 | INFO | qubic.api | Frontend found: /home/marques/Tese/frontend/dist
+2026-10-28 12:40:53,645 | INFO | qubic.api | Starting API
+2026-10-28 12:40:53,693 | INFO | qubic.api | Calibration loaded successfully
+2026-10-28 12:40:53,694 | INFO | qubic.api | Last configuration loaded successfully
+2026-10-28 12:40:53,694 | INFO | qubic.api | Starting camera thread
+2026-10-28 12:40:53,695 | INFO | qubic.api | Starting weight thread
+2026-10-28 12:40:53,695 | INFO | qubic.weight | Weight thread started
+2026-10-28 12:40:53,696 | INFO | qubic.api | Starting update scheduler
+2026-10-28 12:40:53,700 | INFO | qubic.api | Shutting down API
+2026-10-28 12:40:53,806 | INFO | qubic.weight | Weight thread stopped
+2026-10-28 12:40:53,816 | INFO | qubic.weight | Weight scale serial port closed
+2026-10-28 12:40:53,816 | INFO | qubic.camera | No camera instance to stop
+2026-10-28 12:41:39,917 | INFO | qubic.api | Shutting down API
+2026-10-28 12:41:39,921 | INFO | qubic.weight | Weight thread stopped
+2026-10-28 12:41:39,932 | INFO | qubic.weight | Weight scale serial port closed
+2026-10-28 12:41:40,094 | INFO | qubic.camera | Camera capture loop stopped
+2026-10-28 12:41:40,095 | INFO | qubic.camera | Stopping camera
+2026-10-28 12:41:40,324 | INFO | qubic.camera | Camera stopped its service
+2026-10-28 12:42:31,127 | INFO | qubic | Starting Qubic
+2026-10-28 12:42:31,704 | INFO | qubic.weight | Weight scale connected successfully
+2026-10-28 12:42:31,769 | INFO | qubic.api | Frontend found: /home/marques/Tese/frontend/dist
+2026-10-28 12:42:31,769 | INFO | qubic.api | Starting API
+2026-10-28 12:42:31,810 | INFO | qubic.api | Calibration loaded successfully
+2026-10-28 12:42:31,811 | INFO | qubic.api | Last configuration loaded successfully
+2026-10-28 12:42:31,811 | INFO | qubic.api | Starting camera thread
+2026-10-28 12:42:31,812 | INFO | qubic.api | Starting weight thread
+2026-10-28 12:42:31,812 | INFO | qubic.weight | Weight thread started
+2026-10-28 12:42:31,812 | INFO | qubic.api | Starting update scheduler
+2026-10-28 12:42:35,484 | INFO | qubic.frames | Frame rate set to 5 FPS | max exposure=4000 us | HDR max exposures=[4000, 4000]
+2026-10-28 12:42:35,580 | INFO | qubic.camera | Camera capture loop started
+2026-10-28 12:42:35,580 | INFO | qubic.camera | Camera started successfully
+2026-10-28 12:42:36,289 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 12:42:36,495 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 12:43:01,827 | INFO | qubic.update | [UPDATE DEBUG] A iniciar install_update
+2026-10-28 12:43:01,831 | INFO | qubic.update | Pacote validado: /home/marques/UpdateQubic/qubic-update.zip
+2026-10-28 12:43:01,832 | INFO | qubic.update | Raiz de instalação confirmada: /home/marques/Tese
+2026-10-28 12:43:01,833 | INFO | qubic.update | [UPDATE DEBUG] A validar destino: update/test.txt
+2026-10-28 12:43:01,834 | INFO | qubic.update | Destino validado: /home/marques/Tese/update/test.txt
+2026-10-28 12:43:01,839 | INFO | qubic.update | A iniciar criação do backup: /home/marques/BackupTese.zip
+2026-10-28 12:43:01,844 | INFO | qubic.update | A iniciar backup de /home/marques/Tese
+2026-10-28 12:43:01,844 | INFO | qubic.update | Destino temporário: /home/marques/BackupTese.zip.ab_phsx7.tmp
+2026-10-28 12:43:03,737 | INFO | qubic.update | Backup criado e validado: /home/marques/BackupTese.zip (123.79 MB)
+2026-10-28 12:43:03,738 | INFO | qubic.update | Backup criado com sucesso: /home/marques/BackupTese.zip
+2026-10-28 12:43:03,739 | INFO | qubic.update | [UPDATE DEBUG] A escrever: /home/marques/Tese/update/test.txt
+2026-10-28 12:43:03,739 | INFO | qubic.update | A instalar ficheiro: /home/marques/Tese/update/test.txt
+2026-10-28 12:43:03,740 | INFO | qubic.update | [UPDATE DEBUG] Escrita concluída: /home/marques/Tese/update/test.txt
+2026-10-28 12:43:03,740 | INFO | qubic.update | Ficheiro instalado: /home/marques/Tese/update/test.txt
+2026-10-28 12:43:03,741 | INFO | qubic.update | Instalação concluída. Ficheiros instalados: 1
+2026-10-28 12:43:06,731 | INFO | qubic.update | Configuração de reinício criada.
+2026-10-28 12:43:06,736 | INFO | qubic.update | A solicitar arranque do qubic-update-restart.service.
+2026-10-28 12:43:06,986 | INFO | qubic | [Update Supervisor] Supervisor chamado.
+2026-10-28 12:43:06,986 | INFO | qubic | A terminar a API antiga (PID 84120).
+2026-10-28 12:43:07,261 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 12:43:09,481 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 12:43:16,994 | INFO | qubic | A iniciar a API atualizada.
+2026-10-28 12:43:17,126 | INFO | qubic | Starting Qubic
+2026-10-28 12:43:17,702 | INFO | qubic.weight | Weight scale connected successfully
+2026-10-28 12:43:17,766 | INFO | qubic.api | Frontend found: /home/marques/Tese/frontend/dist
+2026-10-28 12:43:17,767 | INFO | qubic.api | Starting API
+2026-10-28 12:43:17,808 | INFO | qubic.api | Calibration loaded successfully
+2026-10-28 12:43:17,809 | INFO | qubic.api | Last configuration loaded successfully
+2026-10-28 12:43:17,809 | INFO | qubic.api | Starting camera thread
+2026-10-28 12:43:17,810 | INFO | qubic.api | Starting weight thread
+2026-10-28 12:43:17,810 | INFO | qubic.weight | Weight thread started
+2026-10-28 12:43:17,810 | INFO | qubic.api | Starting update scheduler
+2026-10-28 12:43:18,021 | INFO | qubic | API atualizada responde corretamente.
+2026-10-28 12:43:21,698 | INFO | qubic.frames | Frame rate set to 5 FPS | max exposure=4000 us | HDR max exposures=[4000, 4000]
+2026-10-28 12:43:21,794 | INFO | qubic.camera | Camera capture loop started
+2026-10-28 12:43:21,794 | INFO | qubic.camera | Camera started successfully
+2026-10-28 12:43:22,287 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 12:43:27,642 | INFO | qubic.api | User 'rui' logged in successfully
+2026-10-28 12:43:27,711 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 12:43:27,729 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 12:43:30,863 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 12:44:13,732 | INFO | qubic.api | User 'rui' logged in successfully
+2026-10-28 12:44:13,792 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 12:44:13,798 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 12:44:15,387 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 12:44:53,629 | INFO | qubic.api | User 'rui' logged in successfully
+2026-10-28 12:44:53,711 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 12:44:53,719 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 12:44:55,681 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 12:45:01,146 | INFO | qubic.api | User 'rui' logged in successfully
+2026-10-28 12:45:01,191 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 12:45:01,191 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 14:00:58,043 | INFO | qubic | Starting Qubic
+2026-10-28 14:00:59,073 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 14:00:59,185 | WARNING | qubic.auth | Expired access token
+2026-10-28 14:00:59,199 | INFO | qubic.api | Access Token refreshed successfully for user 'rui'
+2026-10-28 14:00:59,220 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 14:00:59,244 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 14:00:59,395 | INFO | qubic.weight | Weight scale connected successfully
+2026-10-28 14:00:59,579 | INFO | qubic.api | Frontend found: /home/marques/Tese/frontend/dist
+2026-10-28 14:00:59,580 | INFO | qubic.api | Starting API
+2026-10-28 14:00:59,628 | INFO | qubic.api | Calibration loaded successfully
+2026-10-28 14:00:59,631 | INFO | qubic.api | Last configuration loaded successfully
+2026-10-28 14:00:59,631 | INFO | qubic.api | Starting camera thread
+2026-10-28 14:00:59,633 | INFO | qubic.api | Starting weight thread
+2026-10-28 14:00:59,634 | INFO | qubic.weight | Weight thread started
+2026-10-28 14:00:59,635 | INFO | qubic.api | Starting update scheduler
+2026-10-28 14:00:59,640 | INFO | qubic.api | Shutting down API
+2026-10-28 14:00:59,717 | INFO | qubic.weight | Weight thread stopped
+2026-10-28 14:00:59,722 | INFO | qubic.weight | Weight scale serial port closed
+2026-10-28 14:00:59,723 | INFO | qubic.camera | No camera instance to stop
+2026-10-28 14:01:01,708 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 14:01:01,797 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 14:01:01,817 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 14:01:17,022 | INFO | qubic.api | Shutting down API
+2026-10-28 14:01:17,042 | INFO | qubic.weight | Weight thread stopped
+2026-10-28 14:01:17,051 | INFO | qubic.weight | Weight scale serial port closed
+2026-10-28 14:01:17,162 | INFO | qubic.camera | Camera capture loop stopped
+2026-10-28 14:01:17,162 | INFO | qubic.camera | Stopping camera
+2026-10-28 14:01:17,417 | INFO | qubic.camera | Camera stopped its service
+2026-10-28 14:01:18,402 | INFO | qubic | Starting Qubic
+2026-10-28 14:01:18,981 | INFO | qubic.weight | Weight scale connected successfully
+2026-10-28 14:01:19,045 | INFO | qubic.api | Frontend found: /home/marques/Tese/frontend/dist
+2026-10-28 14:01:19,046 | INFO | qubic.api | Starting API
+2026-10-28 14:01:19,087 | INFO | qubic.api | Calibration loaded successfully
+2026-10-28 14:01:19,087 | INFO | qubic.api | Last configuration loaded successfully
+2026-10-28 14:01:19,088 | INFO | qubic.api | Starting camera thread
+2026-10-28 14:01:19,088 | INFO | qubic.api | Starting weight thread
+2026-10-28 14:01:19,088 | INFO | qubic.weight | Weight thread started
+2026-10-28 14:01:19,088 | INFO | qubic.api | Starting update scheduler
+2026-10-28 14:01:20,069 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 14:01:22,782 | INFO | qubic.frames | Frame rate set to 5 FPS | max exposure=4000 us | HDR max exposures=[4000, 4000]
+2026-10-28 14:01:22,880 | INFO | qubic.camera | Camera capture loop started
+2026-10-28 14:01:22,880 | INFO | qubic.camera | Camera started successfully
+2026-10-28 14:01:23,038 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 14:01:23,311 | WARNING | qubic.auth | Expired access token
+2026-10-28 14:01:23,329 | INFO | qubic.api | Access Token refreshed successfully for user 'rui'
+2026-10-28 14:01:23,348 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 14:01:36,156 | INFO | qubic.update | [UPDATE DEBUG] A iniciar install_update
+2026-10-28 14:01:36,161 | INFO | qubic.update | Pacote validado: /home/marques/UpdateQubic/qubic-update.zip
+2026-10-28 14:01:36,167 | INFO | qubic.update | Raiz de instalação confirmada: /home/marques/Tese
+2026-10-28 14:01:36,168 | INFO | qubic.update | [UPDATE DEBUG] A validar destino: update/test.txt
+2026-10-28 14:01:36,168 | INFO | qubic.update | Destino validado: /home/marques/Tese/update/test.txt
+2026-10-28 14:01:36,168 | INFO | qubic.update | A iniciar criação do backup: /home/marques/BackupTese.zip
+2026-10-28 14:01:36,169 | INFO | qubic.update | A iniciar backup de /home/marques/Tese
+2026-10-28 14:01:36,169 | INFO | qubic.update | Destino temporário: /home/marques/BackupTese.zip.51bh8_yr.tmp
+2026-10-28 14:01:37,206 | INFO | qubic.update | Backup criado e validado: /home/marques/BackupTese.zip (123.79 MB)
+2026-10-28 14:01:37,207 | INFO | qubic.update | Backup criado com sucesso: /home/marques/BackupTese.zip
+2026-10-28 14:01:37,207 | INFO | qubic.update | [UPDATE DEBUG] A escrever: /home/marques/Tese/update/test.txt
+2026-10-28 14:01:37,207 | INFO | qubic.update | A instalar ficheiro: /home/marques/Tese/update/test.txt
+2026-10-28 14:01:37,207 | INFO | qubic.update | [UPDATE DEBUG] Escrita concluída: /home/marques/Tese/update/test.txt
+2026-10-28 14:01:37,207 | INFO | qubic.update | Ficheiro instalado: /home/marques/Tese/update/test.txt
+2026-10-28 14:01:37,208 | INFO | qubic.update | Instalação concluída. Ficheiros instalados: 1
+2026-10-28 14:01:49,763 | INFO | qubic.update | Configuração de reinício criada.
+2026-10-28 14:01:49,765 | INFO | qubic.update | A solicitar arranque do qubic-update-restart.service.
+2026-10-28 14:01:50,049 | INFO | qubic | [Update Supervisor] Supervisor chamado.
+2026-10-28 14:01:50,050 | INFO | qubic | A terminar a API antiga (PID 84802).
+2026-10-28 14:01:50,260 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 14:01:53,045 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 14:02:00,059 | INFO | qubic | A iniciar a API atualizada.
+2026-10-28 14:02:00,194 | INFO | qubic | Starting Qubic
+2026-10-28 14:02:00,768 | INFO | qubic.weight | Weight scale connected successfully
+2026-10-28 14:02:00,833 | INFO | qubic.api | Frontend found: /home/marques/Tese/frontend/dist
+2026-10-28 14:02:00,834 | INFO | qubic.api | Starting API
+2026-10-28 14:02:00,875 | INFO | qubic.api | Calibration loaded successfully
+2026-10-28 14:02:00,876 | INFO | qubic.api | Last configuration loaded successfully
+2026-10-28 14:02:00,876 | INFO | qubic.api | Starting camera thread
+2026-10-28 14:02:00,876 | INFO | qubic.api | Starting weight thread
+2026-10-28 14:02:00,876 | INFO | qubic.weight | Weight thread started
+2026-10-28 14:02:00,877 | INFO | qubic.api | Starting update scheduler
+2026-10-28 14:02:01,085 | INFO | qubic | API atualizada responde corretamente.
+2026-10-28 14:02:10,981 | ERROR | qubic.camera | Camera startup error
+Traceback (most recent call last):
+  File "/home/marques/Tese/backend/Qubic/CameraOptions.py", line 45, in startCamera
+    camera.start()
+    ~~~~~~~~~~~~^^
+  File "/home/marques/Tese/backend/Qubic/camera/vzense.py", line 44, in start
+    raise RuntimeError("No camera detected")
+RuntimeError: No camera detected
+2026-10-28 14:02:22,799 | INFO | qubic.api | User 'rui' logged in successfully
+2026-10-28 14:02:22,824 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 14:02:35,332 | ERROR | qubic.camera | Camera startup error
+Traceback (most recent call last):
+  File "/home/marques/Tese/backend/Qubic/CameraOptions.py", line 45, in startCamera
+    camera.start()
+    ~~~~~~~~~~~~^^
+  File "/home/marques/Tese/backend/Qubic/camera/vzense.py", line 44, in start
+    raise RuntimeError("No camera detected")
+RuntimeError: No camera detected
+2026-10-28 14:02:42,605 | INFO | qubic.frames | Frame rate set to 5 FPS | max exposure=4000 us | HDR max exposures=[4000, 4000]
+2026-10-28 14:02:42,703 | INFO | qubic.camera | Camera capture loop started
+2026-10-28 14:02:42,703 | INFO | qubic.camera | Camera started successfully
+2026-10-28 14:02:43,074 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 14:02:43,308 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 14:02:59,236 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 14:03:19,291 | INFO | qubic.api | User 'rui' logged in successfully
+2026-10-28 14:03:19,349 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 14:03:19,354 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 14:03:33,571 | INFO | qubic.api | Shutting down API
+2026-10-28 14:03:33,619 | INFO | qubic.weight | Weight thread stopped
+2026-10-28 14:03:33,627 | INFO | qubic.weight | Weight scale serial port closed
+2026-10-28 14:03:33,774 | INFO | qubic.camera | Camera capture loop stopped
+2026-10-28 14:03:33,774 | INFO | qubic.camera | Stopping camera
+2026-10-28 14:03:34,012 | INFO | qubic.camera | Camera stopped its service
+2026-10-28 14:03:55,625 | INFO | qubic | Starting Qubic
+2026-10-28 14:03:56,196 | INFO | qubic.weight | Weight scale connected successfully
+2026-10-28 14:03:56,263 | INFO | qubic.api | Frontend found: /home/marques/Tese/frontend/dist
+2026-10-28 14:03:56,263 | INFO | qubic.api | Starting API
+2026-10-28 14:03:56,304 | INFO | qubic.api | Calibration loaded successfully
+2026-10-28 14:03:56,305 | INFO | qubic.api | Last configuration loaded successfully
+2026-10-28 14:03:56,305 | INFO | qubic.api | Starting camera thread
+2026-10-28 14:03:56,306 | INFO | qubic.api | Starting weight thread
+2026-10-28 14:03:56,306 | INFO | qubic.weight | Weight thread started
+2026-10-28 14:03:56,306 | INFO | qubic.api | Starting update scheduler
+2026-10-28 14:03:57,592 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 14:03:59,989 | INFO | qubic.frames | Frame rate set to 5 FPS | max exposure=4000 us | HDR max exposures=[4000, 4000]
+2026-10-28 14:04:00,087 | INFO | qubic.camera | Camera capture loop started
+2026-10-28 14:04:00,087 | INFO | qubic.camera | Camera started successfully
+2026-10-28 14:04:00,267 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 14:04:00,582 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 14:04:03,387 | INFO | qubic.update | [UPDATE DEBUG] A iniciar install_update
+2026-10-28 14:04:03,388 | INFO | qubic.update | Pacote validado: /home/marques/UpdateQubic/qubic-update.zip
+2026-10-28 14:04:03,395 | INFO | qubic.update | Raiz de instalação confirmada: /home/marques/Tese
+2026-10-28 14:04:03,396 | INFO | qubic.update | [UPDATE DEBUG] A validar destino: update/test.txt
+2026-10-28 14:04:03,396 | INFO | qubic.update | Destino validado: /home/marques/Tese/update/test.txt
+2026-10-28 14:04:03,396 | INFO | qubic.update | A iniciar criação do backup: /home/marques/BackupTese.zip
+2026-10-28 14:04:03,397 | INFO | qubic.update | A iniciar backup de /home/marques/Tese
+2026-10-28 14:04:03,398 | INFO | qubic.update | Destino temporário: /home/marques/BackupTese.zip.5anl1ayx.tmp
+2026-10-28 14:04:13,557 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 14:04:13,805 | INFO | qubic.update | Backup criado e validado: /home/marques/BackupTese.zip (123.79 MB)
+2026-10-28 14:04:13,806 | INFO | qubic.update | Backup criado com sucesso: /home/marques/BackupTese.zip
+2026-10-28 14:04:13,808 | INFO | qubic.update | [UPDATE DEBUG] A escrever: /home/marques/Tese/update/test.txt
+2026-10-28 14:04:13,809 | INFO | qubic.update | A instalar ficheiro: /home/marques/Tese/update/test.txt
+2026-10-28 14:04:13,813 | INFO | qubic.update | [UPDATE DEBUG] Escrita concluída: /home/marques/Tese/update/test.txt
+2026-10-28 14:04:13,814 | INFO | qubic.update | Ficheiro instalado: /home/marques/Tese/update/test.txt
+2026-10-28 14:04:13,815 | INFO | qubic.update | Instalação concluída. Ficheiros instalados: 1
+2026-10-28 14:04:13,994 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 14:04:14,024 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 14:04:17,203 | INFO | qubic.update | Configuração de reinício criada.
+2026-10-28 14:04:17,214 | INFO | qubic.update | A solicitar arranque do qubic-update-restart.service.
+2026-10-28 14:04:17,474 | INFO | qubic | [Update Supervisor] Supervisor chamado.
+2026-10-28 14:04:17,475 | INFO | qubic | A terminar a API antiga (PID 85036).
+2026-10-28 14:04:17,857 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 14:04:19,569 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 14:04:27,488 | INFO | qubic | A iniciar a API atualizada.
+2026-10-28 14:04:27,608 | INFO | qubic | Starting Qubic
+2026-10-28 14:04:28,197 | INFO | qubic.weight | Weight scale connected successfully
+2026-10-28 14:04:28,264 | INFO | qubic.api | Frontend found: /home/marques/Tese/frontend/dist
+2026-10-28 14:04:28,264 | INFO | qubic.api | Starting API
+2026-10-28 14:04:28,305 | INFO | qubic.api | Calibration loaded successfully
+2026-10-28 14:04:28,306 | INFO | qubic.api | Last configuration loaded successfully
+2026-10-28 14:04:28,306 | INFO | qubic.api | Starting camera thread
+2026-10-28 14:04:28,307 | INFO | qubic.api | Starting weight thread
+2026-10-28 14:04:28,307 | INFO | qubic.weight | Weight thread started
+2026-10-28 14:04:28,308 | INFO | qubic.api | Starting update scheduler
+2026-10-28 14:04:28,513 | INFO | qubic | API atualizada responde corretamente.
+2026-10-28 14:04:33,086 | INFO | qubic.api | User 'rui' logged in successfully
+2026-10-28 14:04:33,114 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 14:04:38,345 | ERROR | qubic.camera | Camera startup error
+Traceback (most recent call last):
+  File "/home/marques/Tese/backend/Qubic/CameraOptions.py", line 45, in startCamera
+    camera.start()
+    ~~~~~~~~~~~~^^
+  File "/home/marques/Tese/backend/Qubic/camera/vzense.py", line 44, in start
+    raise RuntimeError("No camera detected")
+RuntimeError: No camera detected
+2026-10-28 14:04:43,986 | INFO | qubic.frames | Frame rate set to 5 FPS | max exposure=4000 us | HDR max exposures=[4000, 4000]
+2026-10-28 14:04:44,090 | INFO | qubic.camera | Camera capture loop started
+2026-10-28 14:04:44,090 | INFO | qubic.camera | Camera started successfully
+2026-10-28 14:04:44,672 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 14:04:44,884 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 14:06:13,724 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 14:06:14,018 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 14:06:14,051 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 15:02:39,073 | INFO | qubic | Starting Qubic
+2026-10-28 15:02:40,408 | INFO | qubic.weight | Weight scale connected successfully
+2026-10-28 15:02:40,572 | INFO | qubic.api | Frontend found: /home/marques/Tese/frontend/dist
+2026-10-28 15:02:40,575 | INFO | qubic.api | Starting API
+2026-10-28 15:02:40,623 | INFO | qubic.api | Calibration loaded successfully
+2026-10-28 15:02:40,626 | INFO | qubic.api | Last configuration loaded successfully
+2026-10-28 15:02:40,626 | INFO | qubic.api | Starting camera thread
+2026-10-28 15:02:40,627 | INFO | qubic.api | Starting weight thread
+2026-10-28 15:02:40,632 | INFO | qubic.weight | Weight thread started
+2026-10-28 15:02:40,632 | INFO | qubic.api | Starting update scheduler
+2026-10-28 15:02:40,636 | INFO | qubic.api | Shutting down API
+2026-10-28 15:02:40,683 | INFO | qubic.weight | Weight thread stopped
+2026-10-28 15:02:40,689 | INFO | qubic.weight | Weight scale serial port closed
+2026-10-28 15:02:40,690 | INFO | qubic.camera | No camera instance to stop
+2026-10-28 15:02:47,085 | INFO | qubic.api | Shutting down API
+2026-10-28 15:02:47,125 | INFO | qubic.weight | Weight thread stopped
+2026-10-28 15:02:47,136 | INFO | qubic.weight | Weight scale serial port closed
+2026-10-28 15:02:47,141 | INFO | qubic.camera | Camera capture loop stopped
+2026-10-28 15:02:47,141 | INFO | qubic.camera | Stopping camera
+2026-10-28 15:02:47,333 | INFO | qubic.camera | Camera stopped its service
+2026-10-28 15:02:48,318 | INFO | qubic | Starting Qubic
+2026-10-28 15:02:48,913 | INFO | qubic.weight | Weight scale connected successfully
+2026-10-28 15:02:48,981 | INFO | qubic.api | Frontend found: /home/marques/Tese/frontend/dist
+2026-10-28 15:02:48,981 | INFO | qubic.api | Starting API
+2026-10-28 15:02:49,022 | INFO | qubic.api | Calibration loaded successfully
+2026-10-28 15:02:49,023 | INFO | qubic.api | Last configuration loaded successfully
+2026-10-28 15:02:49,023 | INFO | qubic.api | Starting camera thread
+2026-10-28 15:02:49,024 | INFO | qubic.api | Starting weight thread
+2026-10-28 15:02:49,024 | INFO | qubic.weight | Weight thread started
+2026-10-28 15:02:49,024 | INFO | qubic.api | Starting update scheduler
+2026-10-28 15:02:49,964 | WARNING | qubic.auth | Expired access token
+2026-10-28 15:02:49,973 | INFO | qubic.api | Access Token refreshed successfully for user 'rui'
+2026-10-28 15:02:50,000 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 15:02:52,694 | INFO | qubic.frames | Frame rate set to 5 FPS | max exposure=4000 us | HDR max exposures=[4000, 4000]
+2026-10-28 15:02:52,793 | INFO | qubic.camera | Camera capture loop started
+2026-10-28 15:02:52,793 | INFO | qubic.camera | Camera started successfully
+2026-10-28 15:02:52,907 | WARNING | qubic.auth | Expired access token
+2026-10-28 15:02:52,916 | INFO | qubic.api | Access Token refreshed successfully for user 'rui'
+2026-10-28 15:02:52,925 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 15:02:52,940 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 15:02:53,795 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 15:02:54,149 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 15:02:54,162 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 15:03:13,038 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 15:03:13,292 | INFO | qubic.api | Shutting down API
+2026-10-28 15:03:13,317 | INFO | qubic.weight | Weight thread stopped
+2026-10-28 15:03:13,326 | INFO | qubic.weight | Weight scale serial port closed
+2026-10-28 15:03:13,474 | INFO | qubic.camera | Camera capture loop stopped
+2026-10-28 15:03:13,474 | INFO | qubic.camera | Stopping camera
+2026-10-28 15:03:13,692 | INFO | qubic.camera | Camera stopped its service
+2026-10-28 15:03:13,696 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 15:03:41,390 | INFO | qubic | Starting Qubic
+2026-10-28 15:03:41,968 | INFO | qubic.weight | Weight scale connected successfully
+2026-10-28 15:03:42,034 | INFO | qubic.api | Frontend found: /home/marques/Tese/frontend/dist
+2026-10-28 15:03:42,035 | INFO | qubic.api | Starting API
+2026-10-28 15:03:42,076 | INFO | qubic.api | Calibration loaded successfully
+2026-10-28 15:03:42,077 | INFO | qubic.api | Last configuration loaded successfully
+2026-10-28 15:03:42,077 | INFO | qubic.api | Starting camera thread
+2026-10-28 15:03:42,077 | INFO | qubic.api | Starting weight thread
+2026-10-28 15:03:42,078 | INFO | qubic.weight | Weight thread started
+2026-10-28 15:03:42,078 | INFO | qubic.api | Starting update scheduler
+2026-10-28 15:03:42,835 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 15:03:43,552 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 15:03:45,753 | INFO | qubic.frames | Frame rate set to 5 FPS | max exposure=4000 us | HDR max exposures=[4000, 4000]
+2026-10-28 15:03:45,849 | INFO | qubic.camera | Camera capture loop started
+2026-10-28 15:03:45,849 | INFO | qubic.camera | Camera started successfully
+2026-10-28 15:03:46,536 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 15:03:46,782 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 15:03:54,907 | INFO | qubic.config | Language 'en' saved successfully
+2026-10-28 15:03:54,908 | INFO | qubic.api | Interface language changed to 'en'
+2026-10-28 15:03:57,257 | INFO | qubic.config | Language 'pt' saved successfully
+2026-10-28 15:03:57,258 | INFO | qubic.api | Interface language changed to 'pt'
+2026-10-28 15:03:59,575 | INFO | qubic.update | [UPDATE DEBUG] A iniciar install_update
+2026-10-28 15:03:59,577 | INFO | qubic.update | Pacote validado: /home/marques/UpdateQubic/qubic-update.zip
+2026-10-28 15:03:59,578 | INFO | qubic.update | Raiz de instalação confirmada: /home/marques/Tese
+2026-10-28 15:03:59,583 | INFO | qubic.update | [UPDATE DEBUG] A validar destino: update/test.txt
+2026-10-28 15:03:59,584 | INFO | qubic.update | Destino validado: /home/marques/Tese/update/test.txt
+2026-10-28 15:03:59,585 | INFO | qubic.update | A iniciar criação do backup: /home/marques/BackupTese.zip
+2026-10-28 15:03:59,585 | INFO | qubic.update | A iniciar backup de /home/marques/Tese
+2026-10-28 15:03:59,585 | INFO | qubic.update | Destino temporário: /home/marques/BackupTese.zip.9fbugcmw.tmp
+2026-10-28 15:04:05,007 | INFO | qubic.update | Backup criado e validado: /home/marques/BackupTese.zip (123.79 MB)
+2026-10-28 15:04:05,008 | INFO | qubic.update | Backup criado com sucesso: /home/marques/BackupTese.zip
+2026-10-28 15:04:05,009 | INFO | qubic.update | [UPDATE DEBUG] A escrever: /home/marques/Tese/update/test.txt
+2026-10-28 15:04:05,010 | INFO | qubic.update | A instalar ficheiro: /home/marques/Tese/update/test.txt
+2026-10-28 15:04:05,013 | INFO | qubic.update | [UPDATE DEBUG] Escrita concluída: /home/marques/Tese/update/test.txt
+2026-10-28 15:04:05,013 | INFO | qubic.update | Ficheiro instalado: /home/marques/Tese/update/test.txt
+2026-10-28 15:04:05,014 | INFO | qubic.update | Instalação concluída. Ficheiros instalados: 1
+2026-10-28 15:04:16,527 | INFO | qubic.update | Configuração de reinício criada.
+2026-10-28 15:04:16,589 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 15:04:16,606 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 15:04:16,717 | INFO | qubic.update | Report de atualização enviado: install_ok (HTTP 204).
+2026-10-28 15:04:16,718 | INFO | qubic.update | A solicitar arranque do qubic-update-restart.service.
+2026-10-28 15:04:16,868 | INFO | qubic | [Update Supervisor] Supervisor chamado.
+2026-10-28 15:04:16,868 | INFO | qubic | A terminar a API antiga (PID 85637).
+2026-10-28 15:04:26,872 | INFO | qubic | A iniciar a API atualizada.
+2026-10-28 15:04:27,000 | INFO | qubic | Starting Qubic
+2026-10-28 15:04:27,682 | INFO | qubic.weight | Weight scale connected successfully
+2026-10-28 15:04:27,757 | INFO | qubic.api | Frontend found: /home/marques/Tese/frontend/dist
+2026-10-28 15:04:27,758 | INFO | qubic.api | Starting API
+2026-10-28 15:04:27,800 | INFO | qubic.api | Calibration loaded successfully
+2026-10-28 15:04:27,801 | INFO | qubic.api | Last configuration loaded successfully
+2026-10-28 15:04:27,801 | INFO | qubic.api | Starting camera thread
+2026-10-28 15:04:27,802 | INFO | qubic.api | Starting weight thread
+2026-10-28 15:04:27,802 | INFO | qubic.weight | Weight thread started
+2026-10-28 15:04:27,802 | INFO | qubic.api | Starting update scheduler
+2026-10-28 15:04:27,903 | INFO | qubic | API atualizada responde corretamente.
+2026-10-28 15:04:37,863 | ERROR | qubic.camera | Camera startup error
+Traceback (most recent call last):
+  File "/home/marques/Tese/backend/Qubic/CameraOptions.py", line 45, in startCamera
+    camera.start()
+    ~~~~~~~~~~~~^^
+  File "/home/marques/Tese/backend/Qubic/camera/vzense.py", line 44, in start
+    raise RuntimeError("No camera detected")
+RuntimeError: No camera detected
+2026-10-28 15:05:02,788 | INFO | qubic.api | User 'rui' logged in successfully
+2026-10-28 15:05:02,837 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 15:05:13,305 | INFO | qubic.api | User 'rui' logged in successfully
+2026-10-28 15:05:13,332 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 15:05:20,364 | INFO | qubic.frames | Frame rate set to 5 FPS | max exposure=4000 us | HDR max exposures=[4000, 4000]
+2026-10-28 15:05:20,459 | INFO | qubic.camera | Camera capture loop started
+2026-10-28 15:05:20,459 | INFO | qubic.camera | Camera started successfully
+2026-10-28 15:05:20,772 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 15:05:21,487 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 15:05:43,420 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 15:05:43,464 | INFO | qubic.api | Starting WebRTC offer with stream type: calibration
+2026-10-28 15:05:43,504 | INFO | qubic.api | Mask applied successfully
+2026-10-28 15:05:43,565 | INFO | qubic.api | Current menu changed to 'calibration-menu'
+2026-10-28 15:05:43,622 | INFO | qubic.api | Mask applied successfully
+2026-10-28 15:05:43,760 | INFO | qubic.api | Mask applied successfully
+2026-10-28 15:05:43,956 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 15:05:43,963 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 15:05:43,970 | INFO | qubic.api | Mask applied successfully
+2026-10-28 15:05:43,976 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 15:06:01,665 | INFO | qubic.api | Single bundle volume calculation started
+2026-10-28 15:06:03,102 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-28 15:06:05,043 | INFO | qubic.api | Single bundle volume calculation completed successfully
+2026-10-28 15:06:05,616 | INFO | qubic.api | Measurement '2720' saved successfully by 'rui'
+2026-10-28 15:06:11,288 | INFO | qubic.api | Volume mode changed to Real
+2026-10-28 15:06:11,331 | INFO | qubic.config | Configuration saved successfully
+2026-10-28 15:06:11,332 | INFO | qubic.api | Current configuration saved successfully
+2026-10-28 15:06:12,990 | INFO | qubic.api | Real volume calculation started
+2026-10-28 15:06:14,310 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-28 15:06:16,357 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-28 15:06:17,173 | INFO | qubic.api | Measurement '2721' saved successfully by 'rui'
+2026-10-28 15:06:21,357 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 15:06:21,583 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 15:06:21,613 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 15:06:56,182 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 15:06:56,456 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 15:06:56,526 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 15:11:30,871 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 15:11:31,007 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 15:11:31,026 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 15:11:33,086 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 15:11:36,291 | INFO | qubic.api | User 'rui' logged in successfully
+2026-10-28 15:11:36,319 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 15:11:36,323 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 15:11:36,445 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 15:11:36,455 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 15:11:48,153 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 15:11:57,308 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 15:11:57,379 | INFO | qubic.api | Shutting down API
+2026-10-28 15:11:57,391 | INFO | qubic.weight | Weight thread stopped
+2026-10-28 15:11:57,400 | INFO | qubic.weight | Weight scale serial port closed
+2026-10-28 15:11:57,586 | INFO | qubic.camera | Camera capture loop stopped
+2026-10-28 15:11:57,586 | INFO | qubic.camera | Stopping camera
+2026-10-28 15:11:57,866 | INFO | qubic.camera | Camera stopped its service
+2026-10-28 15:12:26,274 | INFO | qubic | Starting Qubic
+2026-10-28 15:12:26,848 | INFO | qubic.weight | Weight scale connected successfully
+2026-10-28 15:12:26,914 | INFO | qubic.api | Frontend found: /home/marques/Tese/frontend/dist
+2026-10-28 15:12:26,914 | INFO | qubic.api | Starting API
+2026-10-28 15:12:26,955 | INFO | qubic.api | Calibration loaded successfully
+2026-10-28 15:12:26,956 | INFO | qubic.api | Last configuration loaded successfully
+2026-10-28 15:12:26,956 | INFO | qubic.api | Starting camera thread
+2026-10-28 15:12:26,957 | INFO | qubic.api | Starting weight thread
+2026-10-28 15:12:26,957 | INFO | qubic.weight | Weight thread started
+2026-10-28 15:12:26,957 | INFO | qubic.api | Starting update scheduler
+2026-10-28 15:12:30,397 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 15:12:30,636 | INFO | qubic.frames | Frame rate set to 5 FPS | max exposure=4000 us | HDR max exposures=[4000, 4000]
+2026-10-28 15:12:30,732 | INFO | qubic.camera | Camera capture loop started
+2026-10-28 15:12:30,732 | INFO | qubic.camera | Camera started successfully
+2026-10-28 15:12:31,365 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 15:12:34,852 | INFO | qubic.api | User 'rui' logged in successfully
+2026-10-28 15:12:34,921 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 15:12:34,922 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 15:12:35,065 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 15:12:35,077 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 15:12:43,903 | INFO | qubic.update | [UPDATE DEBUG] A iniciar install_update
+2026-10-28 15:12:43,917 | INFO | qubic.update | Pacote validado: /home/marques/UpdateQubic/qubic-update.zip
+2026-10-28 15:12:43,918 | INFO | qubic.update | Raiz de instalação confirmada: /home/marques/Tese
+2026-10-28 15:12:43,918 | INFO | qubic.update | [UPDATE DEBUG] A validar destino: update/test.txt
+2026-10-28 15:12:43,919 | INFO | qubic.update | Destino validado: /home/marques/Tese/update/test.txt
+2026-10-28 15:12:43,919 | INFO | qubic.update | A iniciar criação do backup: /home/marques/BackupTese.zip
+2026-10-28 15:12:43,921 | INFO | qubic.update | A iniciar backup de /home/marques/Tese
+2026-10-28 15:12:43,921 | INFO | qubic.update | Destino temporário: /home/marques/BackupTese.zip.160q_70s.tmp
+2026-10-28 15:12:50,761 | INFO | qubic.update | Backup criado e validado: /home/marques/BackupTese.zip (124.55 MB)
+2026-10-28 15:12:50,762 | INFO | qubic.update | Backup criado com sucesso: /home/marques/BackupTese.zip
+2026-10-28 15:12:50,764 | INFO | qubic.update | [UPDATE DEBUG] A escrever: /home/marques/Tese/update/test.txt
+2026-10-28 15:12:50,767 | INFO | qubic.update | A instalar ficheiro: /home/marques/Tese/update/test.txt
+2026-10-28 15:12:50,771 | INFO | qubic.update | [UPDATE DEBUG] Escrita concluída: /home/marques/Tese/update/test.txt
+2026-10-28 15:12:50,781 | INFO | qubic.update | Ficheiro instalado: /home/marques/Tese/update/test.txt
+2026-10-28 15:12:50,783 | INFO | qubic.update | Instalação concluída. Ficheiros instalados: 1
+2026-10-28 15:13:02,832 | INFO | qubic.update | Configuração de reinício criada.
+2026-10-28 15:13:02,842 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 15:13:02,870 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 15:13:03,015 | INFO | qubic.update | Report de atualização enviado: install_ok (HTTP 204).
+2026-10-28 15:13:03,017 | INFO | qubic.update | A solicitar arranque do qubic-update-restart.service.
+2026-10-28 15:13:03,164 | INFO | qubic | [Update Supervisor] Supervisor chamado.
+2026-10-28 15:13:03,165 | INFO | qubic | A terminar a API antiga (PID 86034).
+2026-10-28 15:13:13,168 | INFO | qubic | A iniciar a API atualizada.
+2026-10-28 15:13:13,314 | INFO | qubic | Starting Qubic
+2026-10-28 15:13:14,001 | INFO | qubic.weight | Weight scale connected successfully
+2026-10-28 15:13:14,078 | INFO | qubic.api | Frontend found: /home/marques/Tese/frontend/dist
+2026-10-28 15:13:14,079 | INFO | qubic.api | Starting API
+2026-10-28 15:13:14,122 | INFO | qubic.api | Calibration loaded successfully
+2026-10-28 15:13:14,123 | INFO | qubic.api | Last configuration loaded successfully
+2026-10-28 15:13:14,123 | INFO | qubic.api | Starting camera thread
+2026-10-28 15:13:14,123 | INFO | qubic.api | Starting weight thread
+2026-10-28 15:13:14,123 | INFO | qubic.weight | Weight thread started
+2026-10-28 15:13:14,124 | INFO | qubic.api | Starting update scheduler
+2026-10-28 15:13:14,205 | INFO | qubic | API atualizada responde corretamente.
+2026-10-28 15:13:24,210 | ERROR | qubic.camera | Camera startup error
+Traceback (most recent call last):
+  File "/home/marques/Tese/backend/Qubic/CameraOptions.py", line 45, in startCamera
+    camera.start()
+    ~~~~~~~~~~~~^^
+  File "/home/marques/Tese/backend/Qubic/camera/vzense.py", line 44, in start
+    raise RuntimeError("No camera detected")
+RuntimeError: No camera detected
+2026-10-28 15:13:29,044 | WARNING | qubic.api | Login failed: user 'ruui' not found
+2026-10-28 15:13:35,165 | INFO | qubic.api | User 'rui' logged in successfully
+2026-10-28 15:13:35,200 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 15:13:35,340 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 15:35:39,010 | INFO | qubic | Starting Qubic
+2026-10-28 15:35:39,586 | INFO | qubic.weight | Weight scale connected successfully
+2026-10-28 15:35:39,650 | INFO | qubic.api | Frontend found: /home/marques/Tese/frontend/dist
+2026-10-28 15:35:39,651 | INFO | qubic.api | Starting API
+2026-10-28 15:35:39,692 | INFO | qubic.api | Calibration loaded successfully
+2026-10-28 15:35:39,693 | INFO | qubic.api | Last configuration loaded successfully
+2026-10-28 15:35:39,693 | INFO | qubic.api | Starting camera thread
+2026-10-28 15:35:39,693 | INFO | qubic.api | Starting weight thread
+2026-10-28 15:35:39,694 | INFO | qubic.weight | Weight thread started
+2026-10-28 15:35:39,694 | INFO | qubic.api | Starting update scheduler
+2026-10-28 15:35:39,696 | INFO | qubic.api | Shutting down API
+2026-10-28 15:35:39,846 | INFO | qubic.weight | Weight thread stopped
+2026-10-28 15:35:39,848 | INFO | qubic.weight | Weight scale serial port closed
+2026-10-28 15:35:39,849 | INFO | qubic.camera | No camera instance to stop
+2026-10-28 15:35:40,823 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 15:35:51,515 | INFO | qubic.api | Shutting down API
+2026-10-28 15:35:51,608 | INFO | qubic.weight | Weight thread stopped
+2026-10-28 15:35:51,616 | INFO | qubic.weight | Weight scale serial port closed
+2026-10-28 15:35:51,617 | INFO | qubic.camera | No camera instance to stop
+2026-10-28 15:35:52,794 | INFO | qubic | Starting Qubic
+2026-10-28 15:35:53,388 | INFO | qubic.weight | Weight scale connected successfully
+2026-10-28 15:35:53,453 | INFO | qubic.api | Frontend found: /home/marques/Tese/frontend/dist
+2026-10-28 15:35:53,453 | INFO | qubic.api | Starting API
+2026-10-28 15:35:53,494 | INFO | qubic.api | Calibration loaded successfully
+2026-10-28 15:35:53,495 | INFO | qubic.api | Last configuration loaded successfully
+2026-10-28 15:35:53,495 | INFO | qubic.api | Starting camera thread
+2026-10-28 15:35:53,496 | INFO | qubic.api | Starting weight thread
+2026-10-28 15:35:53,496 | INFO | qubic.weight | Weight thread started
+2026-10-28 15:35:53,496 | INFO | qubic.api | Starting update scheduler
+2026-10-28 15:35:54,692 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 15:35:57,221 | INFO | qubic.frames | Frame rate set to 5 FPS | max exposure=4000 us | HDR max exposures=[4000, 4000]
+2026-10-28 15:35:57,317 | INFO | qubic.camera | Camera capture loop started
+2026-10-28 15:35:57,317 | INFO | qubic.camera | Camera started successfully
+2026-10-28 15:35:57,679 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 15:36:01,268 | INFO | qubic.api | User 'rui' logged in successfully
+2026-10-28 15:36:01,362 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 15:36:01,418 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 15:36:01,692 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 15:36:01,718 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 15:36:09,078 | INFO | qubic.update | [UPDATE DEBUG] A iniciar install_update
+2026-10-28 15:36:09,086 | INFO | qubic.update | Pacote validado: /home/marques/UpdateQubic/qubic-update.zip
+2026-10-28 15:36:09,087 | INFO | qubic.update | Raiz de instalação confirmada: /home/marques/Tese
+2026-10-28 15:36:09,088 | INFO | qubic.update | [UPDATE DEBUG] A validar destino: update/test.txt
+2026-10-28 15:36:09,088 | INFO | qubic.update | Destino validado: /home/marques/Tese/update/test.txt
+2026-10-28 15:36:09,088 | INFO | qubic.update | A iniciar criação do backup: /home/marques/BackupTese.zip
+2026-10-28 15:36:09,090 | INFO | qubic.update | A iniciar backup de /home/marques/Tese
+2026-10-28 15:36:09,091 | INFO | qubic.update | Destino temporário: /home/marques/BackupTese.zip.8omw0g6l.tmp
+2026-10-28 15:36:24,045 | INFO | qubic.update | Backup criado e validado: /home/marques/BackupTese.zip (124.55 MB)
+2026-10-28 15:36:24,047 | INFO | qubic.update | Backup criado com sucesso: /home/marques/BackupTese.zip
+2026-10-28 15:36:24,049 | INFO | qubic.update | [UPDATE DEBUG] A escrever: /home/marques/Tese/update/test.txt
+2026-10-28 15:36:24,052 | INFO | qubic.update | A instalar ficheiro: /home/marques/Tese/update/test.txt
+2026-10-28 15:36:24,059 | INFO | qubic.update | [UPDATE DEBUG] Escrita concluída: /home/marques/Tese/update/test.txt
+2026-10-28 15:36:24,061 | INFO | qubic.update | Ficheiro instalado: /home/marques/Tese/update/test.txt
+2026-10-28 15:36:24,063 | INFO | qubic.update | Instalação concluída. Ficheiros instalados: 1
+2026-10-28 15:36:28,885 | INFO | qubic.update | Configuração de reinício criada.
+2026-10-28 15:36:28,898 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 15:36:28,922 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 15:36:29,073 | INFO | qubic.update | Report de atualização enviado: install_ok (HTTP 204).
+2026-10-28 15:36:29,074 | INFO | qubic.update | A solicitar arranque do qubic-update-restart.service.
+2026-10-28 15:36:29,238 | INFO | qubic | [Update Supervisor] Supervisor chamado.
+2026-10-28 15:36:29,238 | INFO | qubic | A terminar a API antiga (PID 86298).
+2026-10-28 15:36:39,241 | INFO | qubic | A iniciar a API atualizada.
+2026-10-28 15:36:39,372 | INFO | qubic | Starting Qubic
+2026-10-28 15:36:40,063 | INFO | qubic.weight | Weight scale connected successfully
+2026-10-28 15:36:40,142 | INFO | qubic.api | Frontend found: /home/marques/Tese/frontend/dist
+2026-10-28 15:36:40,143 | INFO | qubic.api | Starting API
+2026-10-28 15:36:40,186 | INFO | qubic.api | Calibration loaded successfully
+2026-10-28 15:36:40,187 | INFO | qubic.api | Last configuration loaded successfully
+2026-10-28 15:36:40,187 | INFO | qubic.api | Starting camera thread
+2026-10-28 15:36:40,188 | INFO | qubic.api | Starting weight thread
+2026-10-28 15:36:40,188 | INFO | qubic.weight | Weight thread started
+2026-10-28 15:36:40,188 | INFO | qubic.api | Starting update scheduler
+2026-10-28 15:36:40,272 | INFO | qubic | API atualizada responde corretamente.
+2026-10-28 15:36:50,290 | ERROR | qubic.camera | Camera startup error
+Traceback (most recent call last):
+  File "/home/marques/Tese/backend/Qubic/CameraOptions.py", line 45, in startCamera
+    camera.start()
+    ~~~~~~~~~~~~^^
+  File "/home/marques/Tese/backend/Qubic/camera/vzense.py", line 44, in start
+    raise RuntimeError("No camera detected")
+RuntimeError: No camera detected
+2026-10-28 15:37:36,378 | INFO | qubic.api | User 'rui' logged in successfully
+2026-10-28 15:37:36,398 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 15:37:36,573 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 15:37:43,720 | INFO | qubic.api | User 'rui' logged in successfully
+2026-10-28 15:37:43,768 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 15:37:43,941 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 15:37:47,849 | INFO | qubic.frames | Frame rate set to 5 FPS | max exposure=4000 us | HDR max exposures=[4000, 4000]
+2026-10-28 15:37:47,944 | INFO | qubic.camera | Camera capture loop started
+2026-10-28 15:37:47,944 | INFO | qubic.camera | Camera started successfully
+2026-10-28 15:37:48,552 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 15:37:48,947 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 15:39:33,480 | INFO | qubic.api | Shutting down API
+2026-10-28 15:39:33,529 | INFO | qubic.weight | Weight thread stopped
+2026-10-28 15:39:33,538 | INFO | qubic.weight | Weight scale serial port closed
+2026-10-28 15:39:33,630 | INFO | qubic.camera | Camera capture loop stopped
+2026-10-28 15:39:33,631 | INFO | qubic.camera | Stopping camera
+2026-10-28 15:39:33,873 | INFO | qubic.camera | Camera stopped its service
+2026-10-28 15:40:27,447 | INFO | qubic | Starting Qubic
+2026-10-28 15:40:28,022 | INFO | qubic.weight | Weight scale connected successfully
+2026-10-28 15:40:28,086 | INFO | qubic.api | Frontend found: /home/marques/Tese/frontend/dist
+2026-10-28 15:40:28,087 | INFO | qubic.api | Starting API
+2026-10-28 15:40:28,128 | INFO | qubic.api | Calibration loaded successfully
+2026-10-28 15:40:28,129 | INFO | qubic.api | Last configuration loaded successfully
+2026-10-28 15:40:28,129 | INFO | qubic.api | Starting camera thread
+2026-10-28 15:40:28,129 | INFO | qubic.api | Starting weight thread
+2026-10-28 15:40:28,129 | INFO | qubic.weight | Weight thread started
+2026-10-28 15:40:28,130 | INFO | qubic.api | Starting update scheduler
+2026-10-28 15:40:28,840 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 15:40:30,560 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 15:40:31,824 | INFO | qubic.frames | Frame rate set to 5 FPS | max exposure=4000 us | HDR max exposures=[4000, 4000]
+2026-10-28 15:40:31,921 | INFO | qubic.camera | Camera capture loop started
+2026-10-28 15:40:31,921 | INFO | qubic.camera | Camera started successfully
+2026-10-28 15:40:32,537 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 15:40:32,842 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 15:40:56,754 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 15:40:56,917 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 15:40:56,938 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 15:41:01,123 | INFO | qubic.api | Shutting down API
+2026-10-28 15:41:01,144 | INFO | qubic.weight | Weight thread stopped
+2026-10-28 15:41:01,159 | INFO | qubic.weight | Weight scale serial port closed
+2026-10-28 15:41:01,187 | INFO | qubic.camera | Camera capture loop stopped
+2026-10-28 15:41:01,187 | INFO | qubic.camera | Stopping camera
+2026-10-28 15:41:01,460 | INFO | qubic.camera | Camera stopped its service
+2026-10-28 15:41:01,476 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 15:41:01,476 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 15:41:03,060 | INFO | qubic | Starting Qubic
+2026-10-28 15:41:03,632 | INFO | qubic.weight | Weight scale connected successfully
+2026-10-28 15:41:03,696 | INFO | qubic.api | Frontend found: /home/marques/Tese/frontend/dist
+2026-10-28 15:41:03,697 | INFO | qubic.api | Starting API
+2026-10-28 15:41:03,738 | INFO | qubic.api | Calibration loaded successfully
+2026-10-28 15:41:03,739 | INFO | qubic.api | Last configuration loaded successfully
+2026-10-28 15:41:03,739 | INFO | qubic.api | Starting camera thread
+2026-10-28 15:41:03,739 | INFO | qubic.api | Starting weight thread
+2026-10-28 15:41:03,740 | INFO | qubic.weight | Weight thread started
+2026-10-28 15:41:03,740 | INFO | qubic.api | Starting update scheduler
+2026-10-28 15:41:04,848 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 15:41:07,427 | INFO | qubic.frames | Frame rate set to 5 FPS | max exposure=4000 us | HDR max exposures=[4000, 4000]
+2026-10-28 15:41:07,524 | INFO | qubic.camera | Camera capture loop started
+2026-10-28 15:41:07,524 | INFO | qubic.camera | Camera started successfully
+2026-10-28 15:41:07,801 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 15:41:07,813 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 15:41:36,097 | INFO | qubic.api | Shutting down API
+2026-10-28 15:41:36,160 | INFO | qubic.weight | Weight thread stopped
+2026-10-28 15:41:36,168 | INFO | qubic.weight | Weight scale serial port closed
+2026-10-28 15:41:36,209 | INFO | qubic.camera | Camera capture loop stopped
+2026-10-28 15:41:36,210 | INFO | qubic.camera | Stopping camera
+2026-10-28 15:41:36,428 | INFO | qubic.camera | Camera stopped its service
+2026-10-28 15:41:36,444 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 15:41:36,445 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 15:41:38,614 | INFO | qubic | Starting Qubic
+2026-10-28 15:41:39,189 | INFO | qubic.weight | Weight scale connected successfully
+2026-10-28 15:41:39,253 | INFO | qubic.api | Frontend found: /home/marques/Tese/frontend/dist
+2026-10-28 15:41:39,254 | INFO | qubic.api | Starting API
+2026-10-28 15:41:39,295 | INFO | qubic.api | Calibration loaded successfully
+2026-10-28 15:41:39,296 | INFO | qubic.api | Last configuration loaded successfully
+2026-10-28 15:41:39,296 | INFO | qubic.api | Starting camera thread
+2026-10-28 15:41:39,296 | INFO | qubic.api | Starting weight thread
+2026-10-28 15:41:39,297 | INFO | qubic.weight | Weight thread started
+2026-10-28 15:41:39,297 | INFO | qubic.api | Starting update scheduler
+2026-10-28 15:41:40,498 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 15:41:42,976 | INFO | qubic.frames | Frame rate set to 5 FPS | max exposure=4000 us | HDR max exposures=[4000, 4000]
+2026-10-28 15:41:43,074 | INFO | qubic.camera | Camera capture loop started
+2026-10-28 15:41:43,075 | INFO | qubic.camera | Camera started successfully
+2026-10-28 15:41:43,455 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 15:41:43,844 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 15:41:46,723 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 15:41:47,089 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 15:41:47,120 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 15:44:05,787 | INFO | qubic.api | Real volume calculation started
+2026-10-28 15:44:07,258 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-28 15:44:09,483 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-28 15:44:10,320 | INFO | qubic.api | Measurement '2722' saved successfully by 'rui'
+2026-10-28 15:44:10,751 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 15:44:14,531 | INFO | qubic.api | User 'rui' logged in successfully
+2026-10-28 15:44:14,565 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 15:44:14,588 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 15:44:14,830 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 15:44:14,848 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 15:44:21,496 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 15:44:26,750 | INFO | qubic.api | User 'rui' logged in successfully
+2026-10-28 15:44:26,791 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 15:44:26,816 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 15:44:26,989 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 15:44:26,997 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 15:45:19,017 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 15:45:19,374 | INFO | qubic.api | Shutting down API
+2026-10-28 15:45:19,387 | INFO | qubic.weight | Weight thread stopped
+2026-10-28 15:45:19,395 | INFO | qubic.weight | Weight scale serial port closed
+2026-10-28 15:45:19,576 | INFO | qubic.camera | Camera capture loop stopped
+2026-10-28 15:45:19,576 | INFO | qubic.camera | Stopping camera
+2026-10-28 15:45:19,813 | INFO | qubic.camera | Camera stopped its service
+2026-10-28 15:45:19,819 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 15:45:23,648 | INFO | qubic | Starting Qubic
+2026-10-28 15:45:24,282 | INFO | qubic.weight | Weight scale connected successfully
+2026-10-28 15:45:24,351 | INFO | qubic.api | Frontend found: /home/marques/Tese/frontend/dist
+2026-10-28 15:45:24,352 | INFO | qubic.api | Starting API
+2026-10-28 15:45:24,392 | INFO | qubic.api | Calibration loaded successfully
+2026-10-28 15:45:24,393 | INFO | qubic.api | Last configuration loaded successfully
+2026-10-28 15:45:24,393 | INFO | qubic.api | Starting camera thread
+2026-10-28 15:45:24,394 | INFO | qubic.api | Starting weight thread
+2026-10-28 15:45:24,394 | INFO | qubic.weight | Weight thread started
+2026-10-28 15:45:24,394 | INFO | qubic.api | Starting update scheduler
+2026-10-28 15:45:26,241 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 15:45:28,094 | INFO | qubic.frames | Frame rate set to 5 FPS | max exposure=4000 us | HDR max exposures=[4000, 4000]
+2026-10-28 15:45:28,191 | INFO | qubic.camera | Camera capture loop started
+2026-10-28 15:45:28,191 | INFO | qubic.camera | Camera started successfully
+2026-10-28 15:45:28,219 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 15:45:29,076 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 15:48:39,868 | INFO | qubic.api | Shutting down API
+2026-10-28 15:48:39,911 | INFO | qubic.weight | Weight thread stopped
+2026-10-28 15:48:39,919 | INFO | qubic.weight | Weight scale serial port closed
+2026-10-28 15:48:40,076 | INFO | qubic.camera | Camera capture loop stopped
+2026-10-28 15:48:40,077 | INFO | qubic.camera | Stopping camera
+2026-10-28 15:48:40,284 | INFO | qubic.camera | Camera stopped its service
+2026-10-28 15:48:40,301 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 15:48:41,180 | INFO | qubic | Starting Qubic
+2026-10-28 15:48:41,757 | INFO | qubic.weight | Weight scale connected successfully
+2026-10-28 15:48:41,821 | INFO | qubic.api | Frontend found: /home/marques/Tese/frontend/dist
+2026-10-28 15:48:41,822 | INFO | qubic.api | Starting API
+2026-10-28 15:48:41,863 | INFO | qubic.api | Calibration loaded successfully
+2026-10-28 15:48:41,864 | INFO | qubic.api | Last configuration loaded successfully
+2026-10-28 15:48:41,864 | INFO | qubic.api | Starting camera thread
+2026-10-28 15:48:41,864 | INFO | qubic.api | Starting weight thread
+2026-10-28 15:48:41,864 | INFO | qubic.weight | Weight thread started
+2026-10-28 15:48:41,865 | INFO | qubic.api | Starting update scheduler
+2026-10-28 15:48:47,794 | INFO | qubic.api | Shutting down API
+2026-10-28 15:48:47,816 | INFO | qubic.weight | Weight thread stopped
+2026-10-28 15:48:47,824 | INFO | qubic.weight | Weight scale serial port closed
+2026-10-28 15:48:47,825 | INFO | qubic.camera | No camera instance to stop
+2026-10-28 15:48:53,123 | INFO | qubic | Starting Qubic
+2026-10-28 15:48:53,727 | INFO | qubic.weight | Weight scale connected successfully
+2026-10-28 15:48:53,791 | INFO | qubic.api | Frontend found: /home/marques/Tese/frontend/dist
+2026-10-28 15:48:53,792 | INFO | qubic.api | Starting API
+2026-10-28 15:48:53,833 | INFO | qubic.api | Calibration loaded successfully
+2026-10-28 15:48:53,834 | INFO | qubic.api | Last configuration loaded successfully
+2026-10-28 15:48:53,834 | INFO | qubic.api | Starting camera thread
+2026-10-28 15:48:53,834 | INFO | qubic.api | Starting weight thread
+2026-10-28 15:48:53,834 | INFO | qubic.weight | Weight thread started
+2026-10-28 15:48:53,835 | INFO | qubic.api | Starting update scheduler
+2026-10-28 15:48:55,681 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 15:49:03,939 | ERROR | qubic.camera | Camera startup error
+Traceback (most recent call last):
+  File "/home/marques/Tese/backend/Qubic/CameraOptions.py", line 45, in startCamera
+    camera.start()
+    ~~~~~~~~~~~~^^
+  File "/home/marques/Tese/backend/Qubic/camera/vzense.py", line 44, in start
+    raise RuntimeError("No camera detected")
+RuntimeError: No camera detected
+2026-10-28 15:49:09,858 | INFO | qubic.frames | Frame rate set to 5 FPS | max exposure=4000 us | HDR max exposures=[4000, 4000]
+2026-10-28 15:49:09,954 | INFO | qubic.camera | Camera capture loop started
+2026-10-28 15:49:09,954 | INFO | qubic.camera | Camera started successfully
+2026-10-28 15:49:10,024 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 15:49:10,656 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 15:52:35,960 | INFO | qubic.api | Shutting down API
+2026-10-28 15:52:36,018 | INFO | qubic.weight | Weight thread stopped
+2026-10-28 15:52:36,026 | INFO | qubic.weight | Weight scale serial port closed
+2026-10-28 15:52:36,047 | INFO | qubic.camera | Camera capture loop stopped
+2026-10-28 15:52:36,048 | INFO | qubic.camera | Stopping camera
+2026-10-28 15:52:36,241 | INFO | qubic.camera | Camera stopped its service
+2026-10-28 15:52:36,256 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 15:52:37,045 | INFO | qubic | Starting Qubic
+2026-10-28 15:52:37,616 | INFO | qubic.weight | Weight scale connected successfully
+2026-10-28 15:52:37,681 | INFO | qubic.api | Frontend found: /home/marques/Tese/frontend/dist
+2026-10-28 15:52:37,681 | INFO | qubic.api | Starting API
+2026-10-28 15:52:37,722 | INFO | qubic.api | Calibration loaded successfully
+2026-10-28 15:52:37,723 | INFO | qubic.api | Last configuration loaded successfully
+2026-10-28 15:52:37,723 | INFO | qubic.api | Starting camera thread
+2026-10-28 15:52:37,724 | INFO | qubic.api | Starting weight thread
+2026-10-28 15:52:37,724 | INFO | qubic.weight | Weight thread started
+2026-10-28 15:52:37,724 | INFO | qubic.api | Starting update scheduler
+2026-10-28 15:52:41,415 | INFO | qubic.frames | Frame rate set to 5 FPS | max exposure=4000 us | HDR max exposures=[4000, 4000]
+2026-10-28 15:52:41,517 | INFO | qubic.camera | Camera capture loop started
+2026-10-28 15:52:41,517 | INFO | qubic.camera | Camera started successfully
+2026-10-28 15:52:41,557 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 15:52:42,014 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 15:52:42,522 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 15:52:43,921 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 15:52:46,735 | INFO | qubic.api | User 'rui' logged in successfully
+2026-10-28 15:52:46,765 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 15:52:46,771 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 15:52:46,865 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 15:52:46,877 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 15:52:50,449 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 15:52:50,485 | INFO | qubic.api | Starting WebRTC offer with stream type: calibration
+2026-10-28 15:52:50,532 | INFO | qubic.api | Mask applied successfully
+2026-10-28 15:52:50,579 | INFO | qubic.api | Current menu changed to 'calibration-menu'
+2026-10-28 15:52:50,644 | INFO | qubic.api | Mask applied successfully
+2026-10-28 15:52:50,731 | INFO | qubic.api | Mask applied successfully
+2026-10-28 15:52:50,956 | INFO | qubic.api | Mask applied successfully
+2026-10-28 15:52:51,164 | INFO | qubic.api | Mask applied successfully
+2026-10-28 15:52:51,390 | INFO | qubic.api | Mask applied successfully
+2026-10-28 15:52:51,615 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 15:52:51,618 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 15:52:51,618 | INFO | qubic.api | Mask applied successfully
+2026-10-28 15:52:51,627 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 15:53:56,418 | INFO | qubic.api | Shutting down API
+2026-10-28 15:53:56,472 | INFO | qubic.weight | Weight thread stopped
+2026-10-28 15:53:56,481 | INFO | qubic.weight | Weight scale serial port closed
+2026-10-28 15:53:56,597 | INFO | qubic.camera | Camera capture loop stopped
+2026-10-28 15:53:56,598 | INFO | qubic.camera | Stopping camera
+2026-10-28 15:53:56,830 | INFO | qubic.camera | Camera stopped its service
+2026-10-28 15:53:56,851 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 15:53:56,851 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 15:53:59,641 | INFO | qubic | Starting Qubic
+2026-10-28 15:54:00,217 | INFO | qubic.weight | Weight scale connected successfully
+2026-10-28 15:54:00,281 | INFO | qubic.api | Frontend found: /home/marques/Tese/frontend/dist
+2026-10-28 15:54:00,282 | INFO | qubic.api | Starting API
+2026-10-28 15:54:00,323 | INFO | qubic.api | Calibration loaded successfully
+2026-10-28 15:54:00,324 | INFO | qubic.api | Last configuration loaded successfully
+2026-10-28 15:54:00,324 | INFO | qubic.api | Starting camera thread
+2026-10-28 15:54:00,325 | INFO | qubic.api | Starting weight thread
+2026-10-28 15:54:00,325 | INFO | qubic.weight | Weight thread started
+2026-10-28 15:54:00,325 | INFO | qubic.api | Starting update scheduler
+2026-10-28 15:54:01,431 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 15:54:04,008 | INFO | qubic.frames | Frame rate set to 5 FPS | max exposure=4000 us | HDR max exposures=[4000, 4000]
+2026-10-28 15:54:04,104 | INFO | qubic.camera | Camera capture loop started
+2026-10-28 15:54:04,104 | INFO | qubic.camera | Camera started successfully
+2026-10-28 15:54:04,413 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 15:54:05,057 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 15:55:41,700 | INFO | qubic.config | Language 'en' saved successfully
+2026-10-28 15:55:41,700 | INFO | qubic.api | Interface language changed to 'en'
+2026-10-28 15:55:44,591 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 15:55:44,882 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 15:55:44,933 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 15:55:48,236 | INFO | qubic.config | Language 'pt' saved successfully
+2026-10-28 15:55:48,237 | INFO | qubic.api | Interface language changed to 'pt'
+2026-10-28 15:55:51,323 | INFO | qubic.config | Language 'es' saved successfully
+2026-10-28 15:55:51,323 | INFO | qubic.api | Interface language changed to 'es'
+2026-10-28 15:55:53,791 | INFO | qubic.config | Language 'en' saved successfully
+2026-10-28 15:55:53,791 | INFO | qubic.api | Interface language changed to 'en'
+2026-10-28 15:56:05,437 | INFO | qubic.update | [UPDATE DEBUG] A iniciar install_update
+2026-10-28 15:56:05,442 | INFO | qubic.update | Pacote validado: /home/marques/UpdateQubic/qubic-update.zip
+2026-10-28 15:56:05,449 | INFO | qubic.update | Raiz de instalação confirmada: /home/marques/Tese
+2026-10-28 15:56:05,451 | INFO | qubic.update | [UPDATE DEBUG] A validar destino: update/test.txt
+2026-10-28 15:56:05,464 | INFO | qubic.update | Destino validado: /home/marques/Tese/update/test.txt
+2026-10-28 15:56:05,465 | INFO | qubic.update | A iniciar criação do backup: /home/marques/BackupTese.zip
+2026-10-28 15:56:05,466 | INFO | qubic.update | A iniciar backup de /home/marques/Tese
+2026-10-28 15:56:05,467 | INFO | qubic.update | Destino temporário: /home/marques/BackupTese.zip.wu80gyiq.tmp
+2026-10-28 15:56:16,363 | INFO | qubic.update | Backup criado e validado: /home/marques/BackupTese.zip (124.99 MB)
+2026-10-28 15:56:16,364 | INFO | qubic.update | Backup criado com sucesso: /home/marques/BackupTese.zip
+2026-10-28 15:56:16,365 | INFO | qubic.update | [UPDATE DEBUG] A escrever: /home/marques/Tese/update/test.txt
+2026-10-28 15:56:16,365 | INFO | qubic.update | A instalar ficheiro: /home/marques/Tese/update/test.txt
+2026-10-28 15:56:16,366 | INFO | qubic.update | [UPDATE DEBUG] Escrita concluída: /home/marques/Tese/update/test.txt
+2026-10-28 15:56:16,383 | INFO | qubic.update | Ficheiro instalado: /home/marques/Tese/update/test.txt
+2026-10-28 15:56:16,393 | INFO | qubic.update | Instalação concluída. Ficheiros instalados: 1
+2026-10-28 15:56:21,419 | INFO | qubic.update | Configuração de reinício criada.
+2026-10-28 15:56:21,442 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 15:56:21,478 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 15:56:21,623 | INFO | qubic.update | Report de atualização enviado: install_ok (HTTP 204).
+2026-10-28 15:56:21,625 | INFO | qubic.update | A solicitar arranque do qubic-update-restart.service.
+2026-10-28 15:56:21,770 | INFO | qubic | [Update Supervisor] Supervisor chamado.
+2026-10-28 15:56:21,770 | INFO | qubic | A terminar a API antiga (PID 87118).
+2026-10-28 15:56:31,775 | INFO | qubic | A iniciar a API atualizada.
+2026-10-28 15:56:31,907 | INFO | qubic | Starting Qubic
+2026-10-28 15:56:32,587 | INFO | qubic.weight | Weight scale connected successfully
+2026-10-28 15:56:32,665 | INFO | qubic.api | Frontend found: /home/marques/Tese/frontend/dist
+2026-10-28 15:56:32,666 | INFO | qubic.api | Starting API
+2026-10-28 15:56:32,709 | INFO | qubic.api | Calibration loaded successfully
+2026-10-28 15:56:32,710 | INFO | qubic.api | Last configuration loaded successfully
+2026-10-28 15:56:32,710 | INFO | qubic.api | Starting camera thread
+2026-10-28 15:56:32,711 | INFO | qubic.api | Starting weight thread
+2026-10-28 15:56:32,711 | INFO | qubic.weight | Weight thread started
+2026-10-28 15:56:32,712 | INFO | qubic.api | Starting update scheduler
+2026-10-28 15:56:32,809 | INFO | qubic | API atualizada responde corretamente.
+2026-10-28 15:56:41,881 | INFO | qubic.api | User 'rui' logged in successfully
+2026-10-28 15:56:41,910 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 15:56:42,004 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 15:56:42,762 | ERROR | qubic.camera | Camera startup error
+Traceback (most recent call last):
+  File "/home/marques/Tese/backend/Qubic/CameraOptions.py", line 45, in startCamera
+    camera.start()
+    ~~~~~~~~~~~~^^
+  File "/home/marques/Tese/backend/Qubic/camera/vzense.py", line 44, in start
+    raise RuntimeError("No camera detected")
+RuntimeError: No camera detected
+2026-10-28 15:57:14,835 | INFO | qubic.frames | Frame rate set to 5 FPS | max exposure=4000 us | HDR max exposures=[4000, 4000]
+2026-10-28 15:57:14,933 | INFO | qubic.camera | Camera capture loop started
+2026-10-28 15:57:14,933 | INFO | qubic.camera | Camera started successfully
+2026-10-28 15:57:14,988 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 16:00:34,945 | INFO | qubic.api | Shutting down API
+2026-10-28 16:00:34,984 | INFO | qubic.weight | Weight thread stopped
+2026-10-28 16:00:34,993 | INFO | qubic.weight | Weight scale serial port closed
+2026-10-28 16:00:35,025 | INFO | qubic.camera | Camera capture loop stopped
+2026-10-28 16:00:35,025 | INFO | qubic.camera | Stopping camera
+2026-10-28 16:00:35,253 | INFO | qubic.camera | Camera stopped its service
+2026-10-28 16:00:43,997 | INFO | qubic | Starting Qubic
+2026-10-28 16:00:44,578 | INFO | qubic.weight | Weight scale connected successfully
+2026-10-28 16:00:44,644 | INFO | qubic.api | Frontend found: /home/marques/Tese/frontend/dist
+2026-10-28 16:00:44,644 | INFO | qubic.api | Starting API
+2026-10-28 16:00:44,685 | INFO | qubic.api | Calibration loaded successfully
+2026-10-28 16:00:44,686 | INFO | qubic.api | Last configuration loaded successfully
+2026-10-28 16:00:44,686 | INFO | qubic.api | Starting camera thread
+2026-10-28 16:00:44,687 | INFO | qubic.api | Starting weight thread
+2026-10-28 16:00:44,687 | INFO | qubic.weight | Weight thread started
+2026-10-28 16:00:44,687 | INFO | qubic.api | Starting update scheduler
+2026-10-28 16:00:45,476 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 16:00:48,346 | INFO | qubic.frames | Frame rate set to 5 FPS | max exposure=4000 us | HDR max exposures=[4000, 4000]
+2026-10-28 16:00:48,442 | INFO | qubic.camera | Camera capture loop started
+2026-10-28 16:00:48,443 | INFO | qubic.camera | Camera started successfully
+2026-10-28 16:00:49,462 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 16:00:50,534 | INFO | qubic.update | [UPDATE DEBUG] A iniciar install_update
+2026-10-28 16:00:50,537 | INFO | qubic.update | Pacote validado: /home/marques/UpdateQubic/qubic-update.zip
+2026-10-28 16:00:50,538 | INFO | qubic.update | Raiz de instalação confirmada: /home/marques/Tese
+2026-10-28 16:00:50,538 | INFO | qubic.update | [UPDATE DEBUG] A validar destino: update/test.txt
+2026-10-28 16:00:50,540 | INFO | qubic.update | Destino validado: /home/marques/Tese/update/test.txt
+2026-10-28 16:00:50,540 | INFO | qubic.update | A iniciar criação do backup: /home/marques/BackupTese.zip
+2026-10-28 16:00:50,542 | INFO | qubic.update | A iniciar backup de /home/marques/Tese
+2026-10-28 16:00:50,543 | INFO | qubic.update | Destino temporário: /home/marques/BackupTese.zip.cukey0iv.tmp
+2026-10-28 16:00:58,557 | INFO | qubic.update | Backup criado e validado: /home/marques/BackupTese.zip (124.99 MB)
+2026-10-28 16:00:58,558 | INFO | qubic.update | Backup criado com sucesso: /home/marques/BackupTese.zip
+2026-10-28 16:00:58,560 | INFO | qubic.update | [UPDATE DEBUG] A escrever: /home/marques/Tese/update/test.txt
+2026-10-28 16:00:58,560 | INFO | qubic.update | A instalar ficheiro: /home/marques/Tese/update/test.txt
+2026-10-28 16:00:58,561 | INFO | qubic.update | [UPDATE DEBUG] Escrita concluída: /home/marques/Tese/update/test.txt
+2026-10-28 16:00:58,561 | INFO | qubic.update | Ficheiro instalado: /home/marques/Tese/update/test.txt
+2026-10-28 16:00:58,562 | INFO | qubic.update | Instalação concluída. Ficheiros instalados: 1
+2026-10-28 16:01:02,636 | INFO | qubic.update | Configuração de reinício criada.
+2026-10-28 16:01:02,648 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 16:01:02,812 | INFO | qubic.update | Report de atualização enviado: install_ok (HTTP 204).
+2026-10-28 16:01:02,814 | INFO | qubic.update | A solicitar arranque do qubic-update-restart.service.
+2026-10-28 16:01:02,970 | INFO | qubic | [Update Supervisor] Supervisor chamado.
+2026-10-28 16:01:02,970 | INFO | qubic | A terminar a API antiga (PID 87376).
+2026-10-28 16:01:12,974 | INFO | qubic | A iniciar a API atualizada.
+2026-10-28 16:01:13,101 | INFO | qubic | Starting Qubic
+2026-10-28 16:01:13,782 | INFO | qubic.weight | Weight scale connected successfully
+2026-10-28 16:01:13,859 | INFO | qubic.api | Frontend found: /home/marques/Tese/frontend/dist
+2026-10-28 16:01:13,860 | INFO | qubic.api | Starting API
+2026-10-28 16:01:13,902 | INFO | qubic.api | Calibration loaded successfully
+2026-10-28 16:01:13,903 | INFO | qubic.api | Last configuration loaded successfully
+2026-10-28 16:01:13,904 | INFO | qubic.api | Starting camera thread
+2026-10-28 16:01:13,904 | INFO | qubic.api | Starting weight thread
+2026-10-28 16:01:13,905 | INFO | qubic.weight | Weight thread started
+2026-10-28 16:01:13,905 | INFO | qubic.api | Starting update scheduler
+2026-10-28 16:01:14,007 | INFO | qubic | API atualizada responde corretamente.
+2026-10-28 16:01:23,959 | ERROR | qubic.camera | Camera startup error
+Traceback (most recent call last):
+  File "/home/marques/Tese/backend/Qubic/CameraOptions.py", line 45, in startCamera
+    camera.start()
+    ~~~~~~~~~~~~^^
+  File "/home/marques/Tese/backend/Qubic/camera/vzense.py", line 44, in start
+    raise RuntimeError("No camera detected")
+RuntimeError: No camera detected
+2026-10-28 16:01:24,810 | INFO | qubic.api | User 'rui' logged in successfully
+2026-10-28 16:01:24,837 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 16:01:50,723 | INFO | qubic.api | Shutting down API
+2026-10-28 16:01:50,728 | INFO | qubic.weight | Weight thread stopped
+2026-10-28 16:01:50,737 | INFO | qubic.weight | Weight scale serial port closed
+2026-10-28 16:01:50,740 | INFO | qubic.camera | No camera instance to stop
+2026-10-28 16:01:53,022 | INFO | qubic | Starting Qubic
+2026-10-28 16:01:53,596 | INFO | qubic.weight | Weight scale connected successfully
+2026-10-28 16:01:53,661 | INFO | qubic.api | Frontend found: /home/marques/Tese/frontend/dist
+2026-10-28 16:01:53,661 | INFO | qubic.api | Starting API
+2026-10-28 16:01:53,702 | INFO | qubic.api | Calibration loaded successfully
+2026-10-28 16:01:53,703 | INFO | qubic.api | Last configuration loaded successfully
+2026-10-28 16:01:53,703 | INFO | qubic.api | Starting camera thread
+2026-10-28 16:01:53,703 | INFO | qubic.api | Starting weight thread
+2026-10-28 16:01:53,704 | INFO | qubic.weight | Weight thread started
+2026-10-28 16:01:53,704 | INFO | qubic.api | Starting update scheduler
+2026-10-28 16:01:57,577 | INFO | qubic.frames | Frame rate set to 5 FPS | max exposure=4000 us | HDR max exposures=[4000, 4000]
+2026-10-28 16:01:57,675 | INFO | qubic.camera | Camera capture loop started
+2026-10-28 16:01:57,675 | INFO | qubic.camera | Camera started successfully
+2026-10-28 16:01:58,464 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 16:02:47,362 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 16:02:47,461 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 16:02:47,474 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 16:02:55,720 | INFO | qubic.api | User 'rui' logged in successfully
+2026-10-28 16:02:55,804 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 16:02:55,851 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 16:02:56,261 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 16:02:56,294 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 16:02:58,901 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 16:02:59,180 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 16:02:59,217 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 16:03:03,295 | INFO | qubic.update | [UPDATE DEBUG] A iniciar install_update
+2026-10-28 16:03:03,305 | INFO | qubic.update | Pacote validado: /home/marques/UpdateQubic/qubic-update.zip
+2026-10-28 16:03:03,310 | INFO | qubic.update | Raiz de instalação confirmada: /home/marques/Tese
+2026-10-28 16:03:03,311 | INFO | qubic.update | [UPDATE DEBUG] A validar destino: update/test.txt
+2026-10-28 16:03:03,319 | INFO | qubic.update | Destino validado: /home/marques/Tese/update/test.txt
+2026-10-28 16:03:03,320 | INFO | qubic.update | A iniciar criação do backup: /home/marques/BackupTese.zip
+2026-10-28 16:03:03,320 | INFO | qubic.update | A iniciar backup de /home/marques/Tese
+2026-10-28 16:03:03,320 | INFO | qubic.update | Destino temporário: /home/marques/BackupTese.zip.eftv5429.tmp
+2026-10-28 16:03:06,244 | INFO | qubic.update | Backup criado e validado: /home/marques/BackupTese.zip (124.99 MB)
+2026-10-28 16:03:06,245 | INFO | qubic.update | Backup criado com sucesso: /home/marques/BackupTese.zip
+2026-10-28 16:03:06,247 | INFO | qubic.update | [UPDATE DEBUG] A escrever: /home/marques/Tese/update/test.txt
+2026-10-28 16:03:06,248 | INFO | qubic.update | A instalar ficheiro: /home/marques/Tese/update/test.txt
+2026-10-28 16:03:06,249 | INFO | qubic.update | [UPDATE DEBUG] Escrita concluída: /home/marques/Tese/update/test.txt
+2026-10-28 16:03:06,250 | INFO | qubic.update | Ficheiro instalado: /home/marques/Tese/update/test.txt
+2026-10-28 16:03:06,265 | INFO | qubic.update | Instalação concluída. Ficheiros instalados: 1
+2026-10-28 16:03:13,851 | INFO | qubic.update | Configuração de reinício criada.
+2026-10-28 16:03:13,874 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 16:03:13,907 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 16:03:14,050 | INFO | qubic.update | Report de atualização enviado: install_ok (HTTP 204).
+2026-10-28 16:03:14,052 | INFO | qubic.update | A solicitar arranque do qubic-update-restart.service.
+2026-10-28 16:03:14,213 | INFO | qubic | [Update Supervisor] Supervisor chamado.
+2026-10-28 16:03:14,214 | INFO | qubic | A terminar a API antiga (PID 87497).
+2026-10-28 16:03:24,218 | INFO | qubic | A iniciar a API atualizada.
+2026-10-28 16:03:24,383 | INFO | qubic | Starting Qubic
+2026-10-28 16:03:25,120 | INFO | qubic.weight | Weight scale connected successfully
+2026-10-28 16:03:25,203 | INFO | qubic.api | Frontend found: /home/marques/Tese/frontend/dist
+2026-10-28 16:03:25,204 | INFO | qubic.api | Starting API
+2026-10-28 16:03:25,247 | INFO | qubic.api | Calibration loaded successfully
+2026-10-28 16:03:25,248 | INFO | qubic.api | Last configuration loaded successfully
+2026-10-28 16:03:25,248 | INFO | qubic.api | Starting camera thread
+2026-10-28 16:03:25,248 | INFO | qubic.api | Starting weight thread
+2026-10-28 16:03:25,249 | INFO | qubic.weight | Weight thread started
+2026-10-28 16:03:25,249 | INFO | qubic.api | Starting update scheduler
+2026-10-28 16:03:26,252 | INFO | qubic | API atualizada responde corretamente.
+2026-10-28 16:03:35,281 | ERROR | qubic.camera | Camera startup error
+Traceback (most recent call last):
+  File "/home/marques/Tese/backend/Qubic/CameraOptions.py", line 45, in startCamera
+    camera.start()
+    ~~~~~~~~~~~~^^
+  File "/home/marques/Tese/backend/Qubic/camera/vzense.py", line 44, in start
+    raise RuntimeError("No camera detected")
+RuntimeError: No camera detected
+2026-10-28 16:03:36,480 | INFO | qubic.api | User 'rui' logged in successfully
+2026-10-28 16:03:36,503 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 16:05:11,155 | INFO | qubic.api | Shutting down API
+2026-10-28 16:05:11,166 | INFO | qubic.weight | Weight thread stopped
+2026-10-28 16:05:11,175 | INFO | qubic.weight | Weight scale serial port closed
+2026-10-28 16:05:11,176 | INFO | qubic.camera | No camera instance to stop
+2026-10-28 16:05:12,093 | INFO | qubic | Starting Qubic
+2026-10-28 16:05:12,668 | INFO | qubic.weight | Weight scale connected successfully
+2026-10-28 16:05:12,732 | INFO | qubic.api | Frontend found: /home/marques/Tese/frontend/dist
+2026-10-28 16:05:12,733 | INFO | qubic.api | Starting API
+2026-10-28 16:05:12,774 | INFO | qubic.api | Calibration loaded successfully
+2026-10-28 16:05:12,775 | INFO | qubic.api | Last configuration loaded successfully
+2026-10-28 16:05:12,775 | INFO | qubic.api | Starting camera thread
+2026-10-28 16:05:12,775 | INFO | qubic.api | Starting weight thread
+2026-10-28 16:05:12,775 | INFO | qubic.weight | Weight thread started
+2026-10-28 16:05:12,776 | INFO | qubic.api | Starting update scheduler
+2026-10-28 16:05:16,597 | INFO | qubic.frames | Frame rate set to 5 FPS | max exposure=4000 us | HDR max exposures=[4000, 4000]
+2026-10-28 16:05:16,694 | INFO | qubic.camera | Camera capture loop started
+2026-10-28 16:05:16,695 | INFO | qubic.camera | Camera started successfully
+2026-10-28 16:05:16,915 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 16:05:16,927 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 16:05:30,290 | INFO | qubic.api | User 'rui' logged in successfully
+2026-10-28 16:05:30,400 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 16:05:30,443 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 16:20:07,757 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 16:20:07,968 | INFO | qubic.api | Shutting down API
+2026-10-28 16:20:07,982 | INFO | qubic.weight | Weight thread stopped
+2026-10-28 16:20:07,993 | INFO | qubic.weight | Weight scale serial port closed
+2026-10-28 16:20:08,048 | INFO | qubic.camera | Camera capture loop stopped
+2026-10-28 16:20:08,048 | INFO | qubic.camera | Stopping camera
+2026-10-28 16:20:08,318 | INFO | qubic.camera | Camera stopped its service
+2026-10-28 16:20:08,325 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 16:20:09,108 | INFO | qubic | Starting Qubic
+2026-10-28 16:20:09,680 | INFO | qubic.weight | Weight scale connected successfully
+2026-10-28 16:20:09,748 | INFO | qubic.api | Frontend found: /home/marques/Tese/frontend/dist
+2026-10-28 16:20:09,749 | INFO | qubic.api | Starting API
+2026-10-28 16:20:09,790 | INFO | qubic.api | Calibration loaded successfully
+2026-10-28 16:20:09,794 | INFO | qubic.api | Last configuration loaded successfully
+2026-10-28 16:20:09,794 | INFO | qubic.api | Starting camera thread
+2026-10-28 16:20:09,794 | INFO | qubic.api | Starting weight thread
+2026-10-28 16:20:09,795 | INFO | qubic.weight | Weight thread started
+2026-10-28 16:20:09,795 | INFO | qubic.api | Starting update scheduler
+2026-10-28 16:20:19,180 | INFO | qubic.update | [UPDATE DEBUG] A iniciar install_update
+2026-10-28 16:20:19,182 | INFO | qubic.update | Pacote validado: /home/marques/UpdateQubic/qubic-update.zip
+2026-10-28 16:20:19,182 | INFO | qubic.update | Raiz de instalação confirmada: /home/marques/Tese
+2026-10-28 16:20:19,182 | INFO | qubic.update | [UPDATE DEBUG] A validar destino: update/test.txt
+2026-10-28 16:20:19,183 | INFO | qubic.update | Destino validado: /home/marques/Tese/update/test.txt
+2026-10-28 16:20:19,183 | INFO | qubic.update | A iniciar criação do backup: /home/marques/BackupTese.zip
+2026-10-28 16:20:19,183 | INFO | qubic.update | A iniciar backup de /home/marques/Tese
+2026-10-28 16:20:19,183 | INFO | qubic.update | Destino temporário: /home/marques/BackupTese.zip.ttr7g5t1.tmp
+2026-10-28 16:20:19,894 | ERROR | qubic.camera | Camera startup error
+Traceback (most recent call last):
+  File "/home/marques/Tese/backend/Qubic/CameraOptions.py", line 45, in startCamera
+    camera.start()
+    ~~~~~~~~~~~~^^
+  File "/home/marques/Tese/backend/Qubic/camera/vzense.py", line 44, in start
+    raise RuntimeError("No camera detected")
+RuntimeError: No camera detected
+2026-10-28 16:20:20,976 | INFO | qubic.update | Backup criado e validado: /home/marques/BackupTese.zip (124.99 MB)
+2026-10-28 16:20:20,976 | INFO | qubic.update | Backup criado com sucesso: /home/marques/BackupTese.zip
+2026-10-28 16:20:20,976 | INFO | qubic.update | [UPDATE DEBUG] A escrever: /home/marques/Tese/update/test.txt
+2026-10-28 16:20:20,976 | INFO | qubic.update | A instalar ficheiro: /home/marques/Tese/update/test.txt
+2026-10-28 16:20:20,977 | INFO | qubic.update | [UPDATE DEBUG] Escrita concluída: /home/marques/Tese/update/test.txt
+2026-10-28 16:20:20,977 | INFO | qubic.update | Ficheiro instalado: /home/marques/Tese/update/test.txt
+2026-10-28 16:20:20,977 | INFO | qubic.update | Instalação concluída. Ficheiros instalados: 1
+2026-10-28 16:20:22,321 | INFO | qubic.update | Configuração de reinício criada.
+2026-10-28 16:20:22,491 | INFO | qubic.update | Report de atualização enviado: install_ok (HTTP 204).
+2026-10-28 16:20:22,492 | INFO | qubic.update | A solicitar arranque do qubic-update-restart.service.
+2026-10-28 16:20:22,644 | INFO | qubic | [Update Supervisor] Supervisor chamado.
+2026-10-28 16:20:22,644 | INFO | qubic | A terminar a API antiga (PID 87909).
+2026-10-28 16:20:32,648 | INFO | qubic | A iniciar a API atualizada.
+2026-10-28 16:20:32,816 | INFO | qubic | Starting Qubic
+2026-10-28 16:20:33,498 | INFO | qubic.weight | Weight scale connected successfully
+2026-10-28 16:20:33,579 | INFO | qubic.api | Frontend found: /home/marques/Tese/frontend/dist
+2026-10-28 16:20:33,580 | INFO | qubic.api | Starting API
+2026-10-28 16:20:33,622 | INFO | qubic.api | Calibration loaded successfully
+2026-10-28 16:20:33,624 | INFO | qubic.api | Last configuration loaded successfully
+2026-10-28 16:20:33,624 | INFO | qubic.api | Starting camera thread
+2026-10-28 16:20:33,625 | INFO | qubic.api | Starting weight thread
+2026-10-28 16:20:33,625 | INFO | qubic.weight | Weight thread started
+2026-10-28 16:20:33,626 | INFO | qubic.api | Starting update scheduler
+2026-10-28 16:20:33,709 | INFO | qubic | API atualizada responde corretamente.
+2026-10-28 16:20:37,285 | INFO | qubic.frames | Frame rate set to 5 FPS | max exposure=4000 us | HDR max exposures=[4000, 4000]
+2026-10-28 16:20:37,383 | INFO | qubic.camera | Camera capture loop started
+2026-10-28 16:20:37,383 | INFO | qubic.camera | Camera started successfully
+2026-10-28 16:20:43,133 | INFO | qubic.api | User 'rui' logged in successfully
+2026-10-28 16:20:43,155 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 16:20:43,165 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 16:20:53,360 | INFO | qubic.api | User 'rui' logged in successfully
+2026-10-28 16:20:53,477 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 16:20:53,502 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 16:25:33,728 | INFO | qubic.api | Shutting down API
+2026-10-28 16:25:33,731 | INFO | qubic.weight | Weight thread stopped
+2026-10-28 16:25:33,743 | INFO | qubic.weight | Weight scale serial port closed
+2026-10-28 16:25:33,745 | INFO | qubic.camera | Camera capture loop stopped
+2026-10-28 16:25:33,745 | INFO | qubic.camera | Stopping camera
+2026-10-28 16:25:34,015 | INFO | qubic.camera | Camera stopped its service
+2026-10-28 16:51:54,903 | INFO | qubic | Starting Qubic
+2026-10-28 16:51:55,494 | INFO | qubic.weight | Weight scale connected successfully
+2026-10-28 16:51:55,558 | INFO | qubic.api | Frontend found: /home/marques/Tese/frontend/dist
+2026-10-28 16:51:55,559 | INFO | qubic.api | Starting API
+2026-10-28 16:51:55,600 | INFO | qubic.api | Calibration loaded successfully
+2026-10-28 16:51:55,601 | INFO | qubic.api | Last configuration loaded successfully
+2026-10-28 16:51:55,601 | INFO | qubic.api | Starting camera thread
+2026-10-28 16:51:55,602 | INFO | qubic.api | Starting weight thread
+2026-10-28 16:51:55,602 | INFO | qubic.weight | Weight thread started
+2026-10-28 16:51:55,602 | INFO | qubic.api | Starting update scheduler
+2026-10-28 16:51:57,017 | WARNING | qubic.auth | Expired access token
+2026-10-28 16:51:57,023 | INFO | qubic.api | Access Token refreshed successfully for user 'rui'
+2026-10-28 16:51:57,038 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 16:51:59,272 | INFO | qubic.frames | Frame rate set to 5 FPS | max exposure=4000 us | HDR max exposures=[4000, 4000]
+2026-10-28 16:51:59,369 | INFO | qubic.camera | Camera capture loop started
+2026-10-28 16:51:59,369 | INFO | qubic.camera | Camera started successfully
+2026-10-28 16:52:00,035 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 16:52:00,097 | WARNING | qubic.auth | Expired access token
+2026-10-28 16:52:00,131 | INFO | qubic.api | Access Token refreshed successfully for user 'rui'
+2026-10-28 16:52:00,139 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 16:52:08,608 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 16:52:08,972 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 16:52:09,009 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 16:52:11,378 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 16:52:11,505 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 16:52:11,522 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 16:52:15,688 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 16:52:15,703 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 16:52:19,864 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 16:52:19,866 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 16:52:22,772 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 16:52:22,788 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 16:52:23,908 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 16:52:23,909 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 16:52:24,776 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 16:52:24,793 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 16:52:25,745 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 16:52:25,746 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 16:52:31,807 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 16:52:31,859 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 16:53:18,127 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 16:53:18,153 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 16:53:19,401 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 16:53:19,408 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 16:53:21,518 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 16:53:21,525 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 16:53:22,054 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 16:53:22,072 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 16:53:25,139 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 16:53:25,153 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 16:53:26,193 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 16:53:26,198 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 16:53:29,363 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 16:53:29,556 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 16:53:29,575 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 16:53:30,904 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 16:53:30,910 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 16:53:31,880 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 16:53:31,925 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 16:53:39,459 | INFO | qubic.api | Real volume calculation started
+2026-10-28 16:53:40,941 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-28 16:53:42,881 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-28 16:53:43,718 | INFO | qubic.api | Measurement '2723' saved successfully by 'rui'
+2026-10-28 16:54:08,335 | INFO | qubic.api | Starting WebRTC offer with stream type: calibration
+2026-10-28 16:54:08,375 | INFO | qubic.api | Mask applied successfully
+2026-10-28 16:54:08,424 | INFO | qubic.api | Current menu changed to 'calibration-menu'
+2026-10-28 16:54:08,546 | INFO | qubic.api | Mask applied successfully
+2026-10-28 16:54:08,599 | INFO | qubic.api | Mask applied successfully
+2026-10-28 16:54:08,643 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 16:54:08,645 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 16:54:23,568 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 16:54:23,615 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 16:54:26,052 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 16:54:26,289 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 16:54:26,302 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 16:54:27,942 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 16:54:27,944 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 16:56:54,258 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 16:56:54,514 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 16:56:54,543 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 16:56:56,924 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 16:56:56,939 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 16:56:58,304 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 16:56:58,305 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 16:59:39,225 | INFO | qubic.api | Shutting down API
+2026-10-28 16:59:39,258 | INFO | qubic.weight | Weight thread stopped
+2026-10-28 16:59:39,267 | INFO | qubic.weight | Weight scale serial port closed
+2026-10-28 16:59:39,291 | INFO | qubic.camera | Camera capture loop stopped
+2026-10-28 16:59:39,292 | INFO | qubic.camera | Stopping camera
+2026-10-28 16:59:39,521 | INFO | qubic.camera | Camera stopped its service
+2026-10-28 16:59:40,318 | INFO | qubic | Starting Qubic
+2026-10-28 16:59:40,909 | INFO | qubic.weight | Weight scale connected successfully
+2026-10-28 16:59:40,973 | INFO | qubic.api | Frontend found: /home/marques/Tese/frontend/dist
+2026-10-28 16:59:40,974 | INFO | qubic.api | Starting API
+2026-10-28 16:59:41,015 | INFO | qubic.api | Calibration loaded successfully
+2026-10-28 16:59:41,016 | INFO | qubic.api | Last configuration loaded successfully
+2026-10-28 16:59:41,016 | INFO | qubic.api | Starting camera thread
+2026-10-28 16:59:41,016 | INFO | qubic.api | Starting weight thread
+2026-10-28 16:59:41,017 | INFO | qubic.weight | Weight thread started
+2026-10-28 16:59:41,017 | INFO | qubic.api | Starting update scheduler
+2026-10-28 16:59:42,359 | INFO | qubic.api | Measurement WebSocket connected by 'rui'
+2026-10-28 16:59:42,515 | INFO | qubic.api | Measurement WebSocket connected by 'rui'
+2026-10-28 16:59:42,532 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 16:59:42,564 | INFO | qubic.api | Measurement WebSocket connected by 'rui'
+2026-10-28 16:59:43,830 | INFO | qubic.api | Measurement WebSocket connected by 'rui'
+2026-10-28 16:59:43,870 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 16:59:43,886 | INFO | qubic.api | Measurement WebSocket connected by 'rui'
+2026-10-28 16:59:44,703 | INFO | qubic.frames | Frame rate set to 5 FPS | max exposure=4000 us | HDR max exposures=[4000, 4000]
+2026-10-28 16:59:44,799 | INFO | qubic.camera | Camera capture loop started
+2026-10-28 16:59:44,799 | INFO | qubic.camera | Camera started successfully
+2026-10-28 16:59:45,515 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 16:59:45,870 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 16:59:46,552 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 16:59:46,554 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 16:59:46,573 | INFO | qubic.api | Measurement WebSocket connected by 'rui'
+2026-10-28 16:59:52,573 | INFO | qubic.api | Real volume calculation started
+2026-10-28 16:59:54,047 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-28 16:59:55,673 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-28 16:59:56,406 | INFO | qubic.api | Measurement '2724' saved successfully by 'rui'
+2026-10-28 17:00:01,559 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 17:00:01,576 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 17:00:01,715 | INFO | qubic.api | Measurement WebSocket connected by 'rui'
+2026-10-28 17:00:05,179 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 17:00:05,195 | INFO | qubic.api | Measurement WebSocket connected by 'rui'
+2026-10-28 17:00:05,196 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 17:00:06,337 | INFO | qubic.api | Real volume calculation started
+2026-10-28 17:00:07,768 | INFO | qubic.camera | HDR processing completed successfully. Frames analyzed: 6
+2026-10-28 17:00:09,407 | INFO | qubic.api | Real volume calculation completed successfully
+2026-10-28 17:00:09,910 | INFO | qubic.api | Measurement '2725' saved successfully by 'rui'
+2026-10-28 17:08:14,071 | INFO | qubic.api | Shutting down API
+2026-10-28 17:08:14,116 | INFO | qubic.weight | Weight thread stopped
+2026-10-28 17:08:14,124 | INFO | qubic.weight | Weight scale serial port closed
+2026-10-28 17:08:14,323 | INFO | qubic.camera | Camera capture loop stopped
+2026-10-28 17:08:14,323 | INFO | qubic.camera | Stopping camera
+2026-10-28 17:08:14,556 | INFO | qubic.camera | Camera stopped its service
+2026-10-28 17:08:14,561 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 17:08:15,694 | INFO | qubic | Starting Qubic
+2026-10-28 17:08:16,270 | INFO | qubic.weight | Weight scale connected successfully
+2026-10-28 17:08:16,337 | INFO | qubic.api | Frontend found: /home/marques/Tese/frontend/dist
+2026-10-28 17:08:16,338 | INFO | qubic.api | Starting API
+2026-10-28 17:08:16,379 | INFO | qubic.api | Calibration loaded successfully
+2026-10-28 17:08:16,380 | INFO | qubic.api | Last configuration loaded successfully
+2026-10-28 17:08:16,380 | INFO | qubic.api | Starting camera thread
+2026-10-28 17:08:16,380 | INFO | qubic.api | Starting weight thread
+2026-10-28 17:08:16,380 | INFO | qubic.weight | Weight thread started
+2026-10-28 17:08:16,380 | INFO | qubic.api | Starting update scheduler
+2026-10-28 17:08:17,688 | INFO | qubic.api | Measurement WebSocket connected by 'rui'
+2026-10-28 17:08:17,728 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 17:08:17,748 | INFO | qubic.api | Measurement WebSocket connected by 'rui'
+2026-10-28 17:08:18,676 | INFO | qubic.api | Measurement WebSocket connected by 'rui'
+2026-10-28 17:08:20,075 | INFO | qubic.frames | Frame rate set to 5 FPS | max exposure=4000 us | HDR max exposures=[4000, 4000]
+2026-10-28 17:08:20,172 | INFO | qubic.camera | Camera capture loop started
+2026-10-28 17:08:20,172 | INFO | qubic.camera | Camera started successfully
+2026-10-28 17:08:20,666 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 17:08:27,837 | INFO | qubic.api | Measurement WebSocket connected by 'rui'
+2026-10-28 17:08:28,128 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 17:08:28,181 | INFO | qubic.api | Measurement WebSocket connected by 'rui'
+2026-10-28 17:08:28,186 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 17:11:54,627 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 17:11:54,690 | INFO | qubic.api | Measurement WebSocket connected by 'rui'
+2026-10-28 17:11:54,697 | INFO | qubic.api | Starting WebRTC offer with stream type: calibration
+2026-10-28 17:11:54,753 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:11:54,787 | INFO | qubic.api | Current menu changed to 'calibration-menu'
+2026-10-28 17:11:54,837 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:11:54,961 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:11:55,165 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:11:55,374 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:11:55,604 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:11:55,804 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:11:56,023 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:11:56,242 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:11:56,446 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:11:56,683 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:11:56,901 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:11:57,122 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:11:57,335 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:11:57,535 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:11:57,792 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:11:58,028 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:11:58,231 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:11:58,443 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:11:58,668 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:11:58,848 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:11:59,093 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:11:59,309 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:11:59,521 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:11:59,723 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:11:59,925 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:00,155 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:00,376 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:00,581 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:00,791 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:00,996 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:01,218 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:01,432 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:01,634 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:01,874 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:02,095 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:02,321 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:02,526 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:02,633 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 17:12:02,638 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 17:12:02,664 | INFO | qubic.api | Measurement WebSocket connected by 'rui'
+2026-10-28 17:12:02,665 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 17:12:07,875 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 17:12:07,880 | INFO | qubic.api | Starting WebRTC offer with stream type: calibration
+2026-10-28 17:12:07,886 | INFO | qubic.api | Measurement WebSocket connected by 'rui'
+2026-10-28 17:12:07,932 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:07,980 | INFO | qubic.api | Current menu changed to 'calibration-menu'
+2026-10-28 17:12:08,031 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:08,140 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:08,353 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:08,560 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:08,762 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:09,001 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:09,216 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:09,464 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:09,643 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:09,877 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:10,079 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:10,301 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:10,515 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:10,727 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:10,943 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:11,150 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:11,365 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:11,608 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:11,810 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:12,026 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:12,257 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:12,472 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:12,683 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:12,900 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:13,119 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:13,328 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:13,549 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:13,761 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:13,973 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:14,188 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:14,397 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:14,606 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:14,834 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:15,060 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:15,277 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:15,519 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:15,704 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:15,925 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:16,131 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:16,343 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:16,561 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:16,789 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:16,986 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:17,215 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:17,441 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:17,685 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:17,893 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:18,130 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:18,330 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:18,549 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:18,770 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:18,983 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:19,206 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:19,406 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:19,622 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:19,840 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:20,034 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:20,264 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:20,477 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:20,693 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:20,913 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:21,148 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:21,325 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:21,565 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:21,780 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:22,002 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:22,223 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:22,427 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:22,645 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:22,851 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:23,076 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:23,296 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:23,507 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:23,740 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:23,959 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:24,165 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:24,373 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:24,593 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:24,827 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:25,022 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:25,240 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:25,469 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:12:25,631 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 17:12:25,632 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 17:12:25,686 | INFO | qubic.api | Measurement WebSocket connected by 'rui'
+2026-10-28 17:12:25,694 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 17:13:17,309 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 17:13:17,337 | INFO | qubic.api | Measurement WebSocket connected by 'rui'
+2026-10-28 17:13:17,341 | INFO | qubic.api | Starting WebRTC offer with stream type: calibration
+2026-10-28 17:13:17,374 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:17,437 | INFO | qubic.api | Current menu changed to 'calibration-menu'
+2026-10-28 17:13:17,473 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:17,603 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:17,808 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:18,033 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:18,244 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:18,446 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:18,688 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:18,918 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:19,124 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:19,334 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:19,557 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:19,765 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:19,976 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:20,175 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:20,401 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:20,648 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:20,849 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:21,048 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:21,282 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:21,487 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:21,701 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:21,908 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:22,142 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:22,356 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:22,569 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:22,797 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:22,997 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:23,214 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:23,421 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:23,651 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:23,876 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:24,124 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:24,320 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:24,551 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:24,742 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:24,958 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:25,199 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:25,398 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:25,606 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:25,832 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:26,025 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:26,265 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:26,483 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:26,704 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:26,912 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:27,124 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:27,356 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:27,563 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:27,785 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:27,981 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:28,203 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:28,411 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:28,625 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:28,848 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:29,060 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:29,289 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:29,502 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:29,692 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:29,926 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:30,141 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:30,348 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:30,546 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:30,778 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:30,990 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:31,175 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:31,401 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:31,612 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:31,823 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:32,037 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:32,282 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:32,513 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:32,785 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:32,972 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:33,179 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:33,396 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:33,639 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:33,828 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:34,057 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:34,265 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:34,484 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:34,713 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:34,918 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:35,145 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:35,339 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:35,543 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:35,772 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:35,998 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:36,206 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:36,427 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:36,641 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:36,884 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:37,112 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:37,301 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:37,511 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:37,726 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:37,939 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:38,149 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:38,382 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:38,586 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:38,784 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:39,009 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:39,212 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:39,421 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:39,640 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:39,869 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:40,083 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:40,306 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:40,531 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:40,781 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:40,961 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:41,160 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:41,401 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:41,610 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:41,817 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:42,045 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:42,245 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:42,455 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:42,694 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:42,902 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:43,113 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:43,335 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:43,543 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:43,774 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:43,987 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:44,200 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:44,401 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:44,645 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:44,849 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:45,056 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:45,275 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:45,480 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:45,697 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:45,912 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:46,140 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:46,362 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:46,592 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:46,799 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:46,991 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:47,215 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:47,454 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:47,642 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:47,907 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:48,098 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:48,319 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:48,525 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:48,759 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:48,961 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:49,214 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:49,438 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:49,639 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:49,836 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:50,058 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:50,276 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:50,490 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:50,715 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:50,924 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:51,138 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:51,361 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:51,571 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:51,794 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:51,993 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:52,220 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:52,435 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:52,658 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:52,869 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:53,105 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:53,286 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:53,512 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:53,745 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:53,945 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:54,161 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:54,382 | INFO | qubic.api | Mask applied successfully
+2026-10-28 17:13:54,496 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 17:13:54,496 | INFO | qubic.api | Calibration mode changed to Automatic
+2026-10-28 17:13:54,583 | INFO | qubic.api | Measurement WebSocket connected by 'rui'
+2026-10-28 17:13:54,591 | INFO | qubic.api | Starting WebRTC offer with stream type: volume
+2026-10-28 17:20:28,759 | INFO | qubic.api | WebRTC connection closed
+2026-10-28 17:20:28,814 | INFO | qubic.api | Shutting down API
+2026-10-28 17:20:28,849 | INFO | qubic.weight | Weight thread stopped
+2026-10-28 17:20:28,858 | INFO | qubic.weight | Weight scale serial port closed
+2026-10-28 17:20:28,910 | INFO | qubic.camera | Camera capture loop stopped
+2026-10-28 17:20:28,910 | INFO | qubic.camera | Stopping camera
+2026-10-28 17:20:29,115 | INFO | qubic.camera | Camera stopped its service
+2026-10-28 17:20:29,119 | INFO | qubic.api | WebRTC connection closed

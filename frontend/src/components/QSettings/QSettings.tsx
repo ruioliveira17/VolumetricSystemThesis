@@ -423,14 +423,18 @@ function QSettings({
       {patchNotesOpen && (
         <div
           className="patch-notes-overlay"
-          onClick={() => setPatchNotesOpen(false)}
         >
           <div
             className="patch-notes-modal"
-            onClick={(e) => e.stopPropagation()}
           >
+            <div className="close-button" onClick={() => setPatchNotesOpen(false)}>
+              <div className="close-icon">
+                <CloseIcon />
+              </div>
+            </div>
+
             <span className="patch-notes-title">
-              {t("update.about")}
+              {t("update.patchNotes")}
               {releaseInfo?.version ? ` (${releaseInfo.version})` : ""}
             </span>
 

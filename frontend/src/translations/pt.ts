@@ -182,6 +182,7 @@ const pt = {
         newUpdateAvailable: "Nova Atualização Disponível",
         about: "Sobre",
         update: "Atualizar",
+        patchNotes: "Notas de Atualização",
     },
     power: {
         title: "Opções de Energia",

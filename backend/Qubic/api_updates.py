@@ -89,20 +89,29 @@ def get_installed_version() -> str:
 
 def get_install_id() -> str:
     """
-    Equivalente ao machineIdSync() do node-machine-id no Linux.
+    Obtém o MAC address da interface Ethernet eth0
+    e gera um identificador SHA-256.
     """
-    for path in ("/var/lib/dbus/machine-id", "/etc/machine-id"):
-        try:
-            raw = Path(path).read_text(encoding="utf-8")
-        except OSError:
-            continue
+    try:
+        mac_address = Path(
+            "/sys/class/net/eth0/address"
+        ).read_text().strip().lower()
 
-        machine_id = "".join(raw.split()).lower()
+        mac_address = mac_address.replace(":", "").replace("-", "")
 
-        if machine_id:
-            return hashlib.sha256(machine_id.encode("utf-8")).hexdigest()
+        if len(mac_address) != 12 or not all(
+            c in "0123456789abcdef" for c in mac_address
+        ):
+            raise ValueError("MAC address inválido.")
 
-    raise UpdateValidationError("Não foi possível obter o ID da máquina.")
+        return hashlib.sha256(
+            mac_address.encode("utf-8")
+        ).hexdigest()
+
+    except (OSError, ValueError) as e:
+        raise UpdateValidationError(
+            "Não foi possível obter o MAC address da interface eth0."
+        ) from e
 
 def fetch_remote_release() -> tuple[bool, dict | None, int | None]:
     """
@@ -120,6 +129,7 @@ def fetch_remote_release() -> tuple[bool, dict | None, int | None]:
         with urllib.request.urlopen(url, timeout=10) as resp:
             body = resp.read().decode("utf-8")
     except (urllib.error.URLError, TimeoutError) as exc:
+        print("UPDATE CHECK ERROR:", repr(exc), "| URL:", url)
         raise UpdateValidationError(
             "Não foi possível contactar o servidor de updates."
         ) from exc

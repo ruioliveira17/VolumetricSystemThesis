@@ -182,6 +182,7 @@ const fr = {
         newUpdateAvailable: "Nouvelle mise à jour disponible",
         about: "À propos",
         update: "Mettre à jour",
+        patchNotes: "Notes de mise à jour",
     },
     power: {
         title: "Options d'alimentation",

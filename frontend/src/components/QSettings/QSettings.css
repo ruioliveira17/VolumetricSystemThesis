@@ -871,15 +871,45 @@
 }
 
 .patch-notes-modal {
+  position: relative;
   background: #1e1e1e;
   color: #fff;
   border-radius: 12px;
-  padding: 20px;
+  height: auto;
   width: min(480px, 90vw);
   max-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.patch-notes-modal .patch-notes-title {
+  display: block;
+  margin-top: 20px;
+  margin-left: 5%;
+  margin-right: 15%;
+  color: white;
+  font-size: clamp(13px, 2cqh, 15px);
+}
+
+.patch-notes-modal .close-button {
+  position: absolute;
+  top: 15px;
+  right: 5%;
+}
+
+.patch-notes-body {
+  width: 95%;
+  align-self: center;
+  box-sizing: border-box;
   overflow-y: auto;
+  border-top: 1px solid #707070;
+  margin-top: 20px;
+  padding: 0 7% 20px;
 }
 
 .patch-notes-body p {
-  margin: 8px 0 0;
+  margin: 12px 0 0;
+  color: #999999;
+  font-size: clamp(11px, 1.59cqh, 13px);
 }

@@ -182,6 +182,7 @@ const en = {
         newUpdateAvailable: "New Update Available",
         about: "About",
         update: "Update",
+        patchNotes: "Patch Notes",
     },
     power: {
         title: "Power Options",
