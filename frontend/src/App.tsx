@@ -3,24 +3,25 @@ import "./styles/global.css";
 import "./styles/common.css";
 
 import NotificationsIcon from '@assets/icons/notifications.svg?react';
+import NotificationsWarningIcon from '@assets/icons/notificationsWarning.svg?react';
 import SettingsIcon from '@assets/icons/settings.svg?react';
-import SettingsUpdateIcon from '@assets/icons/settings_update.svg?react';
 import UserIcon from '@assets/icons/user.svg?react';
 
 // --------------------------------------------------------------------- //
 // |                            Imports                                | //
 // --------------------------------------------------------------------- //
-import { QChangePassword, QChangePasswordModal, QLogin, QRegister } from "./components/QLogin";
-import { QVolume } from "./components/QVolume";
-import { QMeasureHistory } from "./components/QMeasureHistory";
 import { QCalibration } from "./components/QCalibration";
+import { QChangePassword, QChangePasswordModal, QLogin, QRegister } from "./components/QLogin";
+import { QMeasureHistory } from "./components/QMeasureHistory";
+import { QNotifications } from "./components/QNotifications";
 import { QSettings } from "./components/QSettings";
 import { QSystemLoader } from "./components/QSystemLoader";
-import { QWindowResizer } from "./components/QWindowResizer";
+import { QToaster, notify } from "./components/QToast";
+import QTopBar from "./components/QTopBar";
 import { QUpdating } from "./components/QUpdating";
 import { QUserModal, QUserPanel } from "./components/QUser";
-import QTopBar from "./components/QTopBar";
-import { QToaster, notify } from "./components/QToast";
+import { QVolume } from "./components/QVolume";
+import { QWindowResizer } from "./components/QWindowResizer";
 
 import {apiFetch, apiJson, API_URL, setOnAuthFailure, storeTokens} from "./api/client"
 
@@ -173,6 +174,10 @@ function App(){
     const [userAnchorRect, setUserAnchorRect] = useState<DOMRect | null>(null);
     const [settingsAnchorEl, setSettingsAnchorEl] = useState<HTMLElement | null>(null);
     const [settingsAnchorRect, setSettingsAnchorRect] = useState<DOMRect | null>(null);
+    const [notificationsAnchorEl, setNotificationsAnchorEl] = useState<HTMLElement | null>(null);
+    const [notificationsAnchorRect, setNotificationsAnchorRect] = useState<DOMRect | null>(null);
+
+    const [showNotificationsPopup, setShowNotificationsPopup] = useState<boolean>(false);
 
     // -----------------------------
     // Config variables
@@ -4110,6 +4115,34 @@ function App(){
         };
     }, [showSettingsPopup, settingsAnchorEl]);
 
+    useEffect(() => {
+        if (!showNotificationsPopup || !notificationsAnchorEl) return;
+
+        const update = () => {
+            const notificationsIconRect = notificationsAnchorEl.getBoundingClientRect();
+            const notificationsContainerRect = appContainerRef.current!.getBoundingClientRect();
+
+            setNotificationsAnchorRect(
+                new DOMRect(
+                    notificationsIconRect.left - notificationsContainerRect.left,
+                    notificationsIconRect.top - notificationsContainerRect.top,
+                    notificationsIconRect.width,
+                    notificationsIconRect.height,
+                )
+            );
+        };
+
+        window.addEventListener('resize', update);
+        window.addEventListener('scroll', update, true);
+
+        update();
+
+        return () => {
+            window.removeEventListener('resize', update);
+            window.removeEventListener('scroll', update, true);
+        };
+    }, [showNotificationsPopup, notificationsAnchorEl]);
+
     const applyStatus = (status: any) => {
         setNewUpdateAvailable(Boolean(status.update_available));
         setReleaseInfo(
@@ -4290,18 +4323,34 @@ function App(){
                             collapsibleNav={collapsibleNav}
 
                             collapsibleActions={[
-                                // {
-                                //     key: 'notifications',
-                                //     label: 'Notifications',
-                                //     icon: <NotificationsIcon />,
-                                //     onClick: validateUpdate,
-                                // },
+                                {
+                                    key: 'notifications',
+                                    label: 'Notifications',
+                                    icon: newUpdateAvailable
+                                            ? <NotificationsWarningIcon />
+                                            : <NotificationsIcon />,
+                                    onClick: (e) => {
+                                        const notificationsIconRect = e.currentTarget.getBoundingClientRect();
+                                        const notificationsContainerRect = appContainerRef.current!.getBoundingClientRect();
+
+                                        setNotificationsAnchorEl(e.currentTarget);
+                                        setNotificationsAnchorRect(new DOMRect(
+                                            notificationsIconRect.left - notificationsContainerRect.left,
+                                            notificationsIconRect.top - notificationsContainerRect.top,
+                                            notificationsIconRect.width,
+                                            notificationsIconRect.height,
+                                        ));
+
+                                        setShowNotificationsPopup(true);
+                                        setShowSettingsPopup(false);
+                                        setShowUserPopup(false);
+                                    },
+                                    active: showNotificationsPopup,
+                                },
                                 {
                                     key: 'settings',
                                     label: 'Settings',
-                                    icon: newUpdateAvailable
-                                            ? <SettingsUpdateIcon />
-                                            : <SettingsIcon />,
+                                    icon: <SettingsIcon />,
                                     onClick: (e) => {
                                         const settingsIconRect = e.currentTarget.getBoundingClientRect();
                                         const settingsContainerRect = appContainerRef.current!.getBoundingClientRect();
@@ -4316,6 +4365,7 @@ function App(){
 
                                         setShowSettingsPopup(true);
                                         setShowUserPopup(false);
+                                        setShowNotificationsPopup(false);
                                     },
                                     active: showSettingsPopup,
                                 },
@@ -4340,6 +4390,7 @@ function App(){
                                         
                                         setShowUserPopup(true);
                                         setShowSettingsPopup(false);
+                                        setShowNotificationsPopup(false);
                                     },
                                     active: showUserPopup,
                                 },
@@ -4667,13 +4718,24 @@ function App(){
                                     changeLanguage={changeLanguage}
 
                                     version={version}
+
+                                    currentMenu={currentMenu}
+                                    setShowCropWindow={setShowCropWindow}
+                                    portalContainer={appContainerRef.current}
+                                />
+                            )}
+
+                            {/* Notifications Panel */}
+                            {showNotificationsPopup && (
+                                <QNotifications
+                                    t={t}
+                                    notificationsAnchorRect={notificationsAnchorRect}
+                                    setShowNotificationsPopup={setShowNotificationsPopup}
+                                    language={language}
                                     newUpdateAvailable={newUpdateAvailable}
                                     releaseInfo={releaseInfo}
                                     setUpdating={setUpdating}
                                     setIsUpdateInitiator={setIsUpdateInitiator}
-
-                                    currentMenu={currentMenu}
-                                    setShowCropWindow={setShowCropWindow}
                                     portalContainer={appContainerRef.current}
                                 />
                             )}
